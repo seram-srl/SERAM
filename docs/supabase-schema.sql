@@ -56,7 +56,7 @@ USING (
     auth.jwt() ->> 'email' IN (
         'barrientoso2401@gmail.com', 
         'fernandoaraujo1912@gmail.com', 
-        'fabricio@gmail.com', 
+        'sebastiansbs51@gmail.com', 
         'freddy@gmail.com'
     )
 );
