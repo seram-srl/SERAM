@@ -1,0 +1,30 @@
+# Reglas de Seguridad y Estructura para SERAM
+
+Este archivo define las directrices obligatorias de seguridad y desarrollo para el asistente de IA (Antigravity) al trabajar en este proyecto.
+
+## 🛡️ Reglas de Seguridad (Obligatorias)
+
+1. **Instalación Segura de Paquetes (npm install):**
+   - Al instalar cualquier dependencia nueva que no sea del núcleo estándar (`react`, `react-dom`, `vite`, `tailwindcss`), el asistente debe evaluar su reputación.
+   - Si el paquete es nuevo, poco conocido o de un desarrollador externo no verificado, se debe instalar obligatoriamente utilizando la bandera de seguridad:
+     ```bash
+     npm install <nombre-del-paquete> --ignore-scripts
+     ```
+   - Esto evita la ejecución automática de scripts de instalación que puedan contener código malicioso o de secuestro.
+
+2. **Auditorías de Seguridad Periódicas:**
+   - Cada vez que se agreguen o actualicen dependencias, el asistente debe ejecutar `npm audit` para validar la ausencia de vulnerabilidades conocidas.
+   - El asistente no debe descargar, ejecutar ni sugerir scripts externos no verificados (como comandos curl directos a terminal o descargas de repositorios desconocidos).
+
+3. **Verificación de Indicadores de Compromiso (IOCs):**
+   - Queda estrictamente prohibida la introducción o persistencia de referencias a dominios/IPs bajo sospecha (por ejemplo, aquellos asociados con la campaña Mini Shai-Hulud: `getsession.org`, `masscam.cloud`, `git-tanstack.com`, `83.142.209.194`).
+
+## 📁 Estructura y Estética del Código
+
+1. **Diseño Premium y Visualmente Atractivo:**
+   - La interfaz debe lucir profesional, moderna y de primer nivel (premium). Evitar colores planos y genéricos; usar paletas armoniosas (como esmeralda y pizarra para SERAM), degradados suaves y micro-animaciones.
+   - Mantener consistencia con Tailwind CSS y React.
+
+2. **Orden del Código:**
+   - No usar marcadores de posición (*placeholders*) en producción. Las imágenes dinámicas deben generarse o enlazarse correctamente.
+   - Mantener el archivo `package.json` limpio y libre de librerías innecesarias o duplicadas.

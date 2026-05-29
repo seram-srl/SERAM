@@ -1,0 +1,232 @@
+/* =============================================================================
+   CINEMATIC UI LAYER STYLES
+   Contratos del motor WebGL (webgl-parallax-logic.js):
+   ─ Canvas WebGL: position: fixed; z-index: 0; pointer-events: none  (FONDO)
+   ─ Estos componentes: z-index: 50+; pointer-events: auto            (UI)
+   Todo lo que floata sobre el canvas NUNCA debe usar position: static.
+   ============================================================================= */
+
+/* ─── VARIABLES DE CAPA ─────────────────────────────────────────────────────── */
+:root {
+  --z-canvas:           0;    /* WebGL background — intocable               */
+  --z-scroll-proxy:     1;    /* Proxy de altura para GSAP ScrollTrigger    */
+  --z-ui-base:         10;    /* Contenido HTML base (textos, secciones)    */
+  --z-ui-overlay:      50;    /* Overlays de contenido (MovieCredits)       */
+  --z-menu:           100;    /* Fullscreen Menu — siempre encima de todo   */
+  --z-cursor:         200;    /* Custom Cursor — capa más alta              */
+
+  /* Transiciones estándar para la capa UI */
+  --transition-menu:    cubic-bezier(0.76, 0, 0.24, 1);
+  --transition-credits: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast:    cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Durations */
+  --dur-menu-open:  0.85s;
+  --dur-menu-close: 0.6s;
+  --dur-credits:    1.2s;
+}
+
+/* =============================================================================
+   FULLSCREEN MENU — z-index: 100
+   pointer-events: none cuando cerrado, auto cuando abierto.
+   Ocupa 100vw × 100vh con transform de traslación para la animación de entrada.
+   ============================================================================= */
+
+.fullscreen-menu {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: var(--z-menu);
+  pointer-events: none;         /* Inactivo cuando cerrado — no bloquea el canvas */
+
+  /* Glassmorphism oscuro premium */
+  background: rgba(1, 4, 9, 0.0);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+
+  /* Transición de apertura/cierre */
+  transition:
+    background var(--dur-menu-open) var(--transition-menu),
+    backdrop-filter var(--dur-menu-open) var(--transition-menu);
+
+  /* Prevenir selección de texto durante animación */
+  user-select: none;
+}
+
+.fullscreen-menu.is-open {
+  pointer-events: auto;         /* Activo cuando el menú está abierto */
+  background: rgba(1, 4, 9, 0.92);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+/* Panel interior del menú */
+.fullscreen-menu__panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: clamp(3rem, 8vw, 8rem);
+  gap: 0;
+}
+
+/* Línea separadora decorativa */
+.fullscreen-menu__divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(0, 224, 60, 0.4), transparent);
+  margin-bottom: 2rem;
+  transform-origin: left;
+  transform: scaleX(0);
+}
+
+/* Cada ítem de navegación */
+.fullscreen-menu__item {
+  display: block;
+  overflow: hidden;             /* Para el clip de entrada del texto */
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+/* Texto del ítem — se anima hacia arriba al abrir */
+.fullscreen-menu__link {
+  display: block;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: clamp(2.5rem, 7vw, 7rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: rgba(255, 255, 255, 0.12);
+  text-decoration: none;
+  line-height: 1.05;
+  cursor: none;                 /* Usa el cursor personalizado */
+
+  /* Animación de entrada stagger */
+  transform: translateY(110%);
+  transition: color 0.3s var(--transition-fast);
+}
+
+/* Hover: de gris velado a blanco + acento verde */
+.fullscreen-menu__link:hover {
+  color: #ffffff;
+}
+
+/* Número de ítem decorativo (estilo Resn) */
+.fullscreen-menu__link::before {
+  content: attr(data-index);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: #00e03c;
+  vertical-align: super;
+  margin-right: 1rem;
+  opacity: 0.8;
+}
+
+/* Columna derecha: metadata del menú */
+.fullscreen-menu__meta {
+  position: absolute;
+  bottom: clamp(2rem, 5vw, 4rem);
+  right: clamp(2rem, 5vw, 4rem);
+  text-align: right;
+  pointer-events: none;
+
+  transform: translateY(20px);
+  opacity: 0;
+}
+
+.fullscreen-menu__meta-label {
+  font-size: 0.625rem;          /* 10px */
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+  margin-bottom: 0.5rem;
+}
+
+.fullscreen-menu__meta-value {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+}
+
+/* Botón de cierre/apertura (hamburger) */
+.menu-trigger {
+  position: relative;
+  z-index: calc(var(--z-menu) + 1);  /* Siempre encima del panel */
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  cursor: none;
+  pointer-events: auto;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.menu-trigger__bar {
+  width: 28px;
+  height: 1.5px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 2px;
+  transform-origin: center;
+  transition:
+    transform var(--dur-menu-open) var(--transition-menu),
+    opacity 0.3s var(--transition-fast),
+    width 0.4s var(--transition-menu);
+}
+
+/* Animación X al abrir */
+.menu-trigger.is-open .menu-trigger__bar:nth-child(1) {
+  transform: translateY(7.5px) rotate(45deg);
+  background: #ffffff;
+}
+.menu-trigger.is-open .menu-trigger__bar:nth-child(2) {
+  opacity: 0;
+  width: 0;
+}
+.menu-trigger.is-open .menu-trigger__bar:nth-child(3) {
+  transform: translateY(-7.5px) rotate(-45deg);
+  background: #ffffff;
+}
+
+
+/* =============================================================================
+   CINEMATIC FOOTER — Anclado al final del scroll de la página
+   Utilizado en MovieCredits.jsx con ScrollTrigger para desplazamiento progresivo
+   ============================================================================= */
+
+.cinematic-footer {
+  width: 100%;
+  z-index: var(--z-ui-base);
+  background: linear-gradient(
+    to top,
+    rgba(1, 4, 9, 0.98) 0%,
+    rgba(1, 4, 9, 0.6) 60%,
+    transparent 100%
+  );
+  overflow: hidden;
+  user-select: none;
+}
+
+.credits-column {
+  will-change: transform, opacity;
+}
+
+/* ─── RESPONSIVE ADJUSTMENTS ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .fullscreen-menu__link {
+    font-size: clamp(2rem, 11vw, 3.5rem);
+  }
+  .cinematic-footer {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+}
