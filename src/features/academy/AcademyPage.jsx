@@ -49,7 +49,7 @@ export default function AcademyPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
 
         {/* Course List */}
-        <div className="lg:col-span-8 space-y-6">
+        <div className={activeRole === 'AdminMod' ? 'lg:col-span-8 space-y-6' : 'lg:col-span-12 space-y-6'}>
           <div className="flex justify-between items-center">
             <h2 className="font-extrabold text-lg text-white">Cursos & Diplomados</h2>
             <span className="text-xs text-slate-500">Mostrando {courses.length} registros</span>
@@ -81,7 +81,6 @@ export default function AcademyPage() {
                   <button
                     onClick={() => handleAccessItem(course, 'course', () => triggerToast(`Abriendo: ${course.title}`, 'success'))}
                     className="bg-[#00e03c]/10 border border-[#00e03c]/30 text-[#00e03c] text-xs font-bold px-4 py-2 rounded-lg hover:bg-[#00e03c]/20 transition-colors flex items-center gap-1.5"
-                    data-cursor-text="VER"
                   >
                     {course.isPremium && !hasPremiumAccess && <Lock className="w-3.5 h-3.5 text-amber-400 animate-pulse" />}
                     Ver Contenido
@@ -101,34 +100,31 @@ export default function AcademyPage() {
           </div>
         </div>
 
-        {/* Admin Panel / Access Info */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="glass-panel-dark border border-white/[0.06] rounded-xl p-6 space-y-4">
-            <div className="flex items-center gap-2 border-b border-white/[0.06] pb-3">
-              <Shield className="w-4 h-4 text-rose-400" />
-              <h3 className="font-bold text-sm text-white">Panel de Gestión de Socios</h3>
-            </div>
+        {/* Admin Panel / Access Info (Solo visible para socios logueados) */}
+        {activeRole === 'AdminMod' && (
+          <div className="lg:col-span-4 space-y-6">
+            <div className="glass-panel-dark border border-white/[0.06] rounded-xl p-6 space-y-4">
+              <div className="flex items-center gap-2 border-b border-white/[0.06] pb-3">
+                <Shield className="w-4 h-4 text-rose-400" />
+                <h3 className="font-bold text-sm text-white">Panel de Gestión de Socios</h3>
+              </div>
 
-            {activeRole === 'AdminMod' && currentSocio ? (
-              <div className="bg-[#00e03c]/5 rounded-xl p-4 text-center space-y-3 border border-[#00e03c]/20">
-                <Shield className="w-8 h-8 text-[#00e03c] mx-auto animate-pulse" />
-                <p className="text-xs text-slate-300 font-semibold">¡Hola, {currentSocio.name.split(' ')[1]}!</p>
-                <p className="text-xs text-slate-500">Para registrar y administrar cursos, dirígete a tu Dashboard directivo.</p>
-                <button
-                  onClick={() => navigate('/dashboard')}
-                  className="w-full bg-[#00e03c]/10 border border-[#00e03c]/30 text-[#00e03c] py-2 rounded-lg font-bold text-xs uppercase hover:bg-[#00e03c]/20"
-                >
-                  Ir al Dashboard
-                </button>
-              </div>
-            ) : (
-              <div className="bg-white/[0.02] rounded-xl p-4 text-center space-y-3 border border-white/[0.06]">
-                <Lock className="w-8 h-8 text-slate-600 mx-auto" />
-                <p className="text-xs text-slate-500">Los controles de creación están centralizados en el Dashboard Directivo privado.</p>
-              </div>
-            )}
+              {currentSocio && (
+                <div className="bg-[#00e03c]/5 rounded-xl p-4 text-center space-y-3 border border-[#00e03c]/20">
+                  <Shield className="w-8 h-8 text-[#00e03c] mx-auto animate-pulse" />
+                  <p className="text-xs text-slate-300 font-semibold">¡Hola, {currentSocio.name.split(' ')[1]}!</p>
+                  <p className="text-xs text-slate-500">Para registrar y administrar cursos, dirígete a tu Dashboard directivo.</p>
+                  <button
+                    onClick={() => navigate('/dashboard')}
+                    className="w-full bg-[#00e03c]/10 border border-[#00e03c]/30 text-[#00e03c] py-2 rounded-lg font-bold text-xs uppercase hover:bg-[#00e03c]/20"
+                  >
+                    Ir al Dashboard
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </motion.div>
   );

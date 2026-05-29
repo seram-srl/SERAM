@@ -6,6 +6,10 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        display: ['Outfit', 'sans-serif'],
+        tech: ['Space Grotesk', 'sans-serif'],
+      },
       colors: {
         seram: {
           green: '#009E28',

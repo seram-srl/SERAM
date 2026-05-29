@@ -6,7 +6,7 @@ import {
   ShoppingCart, Lock, CheckCircle,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import MovieCredits from '../../components/ui/MovieCredits';
+// HERO SECTION
 
 const pageVariants = {
   initial: { opacity: 0, y: 24 },
@@ -20,6 +20,22 @@ export default function HomePage() {
     handleRegister, handleAddToCart, handleAccessItem,
     hasPremiumAccess, products,
   } = useApp();
+
+  // Scroll Infinito Loop (Continuo e Inmersivo)
+  React.useEffect(() => {
+    const handleScroll = () => {
+      const totalHeight = document.documentElement.scrollHeight;
+      const viewportHeight = window.innerHeight;
+      const currentScroll = window.scrollY;
+
+      // Cuando llega al final, retorna imperceptiblemente al inicio
+      if (currentScroll + viewportHeight >= totalHeight - 15) {
+        window.scrollTo(0, 4);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const pillars = [
     {
@@ -86,13 +102,13 @@ export default function HomePage() {
           <div className="space-y-3">
             <motion.h1
               initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.7 }}
-              className="text-6xl sm:text-7xl lg:text-8xl font-black text-white leading-none tracking-tighter"
+              className="text-6xl sm:text-7xl lg:text-8xl font-black text-white leading-none tracking-tighter font-display cinematic-hover-text"
             >
               SERAM
             </motion.h1>
             <motion.p
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
-              className="text-[#00e03c] text-lg sm:text-xl font-black uppercase tracking-[0.35em]"
+              className="text-[#00e03c] text-lg sm:text-xl font-black uppercase tracking-[0.35em] font-tech"
             >
               Servicios Ambientales
             </motion.p>
@@ -235,10 +251,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* ── FOOTER CINEMATOGRÁFICO DE CRÉDITOS (Animado por ScrollTrigger) ── */}
-      <MovieCredits />
-
     </motion.div>
   );
 }

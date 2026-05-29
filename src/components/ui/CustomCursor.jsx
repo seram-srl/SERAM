@@ -42,10 +42,10 @@ export default function CustomCursor() {
       setTrail((prev) => {
         const dx = position.x - prev.x;
         const dy = position.y - prev.y;
-        // 0.15 is the lag coefficient (lower = more lag / drag)
+        // 0.45 is the lag coefficient (0.45 = extremely fast and fluid)
         return {
-          x: prev.x + dx * 0.15,
-          y: prev.y + dy * 0.15,
+          x: prev.x + dx * 0.45,
+          y: prev.y + dy * 0.45,
         };
       });
       animationFrameId = requestAnimationFrame(updateTrail);
@@ -61,9 +61,6 @@ export default function CustomCursor() {
       const target = e.target.closest('a, button, [role="button"], .cursor-hover-premium');
       if (target) {
         setHovered(true);
-        // If the target has a specific data attribute, show custom text inside the cursor
-        const text = target.getAttribute('data-cursor-text') || '';
-        setHoverText(text);
       }
     };
 
@@ -71,7 +68,6 @@ export default function CustomCursor() {
       const target = e.target.closest('a, button, [role="button"], .cursor-hover-premium');
       if (target) {
         setHovered(false);
-        setHoverText('');
       }
     };
 
@@ -90,7 +86,7 @@ export default function CustomCursor() {
     <>
       {/* 1. Inner small dot (Snaps directly to cursor) */}
       <div
-        className="fixed pointer-events-none z-[9999] w-1.5 h-1.5 bg-[#00e03c] rounded-full -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 mix-blend-screen"
+        className="fixed pointer-events-none z-[9999] w-1.5 h-1.5 bg-[#00e03c] rounded-full -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 mix-blend-screen shadow-[0_0_8px_#00e03c]"
         style={{
           left: `${position.x}px`,
           top: `${position.y}px`,
@@ -98,25 +94,19 @@ export default function CustomCursor() {
         }}
       />
 
-      {/* 2. Outer cinematic circle (Trails smoothly behind) */}
+      {/* 2. Outer cinematic circle (Trails smoothly and extremely fast behind) */}
       <div
-        className={`fixed pointer-events-none z-[9998] rounded-full -translate-x-1/2 -translate-y-1/2 flex items-center justify-center text-[8px] font-black tracking-widest text-slate-950 uppercase select-none transition-all duration-300 mix-blend-screen ${
+        className={`fixed pointer-events-none z-[9998] rounded-full -translate-x-1/2 -translate-y-1/2 flex items-center justify-center select-none transition-all duration-300 mix-blend-screen ${
           hovered 
-            ? 'w-16 h-16 bg-white border-none shadow-[0_0_24px_rgba(0,224,60,0.4)]' 
-            : 'w-8 h-8 border border-white/40 bg-transparent'
+            ? 'w-14 h-14 border border-[#00e03c] bg-[#00e03c]/5 shadow-[0_0_16px_rgba(0,224,60,0.35)]' 
+            : 'w-7 h-7 border border-[#00e03c]/40 bg-transparent'
         }`}
         style={{
           left: `${trail.x}px`,
           top: `${trail.y}px`,
           transform: `translate(-50%, -50%) scale(${clicked ? 0.85 : 1})`,
         }}
-      >
-        <span 
-          className={`transition-opacity duration-200 text-[#010409] font-bold ${hovered && hoverText ? 'opacity-100' : 'opacity-0'}`}
-        >
-          {hoverText}
-        </span>
-      </div>
+      />
     </>
   );
 }

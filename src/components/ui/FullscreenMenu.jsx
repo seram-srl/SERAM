@@ -141,7 +141,6 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
                     `fullscreen-menu__link ${isActive ? 'is-active' : ''}`
                   }
                   data-index={item.index}
-                  data-cursor-text="IR"
                   style={({ isActive }) => ({
                     color: isActive ? 'rgba(0, 224, 60, 0.85)' : undefined,
                   })}
@@ -160,7 +159,6 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
                     `fullscreen-menu__link ${isActive ? 'is-active' : ''}`
                   }
                   data-index="06"
-                  data-cursor-text="PANEL"
                   style={({ isActive }) => ({
                     color: isActive ? '#00e03c' : 'rgba(0, 224, 60, 0.4)',
                   })}
@@ -204,21 +202,22 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
             <p className="fullscreen-menu__meta-label">Sección Activa</p>
             <p className="fullscreen-menu__meta-value">{getActiveLabel()}</p>
 
-            <p className="fullscreen-menu__meta-label" style={{ marginTop: '1rem' }}>
-              Plataforma
+            <p className="fullscreen-menu__meta-label" style={{ marginTop: '1.25rem' }}>
+              Dirección & Socios
             </p>
             <p className="fullscreen-menu__meta-value">
-              SERAM — Servicios Ambientales<br />
-              v2.5 / 2026
+              Ing. Diego Barrientos<br />
+              Ing. Fernando Araujo<br />
+              Ing. Fabricio Orozco
             </p>
 
-            <p className="fullscreen-menu__meta-label" style={{ marginTop: '1rem' }}>
-              Socios Fundadores
+            <p className="fullscreen-menu__meta-label" style={{ marginTop: '1.25rem' }}>
+              Legales
             </p>
-            <p className="fullscreen-menu__meta-value">
-              Ing. Carlos Mendoza<br />
-              Ing. Elena Rostova<br />
-              Ing. Javier Altamirano
+            <p className="fullscreen-menu__meta-value text-right" style={{ fontSize: '0.68rem', opacity: 0.8, lineHeight: 1.6 }}>
+              <a href="#" className="hover:text-[#00e03c] transition-colors" style={{ cursor: 'none' }}>Términos y condiciones</a><br />
+              <a href="#" className="hover:text-[#00e03c] transition-colors" style={{ cursor: 'none' }}>Políticas y cookies</a><br />
+              <span className="text-slate-500 text-[9px] uppercase tracking-wider block mt-1">© 2026 SERAM. v2.5</span>
             </p>
           </div>
         </div>

@@ -75,7 +75,6 @@ export default function Navbar({ isOpen, onToggle }) {
             navigate('/');
             handleLogoSecretClick();
           }}
-          data-cursor-text="INICIO"
         >
           <div className="relative w-10 h-10 shrink-0">
             <svg viewBox="0 0 100 100" className="w-full h-full">
@@ -110,7 +109,6 @@ export default function Navbar({ isOpen, onToggle }) {
       <button
         onClick={() => setShowCart(!showCart)}
         className="fixed top-6 right-6 z-[110] p-3 rounded-full bg-slate-950/80 border border-white/10 hover:border-[#00e03c] text-slate-400 hover:text-[#00e03c] transition-all cursor-none pointer-events-auto"
-        data-cursor-text="CARRITO"
       >
         <ShoppingCart className="w-4 h-4" />
         {cartTotal > 0 && (

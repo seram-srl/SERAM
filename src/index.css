@@ -107,3 +107,20 @@ a, button, [role="button"], .cursor-hover-premium {
 .animate-slideLeft {
   animation: slideLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* 6. Cinematic Spark/Neon Hover Effect on Text */
+.cinematic-hover-text {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-block;
+  cursor: none !important;
+}
+
+.cinematic-hover-text:hover {
+  color: #00e03c !important;
+  text-shadow: 
+    0 0 8px rgba(0, 224, 60, 0.8),
+    0 0 15px rgba(0, 224, 60, 0.4),
+    0 0 30px rgba(0, 224, 60, 0.2);
+  transform: scale(1.03) translateY(-1px);
+}
+

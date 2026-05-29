@@ -7,34 +7,30 @@ gsap.registerPlugin(ScrollTrigger);
 
 /**
  * @component WebGLBackground
- * @description Lienzo WebGL tridimensional de fondo para el efecto Parallax interactivo.
- * Soporta texturas dinámicas (Fase 3) con fallback robusto a rejilla wireframe.
- *
- * @param {string} bgTextureUrl - URL opcional para textura de fondo (CDN / Supabase Storage).
- * @param {string} midTextureUrl - URL opcional para textura del plano medio.
- * @param {string} fgTextureUrl - URL opcional para textura del primer plano.
+ * @description Lienzo WebGL tridimensional con una constelación de partículas interconectadas en 3D.
+ * Implementa el efecto Parallax tridimensional (Scroll Z-depth) y movimiento de inercia flotante con el mouse.
  */
-export default function WebGLBackground({ bgTextureUrl, midTextureUrl, fgTextureUrl }) {
+export default function WebGLBackground() {
   const containerRef = useRef(null);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    // 1. ESTADO INTERNO DEL MOTOR (Cinemática LERP e inercia)
+    // 1. ESTADO DEL MOTOR (Inercia LERP)
     const state = {
       mouseX: 0,
       mouseY: 0,
       targetX: 0,
       targetY: 0,
-      lerpFactor: 0.05,  // Calibrado a 0.05 para la inercia del mouse
-      cameraZTarget: 5,  // Modulado por ScrollTrigger
+      lerpFactor: 0.05,
+      cameraZTarget: 5,  // Conectado a ScrollTrigger
     };
 
-    // 2. CONFIGURACIÓN DEL CONTEXTO GRÁFICO (GPU)
+    // 2. CONFIGURACIÓN DEL CONTEXTO GRÁFICO (Scene, Camera, Renderer)
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x050505); // Fondo oscuro alineado a guías
-    scene.fog = new THREE.FogExp2(0x050505, 0.03); // Niebla técnica para difuminar bordes
+    scene.background = new THREE.Color(0x010409); // Oscuro premium SERAM
+    scene.fog = new THREE.FogExp2(0x010409, 0.04); // Niebla sutil para profundidad cinemática
 
     const camera = new THREE.PerspectiveCamera(
       75,
@@ -46,84 +42,55 @@ export default function WebGLBackground({ bgTextureUrl, midTextureUrl, fgTexture
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limitador de rendimiento
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Límite para pantallas 4K/Retina
     container.appendChild(renderer.domElement);
 
-    // 3. CONSTRUCCIÓN DE LAS CAPAS TRIDIMENSIONALES (Texturas con Fallback Wireframe)
-    const textureLoader = new THREE.TextureLoader();
+    // 3. CONSTRUCCIÓN DE LA CONSTELACIÓN DE PARTÍCULAS 3D (650 estrellas ecológicas)
+    const particleCount = 650;
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
 
-    // Capa Lejana (Background) - Z: -15
-    const bgGeometry = new THREE.PlaneGeometry(35, 20, 16, 16);
-    let bgMaterial;
-    if (bgTextureUrl) {
-      bgMaterial = new THREE.MeshBasicMaterial({
-        map: textureLoader.load(bgTextureUrl, undefined, undefined, (err) => {
-          console.warn('[WebGL BG]: Error al cargar la textura del CDN. Activando fallback wireframe.', err);
-        }),
-        transparent: true,
-        opacity: 0.8,
-        depthWrite: false
-      });
-    } else {
-      bgMaterial = new THREE.MeshBasicMaterial({
-        color: 0x2e5925, // Verde orgánico de SERAM
-        wireframe: true,
-        transparent: true,
-        opacity: 0.25,
-        depthWrite: false
-      });
+    const greenColor = new THREE.Color(0x00e03c); // Verde brillante
+    const silverColor = new THREE.Color(0xe2e8f0); // Plata/blanco suave
+
+    for (let i = 0; i < particleCount; i++) {
+      // Distribución aleatoria en una caja tridimensional (X: -16 a 16, Y: -12 a 12, Z: -35 a 10)
+      const x = (Math.random() - 0.5) * 32;
+      const y = (Math.random() - 0.5) * 24;
+      const z = Math.random() * -45 + 10; 
+
+      positions[i * 3] = x;
+      positions[i * 3 + 1] = y;
+      positions[i * 3 + 2] = z;
+
+      // Color mixto: 70% verdes brillantes, 30% plateadas
+      const isGreen = Math.random() > 0.3;
+      const mixedColor = isGreen ? greenColor : silverColor;
+
+      colors[i * 3] = mixedColor.r;
+      colors[i * 3 + 1] = mixedColor.g;
+      colors[i * 3 + 2] = mixedColor.b;
     }
-    const layerBG = new THREE.Mesh(bgGeometry, bgMaterial);
-    layerBG.position.z = -15;
-    scene.add(layerBG);
 
-    // Capa Media (Midground) - Z: -5
-    const midGeometry = new THREE.PlaneGeometry(16, 9, 12, 12);
-    let midMaterial;
-    if (midTextureUrl) {
-      midMaterial = new THREE.MeshBasicMaterial({
-        map: textureLoader.load(midTextureUrl, undefined, undefined, (err) => {
-          console.warn('[WebGL Mid]: Error al cargar textura. Usando fallback wireframe.', err);
-        }),
-        transparent: true,
-        opacity: 0.95
-      });
-    } else {
-      midMaterial = new THREE.MeshBasicMaterial({
-        color: 0x00e03c, // Acento Verde Neón
-        wireframe: true,
-        transparent: true,
-        opacity: 0.65
-      });
-    }
-    const layerMid = new THREE.Mesh(midGeometry, midMaterial);
-    layerMid.position.z = -5;
-    scene.add(layerMid);
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-    // Capa Cercana (Foreground) - Z: 1 (Desfase asimétrico)
-    const fgGeometry = new THREE.PlaneGeometry(12, 12, 8, 8);
-    let fgMaterial;
-    if (fgTextureUrl) {
-      fgMaterial = new THREE.MeshBasicMaterial({
-        map: textureLoader.load(fgTextureUrl, undefined, undefined, (err) => {
-          console.warn('[WebGL FG]: Error al cargar textura. Usando fallback wireframe.', err);
-        }),
-        transparent: true,
-        opacity: 0.7
-      });
-    } else {
-      fgMaterial = new THREE.MeshBasicMaterial({
-        color: 0x2e5925, // Verde orgánico de SERAM
-        wireframe: true,
-        transparent: true,
-        opacity: 0.45
-      });
-    }
-    const layerFG = new THREE.Mesh(fgGeometry, fgMaterial);
-    layerFG.position.set(2, -1, 1);
-    scene.add(layerFG);
+    // Material de partículas suave y brillante
+    const material = new THREE.PointsMaterial({
+      size: 0.18,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.85,
+      sizeAttenuation: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
 
-    // 4. CAPTURA DE EVENTOS (Mouse y redimensionamiento)
+    const particles = new THREE.Points(geometry, material);
+    scene.add(particles);
+
+    // 4. CAPTURA DE EVENTOS (Mouse y Resize)
     const handleMouseMove = (e) => {
       state.mouseX = e.clientX - window.innerWidth / 2;
       state.mouseY = e.clientY - window.innerHeight / 2;
@@ -140,9 +107,9 @@ export default function WebGLBackground({ bgTextureUrl, midTextureUrl, fgTexture
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('resize', handleResize);
 
-    // 5. CONTROLADOR CINEMÁTICO DE SCROLL (GSAP ScrollTrigger)
+    // 5. CONTROLADOR CINEMÁTICO DE SCROLL (GSAP ScrollTrigger para Parallax Z-Depth)
     const scrollTween = gsap.to(state, {
-      cameraZTarget: -8, // Cruzará los planos medio y cercano
+      cameraZTarget: -12, // Vuela a través de las partículas
       ease: 'none',
       scrollTrigger: {
         trigger: '.scroll-proxy',
@@ -152,69 +119,54 @@ export default function WebGLBackground({ bgTextureUrl, midTextureUrl, fgTexture
       }
     });
 
-    // 6. BUCLE DE EJECUCIÓN (requestAnimationFrame)
+    // 6. BUCLE DE EJECUCIÓN (render animado a 60fps)
     let animationFrameId;
     
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
 
-      // Suavizado del movimiento horizontal y vertical con LERP (0.05)
-      state.targetX += (state.mouseX * 0.0015 - state.targetX) * state.lerpFactor;
-      state.targetY += (state.mouseY * 0.0015 - state.targetY) * state.lerpFactor;
+      // Rotación automática muy suave para mantener viva la constelación
+      particles.rotation.y += 0.0004;
+      particles.rotation.x += 0.0002;
+
+      // LERP físico para el movimiento del mouse (Parallax flotante)
+      state.targetX += (state.mouseX * 0.0018 - state.targetX) * state.lerpFactor;
+      state.targetY += (state.mouseY * 0.0018 - state.targetY) * state.lerpFactor;
 
       camera.position.x = state.targetX;
-      camera.position.y = -state.targetY; // Invertir el eje Y
+      camera.position.y = -state.targetY; // Eje Y invertido
 
-      // Transición del scroll en el eje Z con suavizado adicional (0.1)
-      camera.position.z += (state.cameraZTarget - camera.position.z) * 0.1;
+      // LERP para la profundidad del Scroll (Z-Depth)
+      camera.position.z += (state.cameraZTarget - camera.position.z) * 0.08;
 
-      // Mantener la mirada en el centro de la escena
-      camera.lookAt(scene.position);
+      camera.lookAt(new THREE.Vector3(0, 0, -10)); // Mantener foco al fondo
 
       renderer.render(scene, camera);
     };
 
     animate();
 
-    // 7. LIMPIEZA PROFUNDA DE RECURSOS (Prevenir fugas en GPU)
+    // 7. LIMPIEZA PROFUNDA DE RECURSOS GPU (Prevenir memory leaks)
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationFrameId);
 
-      // Destruir el trigger y la animación GSAP
       if (scrollTween.scrollTrigger) {
         scrollTween.scrollTrigger.kill();
       }
       scrollTween.kill();
 
-      // Desvincular mallas de la escena
-      scene.remove(layerBG);
-      scene.remove(layerMid);
-      scene.remove(layerFG);
-
-      // Liberar recursos geométricos de la GPU
-      bgGeometry.dispose();
-      midGeometry.dispose();
-      fgGeometry.dispose();
-
-      // Liberar texturas si fueron cargadas
-      if (bgMaterial.map) bgMaterial.map.dispose();
-      if (midMaterial.map) midMaterial.map.dispose();
-      if (fgMaterial.map) fgMaterial.map.dispose();
-
-      // Liberar materiales
-      bgMaterial.dispose();
-      midMaterial.dispose();
-      fgMaterial.dispose();
-
+      scene.remove(particles);
+      geometry.dispose();
+      material.dispose();
       renderer.dispose();
       
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
     };
-  }, [bgTextureUrl, midTextureUrl, fgTextureUrl]);
+  }, []);
 
   return (
     <div
