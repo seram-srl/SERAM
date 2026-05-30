@@ -1,59 +1,120 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
 
 /**
- * Subcomponente interno que gestiona el renderizado 3D de la escena.
- * Lee el scroll nativo de forma asíncrona para no bloquear el flujo del DOM.
+ * Subcomponente interno de la escena 3D.
+ * Implementa física de deformación elástica por Raycasting sobre una planeGeometry de 32x32.
+ * Los vértices se deforman elásticamente en base a la cercanía del cursor y regresan a su forma
+ * original mediante una simulación física de resortes (Spring Physics).
  */
 function EnvironmentalScene() {
   const meshRef = useRef();
   
-  // Referencias mutables para almacenar la posición de scroll y evitar re-renders constantes
+  // Referencia mutable para el scroll de la ventana
   const scrollYRef = useRef(0);
   
-  // Captura el evento de scroll nativo de la ventana del navegador
   useEffect(() => {
     const handleScroll = () => {
       scrollYRef.current = window.scrollY;
     };
-    
-    // Escucha el evento scroll del DOM nativo
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // useFrame se ejecuta en cada fotograma del ciclo de renderizado de Three.js (RequestAnimationFrame)
+  // ── CONFIGURACIÓN DE PARÁMETROS FÍSICOS ────────────────────────────────────
+  const radius = 1.2;       // Radio de afectación del mouse sobre la malla
+  const intensity = -0.55;  // Fuerza de la deformación (negativo empuja hacia el fondo)
+  const springK = 0.08;     // Constante de elasticidad del resorte (retorno)
+  const damping = 0.88;     // Amortiguación/Fricción (evita oscilación infinita)
+  
+  // Número total de vértices en una planeGeometry de 32x32 (33 * 33 = 1089)
+  const vertexCount = 1089;
+
+  // Almacén mutable de velocidades físicas para cada vértice
+  const velocities = useMemo(() => new Float32Array(vertexCount), []);
+
   useFrame((state) => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+
+    const geometry = mesh.geometry;
+    const posAttr = geometry.attributes.position;
+
+    // ── 1. DETERMINAR PUNTO DE INTERSECCIÓN CON RAYCASTER ────────────────────
+    // state.pointer es la posición normalizada del ratón (-1 a 1) provista por R3F
+    state.raycaster.setFromCamera(state.pointer, state.camera);
+    const intersects = state.raycaster.intersectObject(mesh);
+
+    let localPoint = null;
+    if (intersects.length > 0) {
+      // Convertir el punto de intersección del espacio del mundo al espacio local de la malla
+      localPoint = mesh.worldToLocal(intersects[0].point.clone());
+    }
+
+    // ── 2. BUCLE DE SIMULACIÓN DE FÍSICA DE RESORTES (SPRING PHYSICS) ──────────
+    for (let i = 0; i < vertexCount; i++) {
+      const vx = posAttr.getX(i);
+      const vy = posAttr.getY(i);
+      let vz = posAttr.getZ(i);
+
+      // Si hay colisión con el puntero, aplicar la fuerza de empuje elástico
+      if (localPoint) {
+        // Distancia euclidiana 2D en el plano XY entre el vértice y el punto de impacto
+        const dx = vx - localPoint.x;
+        const dy = vy - localPoint.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < radius) {
+          // Relación de fuerza inversamente proporcional a la distancia
+          const factor = 1 - dist / radius;
+          const force = factor * intensity;
+          // Inyectar aceleración/velocidad física al vértice
+          velocities[i] += force * 0.12; 
+        }
+      }
+
+      // Ley de Hooke: Fuerza de restauración hacia el plano neutral Z: 0
+      const restorationForce = -vz * springK;
+      
+      // Actualizar velocidad con amortiguación (fricción)
+      velocities[i] = (velocities[i] + restorationForce) * damping;
+      
+      // Aplicar velocidad a la coordenada Z
+      vz += velocities[i];
+      
+      // Guardar la coordenada deforma de vuelta en el buffer de posiciones
+      posAttr.setZ(i, vz);
+    }
+
+    // Indicar a Three.js que las posiciones del buffer de geometría han cambiado en la GPU
+    posAttr.needsUpdate = true;
+    
+    // Recalcular normales para que la luz y el sombreado reaccionen dinámicamente al relieve
+    geometry.computeVertexNormals();
+
+    // ── 3. APLICAR ROTACIÓN Y PARALLAX DE SCROLL ADICIONAL ────────────────────
     const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-    // Normalizar la posición del scroll entre 0.0 y 1.0
     const normalizedScroll = scrollHeight > 0 ? scrollYRef.current / scrollHeight : 0;
 
-    if (meshRef.current) {
-      // ── AMORTIGUACIÓN LERP CINEMÁTICA ──────────────────────────────────────
-      // dx = (objetivo - actual) * factor_lerp (0.05 para inercia fluida)
-      
-      // 1. Rotación interactiva basada en el avance del scroll
-      const targetRotationY = normalizedScroll * Math.PI * 0.25; // Rotación máxima de 45 grados
-      meshRef.current.rotation.y += (targetRotationY - meshRef.current.rotation.y) * 0.05;
-      
-      // 2. Parallax Z-depth: La malla se aleja sutilmente al hacer scroll
-      const targetZ = normalizedScroll * -4; // Se desplaza hacia el fondo hasta Z: -4
-      meshRef.current.position.z += (targetZ - meshRef.current.position.z) * 0.05;
-    }
+    // Rotación suave del lienzo completo por scroll
+    const targetRotationY = normalizedScroll * Math.PI * 0.2;
+    mesh.rotation.y += (targetRotationY - mesh.rotation.y) * 0.05;
+
+    // Desplazamiento en profundidad (Parallax Z)
+    const targetZ = normalizedScroll * -3.5;
+    mesh.position.z += (targetZ - mesh.position.z) * 0.05;
   });
 
   return (
-    // Malla de prueba (Dummy) con plano verde ecológico traslúcido
     <mesh ref={meshRef} position={[0, 0, 0]}>
-      {/* 1. Geometría plana de 32x32 divisiones preparada para vertex shaders en el futuro */}
-      <planeGeometry args={[5, 5, 32, 32]} />
-      
-      {/* 2. Material básico en modo wireframe para validar el pipeline 3D */}
+      {/* Geometría plana de 32x32 preparada para la distorsión interactiva */}
+      <planeGeometry args={[5.5, 5.5, 32, 32]} />
       <meshBasicMaterial 
-        color="#009E28" 
+        color="#00e03c" 
         wireframe={true} 
         transparent={true} 
-        opacity={0.3} 
+        opacity={0.35} 
       />
     </mesh>
   );
@@ -61,12 +122,11 @@ function EnvironmentalScene() {
 
 /**
  * @component EnvironmentalCanvas
- * @description Contenedor global inmutable para el lienzo WebGL de fondo de SERAM.
- * Diseñado bajo arquitectura desacoplada para flotar como fondo absoluto del DOM nativo.
+ * @description Contenedor inmutable para el lienzo WebGL de fondo.
+ * Expone la escena tridimensional interactiva detrás del HTML nativo.
  */
 export default function EnvironmentalCanvas() {
   return (
-    // Contenedor HTML fijo absoluto que actúa como fondo e ignora clics (pointer-events: none)
     <div
       style={{
         position: 'fixed',
@@ -74,9 +134,9 @@ export default function EnvironmentalCanvas() {
         left: 0,
         width: '100vw',
         height: '100vh',
-        zIndex: -1, // Ubicado detrás de todo el contenido HTML del DOM
-        pointerEvents: 'none', // Permite que los clics sigan atravesando hacia los enlaces HTML
-        backgroundColor: '#010409', // Fondo oscuro alineado a la guía de estilo
+        zIndex: -1,
+        pointerEvents: 'none',
+        backgroundColor: '#010409',
       }}
     >
       <Canvas
@@ -84,15 +144,12 @@ export default function EnvironmentalCanvas() {
           fov: 75,
           near: 0.1,
           far: 1000,
-          position: [0, 0, 4], // Cámara posicionada en Z: 4 para encuadrar la escena
+          position: [0, 0, 4.2], // Cámara ubicada para encuadrar la malla perfectamente
         }}
-        // Optimización: Desactiva el renderizador cuando el canvas no es visible
         gl={{ antialias: true, alpha: false }}
-        dpr={[1, 1.5]} // Limita el pixel ratio a 1.5 en pantallas de ultra alta resolución (Retina/4K) para maximizar fps
+        dpr={[1, 1.5]}
       >
         <ambientLight intensity={0.5} />
-        
-        {/* Renderizado de la escena 3D ambiental */}
         <EnvironmentalScene />
       </Canvas>
     </div>
