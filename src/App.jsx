@@ -6,7 +6,7 @@ import { AnimatePresence } from 'framer-motion';
 // z-index y pointer-events definidos en src/components/ui/cinematic-ui.css
 import FullscreenMenu  from './components/ui/FullscreenMenu';
 import CustomCursor    from './components/ui/CustomCursor';
-import WebGLBackground from './components/ui/WebGLBackground';
+import EnvironmentalCanvas from './components/ui/EnvironmentalCanvas';
 import SecretAuthModal from './components/ui/SecretAuthModal';
 
 // ── Componentes globales de soporte
@@ -46,7 +46,7 @@ export default function App() {
       style={{ position: 'relative' }}
     >
       {/* ── CAPA z-0: Fondo WebGL tridimensional ─────────────────────────── */}
-      <WebGLBackground />
+      <EnvironmentalCanvas />
 
       {/* ── CAPA z-200: Cursor personalizado ─────────────────────────────── */}
       <CustomCursor />
