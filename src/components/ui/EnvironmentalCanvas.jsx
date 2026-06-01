@@ -265,7 +265,7 @@ function InteractiveScene() {
       {/* ── PANEL 1 ────────────────────────────────────────────────────────── */}
       {/* CAPA 1.1: Fondo principal Panel 1 (Paisaje ecológico con desenfoque de alta calidad) */}
       <mesh ref={bgMeshRef} position={[0, 0, -0.4]}>
-        <planeGeometry args={[6.0, 6.0, 8, 8]} />
+        <planeGeometry args={[16.0, 9.0, 8, 8]} />
         <meshBasicMaterial 
           map={bgTexture}
           transparent={true} 
@@ -277,7 +277,7 @@ function InteractiveScene() {
 
       {/* CAPA 1.2: Neblina tridimensional intermedia */}
       <mesh ref={mistMeshRef} position={[0, 0, -0.05]}>
-        <planeGeometry args={[5.8, 5.8, 8, 8]} />
+        <planeGeometry args={[16.0, 9.0, 8, 8]} />
         <meshBasicMaterial 
           map={mistTexture}
           transparent={true}
@@ -290,7 +290,7 @@ function InteractiveScene() {
 
       {/* CAPA 1.3: Primer plano con montañas y vegetación recortada (Interactiva) */}
       <mesh ref={fgMeshRef} position={[0, 0, 0.2]}>
-        <planeGeometry args={[5.8, 5.8, 32, 32]} />
+        <planeGeometry args={[16.0, 9.0, 32, 32]} />
         <meshBasicMaterial 
           map={fgTexture}
           transparent={true}
@@ -303,7 +303,7 @@ function InteractiveScene() {
       {/* ── PANEL 2 ────────────────────────────────────────────────────────── */}
       {/* CAPA 2.1: Fondo principal Panel 2 (Interactiva con deformación elástica de resortes) */}
       <mesh ref={bg2MeshRef} position={[0, 0, -0.38]}>
-        <planeGeometry args={[6.0, 6.0, 32, 32]} />
+        <planeGeometry args={[16.0, 9.0, 32, 32]} />
         <meshBasicMaterial 
           map={bg2Texture}
           transparent={true}
