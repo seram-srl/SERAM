@@ -46,7 +46,7 @@ export default function App() {
       style={{ position: 'relative' }}
     >
       {/* ── CAPA z-0: Fondo WebGL tridimensional ─────────────────────────── */}
-      <EnvironmentalCanvas />
+      {location.pathname !== '/' && <EnvironmentalCanvas />}
 
       {/* ── CAPA z-200: Cursor personalizado ─────────────────────────────── */}
       <CustomCursor />

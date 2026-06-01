@@ -101,7 +101,7 @@
   color: rgba(255, 255, 255, 0.12);
   text-decoration: none;
   line-height: 1.05;
-  cursor: none;                 /* Usa el cursor personalizado */
+  cursor: pointer;                 /* Usa el cursor estándar */
 
   /* Animación de entrada stagger */
   transform: translateY(110%);
@@ -164,7 +164,7 @@
   justify-content: center;
   align-items: center;
   gap: 6px;
-  cursor: none;
+  cursor: pointer;
   pointer-events: auto;
   background: transparent;
   border: none;

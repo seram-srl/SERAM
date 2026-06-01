@@ -56,7 +56,7 @@
 
 /* 3. Interactive Custom Cursor Hover helpers */
 a, button, [role="button"], .cursor-hover-premium {
-  cursor: none !important; /* Hide native cursor for custom cursor experience */
+  cursor: pointer;
 }
 
 /* 4. Scrollbar stylized for dark cinematic environment */
@@ -112,7 +112,7 @@ a, button, [role="button"], .cursor-hover-premium {
 .cinematic-hover-text {
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   display: inline-block;
-  cursor: none !important;
+  cursor: pointer;
 }
 
 .cinematic-hover-text:hover {
