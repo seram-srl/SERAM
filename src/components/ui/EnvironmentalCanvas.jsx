@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { ScrollControls, useScroll, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
-import fondo1erPanel from '../../assets/fondo_1er_panel.webp';
+import fondoClaro from '../../assets/Imagen_16_9_con_desenfoque_202605300021.jpeg';
 import mountainsCutout from '../../assets/mountains_cutout.png';
 import fondo2doPanel from '../../assets/fondo2_2do_panel.webp';
 
@@ -81,7 +81,7 @@ function InteractiveScene() {
   const velocities2 = useMemo(() => new Float32Array(vertexCount), []);
 
   // Texturas de profundidad 3D diferenciadas
-  const bgTexture = useTexture(fondo1erPanel);
+  const bgTexture = useTexture(fondoClaro);
   const fgTexture = useTexture(mountainsCutout);
   const bg2Texture = useTexture(fondo2doPanel);
   const mistTexture = useMemo(() => createNoiseTexture(), []);
@@ -89,6 +89,15 @@ function InteractiveScene() {
   // Referencias para el LERP del mouse
   const currentMouseX = useRef(0);
   const currentMouseY = useRef(0);
+
+  // Referencias para el scroll circular suave
+  const currentScroll = useRef(0);
+
+  // Referencias para la neblina elástica (Física de resortes amortiguada)
+  const mistPosX = useRef(0);
+  const mistPosY = useRef(0);
+  const mistVelX = useRef(0);
+  const mistVelY = useRef(0);
 
   useFrame((state) => {
     const fgMesh = fgMeshRef.current;
@@ -173,11 +182,21 @@ function InteractiveScene() {
 
 
     // 2. SINCRONIZACIÓN DE SCROLL VIRTUAL Y TRANSICIÓN MECÁNICA FLUIDA
-    const normalizedScroll = scroll ? scroll.offset : 0;
+    const targetScroll = scroll ? scroll.offset : 0;
+    
+    // Interpolación circular por el camino más corto
+    let scrollDiff = targetScroll - currentScroll.current;
+    scrollDiff = scrollDiff - Math.round(scrollDiff); // Map to [-0.5, 0.5] range
+    
+    currentScroll.current += scrollDiff * 0.1; // LERP amortiguado suave
+    
+    // Normalizar a positivo en el rango [0, 1]
+    let renderedScroll = currentScroll.current % 1.0;
+    if (renderedScroll < 0) renderedScroll += 1.0;
     
     // Inclinación y profundidad basadas en el scroll (efecto túnel cinemático)
-    group.rotation.y = normalizedScroll * Math.PI * 0.12;
-    group.position.z = normalizedScroll * -2.8;
+    group.rotation.y = renderedScroll * Math.PI * 0.12;
+    group.position.z = renderedScroll * -2.8;
 
     // 3. EFECTO PARALLAX 3D POR MOVIMIENTO DEL MOUSE CON INERCIA LERP SUAVE
     const targetMouseX = state.pointer.x * 0.25;
@@ -191,8 +210,20 @@ function InteractiveScene() {
     bgMesh.position.x = currentMouseX.current * 0.35;
     bgMesh.position.y = currentMouseY.current * 0.35;
     
-    mistMesh.position.x = currentMouseX.current * 0.7;
-    mistMesh.position.y = currentMouseY.current * 0.7;
+    // Neblina Elástica (Física de resorte-amortiguador respecto al mouse)
+    const targetMistX = state.pointer.x * 0.5;
+    const targetMistY = state.pointer.y * 0.5;
+    
+    const mistForceX = (targetMistX - mistPosX.current) * 0.05; // Constante elástica
+    mistVelX.current = (mistVelX.current + mistForceX) * 0.85;  // Amortiguación
+    mistPosX.current += mistVelX.current;
+    
+    const mistForceY = (targetMistY - mistPosY.current) * 0.05;
+    mistVelY.current = (mistVelY.current + mistForceY) * 0.85;
+    mistPosY.current += mistVelY.current;
+    
+    mistMesh.position.x = mistPosX.current;
+    mistMesh.position.y = mistPosY.current;
     
     fgMesh.position.x = currentMouseX.current * 1.2;
     fgMesh.position.y = currentMouseY.current * 1.2;
@@ -209,22 +240,22 @@ function InteractiveScene() {
 
     // 4. TRANSICIÓN MECÁNICA FLUIDA DE OPACIDADES ENTRE PANELES
     // Opacidad de Panel 1 (Funde a 0 rápido al bajar)
-    const opacityFactor1 = Math.max(0, 1 - normalizedScroll * 5);
+    const opacityFactor1 = Math.max(0, 1 - renderedScroll * 5);
     if (bgMesh.material) bgMesh.material.opacity = opacityFactor1;
     if (fgMesh.material) fgMesh.material.opacity = opacityFactor1;
     if (mistMesh.material) mistMesh.material.opacity = opacityFactor1 * 0.75;
 
     // Opacidad de Panel 2 (Funde a 1 en el segundo panel, luego a 0 al bajar a los siguientes)
     let opacityFactor2 = 0;
-    if (normalizedScroll < 0.2) {
+    if (renderedScroll < 0.2) {
       // Sube a medida que bajamos del Panel 1
-      opacityFactor2 = Math.min(1, normalizedScroll * 5);
-    } else if (normalizedScroll < 0.3) {
+      opacityFactor2 = Math.min(1, renderedScroll * 5);
+    } else if (renderedScroll < 0.3) {
       // Pico en el Panel 2
       opacityFactor2 = 1.0;
     } else {
       // Funde a 0 al bajar al Panel 3 (Academy)
-      opacityFactor2 = Math.max(0, 1 - (normalizedScroll - 0.3) * 5);
+      opacityFactor2 = Math.max(0, 1 - (renderedScroll - 0.3) * 5);
     }
     if (bg2Mesh.material) bg2Mesh.material.opacity = opacityFactor2;
   });
@@ -232,7 +263,7 @@ function InteractiveScene() {
   return (
     <group ref={groupRef}>
       {/* ── PANEL 1 ────────────────────────────────────────────────────────── */}
-      {/* CAPA 1.1: Fondo principal Panel 1 (Paisaje y cielo original) */}
+      {/* CAPA 1.1: Fondo principal Panel 1 (Paisaje ecológico con desenfoque de alta calidad) */}
       <mesh ref={bgMeshRef} position={[0, 0, -0.4]}>
         <planeGeometry args={[6.0, 6.0, 8, 8]} />
         <meshBasicMaterial 

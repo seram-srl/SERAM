@@ -62,6 +62,81 @@ export default function HomePage() {
     setTilt2({ x: 0, y: 0 });
   };
 
+  const renderHeroSection = (isClone = false) => {
+    return (
+      <section className="relative overflow-hidden min-h-screen flex items-center justify-start py-24 px-6 sm:px-12 lg:px-24 bg-transparent select-none">
+        {/* Panel de Contenido Izquierdo con Efecto Cristal Esmerilado Premium y letras oscuras de alto contraste */}
+        <div className="relative max-w-2xl w-full backdrop-blur-md bg-white/10 border border-white/20 shadow-2xl rounded-3xl p-8 sm:p-12 flex flex-col items-start justify-center space-y-6 text-left border-l-white/30 border-t-white/30 animate-fadeIn">
+          
+          {/* Logotipo Central de Bienvenida con Efecto 3D Tilt Interactivo */}
+          <motion.div
+            className="w-20 h-20 sm:w-24 sm:h-24 cursor-pointer select-none pointer-events-auto"
+            onMouseMove={handleMouseMoveTilt}
+            onMouseLeave={handleMouseLeaveTilt}
+            style={{
+              rotateX: rotateX,
+              rotateY: rotateY,
+              transformStyle: "preserve-3d",
+            }}
+            transition={{ type: "spring", stiffness: 350, damping: 22 }}
+          >
+            <svg viewBox="0 0 100 100" className="w-full h-full filter drop-shadow-[0_8px_16px_rgba(0,127,26,0.22)]">
+              <defs>
+                <linearGradient id={isClone ? "leafGradMainHeroClone" : "leafGradMainHero"} x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#00E03C" />
+                  <stop offset="100%" stopColor="#007F1A" />
+                </linearGradient>
+              </defs>
+              <circle cx="28" cy="22" r="7" fill="#007F1A" />
+              <circle cx="56" cy="25" r="5" fill="#007F1A" />
+              <circle cx="44" cy="33" r="3.5" fill="#007F1A" />
+              <circle cx="23.5" cy="40.5" r="3.5" fill="#007F1A" />
+              <path d="M72 32 C70 55, 62 82, 42 82 C22 82, 18 64, 28 48 C38 32, 60 25, 72 32 Z" fill={`url(#${isClone ? "leafGradMainHeroClone" : "leafGradMainHero"})`} />
+              <path d="M28 82 C34 72, 43 55, 59 47" stroke="#FFFFFF" strokeWidth="4.5" strokeLinecap="round" fill="none" />
+            </svg>
+          </motion.div>
+
+          {/* Tag de Especialidad */}
+          <div className="inline-flex items-center gap-2 bg-emerald-900/10 border border-emerald-900/20 px-4 py-1.5 rounded-full text-emerald-950 text-[11px] sm:text-xs font-bold uppercase tracking-widest font-tech">
+            <Leaf className="w-3.5 h-3.5 text-emerald-800" /> Consultoría Ambiental y Capacitación de Élite
+          </div>
+
+          {/* Título de Marca y Subtítulo */}
+          <div className="space-y-1">
+            <h1 className="text-6xl sm:text-7xl lg:text-8xl font-black text-slate-900 leading-none tracking-tighter font-display select-none">
+              SERAM
+            </h1>
+            <p className="text-emerald-800 text-sm sm:text-base font-black uppercase tracking-[0.35em] font-tech select-none">
+              Servicios Ambientales
+            </p>
+          </div>
+
+          {/* Descripción Detallada */}
+          <p className="text-slate-800 text-sm sm:text-base leading-relaxed font-semibold">
+            Ingenieros expertos en Ecología y Medio Ambiente. Diseñamos soluciones técnicas,
+            promovemos la capacitación acreditada de élite y estructuramos experiencias sostenibles integrales.
+          </p>
+
+          {/* Separador Fino y KPIs de Resistencia Técnica */}
+          <div className="flex items-center justify-between gap-6 pt-6 border-t border-slate-950/10 w-full">
+            <div className="text-center">
+              <h4 className="text-slate-950 font-black text-lg sm:text-xl leading-none font-display">3 Socios</h4>
+              <p className="text-slate-600 text-[9px] uppercase tracking-wider mt-1 font-mono">Especialidades</p>
+            </div>
+            <div className="text-center">
+              <h4 className="text-emerald-900 font-black text-lg sm:text-xl leading-none font-display">100%</h4>
+              <p className="text-slate-600 text-[9px] uppercase tracking-wider mt-1 font-mono">Compromiso</p>
+            </div>
+            <div className="text-center">
+              <h4 className="text-slate-950 font-black text-lg sm:text-xl leading-none font-display">SaaS</h4>
+              <p className="text-slate-600 text-[9px] uppercase tracking-wider mt-1 font-mono">Ambiental</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  };
+
   return (
     <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', touchAction: 'none', position: 'relative' }}>
       <EnvironmentalCanvas isStorytelling={true}>
@@ -87,93 +162,12 @@ export default function HomePage() {
             {/* ─────────────────────────────────────────────────────────────────────
                 BLOQUE 1: INICIO / LOGO (Hero Principal de Paisaje Claro y Esmerilado)
                 ───────────────────────────────────────────────────────────────────── */}
-            <section className="relative overflow-hidden min-h-screen flex items-center justify-start py-24 px-6 sm:px-12 lg:px-24 bg-transparent select-none">
-              {/* Imagen de fondo del primer panel (Paisaje Ecológico) */}
-              <div 
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none"
-                style={{ backgroundImage: `url(${fondo1erPanel})` }}
-              />
-              
-              {/* Panel de Contenido Izquierdo con Efecto Cristal Esmerilado Premium y letras oscuras de alto contraste */}
-              <div className="relative max-w-2xl w-full backdrop-blur-md bg-white/10 border border-white/20 shadow-2xl rounded-3xl p-8 sm:p-12 flex flex-col items-start justify-center space-y-6 text-left border-l-white/30 border-t-white/30 animate-fadeIn">
-                
-                {/* Logotipo Central de Bienvenida con Efecto 3D Tilt Interactivo */}
-                <motion.div
-                  className="w-20 h-20 sm:w-24 sm:h-24 cursor-pointer select-none pointer-events-auto"
-                  onMouseMove={handleMouseMoveTilt}
-                  onMouseLeave={handleMouseLeaveTilt}
-                  style={{
-                    rotateX: rotateX,
-                    rotateY: rotateY,
-                    transformStyle: "preserve-3d",
-                  }}
-                  transition={{ type: "spring", stiffness: 350, damping: 22 }}
-                >
-                  <svg viewBox="0 0 100 100" className="w-full h-full filter drop-shadow-[0_8px_16px_rgba(0,127,26,0.22)]">
-                    <defs>
-                      <linearGradient id="leafGradMainHero" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#00E03C" />
-                        <stop offset="100%" stopColor="#007F1A" />
-                      </linearGradient>
-                    </defs>
-                    <circle cx="28" cy="22" r="7" fill="#007F1A" />
-                    <circle cx="56" cy="25" r="5" fill="#007F1A" />
-                    <circle cx="44" cy="33" r="3.5" fill="#007F1A" />
-                    <circle cx="23.5" cy="40.5" r="3.5" fill="#007F1A" />
-                    <path d="M72 32 C70 55, 62 82, 42 82 C22 82, 18 64, 28 48 C38 32, 60 25, 72 32 Z" fill="url(#leafGradMainHero)" />
-                    <path d="M28 82 C34 72, 43 55, 59 47" stroke="#FFFFFF" strokeWidth="4.5" strokeLinecap="round" fill="none" />
-                  </svg>
-                </motion.div>
-
-                {/* Tag de Especialidad */}
-                <div className="inline-flex items-center gap-2 bg-emerald-900/10 border border-emerald-900/20 px-4 py-1.5 rounded-full text-emerald-950 text-[11px] sm:text-xs font-bold uppercase tracking-widest font-tech">
-                  <Leaf className="w-3.5 h-3.5 text-emerald-800" /> Consultoría Ambiental y Capacitación de Élite
-                </div>
-
-                {/* Título de Marca y Subtítulo */}
-                <div className="space-y-1">
-                  <h1 className="text-6xl sm:text-7xl lg:text-8xl font-black text-slate-900 leading-none tracking-tighter font-display select-none">
-                    SERAM
-                  </h1>
-                  <p className="text-emerald-800 text-sm sm:text-base font-black uppercase tracking-[0.35em] font-tech select-none">
-                    Servicios Ambientales
-                  </p>
-                </div>
-
-                {/* Descripción Detallada */}
-                <p className="text-slate-800 text-sm sm:text-base leading-relaxed font-semibold">
-                  Ingenieros expertos en Ecología y Medio Ambiente. Diseñamos soluciones técnicas,
-                  promovemos la capacitación acreditada de élite y estructuramos experiencias sostenibles integrales.
-                </p>
-
-                {/* Separador Fino y KPIs de Resistencia Técnica */}
-                <div className="flex items-center justify-between gap-6 pt-6 border-t border-slate-950/10 w-full">
-                  <div className="text-center">
-                    <h4 className="text-slate-950 font-black text-lg sm:text-xl leading-none font-display">3 Socios</h4>
-                    <p className="text-slate-600 text-[9px] uppercase tracking-wider mt-1 font-mono">Especialidades</p>
-                  </div>
-                  <div className="text-center">
-                    <h4 className="text-emerald-900 font-black text-lg sm:text-xl leading-none font-display">100%</h4>
-                    <p className="text-slate-600 text-[9px] uppercase tracking-wider mt-1 font-mono">Compromiso</p>
-                  </div>
-                  <div className="text-center">
-                    <h4 className="text-slate-950 font-black text-lg sm:text-xl leading-none font-display">SaaS</h4>
-                    <p className="text-slate-600 text-[9px] uppercase tracking-wider mt-1 font-mono">Ambiental</p>
-                  </div>
-                </div>
-              </div>
-            </section>
+            {renderHeroSection(false)}
 
             {/* ─────────────────────────────────────────────────────────────────────
                 BLOQUE 2: SERAM SERVICE (Pilar 01 - Cristal Esmerilado Claro y Paisaje)
                 ───────────────────────────────────────────────────────────────────── */}
             <section className="relative min-h-screen flex items-center justify-start py-24 px-6 sm:px-12 lg:px-24 bg-transparent select-none">
-              {/* Imagen de fondo del segundo panel (Paisaje Claro del Segundo Panel) */}
-              <div 
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none"
-                style={{ backgroundImage: `url(${fondo2doPanel})` }}
-              />
-              
               {/* Panel de Contenido Izquierdo con Cristal Esmerilado Premium y letras oscuras */}
               <div className="relative max-w-2xl w-full backdrop-blur-md bg-white/10 border border-white/20 shadow-2xl rounded-3xl p-8 sm:p-12 flex flex-col items-start justify-center space-y-6 text-left border-l-white/30 border-t-white/30 animate-fadeIn">
                 
@@ -330,6 +324,11 @@ export default function HomePage() {
                 </div>
               </div>
             </section>
+
+            {/* ─────────────────────────────────────────────────────────────────────
+                BLOQUE 6: INICIO / CLON PARA BUCLE CONTINUO
+                ───────────────────────────────────────────────────────────────────── */}
+            {renderHeroSection(true)}
 
           </motion.div>
         </AppContext.Provider>
