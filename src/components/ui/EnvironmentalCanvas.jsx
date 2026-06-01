@@ -4,6 +4,7 @@ import { ScrollControls, useScroll, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import fondo1erPanel from '../../assets/fondo_1er_panel.webp';
 import mountainsCutout from '../../assets/mountains_cutout.png';
+import fondo2doPanel from '../../assets/fondo2_2do_panel.webp';
 
 // ── PARÁMETROS FÍSICOS COMPARTIDOS ──────────────────────────────────────────
 const radius = 1.3;       // Radio de afectación del raycasting
@@ -73,13 +74,16 @@ function InteractiveScene() {
   const bgMeshRef = useRef();
   const mistMeshRef = useRef();
   const fgMeshRef = useRef();
+  const bg2MeshRef = useRef();
 
   const scroll = useScroll(); // useScroll lee la posición virtualizada de scroll
-  const velocities = useMemo(() => new Float32Array(vertexCount), []);
+  const velocities1 = useMemo(() => new Float32Array(vertexCount), []);
+  const velocities2 = useMemo(() => new Float32Array(vertexCount), []);
 
   // Texturas de profundidad 3D diferenciadas
   const bgTexture = useTexture(fondo1erPanel);
   const fgTexture = useTexture(mountainsCutout);
+  const bg2Texture = useTexture(fondo2doPanel);
   const mistTexture = useMemo(() => createNoiseTexture(), []);
 
   // Referencias para el LERP del mouse
@@ -90,47 +94,83 @@ function InteractiveScene() {
     const fgMesh = fgMeshRef.current;
     const bgMesh = bgMeshRef.current;
     const mistMesh = mistMeshRef.current;
+    const bg2Mesh = bg2MeshRef.current;
     const group = groupRef.current;
 
-    if (!fgMesh || !bgMesh || !mistMesh || !group) return;
+    if (!fgMesh || !bgMesh || !mistMesh || !bg2Mesh || !group) return;
 
-    // 1. FÍSICA ELÁSTICA (SPRING PHYSICS) POR RAYCASTING EN LA CAPA DE PRIMER PLANO (FOLIAGE/MONTAÑAS)
-    const geometry = fgMesh.geometry;
-    const posAttr = geometry.attributes.position;
-
+    // 1. FÍSICA ELÁSTICA (SPRING PHYSICS) POR RAYCASTING
+    // Raycasting para la Capa de Primer Plano (Panel 1)
+    const geometry1 = fgMesh.geometry;
+    const posAttr1 = geometry1.attributes.position;
     state.raycaster.setFromCamera(state.pointer, state.camera);
-    const intersects = state.raycaster.intersectObject(fgMesh);
+    const intersects1 = state.raycaster.intersectObject(fgMesh);
 
-    let localPoint = null;
-    if (intersects.length > 0) {
-      localPoint = fgMesh.worldToLocal(intersects[0].point.clone());
+    let localPoint1 = null;
+    if (intersects1.length > 0) {
+      localPoint1 = fgMesh.worldToLocal(intersects1[0].point.clone());
     }
 
     for (let i = 0; i < vertexCount; i++) {
-      const vx = posAttr.getX(i);
-      const vy = posAttr.getY(i);
-      let vz = posAttr.getZ(i);
+      const vx = posAttr1.getX(i);
+      const vy = posAttr1.getY(i);
+      let vz = posAttr1.getZ(i);
 
-      if (localPoint) {
-        const dx = vx - localPoint.x;
-        const dy = vy - localPoint.y;
+      if (localPoint1) {
+        const dx = vx - localPoint1.x;
+        const dy = vy - localPoint1.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < radius) {
           const factor = 1 - dist / radius;
           const force = factor * intensity;
-          velocities[i] += force * 0.12; 
+          velocities1[i] += force * 0.12; 
         }
       }
 
       const restorationForce = -vz * springK;
-      velocities[i] = (velocities[i] + restorationForce) * damping;
-      vz += velocities[i];
-      posAttr.setZ(i, vz);
+      velocities1[i] = (velocities1[i] + restorationForce) * damping;
+      vz += velocities1[i];
+      posAttr1.setZ(i, vz);
+    }
+    posAttr1.needsUpdate = true;
+    geometry1.computeVertexNormals();
+
+    // Raycasting para la Capa de Fondo (Panel 2)
+    const geometry2 = bg2Mesh.geometry;
+    const posAttr2 = geometry2.attributes.position;
+    const intersects2 = state.raycaster.intersectObject(bg2Mesh);
+
+    let localPoint2 = null;
+    if (intersects2.length > 0) {
+      localPoint2 = bg2Mesh.worldToLocal(intersects2[0].point.clone());
     }
 
-    posAttr.needsUpdate = true;
-    geometry.computeVertexNormals();
+    for (let i = 0; i < vertexCount; i++) {
+      const vx = posAttr2.getX(i);
+      const vy = posAttr2.getY(i);
+      let vz = posAttr2.getZ(i);
+
+      if (localPoint2) {
+        const dx = vx - localPoint2.x;
+        const dy = vy - localPoint2.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < radius) {
+          const factor = 1 - dist / radius;
+          const force = factor * intensity;
+          velocities2[i] += force * 0.12; 
+        }
+      }
+
+      const restorationForce = -vz * springK;
+      velocities2[i] = (velocities2[i] + restorationForce) * damping;
+      vz += velocities2[i];
+      posAttr2.setZ(i, vz);
+    }
+    posAttr2.needsUpdate = true;
+    geometry2.computeVertexNormals();
+
 
     // 2. SINCRONIZACIÓN DE SCROLL VIRTUAL Y TRANSICIÓN MECÁNICA FLUIDA
     const normalizedScroll = scroll ? scroll.offset : 0;
@@ -147,17 +187,19 @@ function InteractiveScene() {
     currentMouseY.current += (targetMouseY - currentMouseY.current) * 0.08;
     
     // Aplicar movimientos de parallax diferenciados para profundidad 3D cinemática
-    // Capa de fondo (Fondo de paisaje completo) - movimiento sutil
+    // Capas de Panel 1
     bgMesh.position.x = currentMouseX.current * 0.35;
     bgMesh.position.y = currentMouseY.current * 0.35;
     
-    // Capa media (Neblina ecológica) - movimiento intermedio
     mistMesh.position.x = currentMouseX.current * 0.7;
     mistMesh.position.y = currentMouseY.current * 0.7;
     
-    // Capa de primer plano (Montañas/Hojas recortadas PNG) - movimiento acentuado
     fgMesh.position.x = currentMouseX.current * 1.2;
     fgMesh.position.y = currentMouseY.current * 1.2;
+
+    // Capa de Panel 2
+    bg2Mesh.position.x = currentMouseX.current * 0.45;
+    bg2Mesh.position.y = currentMouseY.current * 0.45;
 
     // Desplazar la neblina de ruido en el eje X continuamente (viento/fluido de brisa)
     if (mistTexture) {
@@ -165,16 +207,32 @@ function InteractiveScene() {
       mistTexture.offset.y += 0.00003;
     }
 
-    // Actualización dinámica de opacidad de fondo y capas según scroll (desvanecimiento)
-    const opacityFactor = Math.max(0, 1 - normalizedScroll * 5);
-    if (bgMesh.material) bgMesh.material.opacity = opacityFactor;
-    if (fgMesh.material) fgMesh.material.opacity = opacityFactor;
-    if (mistMesh.material) mistMesh.material.opacity = opacityFactor * 0.75;
+    // 4. TRANSICIÓN MECÁNICA FLUIDA DE OPACIDADES ENTRE PANELES
+    // Opacidad de Panel 1 (Funde a 0 rápido al bajar)
+    const opacityFactor1 = Math.max(0, 1 - normalizedScroll * 5);
+    if (bgMesh.material) bgMesh.material.opacity = opacityFactor1;
+    if (fgMesh.material) fgMesh.material.opacity = opacityFactor1;
+    if (mistMesh.material) mistMesh.material.opacity = opacityFactor1 * 0.75;
+
+    // Opacidad de Panel 2 (Funde a 1 en el segundo panel, luego a 0 al bajar a los siguientes)
+    let opacityFactor2 = 0;
+    if (normalizedScroll < 0.2) {
+      // Sube a medida que bajamos del Panel 1
+      opacityFactor2 = Math.min(1, normalizedScroll * 5);
+    } else if (normalizedScroll < 0.3) {
+      // Pico en el Panel 2
+      opacityFactor2 = 1.0;
+    } else {
+      // Funde a 0 al bajar al Panel 3 (Academy)
+      opacityFactor2 = Math.max(0, 1 - (normalizedScroll - 0.3) * 5);
+    }
+    if (bg2Mesh.material) bg2Mesh.material.opacity = opacityFactor2;
   });
 
   return (
     <group ref={groupRef}>
-      {/* CAPA 1: Fondo principal (Paisaje y cielo original, escala levemente mayor para cubrir parallax seguro) */}
+      {/* ── PANEL 1 ────────────────────────────────────────────────────────── */}
+      {/* CAPA 1.1: Fondo principal Panel 1 (Paisaje y cielo original) */}
       <mesh ref={bgMeshRef} position={[0, 0, -0.4]}>
         <planeGeometry args={[6.0, 6.0, 8, 8]} />
         <meshBasicMaterial 
@@ -186,7 +244,7 @@ function InteractiveScene() {
         />
       </mesh>
 
-      {/* CAPA 2: Neblina tridimensional intermedia (Simplex Noise flotante que pasa detrás de las montañas y delante del cielo) */}
+      {/* CAPA 1.2: Neblina tridimensional intermedia */}
       <mesh ref={mistMeshRef} position={[0, 0, -0.05]}>
         <planeGeometry args={[5.8, 5.8, 8, 8]} />
         <meshBasicMaterial 
@@ -199,13 +257,26 @@ function InteractiveScene() {
         />
       </mesh>
 
-      {/* CAPA 3: Primer plano con montañas y vegetación recortada (Interactiva con deformación elástica de resortes al tacto) */}
+      {/* CAPA 1.3: Primer plano con montañas y vegetación recortada (Interactiva) */}
       <mesh ref={fgMeshRef} position={[0, 0, 0.2]}>
         <planeGeometry args={[5.8, 5.8, 32, 32]} />
         <meshBasicMaterial 
           map={fgTexture}
           transparent={true}
           opacity={1.0}
+          depthWrite={false}
+          wireframe={false}
+        />
+      </mesh>
+
+      {/* ── PANEL 2 ────────────────────────────────────────────────────────── */}
+      {/* CAPA 2.1: Fondo principal Panel 2 (Interactiva con deformación elástica de resortes) */}
+      <mesh ref={bg2MeshRef} position={[0, 0, -0.38]}>
+        <planeGeometry args={[6.0, 6.0, 32, 32]} />
+        <meshBasicMaterial 
+          map={bg2Texture}
+          transparent={true}
+          opacity={0.0} 
           depthWrite={false}
           wireframe={false}
         />

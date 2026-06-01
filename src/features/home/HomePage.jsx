@@ -9,6 +9,7 @@ import { useApp, AppContext } from '../../context/AppContext';
 import EnvironmentalCanvas from '../../components/ui/EnvironmentalCanvas';
 import { Scroll } from '@react-three/drei';
 import fondo1erPanel from '../../assets/fondo_1er_panel.webp';
+import fondo2doPanel from '../../assets/fondo2_2do_panel.webp';
 
 const pageVariants = {
   initial: { opacity: 0 },
@@ -25,7 +26,7 @@ export default function HomePage() {
     hasPremiumAccess, products,
   } = outsideAppValue;
 
-  // Estado y manejadores para el efecto 3D Tilt interactivo del logotipo
+  // Estado y manejadores para el efecto 3D Tilt interactivo del logotipo (Panel 1)
   const [rotateX, setRotateX] = React.useState(0);
   const [rotateY, setRotateY] = React.useState(0);
 
@@ -43,6 +44,22 @@ export default function HomePage() {
   const handleMouseLeaveTilt = () => {
     setRotateX(0);
     setRotateY(0);
+  };
+
+  // Estado y manejadores para el efecto 3D Tilt interactivo del ícono de servicios (Panel 2)
+  const [tilt2, setTilt2] = React.useState({ x: 0, y: 0 });
+
+  const handleMouseMoveTilt2 = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    const tiltX = -(y / (rect.height / 2)) * 15;
+    const tiltY = (x / (rect.width / 2)) * 15;
+    setTilt2({ x: tiltX, y: tiltY });
+  };
+
+  const handleMouseLeaveTilt2 = () => {
+    setTilt2({ x: 0, y: 0 });
   };
 
   return (
@@ -148,26 +165,60 @@ export default function HomePage() {
             </section>
 
             {/* ─────────────────────────────────────────────────────────────────────
-                BLOQUE 2: SERAM SERVICE (Pilar 01)
+                BLOQUE 2: SERAM SERVICE (Pilar 01 - Cristal Esmerilado Claro y Paisaje)
                 ───────────────────────────────────────────────────────────────────── */}
-            <section className="relative min-h-screen flex items-center justify-center py-24 px-4 sm:px-6 lg:px-8 bg-transparent">
-              <div className="glass-panel-dark max-w-3xl mx-auto rounded-3xl p-8 sm:p-12 border border-white/[0.08] hover:border-[#00e03c]/20 transition-all flex flex-col items-center text-center space-y-6 shadow-[0_16px_40px_rgba(0,0,0,0.4)]">
-                <div className="p-4 bg-slate-900/80 rounded-2xl text-[#00e03c] border border-white/10">
-                  <Briefcase className="w-8 h-8" />
+            <section className="relative min-h-screen flex items-center justify-start py-24 px-6 sm:px-12 lg:px-24 bg-transparent select-none">
+              {/* Imagen de fondo del segundo panel (Paisaje Claro del Segundo Panel) */}
+              <div 
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none"
+                style={{ backgroundImage: `url(${fondo2doPanel})` }}
+              />
+              
+              {/* Panel de Contenido Izquierdo con Cristal Esmerilado Premium y letras oscuras */}
+              <div className="relative max-w-2xl w-full backdrop-blur-md bg-white/10 border border-white/20 shadow-2xl rounded-3xl p-8 sm:p-12 flex flex-col items-start justify-center space-y-6 text-left border-l-white/30 border-t-white/30 animate-fadeIn">
+                
+                {/* Icono de Pilar con Efecto 3D Tilt Interactivo */}
+                <motion.div
+                  className="w-16 h-16 sm:w-20 sm:h-20 cursor-pointer select-none pointer-events-auto bg-emerald-900/10 border border-emerald-900/20 rounded-2xl flex items-center justify-center text-emerald-800 shadow-md"
+                  onMouseMove={handleMouseMoveTilt2}
+                  onMouseLeave={handleMouseLeaveTilt2}
+                  style={{
+                    rotateX: tilt2.x,
+                    rotateY: tilt2.y,
+                    transformStyle: "preserve-3d",
+                  }}
+                  transition={{ type: "spring", stiffness: 350, damping: 22 }}
+                >
+                  <Briefcase className="w-8 h-8 sm:w-10 sm:h-10 filter drop-shadow-[0_4px_8px_rgba(0,127,26,0.15)]" />
+                </motion.div>
+
+                {/* Tag de Pilar */}
+                <div className="inline-flex items-center gap-2 bg-emerald-900/10 border border-emerald-900/20 px-4 py-1.5 rounded-full text-emerald-950 text-[11px] sm:text-xs font-bold uppercase tracking-widest font-tech">
+                  Pilar 01 // Consultoría Ambiental
                 </div>
-                <span className="text-xs font-black tracking-widest text-[#00e03c] uppercase font-tech">Pilar 01 // Consultoría</span>
-                <h2 className="text-4xl sm:text-5xl font-black text-white font-display tracking-tight uppercase">
-                  SERAM_SERVICES
-                </h2>
-                <p className="text-slate-400 text-sm leading-relaxed max-w-xl font-medium">
+
+                {/* Título y Subtítulo */}
+                <div className="space-y-1">
+                  <h2 className="text-4xl sm:text-5xl font-black text-slate-900 leading-none tracking-tight uppercase select-none">
+                    SERAM_SERVICES
+                  </h2>
+                  <p className="text-emerald-800 text-xs sm:text-sm font-black uppercase tracking-[0.2em] font-tech select-none">
+                    Análisis Territorial y Cumplimiento Normativo
+                  </p>
+                </div>
+
+                {/* Descripción */}
+                <p className="text-slate-800 text-sm sm:text-base leading-relaxed font-semibold">
                   Ofrecemos análisis territorial avanzado mediante Sistemas de Información Geográfica (SIG), 
                   auditorías ambientales completas, diseño de planes de mitigación ambiental y estudios de impacto 
                   regulados para asegurar el cumplimiento normativo industrial.
                 </p>
-                <div className="pt-4">
+
+                {/* Botón Explorar */}
+                <div className="pt-2">
                   <button 
                     onClick={() => navigate('/services')} 
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#00e03c] text-white hover:text-[#00e03c] text-xs font-bold uppercase tracking-wider transition-all"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-900/10 border border-slate-900/20 hover:border-emerald-800 text-slate-900 hover:text-emerald-800 text-xs font-bold uppercase tracking-wider transition-all cursor-none pointer-events-auto"
                     style={{ cursor: 'none' }}
                   >
                     Explorar Servicios <ChevronRight className="w-4 h-4" />
