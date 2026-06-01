@@ -3,6 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { ScrollControls, useScroll, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import fondo1erPanel from '../../assets/fondo_1er_panel.webp';
+import mountainsCutout from '../../assets/mountains_cutout.png';
 
 // ── PARÁMETROS FÍSICOS COMPARTIDOS ──────────────────────────────────────────
 const radius = 1.3;       // Radio de afectación del raycasting
@@ -68,27 +69,41 @@ const createNoiseTexture = () => {
 };
 
 function InteractiveScene() {
-  const meshRef = useRef();
+  const groupRef = useRef();
+  const bgMeshRef = useRef();
   const mistMeshRef = useRef();
+  const fgMeshRef = useRef();
+
   const scroll = useScroll(); // useScroll lee la posición virtualizada de scroll
   const velocities = useMemo(() => new Float32Array(vertexCount), []);
-  const texture = useTexture(fondo1erPanel);
+
+  // Texturas de profundidad 3D diferenciadas
+  const bgTexture = useTexture(fondo1erPanel);
+  const fgTexture = useTexture(mountainsCutout);
   const mistTexture = useMemo(() => createNoiseTexture(), []);
 
-  useFrame((state) => {
-    const mesh = meshRef.current;
-    if (!mesh) return;
+  // Referencias para el LERP del mouse
+  const currentMouseX = useRef(0);
+  const currentMouseY = useRef(0);
 
-    const geometry = mesh.geometry;
+  useFrame((state) => {
+    const fgMesh = fgMeshRef.current;
+    const bgMesh = bgMeshRef.current;
+    const mistMesh = mistMeshRef.current;
+    const group = groupRef.current;
+
+    if (!fgMesh || !bgMesh || !mistMesh || !group) return;
+
+    // 1. FÍSICA ELÁSTICA (SPRING PHYSICS) POR RAYCASTING EN LA CAPA DE PRIMER PLANO (FOLIAGE/MONTAÑAS)
+    const geometry = fgMesh.geometry;
     const posAttr = geometry.attributes.position;
 
-    // 1. FÍSICA DE RESORTES (SPRING PHYSICS) POR RAYCASTING EN SEGUNDO PLANO
     state.raycaster.setFromCamera(state.pointer, state.camera);
-    const intersects = state.raycaster.intersectObject(mesh);
+    const intersects = state.raycaster.intersectObject(fgMesh);
 
     let localPoint = null;
     if (intersects.length > 0) {
-      localPoint = mesh.worldToLocal(intersects[0].point.clone());
+      localPoint = fgMesh.worldToLocal(intersects[0].point.clone());
     }
 
     for (let i = 0; i < vertexCount; i++) {
@@ -117,35 +132,53 @@ function InteractiveScene() {
     posAttr.needsUpdate = true;
     geometry.computeVertexNormals();
 
-    // 2. SINCRONIZACIÓN DE SCROLL VIRTUAL SIN SALTOS (Bucle Infinito)
+    // 2. SINCRONIZACIÓN DE SCROLL VIRTUAL Y TRANSICIÓN MECÁNICA FLUIDA
     const normalizedScroll = scroll ? scroll.offset : 0;
-    mesh.rotation.y = normalizedScroll * Math.PI * 0.22;
-    mesh.position.z = normalizedScroll * -3.8;
+    
+    // Inclinación y profundidad basadas en el scroll (efecto túnel cinemático)
+    group.rotation.y = normalizedScroll * Math.PI * 0.12;
+    group.position.z = normalizedScroll * -2.8;
 
-    // Desplazar la neblina ecológica lentamente en el eje X para simular viento orgánico
+    // 3. EFECTO PARALLAX 3D POR MOVIMIENTO DEL MOUSE CON INERCIA LERP SUAVE
+    const targetMouseX = state.pointer.x * 0.25;
+    const targetMouseY = state.pointer.y * 0.25;
+    
+    currentMouseX.current += (targetMouseX - currentMouseX.current) * 0.08;
+    currentMouseY.current += (targetMouseY - currentMouseY.current) * 0.08;
+    
+    // Aplicar movimientos de parallax diferenciados para profundidad 3D cinemática
+    // Capa de fondo (Fondo de paisaje completo) - movimiento sutil
+    bgMesh.position.x = currentMouseX.current * 0.35;
+    bgMesh.position.y = currentMouseY.current * 0.35;
+    
+    // Capa media (Neblina ecológica) - movimiento intermedio
+    mistMesh.position.x = currentMouseX.current * 0.7;
+    mistMesh.position.y = currentMouseY.current * 0.7;
+    
+    // Capa de primer plano (Montañas/Hojas recortadas PNG) - movimiento acentuado
+    fgMesh.position.x = currentMouseX.current * 1.2;
+    fgMesh.position.y = currentMouseY.current * 1.2;
+
+    // Desplazar la neblina de ruido en el eje X continuamente (viento/fluido de brisa)
     if (mistTexture) {
       mistTexture.offset.x += 0.00015;
       mistTexture.offset.y += 0.00003;
     }
 
-    // Actualización dinámica de opacidad de fondo (se desvanece suavemente a medida que bajamos)
-    if (mesh.material) {
-      mesh.material.opacity = Math.max(0, 1 - normalizedScroll * 5);
-    }
-
-    // Desvanecer la neblina coordinadamente con el fondo al hacer scroll
-    if (mistMeshRef.current && mistMeshRef.current.material) {
-      mistMeshRef.current.material.opacity = Math.max(0, (1 - normalizedScroll * 5) * 0.75);
-    }
+    // Actualización dinámica de opacidad de fondo y capas según scroll (desvanecimiento)
+    const opacityFactor = Math.max(0, 1 - normalizedScroll * 5);
+    if (bgMesh.material) bgMesh.material.opacity = opacityFactor;
+    if (fgMesh.material) fgMesh.material.opacity = opacityFactor;
+    if (mistMesh.material) mistMesh.material.opacity = opacityFactor * 0.75;
   });
 
   return (
-    <group>
-      {/* Fondo principal del Canvas con textura del paisaje ecológico */}
-      <mesh ref={meshRef} position={[0, 0, 0]}>
-        <planeGeometry args={[5.8, 5.8, 32, 32]} />
+    <group ref={groupRef}>
+      {/* CAPA 1: Fondo principal (Paisaje y cielo original, escala levemente mayor para cubrir parallax seguro) */}
+      <mesh ref={bgMeshRef} position={[0, 0, -0.4]}>
+        <planeGeometry args={[6.0, 6.0, 8, 8]} />
         <meshBasicMaterial 
-          map={texture}
+          map={bgTexture}
           transparent={true} 
           opacity={1.0} 
           depthWrite={false}
@@ -153,8 +186,8 @@ function InteractiveScene() {
         />
       </mesh>
 
-      {/* Segundo plano tridimensional para simular la neblina ecológica */}
-      <mesh ref={mistMeshRef} position={[0, 0, 0.05]}>
+      {/* CAPA 2: Neblina tridimensional intermedia (Simplex Noise flotante que pasa detrás de las montañas y delante del cielo) */}
+      <mesh ref={mistMeshRef} position={[0, 0, -0.05]}>
         <planeGeometry args={[5.8, 5.8, 8, 8]} />
         <meshBasicMaterial 
           map={mistTexture}
@@ -162,6 +195,18 @@ function InteractiveScene() {
           opacity={0.75}
           depthWrite={false}
           blending={THREE.NormalBlending}
+          wireframe={false}
+        />
+      </mesh>
+
+      {/* CAPA 3: Primer plano con montañas y vegetación recortada (Interactiva con deformación elástica de resortes al tacto) */}
+      <mesh ref={fgMeshRef} position={[0, 0, 0.2]}>
+        <planeGeometry args={[5.8, 5.8, 32, 32]} />
+        <meshBasicMaterial 
+          map={fgTexture}
+          transparent={true}
+          opacity={1.0}
+          depthWrite={false}
           wireframe={false}
         />
       </mesh>
