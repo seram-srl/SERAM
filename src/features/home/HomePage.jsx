@@ -66,11 +66,11 @@ export default function HomePage() {
     return (
       <section className="relative overflow-hidden min-h-screen flex items-center justify-start py-24 px-6 sm:px-12 lg:px-24 bg-transparent select-none">
         {/* Panel de Contenido Izquierdo con Efecto Cristal Esmerilado Premium y letras oscuras de alto contraste */}
-        <div className="relative max-w-2xl w-full backdrop-blur-md bg-white/10 border border-white/20 shadow-2xl rounded-3xl p-8 sm:p-12 flex flex-col items-start justify-center space-y-6 text-left border-l-white/30 border-t-white/30 animate-fadeIn">
+        <div className="relative max-w-md backdrop-blur-md bg-white/10 border border-white/20 shadow-2xl rounded-3xl p-8 sm:p-10 flex flex-col items-start justify-center space-y-5 text-left border-l-white/30 border-t-white/30 animate-fadeIn">
           
           {/* Logotipo Central de Bienvenida con Efecto 3D Tilt Interactivo */}
           <motion.div
-            className="w-20 h-20 sm:w-24 sm:h-24 cursor-pointer select-none pointer-events-auto"
+            className="w-16 h-16 sm:w-20 sm:h-20 cursor-pointer select-none pointer-events-auto"
             onMouseMove={handleMouseMoveTilt}
             onMouseLeave={handleMouseLeaveTilt}
             style={{
@@ -96,41 +96,14 @@ export default function HomePage() {
             </svg>
           </motion.div>
 
-          {/* Tag de Especialidad */}
-          <div className="inline-flex items-center gap-2 bg-emerald-900/10 border border-emerald-900/20 px-4 py-1.5 rounded-full text-emerald-950 text-[11px] sm:text-xs font-bold uppercase tracking-widest font-tech">
-            <Leaf className="w-3.5 h-3.5 text-emerald-800" /> Consultoría Ambiental y Capacitación de Élite
-          </div>
-
-          {/* Título de Marca y Subtítulo */}
+          {/* Título de Marca y Subtítulo / Eslogan */}
           <div className="space-y-1">
-            <h1 className="text-6xl sm:text-7xl lg:text-8xl font-black text-slate-900 leading-none tracking-tighter font-display select-none">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-slate-900 leading-none tracking-tighter font-display select-none">
               SERAM
             </h1>
-            <p className="text-emerald-800 text-sm sm:text-base font-black uppercase tracking-[0.35em] font-tech select-none">
+            <p className="text-emerald-800 text-xs sm:text-sm font-black uppercase tracking-[0.35em] font-tech select-none font-semibold">
               Servicios Ambientales
             </p>
-          </div>
-
-          {/* Descripción Detallada */}
-          <p className="text-slate-800 text-sm sm:text-base leading-relaxed font-semibold">
-            Ingenieros expertos en Ecología y Medio Ambiente. Diseñamos soluciones técnicas,
-            promovemos la capacitación acreditada de élite y estructuramos experiencias sostenibles integrales.
-          </p>
-
-          {/* Separador Fino y KPIs de Resistencia Técnica */}
-          <div className="flex items-center justify-between gap-6 pt-6 border-t border-slate-950/10 w-full">
-            <div className="text-center">
-              <h4 className="text-slate-950 font-black text-lg sm:text-xl leading-none font-display">3 Socios</h4>
-              <p className="text-slate-600 text-[9px] uppercase tracking-wider mt-1 font-mono">Especialidades</p>
-            </div>
-            <div className="text-center">
-              <h4 className="text-emerald-900 font-black text-lg sm:text-xl leading-none font-display">100%</h4>
-              <p className="text-slate-600 text-[9px] uppercase tracking-wider mt-1 font-mono">Compromiso</p>
-            </div>
-            <div className="text-center">
-              <h4 className="text-slate-950 font-black text-lg sm:text-xl leading-none font-display">SaaS</h4>
-              <p className="text-slate-600 text-[9px] uppercase tracking-wider mt-1 font-mono">Ambiental</p>
-            </div>
           </div>
         </div>
       </section>
