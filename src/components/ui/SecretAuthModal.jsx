@@ -8,7 +8,7 @@ import { supabase } from '../../services/supabaseClient';
 const PARTNERS_LIST = [
   { name: 'Ing. Diego Barrientos', email: 'barrientoso2401@gmail.com' },
   { name: 'Ing. Fernando Araujo', email: 'fernando@seram.com' },
-  { name: 'Ing. Fabricio Orozco', email: 'fabricio@seram.com' },
+  { name: 'Ing. Fabricio Orosco', email: 'fabricio@seram.com' },
   { name: 'Ing. Freddy Farrachol', email: 'freddy@seram.com' },
 ];
 

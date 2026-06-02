@@ -208,7 +208,7 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
             <p className="fullscreen-menu__meta-value">
               Ing. Diego Barrientos<br />
               Ing. Fernando Araujo<br />
-              Ing. Fabricio Orozco
+              Ing. Fabricio Orosco
             </p>
 
             <p className="fullscreen-menu__meta-label" style={{ marginTop: '1.25rem' }}>
