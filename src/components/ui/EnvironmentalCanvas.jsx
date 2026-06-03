@@ -2,11 +2,14 @@ import React, { useRef, useEffect, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
+import { useLocation } from 'react-router-dom';
 
 // ── ASSETS DESDE LA NUEVA ESTRUCTURA DE PUBLIC ──────────────────────────────
 import landscapeBg from '../../public/assets/Imagen_16_9_con_desenfoque_202605300021.jpeg';
-import newLogo from '../../public/assets/brand/Centra_el_logo__aumenta_el_202605292302-removebg-preview.png';
 import fondo2doPanel from '../../public/assets/fondo2_2do_panel.webp';
+import panel2ServiceBg from '../../public/assets/3d-backend/panel2service-background.webp';
+import academyBg from '../../public/assets/3d-backend/SERAM-ACADEMY-background.webp';
+import expBg from '../../public/assets/3d-backend/Seram-Exp-background.webp';
 
 // ── PARÁMETROS FÍSICOS COMPARTIDOS ──────────────────────────────────────────
 const radius = 1.3;       // Radio de afectación del raycasting
@@ -66,38 +69,37 @@ const createNoiseTexture = () => {
 
 /**
  * @component InteractiveScene
- * @description Escena 3D optimizada. Maneja el sándwich de capas 3D (Fondo, Logo PNG Reactivo Centrado),
- * el scroll nativo por spline con zoom-out/paralaje, y la neblina ecológica.
+ * @description Escena 3D optimizada para el Home Page. Maneja las transiciones de opacidad
+ * entre los 4 fondos correspondientes a los pilares según el avance del scroll.
  */
 function InteractiveScene() {
   const groupRef = useRef();
   const bgMeshRef = useRef();
-  const logoMeshRef = useRef();
-  const instancedMistRef = useRef();
   const bg2MeshRef = useRef();
+  const bgAcademyMeshRef = useRef();
+  const bgExpMeshRef = useRef();
+  const instancedMistRef = useRef();
 
-  // Velocidades físicas para los vértices (deformación elástica de logo y panel 2)
-  const velocitiesLogo = useMemo(() => new Float32Array(vertexCount), []);
+  // Velocidades físicas para los vértices de la deformación elástica de bg2Mesh
   const velocities2 = useMemo(() => new Float32Array(vertexCount), []);
 
   // Texturas de alta calidad
   const bgTexture = useTexture(landscapeBg);
-  const logoTexture = useTexture(newLogo);
   const bg2Texture = useTexture(fondo2doPanel);
+  const academyTexture = useTexture(academyBg);
+  const expTexture = useTexture(expBg);
   const mistTexture = useMemo(() => createNoiseTexture(), []);
 
-  // Limpieza de textura generada dinámicamente
+  // Limpieza de textura de neblina
   useEffect(() => {
     return () => {
       if (mistTexture) mistTexture.dispose();
     };
   }, [mistTexture]);
 
-  // Parallax e inercias del mouse
+  // Parallax e inercias del mouse y scroll
   const currentMouseX = useRef(0);
   const currentMouseY = useRef(0);
-  
-  // Tracking del scroll nativo
   const scrollProgressRef = useRef(0);
   const currentScroll = useRef(0);
 
@@ -109,7 +111,7 @@ function InteractiveScene() {
       scrollProgressRef.current = progress;
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Inicializar
+    handleScroll();
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
@@ -157,17 +159,18 @@ function InteractiveScene() {
 
   useFrame((state) => {
     const bgMesh = bgMeshRef.current;
-    const logoMesh = logoMeshRef.current;
-    const instancedMist = instancedMistRef.current;
     const bg2Mesh = bg2MeshRef.current;
+    const bgAcademyMesh = bgAcademyMeshRef.current;
+    const bgExpMesh = bgExpMeshRef.current;
+    const instancedMist = instancedMistRef.current;
     const group = groupRef.current;
 
-    if (!bgMesh || !logoMesh || !instancedMist || !bg2Mesh || !group) return;
+    if (!bgMesh || !bg2Mesh || !bgAcademyMesh || !bgExpMesh || !instancedMist || !group) return;
 
     // 2. SINCRONIZACIÓN DE SCROLL NATIVO (LERP Coeficiente 0.1)
     const targetScroll = scrollProgressRef.current;
     let scrollDiff = targetScroll - currentScroll.current;
-    currentScroll.current += scrollDiff * 0.1; // LERP con coeficiente 0.1
+    currentScroll.current += scrollDiff * 0.1;
     
     let renderedScroll = currentScroll.current % 1.0;
     if (renderedScroll < 0) renderedScroll += 1.0;
@@ -182,15 +185,13 @@ function InteractiveScene() {
       cameraPosition.z -= 0.45;
     }
 
-    // 3. ZOOM OUT SUAVE EN EL PRIMER PANEL
+    // Zoom out en el eje Z al scrollar
     let heroProgress = 0;
     if (renderedScroll < 0.2) {
-      heroProgress = 1.0 - (renderedScroll / 0.2); // 1.0 en scroll 0, baja a 0 en scroll 0.2
+      heroProgress = 1.0 - (renderedScroll / 0.2);
     } else if (renderedScroll > 0.8) {
-      heroProgress = (renderedScroll - 0.8) / 0.2; // 0 en scroll 0.8, sube a 1.0 en scroll 1.0
+      heroProgress = (renderedScroll - 0.8) / 0.2;
     }
-
-    // Zoom out alejando la cámara en el eje Z
     const zoomOutOffset = (1.0 - heroProgress) * 4.0;
     cameraPosition.z += zoomOutOffset;
 
@@ -203,78 +204,36 @@ function InteractiveScene() {
     currentMouseX.current += (targetMouseX - currentMouseX.current) * 0.08;
     currentMouseY.current += (targetMouseY - currentMouseY.current) * 0.08;
 
-    // Paralaje Exagerado:
-    // Paisaje de fondo: casi estático, redimensionado para cubrir el 100% de la pantalla
+    // Paralaje del ratón en las mallas de fondo
     bgMesh.position.x = currentMouseX.current * 0.3;
     bgMesh.position.y = currentMouseY.current * 0.3;
     bgMesh.position.z = -6.0 - (1.0 - heroProgress) * 0.3;
 
-    // Logo (Capa Centro): centrado en el medio de la pantalla
-    logoMesh.position.x = currentMouseX.current * 0.6;
-    logoMesh.position.y = currentMouseY.current * 0.6;
-    logoMesh.position.z = -2.0 - (1.0 - heroProgress) * 2.0;
+    bg2Mesh.position.x = currentMouseX.current * 0.3;
+    bg2Mesh.position.y = currentMouseY.current * 0.3;
 
-    // Panel 2
-    bg2Mesh.position.x = currentMouseX.current * 0.4;
-    bg2Mesh.position.y = currentMouseY.current * 0.4;
+    bgAcademyMesh.position.x = currentMouseX.current * 0.3;
+    bgAcademyMesh.position.y = currentMouseY.current * 0.3;
 
-    // Mirada de la cámara con inercia del ratón
+    bgExpMesh.position.x = currentMouseX.current * 0.3;
+    bgExpMesh.position.y = currentMouseY.current * 0.3;
+
+    // Mirada de la cámara
     const cameraTarget = new THREE.Vector3(0, 0, 0);
     cameraTarget.x += currentMouseX.current * 0.7;
     cameraTarget.y += currentMouseY.current * 0.7;
     state.camera.lookAt(cameraTarget);
 
-    // 1. FÍSICA ELÁSTICA DE VÉRTICES (Raycasting)
+    // 1. FÍSICA ELÁSTICA DE VÉRTICES (Raycasting en bg2Mesh)
     state.raycaster.setFromCamera(state.pointer, state.camera);
-
-    // A. Capa Centro (Logo PNG Reactivo)
-    const geometryLogo = logoMesh.geometry;
-    const posAttrLogo = geometryLogo.attributes.position;
-    const intersectsLogo = state.raycaster.intersectObject(logoMesh);
-
-    let localPointLogo = null;
-    if (intersectsLogo.length > 0) {
-      localPointLogo = logoMesh.worldToLocal(intersectsLogo[0].point.clone());
-    }
-
-    for (let i = 0; i < vertexCount; i++) {
-      const vx = posAttrLogo.getX(i);
-      const vy = posAttrLogo.getY(i);
-      let vz = posAttrLogo.getZ(i);
-
-      if (localPointLogo) {
-        const dx = vx - localPointLogo.x;
-        const dy = vy - localPointLogo.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        if (dist < radius) {
-          const factor = 1 - dist / radius;
-          const force = factor * intensity;
-          velocitiesLogo[i] += force * 0.12; 
-        }
-      }
-
-      const restorationForce = -vz * springK;
-      velocitiesLogo[i] = (velocitiesLogo[i] + restorationForce) * damping;
-      vz += velocitiesLogo[i];
-      posAttrLogo.setZ(i, vz);
-    }
-    posAttrLogo.needsUpdate = true;
-    geometryLogo.computeVertexNormals();
-
-    // Control de Opacidad General de la Sección 1
-    const opacityFactor1 = Math.max(0, 1 - renderedScroll * 4.5);
-
-    // B. Capa Fondo Panel 2 (Deformación de fondo al avanzar)
-    const geometry2 = bg2Mesh.geometry;
-    const posAttr2 = geometry2.attributes.position;
     const intersects2 = state.raycaster.intersectObject(bg2Mesh);
-
     let localPoint2 = null;
     if (intersects2.length > 0) {
       localPoint2 = bg2Mesh.worldToLocal(intersects2[0].point.clone());
     }
 
+    const geometry2 = bg2Mesh.geometry;
+    const posAttr2 = geometry2.attributes.position;
     for (let i = 0; i < vertexCount; i++) {
       const vx = posAttr2.getX(i);
       const vy = posAttr2.getY(i);
@@ -300,7 +259,7 @@ function InteractiveScene() {
     posAttr2.needsUpdate = true;
     geometry2.computeVertexNormals();
 
-    // 5. NEBLINA INTERACTIVA (InstancedMesh)
+    // 5. NEBLINA INTERACTIVA
     const scrollVelocity = Math.min(1.0, Math.abs(scrollDiff) * 25.0);
     const targetOpacity = 0.02 + scrollVelocity * 0.26;
     if (instancedMist.material) {
@@ -356,26 +315,46 @@ function InteractiveScene() {
       mistTexture.offset.y += 0.00004;
     }
 
-    // Alinear opacidad del material de fondo y logo
-    if (bgMesh.material) bgMesh.material.opacity = opacityFactor1;
-    if (logoMesh.material) logoMesh.material.opacity = opacityFactor1;
+    // 6. CONTROL DE OPACIDADES SECUENCIALES DE LOS FONDOS EN EL SCROLL
+    // Panel 1 (Hero)
+    const opacityFactor1 = Math.max(0, 1 - renderedScroll * 4.5);
+    let finalOpacity1 = opacityFactor1;
+    if (renderedScroll > 0.8) {
+      finalOpacity1 = (renderedScroll - 0.8) / 0.2;
+    }
+    if (bgMesh.material) bgMesh.material.opacity = finalOpacity1;
 
+    // Panel 2 (Services)
     let opacityFactor2 = 0;
     if (renderedScroll < 0.2) {
-      opacityFactor2 = Math.min(1, renderedScroll * 5);
-    } else if (renderedScroll < 0.32) {
-      opacityFactor2 = 1.0;
-    } else {
-      opacityFactor2 = Math.max(0, 1 - (renderedScroll - 0.32) * 5);
+      opacityFactor2 = renderedScroll / 0.2;
+    } else if (renderedScroll < 0.4) {
+      opacityFactor2 = 1.0 - ((renderedScroll - 0.2) / 0.2);
     }
     if (bg2Mesh.material) bg2Mesh.material.opacity = opacityFactor2;
+
+    // Panel 3 (Academy)
+    let opacityAcademy = 0;
+    if (renderedScroll >= 0.2 && renderedScroll < 0.4) {
+      opacityAcademy = (renderedScroll - 0.2) / 0.2;
+    } else if (renderedScroll >= 0.4 && renderedScroll < 0.6) {
+      opacityAcademy = 1.0 - ((renderedScroll - 0.4) / 0.2);
+    }
+    if (bgAcademyMesh.material) bgAcademyMesh.material.opacity = opacityAcademy;
+
+    // Panel 4 (Experience)
+    let opacityExp = 0;
+    if (renderedScroll >= 0.4 && renderedScroll < 0.6) {
+      opacityExp = (renderedScroll - 0.4) / 0.2;
+    } else if (renderedScroll >= 0.6 && renderedScroll < 0.8) {
+      opacityExp = 1.0 - ((renderedScroll - 0.6) / 0.2);
+    }
+    if (bgExpMesh.material) bgExpMesh.material.opacity = opacityExp;
   });
 
   return (
     <group ref={groupRef}>
-      {/* ── PANEL 1 (HERO SECTION SÁNDWICH DE PROFUNDIDAD) ──────────────────── */}
-      
-      {/* CAPA ATRÁS: Paisaje ecológico de fondo (Redimensionado al 100% de la pantalla) */}
+      {/* CAPA 1: Paisaje Hero */}
       <mesh ref={bgMeshRef} position={[0, 0, -6]}>
         <planeGeometry args={[45.0, 27.0, 8, 8]} />
         <meshBasicMaterial 
@@ -386,13 +365,35 @@ function InteractiveScene() {
         />
       </mesh>
 
-      {/* CAPA CENTRO: Nuevo logo PNG reactivo centrado de un buen tamaño (6x6) */}
-      <mesh ref={logoMeshRef} position={[0, 0, -2.0]}>
-        <planeGeometry args={[6.0, 6.0, 32, 32]} />
+      {/* CAPA 2: Servicios (deformación elástica 32x32) */}
+      <mesh ref={bg2MeshRef} position={[0, 0, -6]}>
+        <planeGeometry args={[45.0, 27.0, 32, 32]} />
         <meshBasicMaterial 
-          map={logoTexture}
-          transparent={true} 
-          opacity={1.0} 
+          map={bg2Texture}
+          transparent={true}
+          opacity={0.0} 
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* CAPA 3: Academy */}
+      <mesh ref={bgAcademyMeshRef} position={[0, 0, -6]}>
+        <planeGeometry args={[45.0, 27.0, 8, 8]} />
+        <meshBasicMaterial 
+          map={academyTexture}
+          transparent={true}
+          opacity={0.0} 
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* CAPA 4: Experience */}
+      <mesh ref={bgExpMeshRef} position={[0, 0, -6]}>
+        <planeGeometry args={[45.0, 27.0, 8, 8]} />
+        <meshBasicMaterial 
+          map={expTexture}
+          transparent={true}
+          opacity={0.0} 
           depthWrite={false}
         />
       </mesh>
@@ -408,17 +409,6 @@ function InteractiveScene() {
           blending={THREE.NormalBlending}
         />
       </instancedMesh>
-
-      {/* ── PANEL 2 ────────────────────────────────────────────────────────── */}
-      <mesh ref={bg2MeshRef} position={[0, 0, -0.38]}>
-        <planeGeometry args={[30.0, 18.0, 32, 32]} />
-        <meshBasicMaterial 
-          map={bg2Texture}
-          transparent={true}
-          opacity={0.0} 
-          depthWrite={false}
-        />
-      </mesh>
     </group>
   );
 }
@@ -426,66 +416,116 @@ function InteractiveScene() {
 /**
  * @component BackgroundScene
  * @description Escena 3D estática para páginas tradicionales.
+ * Carga de forma selectiva y con continuidad las imágenes de pilar, y
+ * en el caso de Servicios, maneja una transición al deslizar el scroll.
  */
-function BackgroundScene() {
-  const meshRef = useRef();
-  const velocities = useMemo(() => new Float32Array(vertexCount), []);
+function BackgroundScene({ pathname }) {
+  const bgMesh1Ref = useRef();
+  const bgMesh2Ref = useRef();
+  const scrollProgressRef = useRef(0);
+  const currentScroll = useRef(0);
+
+  // Texturas
+  const academyBgTexture = useTexture(academyBg);
+  const expBgTexture = useTexture(expBg);
+  const servicesBg1Texture = useTexture(fondo2doPanel);
+  const servicesBg2Texture = useTexture(panel2ServiceBg);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = maxScroll > 0 ? scrollY / maxScroll : 0;
+      scrollProgressRef.current = progress;
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   useFrame((state) => {
-    const mesh = meshRef.current;
-    if (!mesh) return;
+    const bgMesh1 = bgMesh1Ref.current;
+    const bgMesh2 = bgMesh2Ref.current;
 
-    const geometry = mesh.geometry;
-    const posAttr = geometry.attributes.position;
+    // Smooth scroll
+    const targetScroll = scrollProgressRef.current;
+    currentScroll.current += (targetScroll - currentScroll.current) * 0.1;
 
-    state.raycaster.setFromCamera(state.pointer, state.camera);
-    const intersects = state.raycaster.intersectObject(mesh);
+    // Parallax de mouse leve
+    const targetMouseX = state.pointer.x * 0.1;
+    const targetMouseY = state.pointer.y * 0.1;
 
-    let localPoint = null;
-    if (intersects.length > 0) {
-      localPoint = mesh.worldToLocal(intersects[0].point.clone());
+    if (bgMesh1) {
+      bgMesh1.position.x = targetMouseX;
+      bgMesh1.position.y = targetMouseY;
+    }
+    if (bgMesh2) {
+      bgMesh2.position.x = targetMouseX;
+      bgMesh2.position.y = targetMouseY;
     }
 
-    for (let i = 0; i < vertexCount; i++) {
-      const vx = posAttr.getX(i);
-      const vy = posAttr.getY(i);
-      let vz = posAttr.getZ(i);
-
-      if (localPoint) {
-        const dx = vx - localPoint.x;
-        const dy = vy - localPoint.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        if (dist < radius) {
-          const factor = 1 - dist / radius;
-          const force = factor * intensity;
-          velocities[i] += force * 0.12; 
-        }
-      }
-
-      const restorationForce = -vz * springK;
-      velocities[i] = (velocities[i] + restorationForce) * damping;
-      vz += velocities[i];
-      posAttr.setZ(i, vz);
+    // Transición de opacidades en la página de Servicios
+    if (pathname === '/services') {
+      const transitionProgress = Math.min(1.0, currentScroll.current / 0.4);
+      if (bgMesh1 && bgMesh1.material) bgMesh1.material.opacity = 1.0 - transitionProgress;
+      if (bgMesh2 && bgMesh2.material) bgMesh2.material.opacity = transitionProgress;
+    } else {
+      if (bgMesh1 && bgMesh1.material) bgMesh1.material.opacity = 1.0;
     }
-
-    posAttr.needsUpdate = true;
-    geometry.computeVertexNormals();
-
-    const elapsed = state.clock.getElapsedTime();
-    mesh.rotation.y = Math.sin(elapsed * 0.1) * 0.08;
-    mesh.position.z = -1.0 + Math.cos(elapsed * 0.08) * 0.15;
   });
 
+  // Determinar texturas según pathname
+  let texture1 = null;
+  let texture2 = null;
+
+  if (pathname === '/academy') {
+    texture1 = academyBgTexture;
+  } else if (pathname === '/experience') {
+    texture1 = expBgTexture;
+  } else if (pathname === '/services') {
+    texture1 = servicesBg1Texture;
+    texture2 = servicesBg2Texture;
+  }
+
+  // Fallback si no es una ruta mapeada
+  if (!texture1) {
+    return (
+      <mesh position={[0, 0, -6]}>
+        <planeGeometry args={[45.0, 27.0]} />
+        <meshBasicMaterial color="#010409" />
+      </mesh>
+    );
+  }
+
   return (
-    <mesh ref={meshRef} position={[0, 0, 0]}>
-      <planeGeometry args={[5.8, 5.8, 32, 32]} />
-      <meshBasicMaterial 
-        color="#010409" 
-        transparent={true} 
-        opacity={0.0} 
-      />
-    </mesh>
+    <group>
+      {/* Fondo Inicial */}
+      <mesh ref={bgMesh1Ref} position={[0, 0, -6]}>
+        <planeGeometry args={[45.0, 27.0]} />
+        <meshBasicMaterial 
+          map={texture1} 
+          transparent={true} 
+          opacity={1.0} 
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* Segundo Fondo (exclusivo para Servicios) */}
+      {pathname === '/services' && texture2 && (
+        <mesh ref={bgMesh2Ref} position={[0, 0, -5.9]}>
+          <planeGeometry args={[45.0, 27.0]} />
+          <meshBasicMaterial 
+            map={texture2} 
+            transparent={true} 
+            opacity={0.0} 
+            depthWrite={false}
+          />
+        </mesh>
+      )}
+    </group>
   );
 }
 
@@ -494,6 +534,8 @@ function BackgroundScene() {
  * @description Contenedor global para el lienzo WebGL. Funciona como un fondo fijo puro.
  */
 export default function EnvironmentalCanvas({ isStorytelling = false }) {
+  const location = useLocation();
+
   const containerStyle = {
     position: 'fixed',
     top: 0,
@@ -523,7 +565,11 @@ export default function EnvironmentalCanvas({ isStorytelling = false }) {
         <ambientLight intensity={0.5} />
         
         <React.Suspense fallback={null}>
-          {isStorytelling ? <InteractiveScene /> : <BackgroundScene />}
+          {isStorytelling ? (
+            <InteractiveScene />
+          ) : (
+            <BackgroundScene pathname={location.pathname} />
+          )}
         </React.Suspense>
       </Canvas>
     </div>

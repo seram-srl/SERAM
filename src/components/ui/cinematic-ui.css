@@ -174,7 +174,7 @@
 .menu-trigger__bar {
   width: 28px;
   height: 1.5px;
-  background: rgba(255, 255, 255, 0.7);
+  background: #00e03c;
   border-radius: 2px;
   transform-origin: center;
   transition:
@@ -186,7 +186,7 @@
 /* Animación X al abrir */
 .menu-trigger.is-open .menu-trigger__bar:nth-child(1) {
   transform: translateY(7.5px) rotate(45deg);
-  background: #ffffff;
+  background: #00e03c;
 }
 .menu-trigger.is-open .menu-trigger__bar:nth-child(2) {
   opacity: 0;
@@ -194,7 +194,7 @@
 }
 .menu-trigger.is-open .menu-trigger__bar:nth-child(3) {
   transform: translateY(-7.5px) rotate(-45deg);
-  background: #ffffff;
+  background: #00e03c;
 }
 
 

@@ -76,21 +76,12 @@ export default function Navbar({ isOpen, onToggle }) {
             handleLogoSecretClick();
           }}
         >
-          <div className="relative w-10 h-10 shrink-0">
-            <svg viewBox="0 0 100 100" className="w-full h-full">
-              <defs>
-                <linearGradient id="leafGradNav" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#00E03C" />
-                  <stop offset="100%" stopColor="#007F1A" />
-                </linearGradient>
-              </defs>
-              <circle cx="28" cy="22" r="7" fill="#007F1A" />
-              <circle cx="56" cy="25" r="5" fill="#007F1A" />
-              <circle cx="44" cy="33" r="3.5" fill="#007F1A" />
-              <circle cx="23.5" cy="40.5" r="3.5" fill="#007F1A" />
-              <path d="M72 32 C70 55, 62 82, 42 82 C22 82, 18 64, 28 48 C38 32, 60 25, 72 32 Z" fill="url(#leafGradNav)" />
-              <path d="M28 82 C34 72, 43 55, 59 47" stroke="#FFFFFF" strokeWidth="4.5" strokeLinecap="round" fill="none" />
-            </svg>
+          <div className="relative w-10 h-10 shrink-0 flex items-center justify-center">
+            <img 
+              src="/assets/brand/Centra_el_logo__aumenta_el_202605292302-removebg-preview.png" 
+              alt="Logo SERAM" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <div className="flex flex-col leading-none">
             <div className="flex items-baseline">

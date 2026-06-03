@@ -70,10 +70,12 @@ function HeroSection() {
         
         {/* Título de Marca y Eslogan */}
         <div className="space-y-1">
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-slate-900 leading-none tracking-tighter font-display select-none">
-            SERAM
+          <h1 className="text-6xl sm:text-7xl lg:text-8xl font-black leading-none tracking-tighter font-display select-none">
+            <span className="text-white">SER</span>
+            <span className="text-[#00e03c]">A</span>
+            <span className="text-white">M</span>
           </h1>
-          <p className="text-emerald-800 text-xs sm:text-sm font-semibold uppercase tracking-[0.35em] font-tech select-none">
+          <p className="text-emerald-400 text-xs sm:text-sm font-semibold uppercase tracking-[0.35em] font-tech select-none">
             Servicios Ambientales
           </p>
         </div>
