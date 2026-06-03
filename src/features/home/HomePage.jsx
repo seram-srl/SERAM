@@ -68,9 +68,6 @@ function HeroSection() {
       {/* Contenedor con Cristal Esmerilado Premium */}
       <div className="relative max-w-md backdrop-blur-md bg-white/10 border border-white/20 shadow-lg rounded-3xl p-8 sm:p-10 flex flex-col items-start justify-center space-y-5 text-left animate-fadeIn">
         
-        {/* Espacio reservado para el Logotipo 3D WebGL que flota por detrás */}
-        <div className="w-16 h-16 sm:w-20 sm:h-20 select-none pointer-events-none" />
-
         {/* Título de Marca y Eslogan */}
         <div className="space-y-1">
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-slate-900 leading-none tracking-tighter font-display select-none">

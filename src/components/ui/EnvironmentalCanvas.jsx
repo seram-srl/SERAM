@@ -1,13 +1,11 @@
 import React, { useRef, useEffect, useMemo } from 'react';
-import { Canvas, useFrame, useLoader } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
-import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader';
 
 // ── ASSETS DESDE LA NUEVA ESTRUCTURA DE PUBLIC ──────────────────────────────
 import landscapeBg from '../../public/assets/Imagen_16_9_con_desenfoque_202605300021.jpeg';
-import logoSeram from '../../public/assets/brand/logo-seram.svg';
-import foregroundPlants from '../../public/assets/3d-backend/foreground-plants.webp';
+import newLogo from '../../public/assets/brand/Centra_el_logo__aumenta_el_202605292302-removebg-preview.png';
 import fondo2doPanel from '../../public/assets/fondo2_2do_panel.webp';
 
 // ── PARÁMETROS FÍSICOS COMPARTIDOS ──────────────────────────────────────────
@@ -68,35 +66,25 @@ const createNoiseTexture = () => {
 
 /**
  * @component InteractiveScene
- * @description Escena 3D optimizada. Maneja el sándwich de capas 3D (Fondo, Logo Vectorial Reactivo y Plantas),
+ * @description Escena 3D optimizada. Maneja el sándwich de capas 3D (Fondo, Logo PNG Reactivo Centrado),
  * el scroll nativo por spline con zoom-out/paralaje, y la neblina ecológica.
  */
 function InteractiveScene() {
   const groupRef = useRef();
   const bgMeshRef = useRef();
-  const logoGroupRef = useRef();
-  const fgMeshRef = useRef();
+  const logoMeshRef = useRef();
   const instancedMistRef = useRef();
   const bg2MeshRef = useRef();
 
-  // Velocidades físicas para los vértices (deformación elástica de las plantas y del panel 2)
-  const velocitiesFG = useMemo(() => new Float32Array(vertexCount), []);
+  // Velocidades físicas para los vértices (deformación elástica de logo y panel 2)
+  const velocitiesLogo = useMemo(() => new Float32Array(vertexCount), []);
   const velocities2 = useMemo(() => new Float32Array(vertexCount), []);
 
   // Texturas de alta calidad
   const bgTexture = useTexture(landscapeBg);
-  const fgTexture = useTexture(foregroundPlants);
+  const logoTexture = useTexture(newLogo);
   const bg2Texture = useTexture(fondo2doPanel);
   const mistTexture = useMemo(() => createNoiseTexture(), []);
-
-  // Cargar y procesar el logo SVG vectorial con SVGLoader
-  const svg = useLoader(SVGLoader, logoSeram);
-  const logoShapes = useMemo(() => {
-    return svg.paths.map((path) => ({
-      shapes: path.toShapes(true),
-      color: path.color,
-    }));
-  }, [svg]);
 
   // Limpieza de textura generada dinámicamente
   useEffect(() => {
@@ -169,13 +157,12 @@ function InteractiveScene() {
 
   useFrame((state) => {
     const bgMesh = bgMeshRef.current;
-    const logoGroup = logoGroupRef.current;
-    const fgMesh = fgMeshRef.current;
+    const logoMesh = logoMeshRef.current;
     const instancedMist = instancedMistRef.current;
     const bg2Mesh = bg2MeshRef.current;
     const group = groupRef.current;
 
-    if (!bgMesh || !logoGroup || !fgMesh || !instancedMist || !bg2Mesh || !group) return;
+    if (!bgMesh || !logoMesh || !instancedMist || !bg2Mesh || !group) return;
 
     // 2. SINCRONIZACIÓN DE SCROLL NATIVO (LERP Coeficiente 0.1)
     const targetScroll = scrollProgressRef.current;
@@ -222,15 +209,10 @@ function InteractiveScene() {
     bgMesh.position.y = currentMouseY.current * 0.3;
     bgMesh.position.z = -6.0 - (1.0 - heroProgress) * 0.3;
 
-    // Logo (Capa Centro): velocidad intermedia, alejado y reposicionado suavemente
-    logoGroup.position.x = (-2.5 - (1.0 - heroProgress) * 0.8) + currentMouseX.current * 0.6;
-    logoGroup.position.y = currentMouseY.current * 0.6;
-    logoGroup.position.z = -2.0 - (1.0 - heroProgress) * 2.0;
-
-    // Plantas del frente (Capa Frente): se alejan y salen de la pantalla muy rápido
-    fgMesh.position.x = (-2.0 - (1.0 - heroProgress) * 6.0) + currentMouseX.current * 1.0;
-    fgMesh.position.y = (-1.8 - (1.0 - heroProgress) * 3.0) + currentMouseY.current * 1.0;
-    fgMesh.position.z = 1.0 - (1.0 - heroProgress) * 5.0;
+    // Logo (Capa Centro): centrado en el medio de la pantalla
+    logoMesh.position.x = currentMouseX.current * 0.6;
+    logoMesh.position.y = currentMouseY.current * 0.6;
+    logoMesh.position.z = -2.0 - (1.0 - heroProgress) * 2.0;
 
     // Panel 2
     bg2Mesh.position.x = currentMouseX.current * 0.4;
@@ -245,106 +227,45 @@ function InteractiveScene() {
     // 1. FÍSICA ELÁSTICA DE VÉRTICES (Raycasting)
     state.raycaster.setFromCamera(state.pointer, state.camera);
 
-    // A. Capa Frente (Plantas)
-    const geometryFG = fgMesh.geometry;
-    const posAttrFG = geometryFG.attributes.position;
-    const intersectsFG = state.raycaster.intersectObject(fgMesh);
+    // A. Capa Centro (Logo PNG Reactivo)
+    const geometryLogo = logoMesh.geometry;
+    const posAttrLogo = geometryLogo.attributes.position;
+    const intersectsLogo = state.raycaster.intersectObject(logoMesh);
 
-    let localPointFG = null;
-    if (intersectsFG.length > 0) {
-      localPointFG = fgMesh.worldToLocal(intersectsFG[0].point.clone());
+    let localPointLogo = null;
+    if (intersectsLogo.length > 0) {
+      localPointLogo = logoMesh.worldToLocal(intersectsLogo[0].point.clone());
     }
 
     for (let i = 0; i < vertexCount; i++) {
-      const vx = posAttrFG.getX(i);
-      const vy = posAttrFG.getY(i);
-      let vz = posAttrFG.getZ(i);
+      const vx = posAttrLogo.getX(i);
+      const vy = posAttrLogo.getY(i);
+      let vz = posAttrLogo.getZ(i);
 
-      if (localPointFG) {
-        const dx = vx - localPointFG.x;
-        const dy = vy - localPointFG.y;
+      if (localPointLogo) {
+        const dx = vx - localPointLogo.x;
+        const dy = vy - localPointLogo.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < radius) {
           const factor = 1 - dist / radius;
           const force = factor * intensity;
-          velocitiesFG[i] += force * 0.12; 
+          velocitiesLogo[i] += force * 0.12; 
         }
       }
 
       const restorationForce = -vz * springK;
-      velocitiesFG[i] = (velocitiesFG[i] + restorationForce) * damping;
-      vz += velocitiesFG[i];
-      posAttrFG.setZ(i, vz);
+      velocitiesLogo[i] = (velocitiesLogo[i] + restorationForce) * damping;
+      vz += velocitiesLogo[i];
+      posAttrLogo.setZ(i, vz);
     }
-    posAttrFG.needsUpdate = true;
-    geometryFG.computeVertexNormals();
+    posAttrLogo.needsUpdate = true;
+    geometryLogo.computeVertexNormals();
 
     // Control de Opacidad General de la Sección 1
     const opacityFactor1 = Math.max(0, 1 - renderedScroll * 4.5);
 
-    // B. Capa Centro (Logo Vectorial Reactivo - SVGLoader)
-    // El logo, aunque esté físicamente detrás de las plantas, responde al cursor
-    // debido al raycast directo sobre cada malla de letra del grupo.
-    const vertexWorldPos = new THREE.Vector3();
-    const intersectsLogoCheck = state.raycaster.intersectObjects(logoGroup.children, true);
-    
-    // Almacenamos el punto de intersección del rayo en coordenadas globales
-    const worldIntersectionPoint = intersectsLogoCheck.length > 0 ? intersectsLogoCheck[0].point.clone() : null;
-
-    logoGroup.traverse((child) => {
-      if (child.isMesh) {
-        const geometry = child.geometry;
-        const posAttr = geometry.attributes.position;
-        if (!posAttr) return;
-
-        // Inicialización perezosa de velocidades para las mallas del SVG
-        if (!child.userData.velocities) {
-          child.userData.velocities = new Float32Array(posAttr.count);
-        }
-        const velocities = child.userData.velocities;
-
-        let posChanged = false;
-
-        for (let i = 0; i < posAttr.count; i++) {
-          const vx = posAttr.getX(i);
-          const vy = posAttr.getY(i);
-          let vz = posAttr.getZ(i);
-
-          // Calcular posición en coordenadas del mundo para que la física sea insensible al escalado local
-          vertexWorldPos.set(vx, vy, vz);
-          child.localToWorld(vertexWorldPos);
-
-          if (worldIntersectionPoint) {
-            const dist = vertexWorldPos.distanceTo(worldIntersectionPoint);
-
-            if (dist < radius) {
-              const factor = 1 - dist / radius;
-              const force = factor * intensity;
-              velocities[i] += force * 0.12; 
-            }
-          }
-
-          const restorationForce = -vz * springK;
-          velocities[i] = (velocities[i] + restorationForce) * damping;
-          vz += velocities[i];
-          posAttr.setZ(i, vz);
-          posChanged = true;
-        }
-
-        if (posChanged) {
-          posAttr.needsUpdate = true;
-          geometry.computeVertexNormals();
-        }
-
-        // Sincronizar opacidad del material con opacityFactor1
-        if (child.material) {
-          child.material.opacity = opacityFactor1;
-        }
-      }
-    });
-
-    // C. Capa Fondo Panel 2 (Deformación de fondo al avanzar)
+    // B. Capa Fondo Panel 2 (Deformación de fondo al avanzar)
     const geometry2 = bg2Mesh.geometry;
     const posAttr2 = geometry2.attributes.position;
     const intersects2 = state.raycaster.intersectObject(bg2Mesh);
@@ -435,9 +356,9 @@ function InteractiveScene() {
       mistTexture.offset.y += 0.00004;
     }
 
-    // Alinear opacidad del material de fondo y plantas
+    // Alinear opacidad del material de fondo y logo
     if (bgMesh.material) bgMesh.material.opacity = opacityFactor1;
-    if (fgMesh.material) fgMesh.material.opacity = opacityFactor1;
+    if (logoMesh.material) logoMesh.material.opacity = opacityFactor1;
 
     let opacityFactor2 = 0;
     if (renderedScroll < 0.2) {
@@ -465,27 +386,16 @@ function InteractiveScene() {
         />
       </mesh>
 
-      {/* CAPA CENTRO: Logo vectorial reactivo (SERAM) - Cargado con SVGLoader */}
-      {/* Escala a 0.01 y voltea en Y (-0.01) para compensar coordenadas de pantalla del SVG. */}
-      {/* Desplazamiento local de [-250, 250, 0] para centrar el archivo de 500x500. */}
-      <group ref={logoGroupRef} position={[-2.5, 0, -2]} scale={[0.01, -0.01, 0.01]}>
-        <group position={[-250, 250, 0]}>
-          {logoShapes.map((item, i) =>
-            item.shapes.map((shape, j) => (
-              <mesh key={`${i}-${j}`}>
-                <shapeGeometry args={[shape]} />
-                <meshBasicMaterial 
-                  color={item.color}
-                  transparent={true} 
-                  opacity={1.0} 
-                  depthWrite={false}
-                  side={THREE.DoubleSide}
-                />
-              </mesh>
-            ))
-          )}
-        </group>
-      </group>
+      {/* CAPA CENTRO: Nuevo logo PNG reactivo centrado de un buen tamaño (6x6) */}
+      <mesh ref={logoMeshRef} position={[0, 0, -2.0]}>
+        <planeGeometry args={[6.0, 6.0, 32, 32]} />
+        <meshBasicMaterial 
+          map={logoTexture}
+          transparent={true} 
+          opacity={1.0} 
+          depthWrite={false}
+        />
+      </mesh>
 
       {/* Neblina tridimensional intermedia */}
       <instancedMesh ref={instancedMistRef} args={[null, null, mistCount]} position={[0, 0, -0.05]}>
@@ -498,17 +408,6 @@ function InteractiveScene() {
           blending={THREE.NormalBlending}
         />
       </instancedMesh>
-
-      {/* CAPA FRENTE: Plantas recortadas desenfocadas de la esquina inferior */}
-      <mesh ref={fgMeshRef} position={[-2.0, -1.8, 1]}>
-        <planeGeometry args={[10.0, 6.0, 32, 32]} />
-        <meshBasicMaterial 
-          map={fgTexture}
-          transparent={true}
-          opacity={1.0}
-          depthWrite={false}
-        />
-      </mesh>
 
       {/* ── PANEL 2 ────────────────────────────────────────────────────────── */}
       <mesh ref={bg2MeshRef} position={[0, 0, -0.38]}>
