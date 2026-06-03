@@ -78,7 +78,7 @@ export default function Navbar({ isOpen, onToggle }) {
         >
           <div className="relative w-10 h-10 shrink-0 flex items-center justify-center">
             <img 
-              src="/assets/brand/Centra_el_logo__aumenta_el_202605292302-removebg-preview.png" 
+              src="/assets/brand/ícono_logo.png" 
               alt="Logo SERAM" 
               className="w-full h-full object-contain"
             />

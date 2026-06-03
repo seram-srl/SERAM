@@ -56,7 +56,9 @@
 
 .fullscreen-menu.is-open {
   pointer-events: auto;         /* Activo cuando el menú está abierto */
-  background: rgba(1, 4, 9, 0.92);
+  background: linear-gradient(rgba(1, 4, 9, 0.85), rgba(1, 4, 9, 0.85)), url('/assets/3d-backend/menu-background.webp');
+  background-size: cover;
+  background-position: center;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
 }

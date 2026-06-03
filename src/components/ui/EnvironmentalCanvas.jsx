@@ -5,11 +5,12 @@ import * as THREE from 'three';
 import { useLocation } from 'react-router-dom';
 
 // ── ASSETS DESDE LA NUEVA ESTRUCTURA DE PUBLIC ──────────────────────────────
-import landscapeBg from '../../public/assets/Imagen_16_9_con_desenfoque_202605300021.jpeg';
+import landscapeBg from '../../public/assets/3d-backend/landspace-background2.webp';
 import fondo2doPanel from '../../public/assets/fondo2_2do_panel.webp';
-import panel2ServiceBg from '../../public/assets/3d-backend/panel2service-background.webp';
-import academyBg from '../../public/assets/3d-backend/SERAM-ACADEMY-background.webp';
+import panel2ServiceBg from '../../public/assets/3d-backend/panel2-service-background.webp';
+import academyBg from '../../public/assets/3d-backend/fondo SERAM-ACADEMY2.webp';
 import expBg from '../../public/assets/3d-backend/Seram-Exp-background.webp';
+import shopBg from '../../public/assets/3d-backend/landspace-backgroundstore.webp';
 
 // ── PARÁMETROS FÍSICOS COMPARTIDOS ──────────────────────────────────────────
 const radius = 1.3;       // Radio de afectación del raycasting
@@ -430,6 +431,7 @@ function BackgroundScene({ pathname }) {
   const expBgTexture = useTexture(expBg);
   const servicesBg1Texture = useTexture(fondo2doPanel);
   const servicesBg2Texture = useTexture(panel2ServiceBg);
+  const shopBgTexture = useTexture(shopBg);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -488,6 +490,8 @@ function BackgroundScene({ pathname }) {
   } else if (pathname === '/services') {
     texture1 = servicesBg1Texture;
     texture2 = servicesBg2Texture;
+  } else if (pathname === '/shop') {
+    texture1 = shopBgTexture;
   }
 
   // Fallback si no es una ruta mapeada
