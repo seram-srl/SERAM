@@ -3,14 +3,17 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { useLocation } from 'react-router-dom';
+import EcosystemNucleus from './EcosystemNucleus';
 
-// ── ASSETS DESDE LA NUEVA ESTRUCTURA DE PUBLIC ──────────────────────────────
-import landscapeBg from '../../public/assets/3d-backend/landspace-background2.webp';
-import fondo2doPanel from '../../public/assets/fondo2_2do_panel.webp';
-import panel2ServiceBg from '../../public/assets/3d-backend/panel2-service-background.webp';
-import academyBg from '../../public/assets/3d-backend/fondo SERAM-ACADEMY2.webp';
-import expBg from '../../public/assets/3d-backend/Seram-Exp-background.webp';
-import shopBg from '../../public/assets/3d-backend/landspace-backgroundstore.webp';
+
+// ── ASSETS — ECOSISTEMAS BOLIVIANOS (IA-generados) ───────────────────────────
+const landscapeBg    = '/assets/3d-backend/landspace-background2.webp';     // Amazonía boliviana (Fondo Premium)
+const fondo2doPanel  = '/assets/3d-backend/bg_services_river.webp';    // Río / GIS
+const panel2ServiceBg= '/assets/3d-backend/bg_services_river.webp';    // Servicios alt
+const academyBg      = '/assets/3d-backend/bg_academy_cloudforest.webp'; // Bosque nublado
+const expBg          = '/assets/3d-backend/bg_experience_salar.webp';  // Salar de Uyuni
+const shopBg         = '/assets/3d-backend/bg_store_ecomarket.webp';   // Jardín botánico
+
 
 // ── PARÁMETROS FÍSICOS COMPARTIDOS ──────────────────────────────────────────
 const radius = 1.3;       // Radio de afectación del raycasting
@@ -75,34 +78,29 @@ const createNoiseTexture = () => {
  */
 function InteractiveScene() {
   const groupRef = useRef();
-  const bgMeshRef = useRef();
-  const bg2MeshRef = useRef();
-  const bgAcademyMeshRef = useRef();
-  const bgExpMeshRef = useRef();
-  const instancedMistRef = useRef();
-
-  // Velocidades físicas para los vértices de la deformación elástica de bg2Mesh
-  const velocities2 = useMemo(() => new Float32Array(vertexCount), []);
-
-  // Texturas de alta calidad
-  const bgTexture = useTexture(landscapeBg);
-  const bg2Texture = useTexture(fondo2doPanel);
-  const academyTexture = useTexture(academyBg);
-  const expTexture = useTexture(expBg);
-  const mistTexture = useMemo(() => createNoiseTexture(), []);
-
-  // Limpieza de textura de neblina
-  useEffect(() => {
-    return () => {
-      if (mistTexture) mistTexture.dispose();
-    };
-  }, [mistTexture]);
-
-  // Parallax e inercias del mouse y scroll
-  const currentMouseX = useRef(0);
-  const currentMouseY = useRef(0);
+  const ambientLightRef = useRef();
+  const pointLightRef = useRef();
   const scrollProgressRef = useRef(0);
   const currentScroll = useRef(0);
+  const targetX = useRef(0);
+  const targetY = useRef(0);
+
+  // 1. Carga de las texturas de paisajes para la narración
+  const heroBgTexture = useTexture(landscapeBg);
+  const servicesBgTexture = useTexture(fondo2doPanel);
+  const academyBgTexture = useTexture(academyBg);
+  const expBgTexture = useTexture(expBg);
+  const shopBgTexture = useTexture(shopBg);
+  const fgPlantsTexture = useTexture('/assets/3d-backend/foreground-plants.webp');
+
+  // Refs para el billboard y los planos individuales
+  const bgGroupRef = useRef();
+  const heroBgRef = useRef();
+  const servicesBgRef = useRef();
+  const academyBgRef = useRef();
+  const expBgRef = useRef();
+  const shopBgRef = useRef();
+  const fgPlantsRef = useRef();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -119,297 +117,209 @@ function InteractiveScene() {
     };
   }, []);
 
-  // Trayectoria Spline tridimensional para la cámara (Bucle cerrado)
-  const cameraSpline = useMemo(() => {
-    const points = [
-      new THREE.Vector3(0, 0, 4.2),        // Hero
-      new THREE.Vector3(1.2, 0.4, 3.8),     // Services
-      new THREE.Vector3(0, 0.8, 3.2),      // Academy
-      new THREE.Vector3(-1.2, 0.4, 3.8),    // Experience
-      new THREE.Vector3(-0.5, -0.3, 4.0),   // Shop
-    ];
-    return new THREE.CatmullRomCurve3(points, true);
-  }, []);
-
-  // Partículas de neblina
-  const mistCount = 90;
-  const mistParticles = useMemo(() => {
-    const temp = [];
-    for (let i = 0; i < mistCount; i++) {
-      const x = (Math.random() - 0.5) * 16.0;
-      const y = (Math.random() - 0.5) * 9.0;
-      const z = -0.25 + (Math.random() - 0.5) * 0.5;
-      const scale = 1.4 + Math.random() * 2.0;
-      const speedX = 0.03 + Math.random() * 0.06;
-      const speedY = (Math.random() - 0.5) * 0.015;
-      
-      temp.push({
-        x, y, z,
-        baseX: x,
-        baseY: y,
-        baseZ: z,
-        scale,
-        speedX,
-        speedY,
-        angle: Math.random() * Math.PI * 2,
-        angleSpeed: 0.06 + Math.random() * 0.08
-      });
-    }
-    return temp;
-  }, [mistCount]);
-
   useFrame((state) => {
-    const bgMesh = bgMeshRef.current;
-    const bg2Mesh = bg2MeshRef.current;
-    const bgAcademyMesh = bgAcademyMeshRef.current;
-    const bgExpMesh = bgExpMeshRef.current;
-    const instancedMist = instancedMistRef.current;
-    const group = groupRef.current;
+    const p = scrollProgressRef.current;
 
-    if (!bgMesh || !bg2Mesh || !bgAcademyMesh || !bgExpMesh || !instancedMist || !group) return;
+    // 1. Suavizado LERP del scroll
+    currentScroll.current += (p - currentScroll.current) * 0.1;
+    const smoothP = currentScroll.current;
 
-    // 2. SINCRONIZACIÓN DE SCROLL NATIVO (LERP Coeficiente 0.1)
-    const targetScroll = scrollProgressRef.current;
-    let scrollDiff = targetScroll - currentScroll.current;
-    currentScroll.current += scrollDiff * 0.1;
-    
-    let renderedScroll = currentScroll.current % 1.0;
-    if (renderedScroll < 0) renderedScroll += 1.0;
+    // 2. Trayectoria Orbital B-Roll
+    const baseRadius = 5.2;
+    const radiusAmplitude = 1.6;
+    const radius = baseRadius - Math.sin(smoothP * Math.PI) * radiusAmplitude;
+    const angle = smoothP * Math.PI * 1.5; // Giro orbital de 270 grados
+    const height = (1.0 - smoothP) * 2.5 - 0.2; // Descenso de la grúa de cámara
 
-    // Obtener la posición de la cámara en el riel Spline
-    const cameraPosition = cameraSpline.getPointAt(renderedScroll);
+    let posX = Math.cos(angle) * radius;
+    let posZ = Math.sin(angle) * radius;
+    let posY = height;
 
-    // Relación de aspecto para legibilidad en móviles
+    // Ajuste responsivo de la cámara en dispositivos móviles (verticales)
     const aspect = state.width / state.height;
     if (aspect < 1.0) {
-      cameraPosition.x += 1.15;
-      cameraPosition.z -= 0.45;
+      posX += 1.2;
+      posZ += 0.8;
+      posY += 0.3;
     }
 
-    // Zoom out en el eje Z al scrollar
-    let heroProgress = 0;
-    if (renderedScroll < 0.2) {
-      heroProgress = 1.0 - (renderedScroll / 0.2);
-    } else if (renderedScroll > 0.8) {
-      heroProgress = (renderedScroll - 0.8) / 0.2;
-    }
-    const zoomOutOffset = (1.0 - heroProgress) * 4.0;
-    cameraPosition.z += zoomOutOffset;
+    // 3. Parallax del Cursor
+    const mouseSensitivity = 0.35;
+    targetX.current += (state.pointer.x * mouseSensitivity - targetX.current) * 0.06;
+    targetY.current += (state.pointer.y * mouseSensitivity - targetY.current) * 0.06;
 
-    state.camera.position.copy(cameraPosition);
+    // Aplicar la posición LERPed final a la cámara
+    state.camera.position.x += (posX + targetX.current - state.camera.position.x) * 0.08;
+    state.camera.position.y += (posY + targetY.current - state.camera.position.y) * 0.08;
+    state.camera.position.z += (posZ - state.camera.position.z) * 0.08;
 
-    // 4. PARALLAX Y MIRADA DE CÁMARA CON INERCIA DEL MOUSE
-    const targetMouseX = state.pointer.x * 0.25;
-    const targetMouseY = state.pointer.y * 0.25;
-    
-    currentMouseX.current += (targetMouseX - currentMouseX.current) * 0.08;
-    currentMouseY.current += (targetMouseY - currentMouseY.current) * 0.08;
+    // Mirada al origen (Núcleo) con micro-ajustes por mouse
+    const focusTarget = new THREE.Vector3(targetX.current * 0.4, targetY.current * 0.4, 0);
+    state.camera.lookAt(focusTarget);
 
-    // Paralaje del ratón en las mallas de fondo
-    bgMesh.position.x = currentMouseX.current * 0.3;
-    bgMesh.position.y = currentMouseY.current * 0.3;
-    bgMesh.position.z = -6.0 - (1.0 - heroProgress) * 0.3;
-
-    bg2Mesh.position.x = currentMouseX.current * 0.3;
-    bg2Mesh.position.y = currentMouseY.current * 0.3;
-
-    bgAcademyMesh.position.x = currentMouseX.current * 0.3;
-    bgAcademyMesh.position.y = currentMouseY.current * 0.3;
-
-    bgExpMesh.position.x = currentMouseX.current * 0.3;
-    bgExpMesh.position.y = currentMouseY.current * 0.3;
-
-    // Mirada de la cámara
-    const cameraTarget = new THREE.Vector3(0, 0, 0);
-    cameraTarget.x += currentMouseX.current * 0.7;
-    cameraTarget.y += currentMouseY.current * 0.7;
-    state.camera.lookAt(cameraTarget);
-
-    // 1. FÍSICA ELÁSTICA DE VÉRTICES (Raycasting en bg2Mesh)
-    state.raycaster.setFromCamera(state.pointer, state.camera);
-    const intersects2 = state.raycaster.intersectObject(bg2Mesh);
-    let localPoint2 = null;
-    if (intersects2.length > 0) {
-      localPoint2 = bg2Mesh.worldToLocal(intersects2[0].point.clone());
+    // 4. Posicionar y rotar el grupo exactamente en la cámara
+    if (bgGroupRef.current) {
+      bgGroupRef.current.position.copy(state.camera.position);
+      bgGroupRef.current.rotation.copy(state.camera.rotation);
     }
 
-    const geometry2 = bg2Mesh.geometry;
-    const posAttr2 = geometry2.attributes.position;
-    for (let i = 0; i < vertexCount; i++) {
-      const vx = posAttr2.getX(i);
-      const vy = posAttr2.getY(i);
-      let vz = posAttr2.getZ(i);
+    // 5. Cálculo dinámico del desplazamiento de vuelo y opacidades de portal
+    const spacing = 12.0;
+    const baseDepth = 8.0;
+    const totalShift = spacing * 4.0; // 48.0
+    const flightOffset = smoothP * totalShift;
 
-      if (localPoint2) {
-        const dx = vx - localPoint2.x;
-        const dy = vy - localPoint2.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+    const planesList = [
+      { ref: heroBgRef, index: 0 },
+      { ref: servicesBgRef, index: 1 },
+      { ref: academyBgRef, index: 2 },
+      { ref: expBgRef, index: 3 },
+      { ref: shopBgRef, index: 4 }
+    ];
 
-        if (dist < radius) {
-          const factor = 1 - dist / radius;
-          const force = factor * intensity;
-          velocities2[i] += force * 0.12; 
-        }
+    planesList.forEach(({ ref, index }) => {
+      if (!ref.current) return;
+
+      const zCurr = -baseDepth - index * spacing + flightOffset;
+
+      // Calcular opacidad según profundidad local
+      let opacity = 0;
+      if (zCurr >= -20.0 && zCurr < -8.0) {
+        // Fade in al aproximarse
+        opacity = (zCurr - (-20.0)) / 12.0;
+      } else if (zCurr >= -8.0 && zCurr < -3.0) {
+        // Opaque en zona de enfoque
+        opacity = 1.0;
+      } else if (zCurr >= -3.0 && zCurr < 0.0) {
+        // Fade out al atravesar la cámara
+        opacity = zCurr / -3.0;
       }
 
-      const restorationForce = -vz * springK;
-      velocities2[i] = (velocities2[i] + restorationForce) * damping;
-      vz += velocities2[i];
-      posAttr2.setZ(i, vz);
-    }
-    posAttr2.needsUpdate = true;
-    geometry2.computeVertexNormals();
-
-    // 5. NEBLINA INTERACTIVA
-    const scrollVelocity = Math.min(1.0, Math.abs(scrollDiff) * 25.0);
-    const targetOpacity = 0.02 + scrollVelocity * 0.26;
-    if (instancedMist.material) {
-      instancedMist.material.opacity = targetOpacity;
-    }
-
-    let interactPoint = null;
-    const dummyPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -0.1);
-    const rayIntersection = new THREE.Vector3();
-    if (state.raycaster.ray.intersectPlane(dummyPlane, rayIntersection)) {
-      interactPoint = rayIntersection;
-    }
-
-    const tempObject = new THREE.Object3D();
-    mistParticles.forEach((particle, idx) => {
-      particle.baseX += particle.speedX * 0.04;
-      if (particle.baseX > 9) particle.baseX = -9;
-
-      particle.angle += particle.angleSpeed * 0.04;
-      const wave = Math.sin(particle.angle) * 0.12;
-
-      let targetX = particle.baseX;
-      let targetY = particle.baseY + wave;
-
-      if (interactPoint) {
-        const dx = targetX - interactPoint.x;
-        const dy = targetY - interactPoint.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const radiusRepulsion = 2.4;
-
-        if (dist < radiusRepulsion) {
-          const pushForce = (1.0 - dist / radiusRepulsion) * 1.4;
-          const anglePush = Math.atan2(dy, dx);
-          targetX += Math.cos(anglePush) * pushForce;
-          targetY += Math.sin(anglePush) * pushForce;
-        }
+      if (ref.current.material) {
+        ref.current.material.opacity = Math.min(1.0, Math.max(0.0, opacity));
       }
 
-      particle.x += (targetX - particle.x) * 0.1;
-      particle.y += (targetY - particle.y) * 0.1;
+      // Aplicar posición Z local
+      ref.current.position.z = zCurr;
 
-      tempObject.position.set(particle.x, particle.y, particle.z);
-      tempObject.scale.set(particle.scale, particle.scale, 1);
-      tempObject.rotation.z = particle.angle * 0.05;
-      tempObject.updateMatrix();
-      
-      instancedMist.setMatrixAt(idx, tempObject.matrix);
+      // Verdadero Parallax 3D:
+      // Un worldFixedRatio de 0.85 significa que se desplaza en sentido contrario
+      // al movimiento de la cámara, creando el efecto de profundidad 3D en lugar de skybox estático.
+      // El índice más alejado (Store) se desplaza menos (worldFixedRatio menor) simulando mayor distancia.
+      const worldFixedRatio = 0.85 - index * 0.12;
+      ref.current.position.x = -state.camera.position.x * worldFixedRatio - targetX.current * 0.3 * (index + 1);
+      ref.current.position.y = -state.camera.position.y * worldFixedRatio - targetY.current * 0.3 * (index + 1);
     });
-    instancedMist.instanceMatrix.needsUpdate = true;
 
-    if (mistTexture) {
-      mistTexture.offset.x += 0.00012;
-      mistTexture.offset.y += 0.00004;
+    // Control del Primer Plano (Foreground) - Plantas silvestres
+    if (fgPlantsRef.current) {
+      const fgZ = -3.8 + smoothP * 18.0;
+      fgPlantsRef.current.position.z = fgZ;
+
+      let fgOpacity = 0;
+      if (fgZ >= -10.0 && fgZ < -1.8) {
+        fgOpacity = 0.95;
+      } else if (fgZ >= -1.8 && fgZ < 0.0) {
+        fgOpacity = 0.95 * (fgZ / -1.8);
+      }
+      if (fgPlantsRef.current.material) {
+        fgPlantsRef.current.material.opacity = Math.max(0.0, fgOpacity);
+      }
+
+      // Las plantas del primer plano están muy cerca de la lente y se mueven muy rápido
+      fgPlantsRef.current.position.x = -state.camera.position.x * 1.35 - targetX.current * 0.8;
+      fgPlantsRef.current.position.y = -2.2 - state.camera.position.y * 1.35 - targetY.current * 0.8;
     }
 
-    // 6. CONTROL DE OPACIDADES SECUENCIALES DE LOS FONDOS EN EL SCROLL
-    // Panel 1 (Hero)
-    const opacityFactor1 = Math.max(0, 1 - renderedScroll * 4.5);
-    let finalOpacity1 = opacityFactor1;
-    if (renderedScroll > 0.8) {
-      finalOpacity1 = (renderedScroll - 0.8) / 0.2;
+    // 6. Intensidad de Luces Reactiva al Scroll (Brillo máximo en Servicios/Academia)
+    let intensityFactor = 0.0;
+    if (smoothP < 0.25) {
+      intensityFactor = smoothP / 0.25; // 0 a 1
+    } else if (smoothP < 0.50) {
+      intensityFactor = 1.0;
+    } else if (smoothP < 0.75) {
+      intensityFactor = 1.0 - ((smoothP - 0.50) / 0.25) * 0.5; // Caída a 0.5
+    } else {
+      intensityFactor = 0.5 - ((smoothP - 0.75) / 0.25) * 0.3; // Caída a 0.2
     }
-    if (bgMesh.material) bgMesh.material.opacity = finalOpacity1;
 
-    // Panel 2 (Services)
-    let opacityFactor2 = 0;
-    if (renderedScroll < 0.2) {
-      opacityFactor2 = renderedScroll / 0.2;
-    } else if (renderedScroll < 0.4) {
-      opacityFactor2 = 1.0 - ((renderedScroll - 0.2) / 0.2);
+    if (ambientLightRef.current) {
+      ambientLightRef.current.intensity = 0.35 + intensityFactor * 0.50; // Rango: [0.35, 0.85]
     }
-    if (bg2Mesh.material) bg2Mesh.material.opacity = opacityFactor2;
+    if (pointLightRef.current) {
+      pointLightRef.current.intensity = 0.8 + intensityFactor * 1.40;   // Rango: [0.80, 2.20]
+    }
 
-    // Panel 3 (Academy)
-    let opacityAcademy = 0;
-    if (renderedScroll >= 0.2 && renderedScroll < 0.4) {
-      opacityAcademy = (renderedScroll - 0.2) / 0.2;
-    } else if (renderedScroll >= 0.4 && renderedScroll < 0.6) {
-      opacityAcademy = 1.0 - ((renderedScroll - 0.4) / 0.2);
+    // 7. Ciclorama de Estudio: Transición de verde/negro a verde boscoso ultra-iluminado
+    if (state.scene) {
+      let bgColor = new THREE.Color(0x020704); // Base Hero (verde/negro brumoso)
+      if (smoothP < 0.25) {
+        // Hero a Services: Hacia verde boscoso
+        bgColor.lerp(new THREE.Color(0x011f0a), smoothP / 0.25);
+      } else if (smoothP < 0.50) {
+        // Services a Academy: Hacia verde boscoso ultra-iluminado
+        const t = (smoothP - 0.25) / 0.25;
+        bgColor = new THREE.Color(0x011f0a).lerp(new THREE.Color(0x012b0e), t);
+      } else if (smoothP < 0.75) {
+        // Academy a Experience: Hacia azulado-verdoso profundo húmedo
+        const t = (smoothP - 0.50) / 0.25;
+        bgColor = new THREE.Color(0x012b0e).lerp(new THREE.Color(0x001710), t);
+      } else {
+        // Experience a Store: Retorno a verde-esmeralda limpio
+        const t = (smoothP - 0.75) / 0.25;
+        bgColor = new THREE.Color(0x001710).lerp(new THREE.Color(0x010905), t);
+      }
+      state.scene.background = bgColor;
     }
-    if (bgAcademyMesh.material) bgAcademyMesh.material.opacity = opacityAcademy;
-
-    // Panel 4 (Experience)
-    let opacityExp = 0;
-    if (renderedScroll >= 0.4 && renderedScroll < 0.6) {
-      opacityExp = (renderedScroll - 0.4) / 0.2;
-    } else if (renderedScroll >= 0.6 && renderedScroll < 0.8) {
-      opacityExp = 1.0 - ((renderedScroll - 0.6) / 0.2);
-    }
-    if (bgExpMesh.material) bgExpMesh.material.opacity = opacityExp;
   });
 
   return (
     <group ref={groupRef}>
-      {/* CAPA 1: Paisaje Hero */}
-      <mesh ref={bgMeshRef} position={[0, 0, -6]}>
-        <planeGeometry args={[45.0, 27.0, 8, 8]} />
-        <meshBasicMaterial 
-          map={bgTexture}
-          transparent={true} 
-          opacity={1.0} 
-          depthWrite={false}
-        />
-      </mesh>
+      <ambientLight ref={ambientLightRef} intensity={0.35} />
+      <directionalLight position={[5, 10, 5]} intensity={0.8} />
+      <pointLight ref={pointLightRef} position={[0, 0, 2]} intensity={0.8} color="#00e03c" />
 
-      {/* CAPA 2: Servicios (deformación elástica 32x32) */}
-      <mesh ref={bg2MeshRef} position={[0, 0, -6]}>
-        <planeGeometry args={[45.0, 27.0, 32, 32]} />
-        <meshBasicMaterial 
-          map={bg2Texture}
-          transparent={true}
-          opacity={0.0} 
-          depthWrite={false}
-        />
-      </mesh>
+      {/* Cartelera 3D de Fondos Paisajísticos (Billboard) */}
+      <group ref={bgGroupRef}>
+        {/* Fondo 1: Hero */}
+        <mesh ref={heroBgRef} position={[0, 0, -0.04]}>
+          <planeGeometry args={[44, 22]} />
+          <meshBasicMaterial map={heroBgTexture} transparent depthWrite={false} opacity={1} />
+        </mesh>
+        
+        {/* Fondo 2: Servicios */}
+        <mesh ref={servicesBgRef} position={[0, 0, -0.03]}>
+          <planeGeometry args={[44, 22]} />
+          <meshBasicMaterial map={servicesBgTexture} transparent depthWrite={false} opacity={0} />
+        </mesh>
 
-      {/* CAPA 3: Academy */}
-      <mesh ref={bgAcademyMeshRef} position={[0, 0, -6]}>
-        <planeGeometry args={[45.0, 27.0, 8, 8]} />
-        <meshBasicMaterial 
-          map={academyTexture}
-          transparent={true}
-          opacity={0.0} 
-          depthWrite={false}
-        />
-      </mesh>
+        {/* Fondo 3: Academia */}
+        <mesh ref={academyBgRef} position={[0, 0, -0.02]}>
+          <planeGeometry args={[44, 22]} />
+          <meshBasicMaterial map={academyBgTexture} transparent depthWrite={false} opacity={0} />
+        </mesh>
 
-      {/* CAPA 4: Experience */}
-      <mesh ref={bgExpMeshRef} position={[0, 0, -6]}>
-        <planeGeometry args={[45.0, 27.0, 8, 8]} />
-        <meshBasicMaterial 
-          map={expTexture}
-          transparent={true}
-          opacity={0.0} 
-          depthWrite={false}
-        />
-      </mesh>
+        {/* Fondo 4: Experiencias */}
+        <mesh ref={expBgRef} position={[0, 0, -0.01]}>
+          <planeGeometry args={[44, 22]} />
+          <meshBasicMaterial map={expBgTexture} transparent depthWrite={false} opacity={0} />
+        </mesh>
 
-      {/* Neblina tridimensional intermedia */}
-      <instancedMesh ref={instancedMistRef} args={[null, null, mistCount]} position={[0, 0, -0.05]}>
-        <planeGeometry args={[1.6, 1.6]} />
-        <meshBasicMaterial 
-          map={mistTexture}
-          transparent={true}
-          opacity={0.0}
-          depthWrite={false}
-          blending={THREE.NormalBlending}
-        />
-      </instancedMesh>
+        {/* Fondo 5: Tienda */}
+        <mesh ref={shopBgRef} position={[0, 0, 0]}>
+          <planeGeometry args={[44, 22]} />
+          <meshBasicMaterial map={shopBgTexture} transparent depthWrite={false} opacity={0} />
+        </mesh>
+
+        {/* Capa de Primer Plano (Foreground) - Plantas silvestres */}
+        <mesh ref={fgPlantsRef} position={[0, -2, -3]}>
+          <planeGeometry args={[18, 9]} />
+          <meshBasicMaterial map={fgPlantsTexture} transparent depthWrite={false} opacity={0.95} />
+        </mesh>
+      </group>
+
+      {/* Renderizar el Núcleo Ecosistémico de Partículas */}
+      <EcosystemNucleus scrollRef={scrollProgressRef} />
     </group>
   );
 }

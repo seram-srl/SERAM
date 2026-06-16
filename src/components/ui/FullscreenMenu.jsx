@@ -17,11 +17,12 @@ import './cinematic-ui.css';
 
 const NAV_ITEMS = [
   { to: '/',           label: 'Inicio',          index: '01' },
-  { to: '/academy',    label: 'SERAM Academy',   index: '02' },
-  { to: '/services',   label: 'SERAM Service',   index: '03' },
-  { to: '/experience', label: 'SERAM Experience',index: '04' },
-  { to: '/shop',       label: 'Tienda',          index: '05' },
+  { to: '/academy',    label: 'SERAM ACADEMY',   index: '02' },
+  { to: '/services',   label: 'SERAM SERVICES',  index: '03' },
+  { to: '/experience', label: 'SERAM EXPERIENCE',index: '04' },
+  { to: '/shop',       label: 'SERAM STORE',     index: '05' },
 ];
+
 
 export default function FullscreenMenu({ isOpen, onToggle }) {
   const location = useLocation();
@@ -43,7 +44,7 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
   // Cerrar al cambiar de ruta
   useEffect(() => {
     if (isOpen) onToggle();
-  }, [location.pathname]);
+  }, [location.pathname, isOpen, onToggle]);
 
   // Animaciones GSAP para efecto Stagger
   useEffect(() => {
@@ -123,6 +124,37 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
         aria-modal="true"
         aria-label="Navegación principal SERAM"
       >
+        {/* 1. Capa de imagen de fondo sutil con difuminado */}
+        <div
+          className="fullscreen-menu__backdrop-image"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: "url('/assets/3d-backend/menu-background.webp')",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: isOpen ? 0.35 : 0,
+            transition: 'opacity var(--dur-menu-open) var(--transition-menu)',
+            zIndex: -1,
+            pointerEvents: 'none',
+            filter: 'blur(4px)',
+          }}
+        />
+
+        {/* 2. Capa de gradiente oscuro para asegurar contraste y énfasis en el contenido */}
+        <div
+          className="fullscreen-menu__backdrop-overlay"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(to bottom, rgba(1, 4, 9, 0.82) 0%, rgba(1, 4, 9, 0.94) 100%)',
+            opacity: isOpen ? 1 : 0,
+            transition: 'opacity var(--dur-menu-open) var(--transition-menu)',
+            zIndex: -1,
+            pointerEvents: 'none',
+          }}
+        />
+
         <div className="fullscreen-menu__panel">
           {/* Línea divisora */}
           <div className="fullscreen-menu__divider" aria-hidden="true" />

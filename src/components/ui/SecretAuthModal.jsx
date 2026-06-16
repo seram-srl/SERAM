@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldAlert, KeyRound, X, CheckCircle, Loader2, User, ArrowLeft, Mail } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
@@ -7,9 +7,9 @@ import { supabase } from '../../services/supabaseClient';
 // Lista exclusiva de los 4 socios del proyecto SERAM v2.5
 const PARTNERS_LIST = [
   { name: 'Ing. Diego Barrientos', email: 'barrientoso2401@gmail.com' },
-  { name: 'Ing. Fernando Araujo', email: 'fernando@seram.com' },
-  { name: 'Ing. Fabricio Orosco', email: 'fabricio@seram.com' },
-  { name: 'Ing. Freddy Farrachol', email: 'freddy@seram.com' },
+  { name: 'Ing. Fernando Araujo', email: 'fernandoaraujo1912@gmail.com' },
+  { name: 'Ing. Fabricio Orosco', email: 'sebastiansbs51@gmail.com' },
+  { name: 'Ing. Freddy Farrachol', email: 'freddy@gmail.com' },
 ];
 
 /**
@@ -40,6 +40,14 @@ export default function SecretAuthModal() {
 
   const activePartner = PARTNERS_LIST[selectedPartnerIndex];
 
+  const handleClose = useCallback(() => {
+    setShowSecretPortal(false);
+    setMode('SELECTION');
+    setPassword('');
+    setSuccess(false);
+    setIsRegister(false);
+  }, [setShowSecretPortal]);
+
   // Escuchar tecla Escape para cerrar el portal secreto
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -49,15 +57,7 @@ export default function SecretAuthModal() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showSecretPortal]);
-
-  const handleClose = () => {
-    setShowSecretPortal(false);
-    setMode('SELECTION');
-    setPassword('');
-    setSuccess(false);
-    setIsRegister(false);
-  };
+  }, [showSecretPortal, handleClose]);
 
   const handleSelectPartner = (idx) => {
     setSelectedPartnerIndex(idx);

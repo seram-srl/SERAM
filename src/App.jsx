@@ -17,7 +17,9 @@ import PartnerModal    from './components/shared/PartnerModal';
 // ── Feature pages (cada una es un módulo SRP independiente)
 import HomePage        from './features/home/HomePage';
 import AcademyPage     from './features/academy/AcademyPage';
+import CoursePlayerPage from './features/academy/CoursePlayerPage';
 import ServicesPage    from './features/services/ServicesPage';
+import QuotePage       from './features/services/QuotePage';
 import ExperiencePage  from './features/experience/ExperiencePage';
 import ShopPage        from './features/shop/ShopPage';
 import PartnerDashboard from './features/partner-portal/PartnerDashboard';
@@ -47,6 +49,9 @@ export default function App() {
     >
       {/* ── CAPA z-0: Fondo WebGL tridimensional ─────────────────────────── */}
       {location.pathname !== '/' && <EnvironmentalCanvas />}
+
+      {/* ── CAPA z-2: Vignette degradé lateral para el home y páginas ───── */}
+      <div className="vignette-overlay-sides" />
 
       {/* ── CAPA z-200: Cursor personalizado ─────────────────────────────── */}
       <CustomCursor />
@@ -81,7 +86,9 @@ export default function App() {
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             <Route path="/"           element={<HomePage />}         />
+            <Route path="/quote"      element={<QuotePage />}        />
             <Route path="/academy"    element={<AcademyPage />}      />
+            <Route path="/academy/course/:id" element={<CoursePlayerPage />} />
             <Route path="/services"   element={<ServicesPage />}     />
             <Route path="/experience" element={<ExperiencePage />}   />
             <Route path="/shop"       element={<ShopPage />}         />

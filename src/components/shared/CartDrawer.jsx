@@ -40,7 +40,7 @@ export default function CartDrawer() {
                 <img src={item.image} alt={item.name} className="w-12 h-12 rounded-lg object-cover" />
                 <div className="flex-1">
                   <h4 className="text-sm font-bold text-slate-100 line-clamp-1">{item.name}</h4>
-                  <p className="text-xs text-slate-500">${item.price} USD × {item.qty}</p>
+                  <p className="text-xs text-slate-500">Bs. {item.price} × {item.qty}</p>
                 </div>
                 <button
                   onClick={() => handleRemoveFromCart(item.id)}
@@ -58,7 +58,7 @@ export default function CartDrawer() {
           <div className="p-6 border-t border-white/[0.06] space-y-4">
             <div className="flex justify-between items-center text-white">
               <span className="font-semibold text-sm">Total Estimado:</span>
-              <span className="font-black text-2xl text-[#00e03c]">${total} USD</span>
+              <span className="font-black text-2xl text-[#00e03c]">Bs. {total}</span>
             </div>
             <button
               onClick={handleCheckout}

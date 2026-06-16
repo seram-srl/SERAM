@@ -1,351 +1,270 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Navigate } from 'react-router-dom';
 import {
   Shield, DollarSign, BookOpenCheck, Briefcase, Leaf,
-  Plus, Trash2, Loader2
+  Plus, Trash2, Loader2, Edit2, Check, X, Calendar,
+  Clock, Award, TrendingUp, BarChart2, ShoppingBag,
+  Globe, Users, ChevronLeft, ChevronRight, Settings,
+  MapPin, UserCheck, Package, Star, AlertCircle,
 } from 'lucide-react';
+import {
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis,
+  CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+} from 'recharts';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../services/supabaseClient';
 
+// ── ANIMATION VARIANTS ─────────────────────────────────────────────────────
 const pageVariants = {
-  initial: { opacity: 0, y: 24 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
-  exit: { opacity: 0, y: -12, transition: { duration: 0.3 } },
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.5 } },
+  exit: { opacity: 0 },
+};
+const fadeUp = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } },
+};
+const stagger = { animate: { transition: { staggerChildren: 0.07 } } };
+
+// ── SIDEBAR CONFIG ─────────────────────────────────────────────────────────
+const SIDEBAR_MODULES = [
+  { id: 'overview',    icon: <BarChart2 className="w-5 h-5" />,    label: 'Resumen General' },
+  { id: 'services',   icon: <Briefcase className="w-5 h-5" />,    label: 'SERAM SERVICES' },
+  { id: 'academy',    icon: <BookOpenCheck className="w-5 h-5" />, label: 'SERAM ACADEMY' },
+  { id: 'experience', icon: <Globe className="w-5 h-5" />,         label: 'SERAM EXPERIENCE' },
+  { id: 'store',      icon: <ShoppingBag className="w-5 h-5" />,   label: 'SERAM STORE' },
+  { id: 'users',      icon: <Users className="w-5 h-5" />,         label: 'Socios & Usuarios' },
+  { id: 'finances',   icon: <DollarSign className="w-5 h-5" />,    label: 'Finanzas' },
+];
+
+// ── RECHARTS CUSTOM TOOLTIP ────────────────────────────────────────────────
+const DarkTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-slate-900 border border-white/10 rounded-xl px-4 py-3 shadow-2xl text-xs">
+      <p className="font-bold text-slate-400 uppercase tracking-widest mb-2">{label}</p>
+      {payload.map((entry) => (
+        <p key={entry.name} className="font-black" style={{ color: entry.color }}>
+          {entry.name}: {typeof entry.value === 'number' && entry.name?.toLowerCase().includes('bs')
+            ? `Bs. ${entry.value.toLocaleString()}`
+            : entry.value}
+        </p>
+      ))}
+    </div>
+  );
 };
 
-export default function PartnerDashboard() {
-  const {
-    activeRole, currentSocio, handleLogoutPartner,
-    registeredUsers, courses, activeServices,
-    handleAddCourse, handleDeleteCourse, handleToggleCoursePremium,
-    handleAddProject, handleUpdateProjectProgress, handleDeleteProject,
-    handleToggleUserPremium, handleRevokeUserAccess,
-    triggerToast,
-  } = useApp();
+// ── CHART DATA ─────────────────────────────────────────────────────────────
+const studentGrowthData = [
+  { month: 'Ene', Estudiantes: 45 },
+  { month: 'Feb', Estudiantes: 72 },
+  { month: 'Mar', Estudiantes: 98 },
+  { month: 'Abr', Estudiantes: 125 },
+  { month: 'May', Estudiantes: 143 },
+  { month: 'Jun', Estudiantes: 162 },
+];
 
-  const [newCourseTitle, setNewCourseTitle] = useState('');
-  const [newCourseInstructor, setNewCourseInstructor] = useState('');
+const revenueByPillarData = [
+  { pilar: 'ACADEMY',    'Bs. Ingresos': 11500 },
+  { pilar: 'SERVICES',   'Bs. Ingresos': 9850 },
+  { pilar: 'EXPERIENCE', 'Bs. Ingresos': 3500 },
+  { pilar: 'STORE',      'Bs. Ingresos': 2100 },
+];
 
-  // --- SUPABASE DATA FETCH (Fase 3) ---
-  const [loading, setLoading] = useState(true);
-  const [metrics, setMetrics] = useState(null);
+// ── GLASS CARD ─────────────────────────────────────────────────────────────
+const GlassCard = ({ children, className = '' }) => (
+  <div className={`bg-white/[0.04] border border-white/[0.08] rounded-2xl ${className}`}>
+    {children}
+  </div>
+);
 
-  useEffect(() => {
-    let isMounted = true;
-    
-    async function fetchCompanyMetrics() {
-      try {
-        setLoading(true);
-        // Consulta real a Supabase
-        const { data, error } = await supabase
-          .from('company_metrics')
-          .select('*')
-          .limit(1);
-
-        if (error) throw error;
-
-        if (isMounted && data && data.length > 0) {
-          setMetrics(data[0]);
-        }
-      } catch (err) {
-        console.warn('[Supabase Metrics Fetch]:', err.message);
-        // Fallback local silencioso si la tabla no está creada
-      } finally {
-        // Retrasar sutilmente la carga (800ms) para percibir el skeleton premium de carga
-        setTimeout(() => {
-          if (isMounted) setLoading(false);
-        }, 800);
-      }
-    }
-
-    if (activeRole === 'AdminMod') {
-      fetchCompanyMetrics();
-    } else {
-      setLoading(false);
-    }
-
-    return () => {
-      isMounted = false;
-    };
-  }, [activeRole]);
-
-  // Guard: redirect non-admin users
-  if (activeRole !== 'AdminMod') {
-    return <Navigate to="/" replace />;
-  }
-
-  // --- PANTALLA DE CARGA CON SKELETONS CINEMÁTICOS ---
-  if (loading) {
-    return (
-      <div className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-10">
-        {/* Skeleton Header */}
-        <div className="glass-panel-dark border border-white/10 rounded-3xl p-8 flex flex-col lg:flex-row items-center justify-between gap-6 relative overflow-hidden animate-pulse">
-          <div className="space-y-3 w-full lg:w-2/3">
-            <div className="h-6 bg-white/5 rounded-md w-1/4" />
-            <div className="h-10 bg-white/5 rounded-md w-3/4" />
-            <div className="h-4 bg-white/5 rounded-md w-1/2" />
-          </div>
-          <div className="h-12 bg-white/5 rounded-xl w-40 shrink-0" />
-        </div>
-
-        {/* Skeleton KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-             <div key={i} className="glass-panel-dark border border-white/[0.06] rounded-2xl p-6 flex items-center justify-between animate-pulse">
-               <div className="space-y-2.5 w-2/3">
-                 <div className="h-3 bg-white/5 rounded w-1/2" />
-                 <div className="h-8 bg-white/5 rounded w-3/4" />
-                 <div className="h-3 bg-white/5 rounded w-1/3" />
-               </div>
-               <div className="w-12 h-12 rounded-2xl bg-white/5 shrink-0" />
-             </div>
-          ))}
-        </div>
-
-        {/* Skeleton Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {[1, 2].map((i) => (
-             <div key={i} className="glass-panel-dark border border-white/[0.06] rounded-2xl p-6 h-64 animate-pulse">
-               <div className="h-5 bg-white/5 rounded w-1/3 mb-4" />
-               <div className="h-full bg-white/[0.02] rounded-xl w-full flex items-center justify-center">
-                 <Loader2 className="w-6 h-6 animate-spin text-slate-700" />
-               </div>
-             </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  const kpis = [
-    { 
-      label: 'Ingresos Totales', 
-      value: metrics?.total_revenue 
-        ? `$${metrics.total_revenue.toLocaleString()}` 
-        : '$24,850', 
-      unit: 'USD', 
-      trend: metrics?.revenue_trend || '↑ +12.4% este mes', 
-      icon: <DollarSign className="w-6 h-6" />, 
-      color: 'bg-[#00e03c]/10 text-[#00e03c]' 
-    },
-    { 
-      label: 'Alumnos Directos', 
-      value: metrics?.total_students 
-        ? metrics.total_students.toString() 
-        : '143', 
-      unit: 'Alumnos', 
-      trend: metrics?.students_trend || '↑ +18 desde abril', 
-      icon: <BookOpenCheck className="w-6 h-6" />, 
-      color: 'bg-[#00e03c]/10 text-[#00e03c]' 
-    },
-    { 
-      label: 'Proyectos Activos', 
-      value: metrics?.active_projects 
-        ? metrics.active_projects.toString() 
-        : activeServices.length.toString(), 
-      unit: 'En Curso', 
-      trend: '2 Completados este ciclo', 
-      icon: <Briefcase className="w-6 h-6" />, 
-      color: 'bg-slate-900 text-emerald-400' 
-    },
-    { 
-      label: 'CO2 Compensado', 
-      value: metrics?.co2_compensated 
-        ? metrics.co2_compensated.toLocaleString() 
-        : '1,240', 
-      unit: 'Tons', 
-      trend: 'Meta anual: 1,500T', 
-      icon: <Leaf className="w-6 h-6" />, 
-      color: 'bg-[#00e03c] text-white' 
-    },
-  ];
-
+// ─────────────────────────────────────────────────────────────────────────────
+// MODULE: OVERVIEW
+// ─────────────────────────────────────────────────────────────────────────────
+function OverviewModule({ kpis, metrics }) {
   return (
-    <motion.div
-      variants={pageVariants} initial="initial" animate="animate" exit="exit"
-      className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-10"
-    >
-      {/* Dashboard Header */}
-      <div className="glass-panel-dark border border-white/10 rounded-3xl p-8 flex flex-col lg:flex-row items-center justify-between gap-6 relative overflow-hidden shadow-2xl">
-        <div className="absolute right-0 top-0 opacity-5 blur-xl w-96 h-96 bg-[#00e03c] rounded-full -mr-20 -mt-20" />
-        <div className="space-y-2 relative z-10 text-center lg:text-left">
-          <div className="inline-flex items-center gap-2 bg-[#00e03c]/20 text-[#00e03c] px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border border-[#00e03c]/30">
-            <Shield className="w-3.5 h-3.5 animate-pulse" /> Socio Directivo Conectado
-          </div>
-          <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">Panel de Control SERAM</h1>
-          <p className="text-sm text-slate-400 max-w-2xl leading-relaxed">
-            Bienvenido, <strong className="text-white font-extrabold">{currentSocio?.name}</strong>.
-            Desde este portal puedes auditar el tráfico, monitorear ingresos globales y gestionar la oferta de consultoría y academia.
-          </p>
-        </div>
-        <div className="shrink-0 relative z-10">
-          <button
-            onClick={handleLogoutPartner}
-            className="bg-rose-950/80 border border-rose-800/50 hover:bg-rose-900 text-rose-300 px-5 py-3 rounded-xl font-bold text-xs uppercase transition-all tracking-wider"
-          >
-            Cerrar Sesión Directiva
-          </button>
-        </div>
-      </div>
-
+    <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-8">
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {kpis.map((kpi) => (
-          <div key={kpi.label} className="glass-panel-dark border border-white/[0.06] rounded-2xl p-6 flex items-center justify-between hover:border-white/12 transition-colors">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {kpis.map((kpi, i) => (
+          <motion.div
+            key={kpi.label}
+            variants={fadeUp}
+            whileHover={{ y: -3 }}
+            className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-5 flex items-center justify-between transition-all cursor-default hover:border-[#00e03c]/20"
+          >
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{kpi.label}</span>
-              <h3 className="text-3xl font-black text-white">{kpi.value} <span className="text-xs font-bold text-slate-500">{kpi.unit}</span></h3>
-              <p className="text-[10px] text-[#00e03c] font-bold">{kpi.trend}</p>
+              <h3 className="text-2xl font-black text-white">{kpi.value}</h3>
+              <p className="text-[10px] text-[#00e03c] font-bold flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" /> {kpi.trend}
+              </p>
             </div>
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${kpi.color}`}>
+            <motion.div
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1, transition: { delay: 0.1 + i * 0.08, type: 'spring' } }}
+              className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${kpi.color}`}
+            >
               {kpi.icon}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         ))}
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Line Chart: Student Growth */}
-        <div className="glass-panel-dark border border-white/[0.06] rounded-2xl p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
-            <div>
-              <h3 className="font-extrabold text-white text-base">Crecimiento de Estudiantes</h3>
-              <p className="text-xs text-slate-500">Progreso acumulado mensual en SERAM ACADEMY</p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Area Chart */}
+        <motion.div variants={fadeUp}>
+          <GlassCard className="p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+              <div>
+                <h3 className="font-extrabold text-white text-sm">Crecimiento de Estudiantes</h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">Progreso acumulado — SERAM ACADEMY</p>
+              </div>
+              <span className="text-[9px] font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-2 py-1 rounded-full uppercase tracking-widest">
+                Live Data
+              </span>
             </div>
-            <span className="bg-[#00e03c]/10 text-[#00e03c] text-[10px] font-bold px-2 py-0.5 rounded border border-[#00e03c]/20">SaaS Engine</span>
-          </div>
-          <div className="relative pt-4">
-            <svg viewBox="0 0 500 220" className="w-full h-auto overflow-visible">
-              <defs>
-                <linearGradient id="chartAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#00E03C" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="#00E03C" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-              {[20, 65, 110, 155, 200].map(y => (
-                <line key={y} x1="40" y1={y} x2="480" y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="3,3" />
-              ))}
-              <line x1="40" y1="200" x2="480" y2="200" stroke="rgba(255,255,255,0.1)" strokeWidth="1.5" />
-              {[['150',24],['110',69],['75',114],['35',159],['0',204]].map(([v,y]) => (
-                <text key={v} x="30" y={y} fill="#475569" fontSize="10" fontWeight="bold" textAnchor="end">{v}</text>
-              ))}
-              {[['Ene',60],['Feb',160],['Mar',260],['Abr',360],['May',460]].map(([m,x]) => (
-                <text key={m} x={x} y="218" fill="#475569" fontSize="10" fontWeight="bold" textAnchor="middle">{m}</text>
-              ))}
-              <path d="M 60 200 L 60 155 L 160 120 L 260 90 L 360 45 L 460 27 L 460 200 Z" fill="url(#chartAreaGrad)" />
-              <path d="M 60 155 L 160 120 L 260 90 L 360 45 L 460 27" fill="none" stroke="#00e03c" strokeWidth="3" strokeLinecap="round" />
-              {[[60,155,'45'],[160,120,'72'],[260,90,'98'],[360,45,'125'],[460,27,'143']].map(([x,y,v]) => (
-                <g key={x}>
-                  <circle cx={x} cy={y} r={x===460?6:5} fill={x===460?"#00e03c":"rgba(1,4,9,0.8)"} stroke="#00e03c" strokeWidth="2.5" />
-                  <text x={x} y={y-13} fill={x===460?"#00e03c":"#94a3b8"} fontSize="9" fontWeight="800" textAnchor="middle">{v}</text>
-                </g>
-              ))}
-            </svg>
-          </div>
-        </div>
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={studentGrowthData}>
+                <defs>
+                  <linearGradient id="studentGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#00e03c" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#00e03c" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} />
+                <Tooltip content={<DarkTooltip />} />
+                <Area type="monotone" dataKey="Estudiantes" stroke="#00e03c" strokeWidth={2.5} fill="url(#studentGrad)" dot={{ fill: '#00e03c', r: 4 }} activeDot={{ r: 6 }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </GlassCard>
+        </motion.div>
 
-        {/* Bar Chart: Revenue by Pillar */}
-        <div className="glass-panel-dark border border-white/[0.06] rounded-2xl p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
-            <div>
-              <h3 className="font-extrabold text-white text-base">Distribución por Pilares</h3>
-              <p className="text-xs text-slate-500">Ingresos divididos por pilares comerciales</p>
+        {/* Bar Chart */}
+        <motion.div variants={fadeUp}>
+          <GlassCard className="p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+              <div>
+                <h3 className="font-extrabold text-white text-sm">Distribución por Pilares</h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">Ingresos en Bs. por pilar comercial</p>
+              </div>
+              <span className="text-[9px] font-black text-slate-400 bg-white/[0.04] border border-white/[0.08] px-2 py-1 rounded-full uppercase tracking-widest">
+                Metrics AI
+              </span>
             </div>
-            <span className="bg-white/10 text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded">Metrics AI</span>
-          </div>
-          <div className="relative pt-4">
-            <svg viewBox="0 0 500 200" className="w-full h-auto overflow-visible">
-              {[120,210,300,390,480].map(x => (
-                <line key={x} x1={x} y1="20" x2={x} y2="180" stroke={x===120?"rgba(255,255,255,0.1)":"rgba(255,255,255,0.04)"} strokeWidth={x===120?1.5:1} strokeDasharray={x===120?undefined:"3,3"} />
-              ))}
-              <text x="15" y="54" fill="#cbd5e1" fontSize="11" fontWeight="bold">ACADEMY</text>
-              <rect x="120" y="38" width="220" height="28" rx="6" fill="#00e03c" />
-              <text x="350" y="55" fill="#00e03c" fontSize="11" fontWeight="800">$11,500 <tspan fill="#475569" fontSize="9">(46%)</tspan></text>
-              <text x="15" y="104" fill="#cbd5e1" fontSize="11" fontWeight="bold">SERVICES</text>
-              <rect x="120" y="88" width="190" height="28" rx="6" fill="#0f172a" />
-              <text x="320" y="105" fill="#e2e8f0" fontSize="11" fontWeight="800">$9,850 <tspan fill="#475569" fontSize="9">(40%)</tspan></text>
-              <text x="15" y="154" fill="#cbd5e1" fontSize="11" fontWeight="bold">EXPERIENCE</text>
-              <rect x="120" y="138" width="70" height="28" rx="6" fill="#10b981" />
-              <text x="200" y="155" fill="#10b981" fontSize="11" fontWeight="800">$3,500 <tspan fill="#475569" fontSize="9">(14%)</tspan></text>
-              {[['$0',120],['$3k',210],['$6k',300],['$9k',390],['$12k',480]].map(([v,x]) => (
-                <text key={v} x={x} y="198" fill="#475569" fontSize="9" fontWeight="bold" textAnchor="middle">{v}</text>
-              ))}
-            </svg>
-          </div>
-        </div>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={revenueByPillarData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
+                <XAxis type="number" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} tickFormatter={(v) => `Bs.${(v/1000).toFixed(0)}k`} />
+                <YAxis dataKey="pilar" type="category" tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800 }} axisLine={false} tickLine={false} width={70} />
+                <Tooltip content={<DarkTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+                <Bar dataKey="Bs. Ingresos" fill="#00e03c" radius={[0, 6, 6, 0]} maxBarSize={24} />
+              </BarChart>
+            </ResponsiveContainer>
+          </GlassCard>
+        </motion.div>
       </div>
+    </motion.div>
+  );
+}
 
-      {/* User Audit Table */}
-      <div className="glass-panel-dark border border-white/[0.06] rounded-2xl p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
-          <div>
-            <h3 className="font-extrabold text-white text-lg">Auditoría Ecológica: Usuarios del SaaS</h3>
-            <p className="text-xs text-slate-500">Lista completa de cuentas registradas</p>
-          </div>
-          <span className="bg-rose-500/10 text-rose-400 text-[10px] font-bold px-3 py-1 rounded-full border border-rose-500/20">
-            {registeredUsers.length} Usuarios
-          </span>
+// ─────────────────────────────────────────────────────────────────────────────
+// MODULE: SERVICES
+// ─────────────────────────────────────────────────────────────────────────────
+function ServicesModule({ activeServices, registeredEngineers, handlers }) {
+  const { handleAddProject, handleUpdateProjectProgress, handleDeleteProject,
+          handleEditProject, handleConcludeProject, triggerToast } = handlers;
+
+  const [newProjClient, setNewProjClient] = useState('');
+  const [newProjType, setNewProjType] = useState('');
+  const [newProjLead, setNewProjLead] = useState(registeredEngineers[0]?.name || '');
+  const [newProjStartDate, setNewProjStartDate] = useState('');
+  const [newProjEndDate, setNewProjEndDate] = useState('');
+  const [newProjInvolved, setNewProjInvolved] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+  const [editState, setEditState] = useState({});
+
+  const startEdit = (p) => {
+    setEditingId(p.id);
+    setEditState({ client: p.client, type: p.type, lead: p.lead, startDate: p.startDate || '', endDate: p.endDate || '', progress: p.progress, involved: p.involved || [] });
+  };
+
+  const toggleInvolved = (name, list, setList) => {
+    setList(prev => prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name]);
+  };
+
+  const calculateTimeProgress = (start, end) => {
+    if (!start || !end) return 0;
+    const s = new Date(start), e = new Date(end), now = new Date();
+    const total = e - s;
+    if (total <= 0) return 100;
+    return Math.max(0, Math.min(100, Math.round(((now - s) / total) * 100)));
+  };
+
+  const inputCls = "w-full text-xs px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-white placeholder-slate-600 focus:outline-none focus:border-[#00e03c]/40";
+  const selectCls = "w-full text-xs px-3 py-1.5 bg-slate-900 border border-white/[0.08] rounded-lg text-white focus:outline-none focus:border-[#00e03c]/40";
+
+  return (
+    <div className="space-y-8">
+      {/* Time Progress Table */}
+      <GlassCard className="p-6 space-y-4">
+        <div className="flex items-center gap-2 border-b border-white/[0.06] pb-3">
+          <Clock className="w-4 h-4 text-blue-400" />
+          <h3 className="font-extrabold text-white text-sm">Monitor de Avance de Proyectos</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-white/[0.03] text-slate-500 font-extrabold uppercase tracking-widest border-b border-white/[0.06]">
-                {['Usuario', 'Correo', 'Rol', 'Estado', 'Acción'].map(h => (
-                  <th key={h} className={`p-4 ${h === 'Acción' ? 'text-right' : ''}`}>{h}</th>
+              <tr className="text-slate-500 font-extrabold uppercase tracking-widest border-b border-white/[0.06]">
+                {['Proyecto / Cliente', 'Líder', 'Cronograma', 'Físico vs Temporal', 'Estado', 'Acciones'].map(h => (
+                  <th key={h} className="p-3">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.04]">
-              {registeredUsers.map((u) => {
-                const isDirectivo = u.role === 'AdminMod';
-                const initials = u.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+              {activeServices.map((p) => {
+                const tp = calculateTimeProgress(p.startDate, p.endDate);
+                const done = p.progress >= 100;
+                const late = !done && p.progress < tp;
+                const badge = done ? 'bg-slate-700 text-slate-300' : late ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse' : 'bg-[#00e03c]/10 text-[#00e03c] border border-[#00e03c]/20';
+                const status = done ? 'Concluido' : late ? 'Retrasado' : 'Al Día';
                 return (
-                  <tr key={u.email} className="hover:bg-white/[0.02] transition-colors">
-                    <td className="p-4 flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-[10px] ${isDirectivo ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-[#00e03c]/10 text-[#00e03c] border border-[#00e03c]/20'}`}>
-                        {initials || 'U'}
-                      </div>
-                      <div>
-                        <p className="font-extrabold text-white">{u.name}</p>
-                        <p className="text-[9px] text-slate-500 uppercase tracking-widest">{isDirectivo ? 'Socio Fundador' : 'Cliente Registrado'}</p>
-                      </div>
+                  <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
+                    <td className="p-3">
+                      <p className="font-extrabold text-white">{p.client}</p>
+                      <p className="text-[10px] text-slate-500">{p.type}</p>
                     </td>
-                    <td className="p-4 text-slate-400">{u.email}</td>
-                    <td className="p-4">
-                      <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold border ${isDirectivo ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-[#00e03c]/10 border-[#00e03c]/20 text-[#00e03c]'}`}>
-                        {u.role}
-                      </span>
+                    <td className="p-3 text-slate-300 font-medium">{p.lead}</td>
+                    <td className="p-3 text-[10px] text-slate-500 font-mono">
+                      <p>▶ {p.startDate || '—'}</p>
+                      <p>◀ {p.endDate || '—'}</p>
                     </td>
-                    <td className="p-4">
-                      {isDirectivo ? (
-                        <span className="bg-amber-500/10 border border-amber-500/20 text-amber-400 px-2.5 py-1 rounded text-[9px] font-bold uppercase">Vitalicio Pro</span>
-                      ) : (
-                        <span className={`px-2.5 py-1 rounded text-[9px] font-bold uppercase border ${u.isPremiumApproved ? 'bg-[#00e03c]/10 border-[#00e03c]/20 text-[#00e03c]' : 'bg-white/[0.03] border-white/[0.06] text-slate-500'}`}>
-                          {u.isPremiumApproved ? 'Pro Premium' : 'Básico'}
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-4 text-right">
-                      {isDirectivo ? (
-                        <span className="text-[10px] text-slate-600 italic">Socio Fundador</span>
-                      ) : (
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => { handleToggleUserPremium(u.email); triggerToast(u.isPremiumApproved ? `Premium removido para ${u.name}` : `Premium concedido a ${u.name}`, 'success'); }}
-                            className={`px-2.5 py-1 rounded-lg font-bold text-[9px] uppercase transition-colors border ${u.isPremiumApproved ? 'text-amber-400 bg-amber-500/10 border-amber-500/20 hover:bg-amber-500/20' : 'text-[#00e03c] bg-[#00e03c]/10 border-[#00e03c]/20 hover:bg-[#00e03c]/20'}`}
-                          >
-                            {u.isPremiumApproved ? 'Degradar' : 'Aprobar Premium'}
-                          </button>
-                          <button
-                            onClick={() => { if (confirm(`¿Revocar acceso para ${u.name}?`)) handleRevokeUserAccess(u.email); }}
-                            className="text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 px-2.5 py-1 rounded-lg font-bold text-[9px] uppercase transition-colors"
-                          >
-                            Eliminar
-                          </button>
+                    <td className="p-3">
+                      <div className="space-y-1.5 w-44">
+                        <div>
+                          <div className="flex justify-between text-[9px] font-bold text-slate-500 mb-0.5"><span>Físico</span><span className="text-[#00e03c]">{p.progress}%</span></div>
+                          <div className="w-full bg-white/[0.06] h-1.5 rounded-full overflow-hidden"><div className="bg-[#00e03c] h-full rounded-full" style={{ width: `${p.progress}%` }} /></div>
                         </div>
-                      )}
+                        {!done && (
+                          <div>
+                            <div className="flex justify-between text-[9px] font-bold text-slate-500 mb-0.5"><span>Temporal</span><span className="text-blue-400">{tp}%</span></div>
+                            <div className="w-full bg-white/[0.06] h-1.5 rounded-full overflow-hidden"><div className="bg-blue-500 h-full rounded-full" style={{ width: `${tp}%` }} /></div>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-3"><span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase ${badge}`}>{status}</span></td>
+                    <td className="p-3">
+                      <div className="flex gap-1">
+                        <button onClick={() => startEdit(p)} className="p-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
+                        {!done && <button onClick={() => handleConcludeProject(p.id)} className="p-1.5 bg-[#00e03c]/10 border border-[#00e03c]/20 text-[#00e03c] hover:bg-[#00e03c]/20 rounded-lg transition-colors text-[9px] font-black px-2">✓</button>}
+                        {!done && <button onClick={() => { handleUpdateProjectProgress(p.id); triggerToast(`${p.client} +10%`, 'success'); }} className="p-1.5 bg-white/[0.04] border border-white/[0.08] text-slate-300 hover:bg-white/[0.08] rounded-lg transition-colors text-[9px] font-black px-2">+10%</button>}
+                        <button onClick={() => { if (confirm(`¿Eliminar "${p.client}"?`)) handleDeleteProject(p.id); }} className="p-1.5 bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -353,137 +272,464 @@ export default function PartnerDashboard() {
             </tbody>
           </table>
         </div>
-      </div>
+      </GlassCard>
 
-      {/* Management Forms */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Course Management */}
-        <div className="glass-panel-dark border border-white/[0.06] rounded-2xl p-6 space-y-4">
-          <div className="flex items-center gap-2 border-b border-white/[0.06] pb-3">
-            <BookOpenCheck className="w-5 h-5 text-[#00e03c]" />
-            <h3 className="font-extrabold text-white text-base">Módulos Académicos Curriculares</h3>
+      {/* Edit Modal Inline */}
+      <AnimatePresence>
+        {editingId && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+            <GlassCard className="p-6 space-y-4 border-[#00e03c]/20">
+              <div className="flex items-center justify-between"><h4 className="font-extrabold text-white text-sm">Editando Proyecto</h4><button onClick={() => setEditingId(null)} className="text-slate-500 hover:text-white"><X className="w-4 h-4" /></button></div>
+              <div className="grid grid-cols-2 gap-3">
+                <input className={inputCls} placeholder="Cliente" value={editState.client || ''} onChange={e => setEditState(s => ({ ...s, client: e.target.value }))} />
+                <input className={inputCls} placeholder="Tipo de Estudio" value={editState.type || ''} onChange={e => setEditState(s => ({ ...s, type: e.target.value }))} />
+                <select className={selectCls} value={editState.lead || ''} onChange={e => setEditState(s => ({ ...s, lead: e.target.value }))}>{registeredEngineers.map(e => <option key={e.email} value={e.name}>{e.name}</option>)}</select>
+                <input className={inputCls} type="range" min="0" max="100" step="5" value={editState.progress || 0} onChange={e => setEditState(s => ({ ...s, progress: +e.target.value }))} />
+                <input className={inputCls} type="date" value={editState.startDate || ''} onChange={e => setEditState(s => ({ ...s, startDate: e.target.value }))} />
+                <input className={inputCls} type="date" value={editState.endDate || ''} onChange={e => setEditState(s => ({ ...s, endDate: e.target.value }))} />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <button onClick={() => setEditingId(null)} className="px-4 py-2 bg-white/[0.04] border border-white/[0.08] text-slate-400 rounded-lg text-xs font-bold">Cancelar</button>
+                <button onClick={() => { handleEditProject(editingId, { ...editState, progress: +editState.progress }); setEditingId(null); }} className="px-4 py-2 bg-[#00e03c] text-slate-950 rounded-lg text-xs font-black flex items-center gap-1"><Check className="w-3.5 h-3.5" /> Guardar</button>
+              </div>
+            </GlassCard>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Add Project Form */}
+      <GlassCard className="p-6 space-y-4">
+        <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/[0.06] pb-3">Registrar Nuevo Proyecto</h4>
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          if (!newProjClient || !newProjType || !newProjLead) { triggerToast('Completa todos los campos requeridos', 'error'); return; }
+          handleAddProject(newProjClient, newProjType, newProjLead, newProjStartDate, newProjEndDate, newProjInvolved);
+          setNewProjClient(''); setNewProjType(''); setNewProjStartDate(''); setNewProjEndDate(''); setNewProjInvolved([]);
+        }} className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input required className={inputCls} placeholder="Cliente" value={newProjClient} onChange={e => setNewProjClient(e.target.value)} />
+            <input required className={inputCls} placeholder="Tipo de Servicio" value={newProjType} onChange={e => setNewProjType(e.target.value)} />
+            <select required className={selectCls} value={newProjLead} onChange={e => setNewProjLead(e.target.value)}>{registeredEngineers.map(e => <option key={e.email} value={e.name}>{e.name}</option>)}</select>
+            <input className={inputCls} type="date" value={newProjStartDate} onChange={e => setNewProjStartDate(e.target.value)} />
+            <input className={inputCls} type="date" value={newProjEndDate} onChange={e => setNewProjEndDate(e.target.value)} />
           </div>
-          <p className="text-xs text-slate-500">Crea y administra los cursos y diplomados que se ofrecen en SERAM ACADEMY.</p>
-          <form
-            onSubmit={(e) => { e.preventDefault(); handleAddCourse(newCourseTitle, newCourseInstructor); setNewCourseTitle(''); setNewCourseInstructor(''); }}
-            className="space-y-3 bg-white/[0.02] p-4 rounded-xl border border-white/[0.06]"
-          >
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Añadir Nuevo Curso</h4>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Título</label>
-                <input
-                  type="text" required value={newCourseTitle} onChange={e => setNewCourseTitle(e.target.value)}
-                  placeholder="p. ej. Cartografía Digital"
-                  className="w-full text-xs px-3 py-2 bg-slate-950/80 border border-white/10 rounded-lg text-white placeholder-slate-700 focus:outline-none focus:border-[#00e03c]"
-                />
-              </div>
-              <div>
-                <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Instructor</label>
-                <input
-                  type="text" required value={newCourseInstructor} onChange={e => setNewCourseInstructor(e.target.value)}
-                  placeholder="Nombre del Ingeniero"
-                  className="w-full text-xs px-3 py-2 bg-slate-950/80 border border-white/10 rounded-lg text-white placeholder-slate-700 focus:outline-none focus:border-[#00e03c]"
-                />
-              </div>
+          <button type="submit" className="w-full bg-[#00e03c] text-slate-950 py-2.5 rounded-xl font-black text-xs uppercase hover:bg-emerald-400 flex items-center justify-center gap-1.5 transition-colors">
+            <Plus className="w-4 h-4" /> Registrar Proyecto
+          </button>
+        </form>
+      </GlassCard>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MODULE: ACADEMY
+// ─────────────────────────────────────────────────────────────────────────────
+function AcademyModule({ courses, registeredEngineers, handlers }) {
+  const { handleAddCourse, handleDeleteCourse, handleToggleCoursePremium, triggerToast } = handlers;
+  const [title, setTitle] = useState('');
+  const [instructor, setInstructor] = useState(registeredEngineers[0]?.name || '');
+
+  const inputCls = "w-full text-xs px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-white placeholder-slate-600 focus:outline-none focus:border-[#00e03c]/40";
+  const selectCls = "w-full text-xs px-3 py-1.5 bg-slate-900 border border-white/[0.08] rounded-lg text-white focus:outline-none focus:border-[#00e03c]/40";
+
+  return (
+    <div className="space-y-6">
+      <GlassCard className="p-6 space-y-4">
+        <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/[0.06] pb-3">Nuevo Curso</h4>
+        <form onSubmit={(e) => { e.preventDefault(); if (!title || !instructor) return; handleAddCourse(title, instructor); setTitle(''); }} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <input required className={inputCls} placeholder="Título del Curso" value={title} onChange={e => setTitle(e.target.value)} />
+          <select required className={selectCls} value={instructor} onChange={e => setInstructor(e.target.value)}>{registeredEngineers.map(e => <option key={e.email} value={e.name}>{e.name}</option>)}</select>
+          <button type="submit" className="bg-[#00e03c] text-slate-950 rounded-xl font-black text-xs uppercase hover:bg-emerald-400 flex items-center justify-center gap-1.5 px-4 py-2 transition-colors"><Plus className="w-4 h-4" /> Agregar</button>
+        </form>
+      </GlassCard>
+
+      <div className="space-y-3">
+        {courses.map(c => (
+          <motion.div key={c.id} layout variants={fadeUp} className="flex items-center justify-between p-4 bg-white/[0.03] border border-white/[0.06] rounded-xl hover:border-white/[0.10] transition-colors">
+            <div>
+              <p className="font-extrabold text-sm text-white">{c.title}</p>
+              <p className="text-[10px] text-slate-500 mt-0.5">Docente: {c.instructor} · {c.students} estudiantes · <span className={c.status === 'Activo' ? 'text-[#00e03c]' : 'text-amber-400'}>{c.status}</span></p>
             </div>
-            <button type="submit" className="w-full bg-[#00e03c]/10 border border-[#00e03c]/30 text-[#00e03c] py-2 rounded-lg font-bold text-xs uppercase hover:bg-[#00e03c]/20 flex items-center justify-center gap-1.5">
-              <Plus className="w-4 h-4" /> Agregar a Academy
-            </button>
-          </form>
-          <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-            {courses.map(c => (
-              <div key={c.id} className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/[0.06] rounded-xl">
-                <div className="space-y-0.5">
-                  <p className="font-extrabold text-xs text-white">{c.title}</p>
-                  <p className="text-[9px] text-slate-500">Docente: {c.instructor}</p>
+            <div className="flex items-center gap-2">
+              <button onClick={() => handleToggleCoursePremium(c.id)} className={`text-[9px] font-black px-3 py-1.5 rounded-lg border transition-colors ${c.isPremium ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 'bg-white/[0.04] border-white/[0.08] text-slate-400'}`}>{c.isPremium ? '★ Premium' : 'Normal'}</button>
+              <button onClick={() => handleDeleteCourse(c.id)} className="p-2 bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MODULE: EXPERIENCE
+// ─────────────────────────────────────────────────────────────────────────────
+function ExperienceModule({ experiences, handlers }) {
+  const { handleAddExperience, handleEditExperience, handleDeleteExperience, triggerToast } = handlers;
+  const [form, setForm] = useState({ name: '', date: '', location: '', capacity: 20, price: 0, type: 'Voluntariado' });
+
+  const inputCls = "w-full text-xs px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-white placeholder-slate-600 focus:outline-none focus:border-[#00e03c]/40";
+  const typeColors = { Voluntariado: 'text-[#00e03c] bg-[#00e03c]/10 border-[#00e03c]/20', Ecoturismo: 'text-blue-400 bg-blue-400/10 border-blue-400/20', Taller: 'text-amber-400 bg-amber-400/10 border-amber-400/20' };
+
+  return (
+    <div className="space-y-6">
+      <GlassCard className="p-6 space-y-4">
+        <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/[0.06] pb-3">Nueva Experiencia / Evento</h4>
+        <form onSubmit={(e) => { e.preventDefault(); if (!form.name || !form.date || !form.location) return; handleAddExperience(form); setForm({ name: '', date: '', location: '', capacity: 20, price: 0, type: 'Voluntariado' }); }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <input required className={inputCls} placeholder="Nombre de la Experiencia" value={form.name} onChange={e => setForm(s => ({ ...s, name: e.target.value }))} />
+          <input required className={inputCls} type="date" value={form.date} onChange={e => setForm(s => ({ ...s, date: e.target.value }))} />
+          <input required className={inputCls} placeholder="Ubicación" value={form.location} onChange={e => setForm(s => ({ ...s, location: e.target.value }))} />
+          <input className={inputCls} type="number" placeholder="Cupo máx." min={1} value={form.capacity} onChange={e => setForm(s => ({ ...s, capacity: +e.target.value }))} />
+          <input className={inputCls} type="number" placeholder="Precio (Bs.)" min={0} value={form.price} onChange={e => setForm(s => ({ ...s, price: +e.target.value }))} />
+          <select className="w-full text-xs px-3 py-1.5 bg-slate-900 border border-white/[0.08] rounded-lg text-white focus:outline-none focus:border-[#00e03c]/40" value={form.type} onChange={e => setForm(s => ({ ...s, type: e.target.value }))}>
+            {['Voluntariado', 'Ecoturismo', 'Taller', 'Expedición', 'Corporativo'].map(t => <option key={t}>{t}</option>)}
+          </select>
+          <button type="submit" className="col-span-full bg-[#00e03c] text-slate-950 py-2.5 rounded-xl font-black text-xs uppercase hover:bg-emerald-400 flex items-center justify-center gap-1.5 transition-colors"><Plus className="w-4 h-4" /> Registrar Experiencia</button>
+        </form>
+      </GlassCard>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {experiences.map(exp => {
+          const pct = Math.round((exp.enrolled / exp.capacity) * 100);
+          return (
+            <motion.div key={exp.id} variants={fadeUp} className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 space-y-3 hover:border-white/[0.10] transition-colors">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="font-extrabold text-sm text-white leading-snug">{exp.name}</p>
+                  <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border uppercase tracking-wider mt-1 inline-block ${typeColors[exp.type] || 'text-slate-400 bg-white/[0.04] border-white/[0.08]'}`}>{exp.type}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => handleToggleCoursePremium(c.id)}
-                    className={`text-[9px] font-bold px-2 py-1 rounded-lg border uppercase ${c.isPremium ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 'bg-white/[0.03] border-white/[0.06] text-slate-500'}`}
-                  >
-                    {c.isPremium ? 'Premium' : 'Normal'}
-                  </button>
-                  <button onClick={() => handleDeleteCourse(c.id)} className="p-1.5 text-rose-400 hover:bg-rose-500/10 rounded-lg">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                <button onClick={() => { if (confirm(`¿Eliminar "${exp.name}"?`)) handleDeleteExperience(exp.id); }} className="p-1.5 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
+              </div>
+              <div className="space-y-1 text-[11px] text-slate-500">
+                <p className="flex items-center gap-1.5"><Calendar className="w-3 h-3" /> {exp.date}</p>
+                <p className="flex items-center gap-1.5"><MapPin className="w-3 h-3" /> {exp.location}</p>
+                <p className="flex items-center gap-1.5"><DollarSign className="w-3 h-3" /> {exp.price === 0 ? 'Gratuito' : `Bs. ${exp.price}`}</p>
+              </div>
+              <div className="space-y-1">
+                <div className="flex justify-between text-[10px] font-bold text-slate-500">
+                  <span className="flex items-center gap-1"><UserCheck className="w-3 h-3" /> {exp.enrolled}/{exp.capacity} inscritos</span>
+                  <span className={exp.status === 'Lleno' ? 'text-rose-400' : 'text-[#00e03c]'}>{exp.status}</span>
+                </div>
+                <div className="w-full bg-white/[0.06] h-1.5 rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full transition-all ${exp.status === 'Lleno' ? 'bg-rose-500' : 'bg-[#00e03c]'}`} style={{ width: `${pct}%` }} />
                 </div>
               </div>
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MODULE: STORE
+// ─────────────────────────────────────────────────────────────────────────────
+function StoreModule({ productList, handlers }) {
+  const { handleAddProduct, handleEditProduct, handleDeleteProduct, handleToggleProductPremium, triggerToast } = handlers;
+  const [editingId, setEditingId] = useState(null);
+  const [editState, setEditState] = useState({});
+
+  const inputCls = "w-full text-xs px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-white placeholder-slate-600 focus:outline-none focus:border-[#00e03c]/40";
+
+  return (
+    <div className="space-y-4">
+      <GlassCard className="p-6 overflow-x-auto">
+        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3 mb-4">
+          <h4 className="text-sm font-extrabold text-white">Inventario del Catálogo</h4>
+          <span className="text-[9px] text-slate-500 font-bold">{productList.length} productos</span>
+        </div>
+        <table className="w-full text-xs text-left border-collapse">
+          <thead>
+            <tr className="text-slate-500 uppercase tracking-widest text-[9px] font-black border-b border-white/[0.06]">
+              {['Producto', 'Categoría', 'Precio (Bs.)', 'Stock', 'Tipo', 'Acciones'].map(h => <th key={h} className="p-3">{h}</th>)}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/[0.04]">
+            {productList.map(p => (
+              <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
+                {editingId === p.id ? (
+                  <>
+                    <td className="p-2"><input className={inputCls} value={editState.name || ''} onChange={e => setEditState(s => ({ ...s, name: e.target.value }))} /></td>
+                    <td className="p-2"><input className={inputCls} value={editState.category || ''} onChange={e => setEditState(s => ({ ...s, category: e.target.value }))} /></td>
+                    <td className="p-2"><input type="number" className={inputCls} value={editState.price || 0} onChange={e => setEditState(s => ({ ...s, price: +e.target.value }))} /></td>
+                    <td className="p-2"><input type="number" className={inputCls} value={editState.stock || 0} onChange={e => setEditState(s => ({ ...s, stock: +e.target.value }))} /></td>
+                    <td className="p-2 text-slate-400">{p.isPremium ? 'Premium' : 'Normal'}</td>
+                    <td className="p-2">
+                      <div className="flex gap-1">
+                        <button onClick={() => { handleEditProduct(editingId, editState); setEditingId(null); }} className="p-1.5 bg-[#00e03c]/20 text-[#00e03c] rounded-lg"><Check className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => setEditingId(null)} className="p-1.5 bg-white/[0.04] text-slate-400 rounded-lg"><X className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    <td className="p-3 font-bold text-white">{p.name}</td>
+                    <td className="p-3 text-slate-400">{p.category}</td>
+                    <td className="p-3 font-black text-[#00e03c]">Bs. {p.price}</td>
+                    <td className="p-3 text-slate-300">{p.stock}</td>
+                    <td className="p-3">
+                      <button onClick={() => handleToggleProductPremium(p.id)} className={`text-[9px] font-black px-2 py-1 rounded-lg border transition-colors ${p.isPremium ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 'bg-white/[0.04] border-white/[0.08] text-slate-500'}`}>{p.isPremium ? '★ Premium' : 'Normal'}</button>
+                    </td>
+                    <td className="p-3">
+                      <div className="flex gap-1">
+                        <button onClick={() => { setEditingId(p.id); setEditState({ name: p.name, category: p.category, price: p.price, stock: p.stock }); }} className="p-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => { if (confirm(`¿Eliminar "${p.name}"?`)) handleDeleteProduct(p.id); }} className="p-1.5 bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </td>
+                  </>
+                )}
+              </tr>
             ))}
+          </tbody>
+        </table>
+      </GlassCard>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MODULE: USERS
+// ─────────────────────────────────────────────────────────────────────────────
+function UsersModule({ registeredUsers, handlers }) {
+  const { handleToggleUserPremium, handleRevokeUserAccess, triggerToast } = handlers;
+  return (
+    <GlassCard className="p-6 space-y-4">
+      <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+        <h3 className="font-extrabold text-white text-sm">Auditoría de Usuarios del SaaS</h3>
+        <span className="text-[9px] text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-3 py-1 rounded-full font-black uppercase">{registeredUsers.length} Cuentas</span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs text-left border-collapse">
+          <thead>
+            <tr className="text-slate-500 uppercase text-[9px] font-black tracking-widest border-b border-white/[0.06]">
+              {['Usuario', 'Correo', 'Rol', 'Estado', 'Acción'].map(h => <th key={h} className="p-3">{h}</th>)}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/[0.04]">
+            {registeredUsers.map(u => {
+              const isAdmin = u.role === 'AdminMod';
+              const initials = u.name.replace('Ing. ', '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+              return (
+                <tr key={u.email} className="hover:bg-white/[0.02] transition-colors">
+                  <td className="p-3 flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-[10px] shrink-0 ${isAdmin ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-[#00e03c]/10 text-[#00e03c] border border-[#00e03c]/20'}`}>{initials || 'U'}</div>
+                    <div><p className="font-extrabold text-white">{u.name}</p><p className="text-[9px] text-slate-500 uppercase tracking-widest">{isAdmin ? 'Socio Fundador' : 'Cliente'}</p></div>
+                  </td>
+                  <td className="p-3 text-slate-400 font-mono">{u.email}</td>
+                  <td className="p-3"><span className={`px-2 py-1 rounded-full text-[9px] font-bold border ${isAdmin ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-[#00e03c]/10 border-[#00e03c]/20 text-[#00e03c]'}`}>{u.role}</span></td>
+                  <td className="p-3">{isAdmin ? <span className="text-amber-400 font-bold text-[9px] bg-amber-400/10 px-2 py-1 rounded-full border border-amber-400/20">Vitalicio Pro</span> : <span className={`text-[9px] font-bold px-2 py-1 rounded-full border ${u.isPremiumApproved ? 'bg-[#00e03c]/10 text-[#00e03c] border-[#00e03c]/20' : 'bg-white/[0.04] text-slate-400 border-white/[0.08]'}`}>{u.isPremiumApproved ? 'Pro Premium' : 'Básico'}</span>}</td>
+                  <td className="p-3">{isAdmin ? <span className="text-slate-600 text-[10px] italic">Socio Fundador</span> : (
+                    <div className="flex gap-1.5">
+                      <button onClick={() => { handleToggleUserPremium(u.email); triggerToast(u.isPremiumApproved ? `Premium removido para ${u.name}` : `Premium concedido a ${u.name}`, 'success'); }} className={`px-2 py-1 rounded-lg text-[9px] font-black border transition-colors ${u.isPremiumApproved ? 'bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20' : 'bg-[#00e03c]/10 border-[#00e03c]/20 text-[#00e03c] hover:bg-[#00e03c]/20'}`}>{u.isPremiumApproved ? 'Degradar' : 'Aprobar Premium'}</button>
+                      <button onClick={() => { if (confirm(`¿Revocar acceso para ${u.name}?`)) handleRevokeUserAccess(u.email); }} className="px-2 py-1 rounded-lg text-[9px] font-black border bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500/20 transition-colors">Eliminar</button>
+                    </div>
+                  )}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </GlassCard>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MODULE: FINANCES
+// ─────────────────────────────────────────────────────────────────────────────
+function FinancesModule() {
+  const metrics = [
+    { label: 'VAN (Valor Actual Neto)', value: 'Bs. 124,500', note: 'Tasa Descuento: 12% | Contratos Activos', color: 'text-[#00e03c]' },
+    { label: 'TIR (Tasa Interna Retorno)', value: '28.6%', note: 'Portafolio B2B Consultoría', color: 'text-slate-300' },
+    { label: 'EBITDA', value: 'Bs. 8,697', note: 'Margen Operativo: 35%', color: 'text-[#00e03c]' },
+    { label: 'Punto de Equilibrio', value: 'Bs. 12,400', note: 'Equiv. mensual a Costos Fijos', color: 'text-slate-300' },
+    { label: 'Ingresos Totales', value: 'Bs. 24,850', note: '↑ +12.4% este mes', color: 'text-[#00e03c]' },
+    { label: 'Costos Operativos', value: 'Bs. 16,153', note: 'Incluye sueldos y operaciones', color: 'text-rose-400' },
+  ];
+  return (
+    <motion.div variants={stagger} initial="initial" animate="animate" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      {metrics.map(m => (
+        <motion.div key={m.label} variants={fadeUp} whileHover={{ y: -3 }} className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 space-y-2 cursor-default hover:border-[#00e03c]/15 transition-all">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">{m.label}</span>
+          <h3 className={`text-2xl font-black ${m.color}`}>{m.value}</h3>
+          <p className="text-[10px] text-slate-600 font-bold">{m.note}</p>
+        </motion.div>
+      ))}
+    </motion.div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN COMPONENT
+// ─────────────────────────────────────────────────────────────────────────────
+export default function PartnerDashboard() {
+  const {
+    activeRole, currentSocio, handleLogoutPartner,
+    registeredUsers, courses, activeServices, experiences, productList,
+    handleAddCourse, handleDeleteCourse, handleToggleCoursePremium,
+    handleAddProject, handleUpdateProjectProgress, handleDeleteProject,
+    handleEditProject, handleConcludeProject,
+    handleToggleUserPremium, handleRevokeUserAccess,
+    handleAddExperience, handleEditExperience, handleDeleteExperience, handleEnrollExperience,
+    handleAddProduct, handleEditProduct, handleDeleteProduct, handleToggleProductPremium,
+    triggerToast,
+  } = useApp();
+
+  const [activeModule, setActiveModule] = useState('overview');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [metrics, setMetrics] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    async function fetchMetrics() {
+      try {
+        const { data, error } = await supabase.from('company_metrics').select('*').limit(1);
+        if (!error && data?.length > 0 && mounted) setMetrics(data[0]);
+      } catch (_) {}
+      finally { setTimeout(() => { if (mounted) setLoading(false); }, 600); }
+    }
+    if (activeRole === 'AdminMod') fetchMetrics();
+    else setLoading(false);
+    return () => { mounted = false; };
+  }, [activeRole]);
+
+  const registeredEngineers = registeredUsers.filter(u => u.role === 'AdminMod' || u.name.startsWith('Ing.'));
+
+  const handlers = {
+    handleAddCourse, handleDeleteCourse, handleToggleCoursePremium,
+    handleAddProject, handleUpdateProjectProgress, handleDeleteProject,
+    handleEditProject, handleConcludeProject,
+    handleToggleUserPremium, handleRevokeUserAccess,
+    handleAddExperience, handleEditExperience, handleDeleteExperience, handleEnrollExperience,
+    handleAddProduct, handleEditProduct, handleDeleteProduct, handleToggleProductPremium,
+    triggerToast,
+  };
+
+  const kpis = [
+    { label: 'Ingresos Totales', value: metrics?.total_revenue ? `Bs. ${metrics.total_revenue.toLocaleString()}` : 'Bs. 24,850', unit: '', trend: metrics?.revenue_trend || '↑ +12.4% este mes', icon: <DollarSign className="w-5 h-5" />, color: 'bg-[#00e03c]/10 text-[#00e03c] border border-[#00e03c]/20' },
+    { label: 'Alumnos Directos', value: metrics?.total_students ? metrics.total_students.toString() : '143', unit: '', trend: '↑ +18 desde abril', icon: <BookOpenCheck className="w-5 h-5" />, color: 'bg-blue-500/10 text-blue-400 border border-blue-500/20' },
+    { label: 'Proyectos Activos', value: activeServices.filter(p => p.progress < 100).length.toString(), unit: '', trend: `${activeServices.filter(p => p.progress === 100).length} Completados`, icon: <Briefcase className="w-5 h-5" />, color: 'bg-purple-500/10 text-purple-400 border border-purple-500/20' },
+    { label: 'CO₂ Compensado', value: metrics?.co2_compensated ? metrics.co2_compensated.toLocaleString() : '1,240', unit: 'Tons', trend: 'Meta: 1,500T anuales', icon: <Leaf className="w-5 h-5" />, color: 'bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/30' },
+  ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="space-y-4 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-[#00e03c]/10 border border-[#00e03c]/20 flex items-center justify-center mx-auto">
+            <Loader2 className="w-6 h-6 text-[#00e03c] animate-spin" />
           </div>
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Cargando Panel Directivo…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (activeRole !== 'AdminMod') return <Navigate to="/" replace />;
+
+  return (
+    <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit" className="min-h-screen bg-slate-950 text-slate-100 flex">
+
+      {/* ── SIDEBAR ───────────────────────────────────────────────────── */}
+      <motion.aside
+        animate={{ width: sidebarOpen ? 240 : 64 }}
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        className="flex-shrink-0 h-screen sticky top-0 bg-slate-950 border-r border-white/[0.06] flex flex-col z-20 overflow-hidden"
+      >
+        {/* Sidebar Header */}
+        <div className="flex items-center justify-between p-4 border-b border-white/[0.06] h-16">
+          <AnimatePresence>
+            {sidebarOpen && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-[#00e03c] shrink-0" />
+                <span className="text-xs font-black text-white uppercase tracking-widest whitespace-nowrap">Panel SERAM</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <button onClick={() => setSidebarOpen(p => !p)} className="p-1.5 rounded-lg hover:bg-white/[0.06] text-slate-500 hover:text-white transition-colors shrink-0 ml-auto">
+            {sidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          </button>
         </div>
 
-        {/* Project Management */}
-        <div className="glass-panel-dark border border-white/[0.06] rounded-2xl p-6 space-y-4">
-          <div className="flex items-center gap-2 border-b border-white/[0.06] pb-3">
-            <Briefcase className="w-5 h-5 text-slate-300" />
-            <h3 className="font-extrabold text-white text-base">Cartera de Proyectos de Consultoría</h3>
-          </div>
-          <p className="text-xs text-slate-500">Agrega y actualiza el avance de los estudios y auditorías para clientes del sector.</p>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const client = e.target.elements.projClient.value;
-              const type = e.target.elements.projType.value;
-              if (!client || !type) return;
-              handleAddProject(client, type);
-              e.target.reset();
-            }}
-            className="space-y-3 bg-white/[0.02] p-4 rounded-xl border border-white/[0.06]"
-          >
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Crear Registro de Estudio</h4>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Cliente</label>
-                <input
-                  type="text" name="projClient" required placeholder="p. ej. Minera Los Andes"
-                  className="w-full text-xs px-3 py-2 bg-slate-950/80 border border-white/10 rounded-lg text-white placeholder-slate-700 focus:outline-none focus:border-[#00e03c]"
-                />
-              </div>
-              <div>
-                <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Tipo de Servicio</label>
-                <input
-                  type="text" name="projType" required placeholder="p. ej. Auditoría de Residuos"
-                  className="w-full text-xs px-3 py-2 bg-slate-950/80 border border-white/10 rounded-lg text-white placeholder-slate-700 focus:outline-none focus:border-[#00e03c]"
-                />
-              </div>
-            </div>
-            <button type="submit" className="w-full bg-[#00e03c]/10 border border-[#00e03c]/30 text-[#00e03c] py-2 rounded-lg font-bold text-xs uppercase hover:bg-[#00e03c]/20 flex items-center justify-center gap-1.5">
-              <Plus className="w-4 h-4" /> Registrar Proyecto
+        {/* Socio Info */}
+        <AnimatePresence>
+          {sidebarOpen && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="px-4 py-3 border-b border-white/[0.06]">
+              <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Conectado como</p>
+              <p className="text-xs font-extrabold text-[#00e03c] mt-0.5 truncate">{currentSocio?.name}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Nav Items */}
+        <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
+          {SIDEBAR_MODULES.map(mod => (
+            <button
+              key={mod.id}
+              onClick={() => setActiveModule(mod.id)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left ${
+                activeModule === mod.id
+                  ? 'bg-[#00e03c]/10 border border-[#00e03c]/20 text-[#00e03c]'
+                  : 'text-slate-500 hover:bg-white/[0.04] hover:text-slate-300'
+              }`}
+            >
+              <span className="shrink-0">{mod.icon}</span>
+              <AnimatePresence>
+                {sidebarOpen && (
+                  <motion.span initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }} exit={{ opacity: 0, width: 0 }} className="text-xs font-bold whitespace-nowrap overflow-hidden">
+                    {mod.label}
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </button>
-          </form>
-          <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-            {activeServices.map(p => (
-              <div key={p.id} className="p-3 bg-white/[0.02] border border-white/[0.06] rounded-xl space-y-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-extrabold text-xs text-white">{p.client}</p>
-                    <p className="text-[9px] text-slate-500">{p.type} • Resp: {p.lead.split(' ')[0]}</p>
-                  </div>
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => { handleUpdateProjectProgress(p.id); triggerToast(`Avance de ${p.client} actualizado`, 'success'); }}
-                      className="bg-[#00e03c]/10 hover:bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/20 text-[10px] font-bold px-2 py-1 rounded transition-colors"
-                    >
-                      +10%
-                    </button>
-                    <button onClick={() => handleDeleteProject(p.id)} className="p-1 text-rose-400 hover:bg-rose-500/10 rounded">
-                      <Trash2 className="w-4 h-4" strokeWidth="2" />
-                    </button>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-[#00e03c] h-full transition-all duration-300" style={{ width: `${p.progress}%` }} />
-                  </div>
-                  <span className="text-[9px] font-bold text-slate-400 shrink-0">{p.progress}%</span>
-                </div>
-              </div>
-            ))}
-          </div>
+          ))}
+        </nav>
+
+        {/* Logout */}
+        <div className="p-2 border-t border-white/[0.06]">
+          <button onClick={handleLogoutPartner} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-rose-500 hover:bg-rose-500/10 transition-all">
+            <X className="w-5 h-5 shrink-0" />
+            <AnimatePresence>{sidebarOpen && <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-xs font-bold whitespace-nowrap">Cerrar Sesión</motion.span>}</AnimatePresence>
+          </button>
         </div>
-      </div>
+      </motion.aside>
+
+      {/* ── MAIN CONTENT ─────────────────────────────────────────────── */}
+      <main className="flex-1 overflow-y-auto">
+        <div className="px-6 py-8 max-w-7xl mx-auto space-y-8">
+
+          {/* Page Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-black text-white tracking-tight">
+                {SIDEBAR_MODULES.find(m => m.id === activeModule)?.label}
+              </h1>
+              <p className="text-xs text-slate-500 mt-1 font-medium">
+                Panel Directivo SERAM · Bienvenido, <span className="text-[#00e03c] font-bold">{currentSocio?.name}</span>
+              </p>
+            </div>
+            <span className="text-[9px] font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-3 py-1.5 rounded-full uppercase tracking-widest flex items-center gap-1.5">
+              <Shield className="w-3 h-3 animate-pulse" /> Socio Directivo
+            </span>
+          </div>
+
+          {/* Module Content */}
+          <AnimatePresence mode="wait">
+            <motion.div key={activeModule} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }}>
+              {activeModule === 'overview'    && <OverviewModule kpis={kpis} metrics={metrics} />}
+              {activeModule === 'services'    && <ServicesModule activeServices={activeServices} registeredEngineers={registeredEngineers} handlers={handlers} />}
+              {activeModule === 'academy'     && <AcademyModule courses={courses} registeredEngineers={registeredEngineers} handlers={handlers} />}
+              {activeModule === 'experience'  && <ExperienceModule experiences={experiences} handlers={handlers} />}
+              {activeModule === 'store'       && <StoreModule productList={productList || []} handlers={handlers} />}
+              {activeModule === 'users'       && <UsersModule registeredUsers={registeredUsers} handlers={handlers} />}
+              {activeModule === 'finances'    && <FinancesModule />}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </main>
     </motion.div>
   );
 }

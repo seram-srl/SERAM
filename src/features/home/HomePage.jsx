@@ -1,40 +1,48 @@
-import React, { useEffect } from 'react';
-import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import React, { useEffect, useRef } from 'react';
+import { motion, useMotionValue, useTransform, useSpring, useScroll } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
   BookOpen, Briefcase, Award, ChevronRight,
-  ShoppingCart, Lock,
+  ShoppingCart, Lock, Leaf, Globe
 } from 'lucide-react';
 import { useApp, AppContext } from '../../context/AppContext';
 import EnvironmentalCanvas from '../../components/ui/EnvironmentalCanvas';
+import BrandParticleText from '../../components/ui/BrandParticleText';
 
 const pageVariants = {
   initial: { opacity: 0 },
-  animate: { opacity: 1, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
+  animate: { opacity: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } },
   exit: { opacity: 0, transition: { duration: 0.3 } },
 };
 
+const staggerChild = {
+  initial: { opacity: 0, y: 32 },
+  animate: (i) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.7, delay: i * 0.12, ease: [0.16, 1, 0.3, 1] },
+  }),
+};
+
 /**
- * @component TiltIcon
- * @description Contenedor elástico 3D para íconos de servicios.
+ * @component TiltGlassCard
+ * @description Tarjeta de cristal 3D interactiva que rota elásticamente según la posición del cursor.
  */
-function TiltIcon({ children }) {
+function TiltGlassCard({ imageUrl, cursorText = "EXPLORAR" }) {
   const x = useMotionValue(0.5);
   const y = useMotionValue(0.5);
 
-  const rotateX = useTransform(y, [0, 1], [15, -15]);
-  const rotateY = useTransform(x, [0, 1], [-15, 15]);
+  const rotateX = useTransform(y, [0, 1], [12, -12]);
+  const rotateY = useTransform(x, [0, 1], [-12, 12]);
 
-  const springConfig = { damping: 22, stiffness: 300, mass: 0.5 };
+  const springConfig = { damping: 25, stiffness: 220, mass: 0.6 };
   const rotateXSpring = useSpring(rotateX, springConfig);
   const rotateYSpring = useSpring(rotateY, springConfig);
 
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const mouseX = (e.clientX - rect.left) / rect.width;
-    const mouseY = (e.clientY - rect.top) / rect.height;
-    x.set(mouseX);
-    y.set(mouseY);
+    x.set((e.clientX - rect.left) / rect.width);
+    y.set((e.clientY - rect.top) / rect.height);
   };
 
   const handleMouseLeave = () => {
@@ -44,41 +52,87 @@ function TiltIcon({ children }) {
 
   return (
     <motion.div
-      className="w-16 h-16 sm:w-20 sm:h-20 cursor-pointer select-none pointer-events-auto bg-emerald-900/10 border border-emerald-900/20 rounded-2xl flex items-center justify-center text-emerald-800 shadow-md"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{
         rotateX: rotateXSpring,
         rotateY: rotateYSpring,
-        transformStyle: "preserve-3d",
+        transformStyle: 'preserve-3d',
       }}
+      className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden glass-panel-dark border border-white/10 hover:border-[#00e03c]/40 shadow-[0_16px_40px_rgba(0,0,0,0.65)] cursor-none transition-all duration-300 pointer-events-auto"
+      data-cursor-text={cursorText}
     >
-      {children}
+      <div 
+        style={{ transform: 'translateZ(24px)', transformStyle: 'preserve-3d' }}
+        className="w-full h-full p-2.5"
+      >
+        <img
+          src={imageUrl}
+          alt="SERAM Visual Continuity"
+          className="w-full h-full object-cover rounded-xl opacity-90 hover:scale-102 transition-transform duration-500 select-none"
+          draggable="false"
+        />
+      </div>
     </motion.div>
   );
 }
 
 /**
  * @component HeroSection
- * @description Hero principal de la página, alineado a la izquierda con cristal esmerilado premium.
+ * @description Portada minimalista con tipografía de partículas reactivas y watermark de hoja en 3D.
  */
 function HeroSection() {
   return (
-    <section className="relative overflow-hidden min-h-screen flex items-center justify-start py-24 px-6 sm:px-12 lg:px-24 bg-transparent select-none">
-      {/* Contenedor con Cristal Esmerilado Premium */}
-      <div className="relative max-w-md backdrop-blur-md bg-white/10 border border-white/20 shadow-lg rounded-3xl p-8 sm:p-10 flex flex-col items-start justify-center space-y-5 text-left animate-fadeIn">
-        
-        {/* Título de Marca y Eslogan */}
-        <div className="space-y-1">
-          <h1 className="text-6xl sm:text-7xl lg:text-8xl font-black leading-none tracking-tighter font-display select-none">
-            <span className="text-white">SER</span>
-            <span className="text-[#00e03c]">A</span>
-            <span className="text-white">M</span>
-          </h1>
-          <p className="text-emerald-400 text-xs sm:text-sm font-semibold uppercase tracking-[0.35em] font-tech select-none">
-            Servicios Ambientales
-          </p>
-        </div>
+    <section
+      className="relative overflow-hidden min-h-screen w-full flex flex-col items-center justify-center py-20 px-6 sm:px-12 select-none bg-transparent"
+      aria-label="Portada SERAM"
+    >
+      {/* Marca de agua flotante de la hoja en el fondo */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.06] select-none z-0">
+        <motion.img
+          src="/assets/brand/ícono_logo.png"
+          alt="Watermark SERAM"
+          className="w-[280px] h-[280px] sm:w-[480px] sm:h-[480px] object-contain"
+          animate={{
+            y: [0, -12, 0],
+            rotate: [0, 1.5, 0],
+          }}
+          transition={{
+            duration: 9,
+            repeat: Infinity,
+            repeatType: 'reverse',
+            ease: "easeInOut",
+          }}
+        />
+      </div>
+
+      <div className="text-center space-y-8 z-10 w-full max-w-4xl flex flex-col items-center justify-center">
+        {/* Marca SERAM interactiva con partículas Canvas */}
+        <motion.div
+          custom={1}
+          variants={staggerChild}
+          initial="initial"
+          animate="animate"
+          className="w-full"
+        >
+          <BrandParticleText />
+        </motion.div>
+
+        {/* Indicador de scroll */}
+        <motion.div
+          custom={2}
+          variants={staggerChild}
+          initial="initial"
+          animate="animate"
+          className="pt-8 opacity-60 flex flex-col items-center gap-2"
+        >
+          <div className="w-[24px] h-[40px] border-2 border-white/50 rounded-full flex justify-center p-1.5">
+            <div className="w-[3px] h-[7px] bg-[#00e03c] rounded-full animate-scrollIndicator" />
+          </div>
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-tech select-none">
+            Desliza para explorar
+          </span>
+        </motion.div>
       </div>
     </section>
   );
@@ -87,197 +141,236 @@ function HeroSection() {
 export default function HomePage() {
   const outsideAppValue = useApp();
   const navigate = useNavigate();
+  const containerRef = useRef(null);
 
-  const {
-    handleAddToCart, handleAccessItem,
-    hasPremiumAccess, products,
-  } = outsideAppValue;
+  // Vincular scroll vertical a traslación horizontal
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+  });
 
-  // Manejador de scroll para el bucle continuo nativo
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      
-      // Si llegamos al final del scroll, teletransportamos arriba (al Hero original)
-      if (scrollY >= maxScroll - 2) {
-        window.scrollTo(0, 5); 
-      }
-      // Si subimos al tope absoluto, teletransportamos abajo (al Hero duplicado/clon)
-      else if (scrollY <= 0) {
-        window.scrollTo(0, maxScroll - 5);
-      }
-    };
+  const smoothProgress = useSpring(scrollYProgress, {
+    damping: 30,
+    stiffness: 100,
+    mass: 0.8,
+  });
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  // Mapear el recorrido del scroll vertical a la traslación del contenedor horizontal en vw
+  // Son 8 paneles de 100vw cada uno. Mapeamos desde 0vw a -700vw (para revelar el 8vo panel)
+  const xTranslation = useTransform(smoothProgress, [0.18, 0.95], ["0vw", "-700vw"]);
 
   return (
     <div className="relative w-full min-h-screen bg-slate-950 text-slate-100 overflow-x-hidden">
       {/* 1. Fondo Canvas WebGL Fijo */}
       <EnvironmentalCanvas isStorytelling={true} />
 
-      {/* 2. Contenido HTML que fluye libremente sobre el canvas (pointer-events: none) */}
-      <div className="relative z-10 w-full pointer-events-none">
+      {/* 2. Contenido HTML */}
+      <div className="relative z-10 w-full">
         <AppContext.Provider value={outsideAppValue}>
-          <motion.div 
-            variants={pageVariants} 
-            initial="initial" 
-            animate="animate" 
-            exit="exit" 
-            className="w-full flex flex-col pointer-events-none"
+          <motion.div
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="w-full flex flex-col"
           >
-            {/* Activar eventos de ratón en las secciones reales */}
-            <div className="pointer-events-auto w-full">
-              {/* ── BLOQUE 1: INICIO / HERO ── */}
-              <HeroSection />
+            {/* Portada Hero Inicial */}
+            <HeroSection />
 
-              {/* ── BLOQUE 2: SERAM SERVICE (Pilar 01) ── */}
-              <section className="relative min-h-screen flex items-center justify-start py-24 px-6 sm:px-12 lg:px-24 bg-transparent select-none">
-                <div className="relative max-w-2xl w-full backdrop-blur-md bg-white/10 border border-white/20 shadow-lg rounded-3xl p-8 sm:p-12 flex flex-col items-start justify-center space-y-6 text-left animate-fadeIn">
+            {/* SECCIÓN NARRATIVA DE DESPLAZAMIENTO HORIZONTAL (PILARES - 2 PANALES CADA UNO) */}
+            <div ref={containerRef} className="relative h-[650vh] bg-transparent">
+              <div className="sticky top-0 h-screen overflow-hidden flex flex-col justify-center">
+                <motion.div
+                  style={{ x: xTranslation }}
+                  className="flex flex-row flex-nowrap items-center h-full w-[800vw] will-change-transform"
+                >
                   
-                  {/* Icono de Pilar Inclinable */}
-                  <TiltIcon>
-                    <Briefcase className="w-8 h-8 sm:w-10 sm:h-10 filter drop-shadow-[0_4px_8px_rgba(0,127,26,0.15)]" />
-                  </TiltIcon>
+                  {/* ──────────────────────────────────────────────────────── */}
+                  {/* PILAR 01: SERAM SERVICES */}
+                  {/* ──────────────────────────────────────────────────────── */}
 
-                  {/* Tag de Pilar */}
-                  <div className="inline-flex items-center gap-2 bg-emerald-900/10 border border-emerald-900/20 px-4 py-1.5 rounded-full text-emerald-950 text-[11px] sm:text-xs font-bold uppercase tracking-widest font-tech">
-                    Pilar 01 // Consultoría Ambiental
-                  </div>
-
-                  {/* Título y Subtítulo */}
-                  <div className="space-y-1">
-                    <h2 className="text-4xl sm:text-5xl font-black text-slate-900 leading-none tracking-tight uppercase select-none">
-                      SERAM_SERVICES
-                    </h2>
-                    <p className="text-emerald-800 text-xs sm:text-sm font-black uppercase tracking-[0.2em] font-tech select-none">
-                      Análisis Territorial y Cumplimiento Normativo
-                    </p>
-                  </div>
-
-                  {/* Descripción */}
-                  <p className="text-slate-800 text-sm sm:text-base leading-relaxed font-semibold">
-                    Ofrecemos análisis territorial avanzado mediante Sistemas de Información Geográfica (SIG), 
-                    auditorías ambientales completas, diseño de planes de mitigación ambiental y estudios de impacto 
-                    regulados para asegurar el cumplimiento normativo industrial.
-                  </p>
-
-                  {/* Botón Explorar */}
-                  <div className="pt-2">
-                    <button 
-                      onClick={() => navigate('/services')} 
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-900/10 border border-slate-900/20 hover:border-emerald-800 text-slate-900 hover:text-emerald-800 text-xs font-bold uppercase tracking-wider transition-all pointer-events-auto"
-                      style={{ cursor: 'none' }}
-                    >
-                      Explorar Servicios <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </section>
-
-              {/* ── BLOQUE 3: SERAM ACADEMY (Pilar 02) ── */}
-              <section className="relative min-h-screen flex items-center justify-center py-24 px-4 sm:px-6 lg:px-8 bg-transparent">
-                <div className="glass-panel-dark max-w-3xl mx-auto rounded-3xl p-8 sm:p-12 border border-white/[0.08] hover:border-[#00e03c]/20 transition-all flex flex-col items-center text-center space-y-6 shadow-[0_16px_40px_rgba(0,0,0,0.4)]">
-                  <div className="p-4 bg-slate-900/80 rounded-2xl text-[#00e03c] border border-white/10">
-                    <BookOpen className="w-8 h-8" />
-                  </div>
-                  <span className="text-xs font-black tracking-widest text-[#00e03c] uppercase font-tech">Pilar 02 // E-Learning</span>
-                  <h2 className="text-4xl sm:text-5xl font-black text-white font-display tracking-tight uppercase">
-                    SERAM_ACADEMY
-                  </h2>
-                  <p className="text-slate-400 text-sm leading-relaxed max-w-xl font-medium">
-                    Nuestra ala formativa especializada de élite. Diseñamos e impartimos diplomados y cursos 
-                    para profesionales, estudiantes y docentes en materias de evaluación de impacto, cartografía SIG, 
-                    legislación y educación ecosistemica de vanguardia bajo normativas ISO.
-                  </p>
-                  <div className="pt-4">
-                    <button 
-                      onClick={() => navigate('/academy')} 
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#00e03c] text-white hover:text-[#00e03c] text-xs font-bold uppercase tracking-wider transition-all"
-                      style={{ cursor: 'none' }}
-                    >
-                      Ingresar a Academy <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </section>
-
-              {/* ── BLOQUE 4: SERAM EXPERIENCE (Pilar 03) ── */}
-              <section className="relative min-h-screen flex items-center justify-center py-24 px-4 sm:px-6 lg:px-8 bg-transparent">
-                <div className="glass-panel-dark max-w-3xl mx-auto rounded-3xl p-8 sm:p-12 border border-white/[0.08] hover:border-[#00e03c]/20 transition-all flex flex-col items-center text-center space-y-6 shadow-[0_16px_40px_rgba(0,0,0,0.4)]">
-                  <div className="p-4 bg-slate-900/80 rounded-2xl text-[#00e03c] border border-white/10">
-                    <Award className="w-8 h-8" />
-                  </div>
-                  <span className="text-xs font-black tracking-widest text-[#00e03c] uppercase font-tech">Pilar 03 // Experiencias</span>
-                  <h2 className="text-4xl sm:text-5xl font-black text-white font-display tracking-tight uppercase">
-                    SERAM_EXPERIENCE
-                  </h2>
-                  <p className="text-slate-400 text-sm leading-relaxed max-w-xl font-medium">
-                    Experiencias corporativas y vivenciales que conectan el talento con el ecosistema. 
-                    Estructuramos voluntariados de restauración ecológica activa, talleres vivenciales de conservación, 
-                    diseño de huertos urbanos y expediciones científicas orientadas al ecoturismo.
-                  </p>
-                  <div className="pt-4">
-                    <button 
-                      onClick={() => navigate('/experience')} 
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#00e03c] text-white hover:text-[#00e03c] text-xs font-bold uppercase tracking-wider transition-all"
-                      style={{ cursor: 'none' }}
-                    >
-                      Conocer Experiencias <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </section>
-
-              {/* ── BLOQUE 5: ECO-TIENDA SERAM (Pilar 04) ── */}
-              <section className="relative min-h-screen flex items-center justify-center py-24 px-4 sm:px-6 lg:px-8 bg-transparent">
-                <div className="max-w-7xl mx-auto w-full">
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10">
-                    <div>
-                      <span className="text-xs font-black tracking-widest text-[#00e03c] uppercase font-tech">Pilar 04 // Consumo</span>
-                      <h2 className="text-4xl font-black text-white font-display uppercase tracking-tight">Eco-Tienda SERAM</h2>
-                      <p className="text-xs text-slate-500 mt-1">Apoya la educación y conservación adquiriendo artículos ecológicos oficiales.</p>
+                  {/* Panel 1: Título & Imagen 2D */}
+                  <div className="w-[100vw] h-screen flex flex-col md:flex-row items-center justify-center gap-12 px-10 sm:px-24 flex-shrink-0 select-none bg-transparent">
+                    <div className="md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left space-y-4">
+                      <h2 className="text-[3.5rem] sm:text-[5.5rem] font-black text-white leading-none tracking-tighter uppercase font-display filter drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
+                        SERAM SERVICES
+                      </h2>
+                      <span className="text-[10px] text-[#00e03c] tracking-[0.25em] uppercase font-tech font-bold">
+                        Pilar 01 // Consultoría
+                      </span>
                     </div>
-                    <button onClick={() => navigate('/shop')} className="mt-4 md:mt-0 glass-panel-dark px-5 py-2.5 rounded-xl font-bold text-xs uppercase hover:border-white/20 transition-colors tracking-wider text-slate-300" style={{ cursor: 'none' }}>
-                      Ver Tienda Completa
-                    </button>
+                    <div className="md:w-1/2 flex items-center justify-center max-w-lg w-full">
+                      <TiltGlassCard 
+                        imageUrl="/assets/3d-backend/panel2-service-background.webp" 
+                        cursorText="SERVICIOS" 
+                      />
+                    </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {products.slice(0, 4).map(product => (
-                      <div key={product.id} className="glass-panel-dark rounded-2xl overflow-hidden flex flex-col h-full group hover:border-white/15 transition-all">
-                        <div className="relative aspect-square overflow-hidden bg-slate-900">
-                          <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                          <span className="absolute top-3 left-3 bg-slate-950/80 backdrop-blur text-slate-300 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider border border-white/10">
-                            {product.category}
-                          </span>
-                        </div>
-                        <div className="p-4 flex-1 flex flex-col justify-between">
-                          <div>
-                            <h4 className="font-bold text-sm text-white mb-1 group-hover:text-[#00e03c] transition-colors">{product.name}</h4>
-                            <p className="text-xs text-slate-500 line-clamp-2">{product.desc}</p>
-                          </div>
-                          <div className="pt-4 border-t border-white/[0.06] flex items-center justify-between mt-4">
-                            <span className="text-lg font-black text-[#00e03c]">${product.price} USD</span>
-                            <button
-                              onClick={() => handleAccessItem(product, 'product', () => handleAddToCart(product))}
-                              className="bg-white/10 hover:bg-[#00e03c]/20 text-white p-2 rounded-xl transition-colors border border-white/10 hover:border-[#00e03c]/40"
-                              style={{ cursor: 'none' }}
-                            >
-                              {product.isPremium && !hasPremiumAccess ? <Lock className="w-4 h-4 text-amber-400" /> : <ShoppingCart className="w-4 h-4" />}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </section>
 
-              {/* ── BLOQUE 6: INICIO / CLON PARA BUCLE CONTINUO ── */}
-              <HeroSection />
+                  {/* Panel 2: Detalle Informativo + CTA (Caja Clara) */}
+                  <div className="w-[100vw] h-screen flex items-center justify-center px-10 sm:px-24 flex-shrink-0 bg-transparent">
+                    <div className="max-w-2xl p-8 sm:p-12 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl flex flex-col items-start gap-6 text-left">
+                      <div className="w-12 h-12 rounded-xl bg-[#00e03c]/20 text-[#00e03c] flex items-center justify-center border border-[#00e03c]/30">
+                        <Briefcase className="w-6 h-6" />
+                      </div>
+                      <h3 className="text-2xl sm:text-3xl font-black text-white leading-tight">
+                        DIAGNÓSTICO Y SOLUCIONES DE VANGUARDIA
+                      </h3>
+                      <p className="text-slate-300 text-sm leading-relaxed">
+                        Brindamos consultoría ambiental corporativa y monitoreo de alta precisión. Asegura el cumplimiento de licencias ambientales y mitiga riesgos normativos con SIG especializado, gestión de residuos y lombricultura a gran escala.
+                      </p>
+                      <button
+                        onClick={() => navigate('/quote')}
+                        className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-[#00e03c]/15 hover:bg-[#00e03c]/25 border border-[#00e03c]/45 text-[#00e03c] text-xs font-black uppercase tracking-wider transition-all duration-300"
+                        data-cursor-text="COTIZAR"
+                      >
+                        Cotizar Gratis con Diagnóstico Digital <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* ──────────────────────────────────────────────────────── */}
+                  {/* PILAR 02: SERAM ACADEMY */}
+                  {/* ──────────────────────────────────────────────────────── */}
+
+                  {/* Panel 1: Título & Imagen 2D */}
+                  <div className="w-[100vw] h-screen flex flex-col md:flex-row items-center justify-center gap-12 px-10 sm:px-24 flex-shrink-0 select-none bg-transparent">
+                    <div className="md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left space-y-4">
+                      <h2 className="text-[3.5rem] sm:text-[5.5rem] font-black text-white leading-none tracking-tighter uppercase font-display filter drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
+                        SERAM ACADEMY
+                      </h2>
+                      <span className="text-[10px] text-[#00e03c] tracking-[0.25em] uppercase font-tech font-bold">
+                        Pilar 02 // Formación
+                      </span>
+                    </div>
+                    <div className="md:w-1/2 flex items-center justify-center max-w-lg w-full">
+                      <TiltGlassCard 
+                        imageUrl="/assets/3d-backend/fondo SERAM-ACADEMY2.webp" 
+                        cursorText="APRENDER" 
+                      />
+                    </div>
+                  </div>
+
+                  {/* Panel 2: Detalle Informativo + CTA (Caja Oscura) */}
+                  <div className="w-[100vw] h-screen flex items-center justify-center px-10 sm:px-24 flex-shrink-0 bg-transparent">
+                    <div className="max-w-2xl p-8 sm:p-12 rounded-3xl bg-slate-950/60 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col items-start gap-6 text-left">
+                      <div className="w-12 h-12 rounded-xl bg-[#00e03c]/20 text-[#00e03c] flex items-center justify-center border border-[#00e03c]/30">
+                        <BookOpen className="w-6 h-6" />
+                      </div>
+                      <h3 className="text-2xl sm:text-3xl font-black text-white leading-tight">
+                        CAPACITACIÓN ECOLÓGICA Y TÉCNICA
+                      </h3>
+                      <p className="text-slate-400 text-sm leading-relaxed">
+                        Accede a nuestra ala formativa especializada. Cursos de SIG aplicado, auditoría y legislación bajo normativas ISO internacionales. Diseñamos planes gratis, de pago y membresías premium académicas.
+                      </p>
+                      <button
+                        onClick={() => navigate('/academy')}
+                        className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-white/5 hover:bg-[#00e03c]/10 border border-white/10 hover:border-[#00e03c]/40 text-white hover:text-[#00e03c] text-xs font-bold uppercase tracking-wider transition-all duration-300"
+                        data-cursor-text="ACADEMIA"
+                      >
+                        Ingresar a Academy <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* ──────────────────────────────────────────────────────── */}
+                  {/* PILAR 03: SERAM EXPERIENCE */}
+                  {/* ──────────────────────────────────────────────────────── */}
+
+                  {/* Panel 1: Título & Imagen 2D */}
+                  <div className="w-[100vw] h-screen flex flex-col md:flex-row items-center justify-center gap-12 px-10 sm:px-24 flex-shrink-0 select-none bg-transparent">
+                    <div className="md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left space-y-4">
+                      <h2 className="text-[3.5rem] sm:text-[5.5rem] font-black text-white leading-none tracking-tighter uppercase font-display filter drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
+                        SERAM EXPERIENCE
+                      </h2>
+                      <span className="text-[10px] text-[#00e03c] tracking-[0.25em] uppercase font-tech font-bold">
+                        Pilar 03 // Vivencial
+                      </span>
+                    </div>
+                    <div className="md:w-1/2 flex items-center justify-center max-w-lg w-full">
+                      <TiltGlassCard 
+                        imageUrl="/assets/3d-backend/Seram-Exp-background.webp" 
+                        cursorText="VIVIR" 
+                      />
+                    </div>
+                  </div>
+
+                  {/* Panel 2: Detalle Informativo + CTA (Caja Clara) */}
+                  <div className="w-[100vw] h-screen flex items-center justify-center px-10 sm:px-24 flex-shrink-0 bg-transparent">
+                    <div className="max-w-2xl p-8 sm:p-12 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl flex flex-col items-start gap-6 text-left">
+                      <div className="w-12 h-12 rounded-xl bg-[#00e03c]/20 text-[#00e03c] flex items-center justify-center border border-[#00e03c]/30">
+                        <Award className="w-6 h-6" />
+                      </div>
+                      <h3 className="text-2xl sm:text-3xl font-black text-white leading-tight">
+                        RESTAURACIÓN ECOLÓGICA ACTIVA
+                      </h3>
+                      <p className="text-slate-300 text-sm leading-relaxed">
+                        Conectamos personas y corporaciones con la conservación terrestre. Únete a voluntariados en el Valle de Zongo, expediciones científicas y talleres de huertos urbanos diseñados por biólogos expertos.
+                      </p>
+                      <button
+                        onClick={() => navigate('/experience')}
+                        className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-white/5 hover:bg-[#00e03c]/10 border border-white/10 hover:border-[#00e03c]/40 text-white hover:text-[#00e03c] text-xs font-bold uppercase tracking-wider transition-all duration-300"
+                        data-cursor-text="VIVIR"
+                      >
+                        Conocer Experiencias <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* ──────────────────────────────────────────────────────── */}
+                  {/* PILAR 04: SERAM STORE */}
+                  {/* ──────────────────────────────────────────────────────── */}
+
+                  {/* Panel 1: Título & Imagen 2D */}
+                  <div className="w-[100vw] h-screen flex flex-col md:flex-row items-center justify-center gap-12 px-10 sm:px-24 flex-shrink-0 select-none bg-transparent">
+                    <div className="md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left space-y-4">
+                      <h2 className="text-[3.5rem] sm:text-[5.5rem] font-black text-white leading-none tracking-tighter uppercase font-display filter drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
+                        SERAM STORE
+                      </h2>
+                      <span className="text-[10px] text-[#00e03c] tracking-[0.25em] uppercase font-tech font-bold">
+                        Pilar 04 // Tienda
+                      </span>
+                    </div>
+                    <div className="md:w-1/2 flex items-center justify-center max-w-lg w-full">
+                      <TiltGlassCard 
+                        imageUrl="/assets/3d-backend/landspace-backgroundstore.webp" 
+                        cursorText="TIENDA" 
+                      />
+                    </div>
+                  </div>
+
+                  {/* Panel 2: Detalle Informativo + CTA (Caja Oscura) */}
+                  <div className="w-[100vw] h-screen flex items-center justify-center px-10 sm:px-24 flex-shrink-0 bg-transparent">
+                    <div className="max-w-2xl p-8 sm:p-12 rounded-3xl bg-slate-950/60 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col items-start gap-6 text-left">
+                      <div className="w-12 h-12 rounded-xl bg-[#00e03c]/20 text-[#00e03c] flex items-center justify-center border border-[#00e03c]/30">
+                        <ShoppingCart className="w-6 h-6" />
+                      </div>
+                      <h3 className="text-2xl sm:text-3xl font-black text-white leading-tight">
+                        BIBLIOTECA DE RECURSOS Y ECO-COMPRAS
+                      </h3>
+                      <p className="text-slate-400 text-sm leading-relaxed">
+                        Descubre libros técnicos, guías ecológicas y bio-insumos. Aplica interlinking directo para desbloquear ebooks en la academia tras adquirirlos en la tienda. Envíos carbono neutro rápidos.
+                      </p>
+                      <button
+                        onClick={() => navigate('/shop')}
+                        className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-[#00e03c]/15 hover:bg-[#00e03c]/25 border border-[#00e03c]/45 text-[#00e03c] text-xs font-black uppercase tracking-wider transition-all duration-300"
+                        data-cursor-text="TIENDA"
+                      >
+                        Ver SERAM STORE <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                </motion.div>
+              </div>
             </div>
+
+            {/* SECCIÓN FINAL */}
+            <div className="h-[20vh] bg-transparent flex items-center justify-center">
+              <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest font-tech select-none">
+                SERAM © 2026 · Tecno-Ecología Estratégica
+              </p>
+            </div>
+
           </motion.div>
         </AppContext.Provider>
       </div>
