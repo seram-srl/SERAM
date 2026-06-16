@@ -191,7 +191,7 @@ export default function HomePage() {
                   {/* Panel 1: Título & Imagen 2D */}
                   <div className="w-[100vw] h-screen flex flex-col md:flex-row items-center justify-center gap-12 px-10 sm:px-24 flex-shrink-0 select-none bg-transparent">
                     <div className="md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left space-y-4">
-                      <h2 className="text-[3.5rem] sm:text-[5.5rem] font-black text-white leading-none tracking-tighter uppercase font-display filter drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
+                      <h2 className="text-[3.5rem] sm:text-[5.5rem] font-black text-white leading-none tracking-tighter uppercase font-display pilar-title filter drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
                         SERAM SERVICES
                       </h2>
                       <span className="text-[10px] text-[#00e03c] tracking-[0.25em] uppercase font-tech font-bold">
@@ -235,7 +235,7 @@ export default function HomePage() {
                   {/* Panel 1: Título & Imagen 2D */}
                   <div className="w-[100vw] h-screen flex flex-col md:flex-row items-center justify-center gap-12 px-10 sm:px-24 flex-shrink-0 select-none bg-transparent">
                     <div className="md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left space-y-4">
-                      <h2 className="text-[3.5rem] sm:text-[5.5rem] font-black text-white leading-none tracking-tighter uppercase font-display filter drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
+                      <h2 className="text-[3.5rem] sm:text-[5.5rem] font-black text-white leading-none tracking-tighter uppercase font-display pilar-title filter drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
                         SERAM ACADEMY
                       </h2>
                       <span className="text-[10px] text-[#00e03c] tracking-[0.25em] uppercase font-tech font-bold">
@@ -279,7 +279,7 @@ export default function HomePage() {
                   {/* Panel 1: Título & Imagen 2D */}
                   <div className="w-[100vw] h-screen flex flex-col md:flex-row items-center justify-center gap-12 px-10 sm:px-24 flex-shrink-0 select-none bg-transparent">
                     <div className="md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left space-y-4">
-                      <h2 className="text-[3.5rem] sm:text-[5.5rem] font-black text-white leading-none tracking-tighter uppercase font-display filter drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
+                      <h2 className="text-[3.5rem] sm:text-[5.5rem] font-black text-white leading-none tracking-tighter uppercase font-display pilar-title filter drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
                         SERAM EXPERIENCE
                       </h2>
                       <span className="text-[10px] text-[#00e03c] tracking-[0.25em] uppercase font-tech font-bold">
@@ -323,7 +323,7 @@ export default function HomePage() {
                   {/* Panel 1: Título & Imagen 2D */}
                   <div className="w-[100vw] h-screen flex flex-col md:flex-row items-center justify-center gap-12 px-10 sm:px-24 flex-shrink-0 select-none bg-transparent">
                     <div className="md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left space-y-4">
-                      <h2 className="text-[3.5rem] sm:text-[5.5rem] font-black text-white leading-none tracking-tighter uppercase font-display filter drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
+                      <h2 className="text-[3.5rem] sm:text-[5.5rem] font-black text-white leading-none tracking-tighter uppercase font-display pilar-title filter drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
                         SERAM STORE
                       </h2>
                       <span className="text-[10px] text-[#00e03c] tracking-[0.25em] uppercase font-tech font-bold">

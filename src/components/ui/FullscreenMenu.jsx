@@ -9,7 +9,7 @@
  * ─ pointer-events: auto cuando abierto
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { gsap } from 'gsap';
@@ -42,8 +42,12 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
   }, [isOpen, onToggle]);
 
   // Cerrar al cambiar de ruta
+  const lastPathname = useRef(location.pathname);
   useEffect(() => {
-    if (isOpen) onToggle();
+    if (location.pathname !== lastPathname.current) {
+      lastPathname.current = location.pathname;
+      if (isOpen) onToggle();
+    }
   }, [location.pathname, isOpen, onToggle]);
 
   // Animaciones GSAP para efecto Stagger
