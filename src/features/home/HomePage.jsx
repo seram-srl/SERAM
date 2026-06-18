@@ -197,7 +197,8 @@ function HeroSection() {
         variants={staggerChild}
         initial="initial"
         animate="animate"
-        className="absolute bottom-6 left-1/2 -translate-x-1/2 opacity-60 flex flex-col items-center gap-2 z-20"
+        className="absolute bottom-6 opacity-60 flex flex-col items-center gap-2 z-20"
+        style={{ left: '50%', transform: 'translateX(-50%)' }}
       >
         <div className="w-[24px] h-[40px] border-2 border-white/50 rounded-full flex justify-center p-1.5">
           <div className="w-[3px] h-[7px] bg-[#00e03c] rounded-full animate-scrollIndicator" />

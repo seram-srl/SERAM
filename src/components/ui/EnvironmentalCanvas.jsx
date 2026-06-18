@@ -7,7 +7,7 @@ import EcosystemNucleus from './EcosystemNucleus';
 
 
 // ── ASSETS — ECOSISTEMAS BOLIVIANOS (IA-generados) ───────────────────────────
-const landscapeBg    = '/assets/3d-backend/landspace-background2.webp';     // Amazonía boliviana (Fondo Premium)
+const landscapeBg    = '/assets/3d-backend/bg_hero_amazonia.webp';     // Amazonía boliviana (Fondo Premium)
 const fondo2doPanel  = '/assets/3d-backend/bg_services_river.webp';    // Río / GIS
 const panel2ServiceBg= '/assets/3d-backend/bg_services_river.webp';    // Servicios alt
 const academyBg      = '/assets/3d-backend/bg_academy_cloudforest.webp'; // Bosque nublado
@@ -309,37 +309,37 @@ function InteractiveScene({ hProgressRef }) {
         {/* Fondo 1: Hero */}
         <mesh ref={heroBgRef} position={[0, 0, -0.04]}>
           <planeGeometry args={[44, 22]} />
-          <meshBasicMaterial map={heroBgTexture} transparent depthWrite={false} opacity={1} />
+          <meshBasicMaterial map={heroBgTexture} transparent depthWrite={false} opacity={1} dithering={true} />
         </mesh>
         
         {/* Fondo 2: Servicios */}
         <mesh ref={servicesBgRef} position={[0, 0, -0.03]}>
           <planeGeometry args={[44, 22]} />
-          <meshBasicMaterial map={servicesBgTexture} transparent depthWrite={false} opacity={0} />
+          <meshBasicMaterial map={servicesBgTexture} transparent depthWrite={false} opacity={0} dithering={true} />
         </mesh>
 
         {/* Fondo 3: Academia */}
         <mesh ref={academyBgRef} position={[0, 0, -0.02]}>
           <planeGeometry args={[44, 22]} />
-          <meshBasicMaterial map={academyBgTexture} transparent depthWrite={false} opacity={0} />
+          <meshBasicMaterial map={academyBgTexture} transparent depthWrite={false} opacity={0} dithering={true} />
         </mesh>
 
         {/* Fondo 4: Experiencias */}
         <mesh ref={expBgRef} position={[0, 0, -0.01]}>
           <planeGeometry args={[44, 22]} />
-          <meshBasicMaterial map={expBgTexture} transparent depthWrite={false} opacity={0} />
+          <meshBasicMaterial map={expBgTexture} transparent depthWrite={false} opacity={0} dithering={true} />
         </mesh>
 
         {/* Fondo 5: Tienda */}
         <mesh ref={shopBgRef} position={[0, 0, 0]}>
           <planeGeometry args={[44, 22]} />
-          <meshBasicMaterial map={shopBgTexture} transparent depthWrite={false} opacity={0} />
+          <meshBasicMaterial map={shopBgTexture} transparent depthWrite={false} opacity={0} dithering={true} />
         </mesh>
 
         {/* Capa de Primer Plano (Foreground) - Plantas silvestres */}
         <mesh ref={fgPlantsRef} position={[0, -1.5, -2.5]}>
           <planeGeometry args={[24, 12]} />
-          <meshBasicMaterial map={fgPlantsTexture} transparent depthWrite={false} opacity={0.95} />
+          <meshBasicMaterial map={fgPlantsTexture} transparent depthWrite={false} opacity={0.95} dithering={true} />
         </mesh>
       </group>
 
@@ -460,6 +460,7 @@ function BackgroundScene({ pathname }) {
           transparent={true} 
           opacity={1.0} 
           depthWrite={false}
+          dithering={true}
         />
       </mesh>
 
@@ -472,6 +473,7 @@ function BackgroundScene({ pathname }) {
             transparent={true} 
             opacity={0.0} 
             depthWrite={false}
+            dithering={true}
           />
         </mesh>
       )}
@@ -515,7 +517,7 @@ export default function EnvironmentalCanvas({ isStorytelling = false, hProgressR
           far: 1000,
           position: [0, 0, 4.2],
         }}
-        gl={{ antialias: true, alpha: false }}
+        gl={{ antialias: true, alpha: false, dithering: true }}
         dpr={[1, 2]}
       >
         <ambientLight intensity={0.5} />

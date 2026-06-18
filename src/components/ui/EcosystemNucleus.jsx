@@ -82,7 +82,7 @@ export default function EcosystemNucleus({ scrollRef }) {
   const currentScroll = useRef(0);
   const count = 3000;
 
-  // Generación matemática de la esfera difusa de backup
+  // Generación matemática de la esfera difusa de backup (escalada al nuevo tamaño)
   const positions = useMemo(() => {
     const arr = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
@@ -90,7 +90,7 @@ export default function EcosystemNucleus({ scrollRef }) {
       const v = Math.random();
       const theta = u * 2.0 * Math.PI;
       const phi = Math.acos(2.0 * v - 1.0);
-      const rSphere = 1.6 + Math.random() * 0.3;
+      const rSphere = 3.6 + Math.random() * 0.6;
       arr[i * 3] = rSphere * Math.sin(phi) * Math.cos(theta);
       arr[i * 3 + 1] = rSphere * Math.sin(phi) * Math.sin(theta);
       arr[i * 3 + 2] = rSphere * Math.cos(phi);
@@ -117,8 +117,9 @@ export default function EcosystemNucleus({ scrollRef }) {
           const idx = (x + y * 128) * 4;
           const alpha = imgData[idx + 3];
           if (alpha > 120) {
-            const px = ((x / 128) - 0.5) * 3.6;
-            const py = -((y / 128) - 0.5) * 3.6;
+            // Escalar de [0, 128] a un rango espacial más grande [ -4.1, 4.1 ] (x2.28 mayor)
+            const px = ((x / 128) - 0.5) * 8.2;
+            const py = -((y / 128) - 0.5) * 8.2;
             points.push({ x: px, y: py });
           }
         }
