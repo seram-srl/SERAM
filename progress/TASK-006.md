@@ -50,6 +50,8 @@ Realizar una auditoría y corrección quirúrgica en 8 bloques de la interfaz, e
 | 02:32     | Modificar EnvironmentalCanvas (neblina, dpr, plants geometry & position) | Modificado |
 | 02:36     | Modificar EcosystemNucleus (partículas ascendentes, eliminar ADN morph) | Modificado |
 | 02:40     | Ejecutar build de producción | Éxito sin advertencias ni errores |
+| 02:44     | Hacer estática la hoja de partículas y corregir eslogan y centrado X en indicador | Modificado |
+| 02:48     | Configurar espacio de color sRGB y desactivar mipmaps para evitar alteraciones de imagen | Modificado |
 
 ## Resultado del Revisor
 - [x] Build pasa
