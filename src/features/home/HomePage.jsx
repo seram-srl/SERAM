@@ -187,25 +187,25 @@ function HeroSection() {
         <motion.div custom={1} variants={staggerChild} initial="initial" animate="animate" className="w-full flex flex-col items-center gap-3">
           <BrandParticleText />
           <p className="text-[10px] sm:text-xs text-slate-400 font-tech uppercase tracking-[0.25em] max-w-lg mt-2 text-center select-none leading-relaxed">
-            Innovación tecnológica y compromiso socio-ambiental de élite
+            SERVICIOS AMBIENTALES.
           </p>
         </motion.div>
-
-        <motion.div
-          custom={2}
-          variants={staggerChild}
-          initial="initial"
-          animate="animate"
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 opacity-60 flex flex-col items-center gap-2"
-        >
-          <div className="w-[24px] h-[40px] border-2 border-white/50 rounded-full flex justify-center p-1.5">
-            <div className="w-[3px] h-[7px] bg-[#00e03c] rounded-full animate-scrollIndicator" />
-          </div>
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-tech select-none">
-            Desliza para explorar
-          </span>
-        </motion.div>
       </div>
+
+      <motion.div
+        custom={2}
+        variants={staggerChild}
+        initial="initial"
+        animate="animate"
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 opacity-60 flex flex-col items-center gap-2 z-20"
+      >
+        <div className="w-[24px] h-[40px] border-2 border-white/50 rounded-full flex justify-center p-1.5">
+          <div className="w-[3px] h-[7px] bg-[#00e03c] rounded-full animate-scrollIndicator" />
+        </div>
+        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-tech select-none">
+          Desliza para explorar
+        </span>
+      </motion.div>
     </section>
   );
 }

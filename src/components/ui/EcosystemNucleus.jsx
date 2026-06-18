@@ -15,13 +15,12 @@ const vertexShader = `
   void main() {
     vec3 pos = position;
 
-    // Movimiento ascendente continuo en bucle (rango de altura: [-4.0, 4.0])
-    float rangeY = 8.0;
-    pos.y = mod(pos.y + 4.0 + uTime * 0.35, rangeY) - 4.0;
-
-    // Oscilación orgánica (seno/coseno) de esporas
-    pos.x += sin(uTime * 1.1 + position.y * 2.5) * 0.18;
-    pos.z += cos(uTime * 1.3 + position.x * 2.5) * 0.18;
+    // Sin movimiento ascendente continuo para mantener la hoja estática detrás del logo.
+    // Solo micro-oscilaciones orgánicas de evapotranspiración para dar sensación de vida.
+    float vaporStrength = 0.05;
+    pos.x += sin(uTime * 1.2 + position.y * 2.5) * vaporStrength;
+    pos.y += cos(uTime * 1.1 + position.x * 2.5) * vaporStrength;
+    pos.z += sin(uTime * 0.9 + position.x * position.y) * (vaporStrength * 0.5);
 
     // Parallax del Cursor: Empuje elástico suave
     float distToMouse = distance(pos.xy, uMouse * 2.5);

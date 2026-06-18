@@ -122,6 +122,17 @@ function InteractiveScene({ hProgressRef }) {
     };
   }, []);
 
+  useEffect(() => {
+    [heroBgTexture, servicesBgTexture, academyBgTexture, expBgTexture, shopBgTexture, fgPlantsTexture].forEach((t) => {
+      if (t) {
+        t.colorSpace = THREE.SRGBColorSpace;
+        t.minFilter = THREE.LinearFilter;
+        t.generateMipmaps = false;
+        t.needsUpdate = true;
+      }
+    });
+  }, [heroBgTexture, servicesBgTexture, academyBgTexture, expBgTexture, shopBgTexture, fgPlantsTexture]);
+
   useFrame((state) => {
     // ── PROGRESO COMBINADO ────────────────────────────────────────────────────
     // Si el carrusel horizontal está activo (hProgressRef disponible y > 0),
@@ -371,6 +382,17 @@ function BackgroundScene({ pathname }) {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
+
+  useEffect(() => {
+    [academyBgTexture, expBgTexture, servicesBg1Texture, servicesBg2Texture, shopBgTexture].forEach((t) => {
+      if (t) {
+        t.colorSpace = THREE.SRGBColorSpace;
+        t.minFilter = THREE.LinearFilter;
+        t.generateMipmaps = false;
+        t.needsUpdate = true;
+      }
+    });
+  }, [academyBgTexture, expBgTexture, servicesBg1Texture, servicesBg2Texture, shopBgTexture]);
 
   useFrame((state) => {
     const bgMesh1 = bgMesh1Ref.current;
