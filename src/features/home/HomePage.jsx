@@ -141,9 +141,6 @@ function PanelA({ pillar }) {
         <h2 className="text-[3.5rem] sm:text-[5.5rem] font-black text-white leading-none tracking-tighter uppercase font-display filter drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
           {pillar.title}
         </h2>
-        <span className="text-[10px] text-[#00e03c] tracking-[0.25em] uppercase font-tech font-bold">
-          {pillar.sub}
-        </span>
       </div>
       <div className="md:w-1/2 flex items-center justify-center max-w-lg w-full">
         <TiltGlassCard imageUrl={pillar.imageUrl} cursorText={pillar.cursorText} />
@@ -169,37 +166,29 @@ function PanelB({ pillar }) {
           {pillar.desc}
         </p>
         <button
-          onClick={() => navigate(pillar.route)}
+          onClick={() => navigate('/services')}
           className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-[#00e03c]/15 hover:bg-[#00e03c]/25 border border-[#00e03c]/45 text-[#00e03c] rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300"
-          data-cursor-text={pillar.ctaCursor}
+          data-cursor-text="SERVICIOS"
         >
-          {pillar.cta} <ChevronRight className="w-4 h-4" />
+          Ver Todos los Servicios <ChevronRight className="w-4 h-4" />
         </button>
       </div>
     </div>
   );
 }
 
-// ─── HERO SECTION ─────────────────────────────────────────────────────────────
 function HeroSection() {
   return (
     <section
       className="relative overflow-hidden min-h-screen w-full flex flex-col items-center justify-center py-20 px-6 sm:px-12 select-none bg-transparent"
       aria-label="Portada SERAM"
     >
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.06] select-none z-0">
-        <motion.img
-          src="/assets/brand/ícono_logo.png"
-          alt="Watermark SERAM"
-          className="w-[280px] h-[280px] sm:w-[480px] sm:h-[480px] object-contain"
-          animate={{ y: [0, -12, 0], rotate: [0, 1.5, 0] }}
-          transition={{ duration: 9, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
-        />
-      </div>
-
       <div className="text-center space-y-8 z-10 w-full max-w-4xl flex flex-col items-center justify-center">
-        <motion.div custom={1} variants={staggerChild} initial="initial" animate="animate" className="w-full">
+        <motion.div custom={1} variants={staggerChild} initial="initial" animate="animate" className="w-full flex flex-col items-center gap-3">
           <BrandParticleText />
+          <p className="text-[10px] sm:text-xs text-slate-400 font-tech uppercase tracking-[0.25em] max-w-lg mt-2 text-center select-none leading-relaxed">
+            Innovación tecnológica y compromiso socio-ambiental de élite
+          </p>
         </motion.div>
 
         <motion.div
@@ -207,7 +196,7 @@ function HeroSection() {
           variants={staggerChild}
           initial="initial"
           animate="animate"
-          className="pt-8 opacity-60 flex flex-col items-center gap-2"
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 opacity-60 flex flex-col items-center gap-2"
         >
           <div className="w-[24px] h-[40px] border-2 border-white/50 rounded-full flex justify-center p-1.5">
             <div className="w-[3px] h-[7px] bg-[#00e03c] rounded-full animate-scrollIndicator" />
@@ -222,6 +211,53 @@ function HeroSection() {
 }
 
 // ─── SERVICES HORIZONTAL SECTION ──────────────────────────────────────────────
+function PanelServicesList() {
+  const services = [
+    {
+      title: 'Monitoreo Ambiental',
+      desc: 'Medición de precisión para aire, agua y suelos bajo estándares internacionales.',
+      icon: '📊',
+    },
+    {
+      title: 'Sistemas de Info Geográfica (SIG)',
+      desc: 'Cartografía avanzada y análisis espacial para ordenamiento territorial y licencias.',
+      icon: '🗺️',
+    },
+    {
+      title: 'Gestión de Residuos',
+      desc: 'Soluciones de economía circular y lombricultura industrial a gran escala.',
+      icon: '♻️',
+    },
+  ];
+
+  return (
+    <div className="w-[100vw] h-screen flex flex-col justify-center px-10 sm:px-24 flex-shrink-0 bg-transparent select-none">
+      <div className="max-w-5xl w-full mx-auto space-y-8">
+        <div className="text-left space-y-2">
+          <span className="text-[10px] text-[#00e03c] tracking-[0.25em] uppercase font-tech font-bold">Portafolio</span>
+          <h3 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight font-display">
+            Servicios Destacados
+          </h3>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {services.map((s, idx) => (
+            <div
+              key={idx}
+              className="p-6 rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-xl flex flex-col items-start gap-4 transition-all duration-300 hover:bg-white/10 hover:border-[#00e03c]/30"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-[#00e03c]/10 text-[#00e03c] flex items-center justify-center border border-[#00e03c]/20 text-xl font-bold">
+                {s.icon}
+              </div>
+              <h4 className="text-lg font-bold text-white uppercase tracking-tight">{s.title}</h4>
+              <p className="text-xs text-slate-400 leading-relaxed">{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ServicesHorizontalSection() {
   const outerRef = useRef(null);
   const trackRef = useRef(null);
@@ -255,7 +291,7 @@ function ServicesHorizontalSection() {
     } else {
       const scrollableHeight = outer.offsetHeight - window.innerHeight;
       const progress = Math.min(1, Math.max(0, relativeY / scrollableHeight));
-      const maxX = window.innerWidth; // Translates exactly 100vw
+      const maxX = window.innerWidth * 2; // Translates exactly 200vw
       targetXRef.current = progress * maxX;
     }
   }, []);
@@ -273,7 +309,7 @@ function ServicesHorizontalSection() {
   const servicesPillar = PILLARS[0];
 
   return (
-    <div ref={outerRef} style={{ height: '200vh' }} className="relative bg-transparent z-10">
+    <div ref={outerRef} style={{ height: '300vh' }} className="relative bg-transparent z-10">
       <div style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'hidden' }} className="flex flex-col justify-center">
         <div className="absolute left-8 top-24 z-20 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-[#00e03c] animate-pulse" />
@@ -288,12 +324,13 @@ function ServicesHorizontalSection() {
             flexWrap: 'nowrap',
             alignItems: 'center',
             height: '100%',
-            width: '200vw',
+            width: '300vw',
             willChange: 'transform',
             transform: 'translateX(0px)',
           }}
         >
           <PanelA pillar={servicesPillar} />
+          <PanelServicesList />
           <PanelB pillar={servicesPillar} />
         </div>
       </div>
@@ -311,9 +348,6 @@ function AcademyVerticalSection() {
       <div className="max-w-6xl w-full flex flex-col md:flex-row items-center justify-between gap-12 sm:gap-16">
         <div className="w-full md:w-1/2 flex flex-col items-start text-left space-y-6">
           <div className="space-y-2">
-            <span className="text-[10px] text-[#00e03c] tracking-[0.25em] uppercase font-tech font-bold">
-              {academyPillar.sub}
-            </span>
             <h2 className="text-4xl sm:text-6xl font-black text-white leading-none tracking-tighter uppercase font-display filter drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
               {academyPillar.title}
             </h2>
@@ -357,9 +391,6 @@ function ExperienceVerticalSection() {
       <div className="max-w-6xl w-full flex flex-col md:flex-row-reverse items-center justify-between gap-12 sm:gap-16">
         <div className="w-full md:w-1/2 flex flex-col items-start text-left space-y-6">
           <div className="space-y-2">
-            <span className="text-[10px] text-[#00e03c] tracking-[0.25em] uppercase font-tech font-bold">
-              {experiencePillar.sub}
-            </span>
             <h2 className="text-4xl sm:text-6xl font-black text-white leading-none tracking-tighter uppercase font-display filter drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
               {experiencePillar.title}
             </h2>
@@ -479,9 +510,6 @@ function StoreHorizontalSection() {
               <h2 className="text-[3.5rem] sm:text-[5.5rem] font-black text-white leading-none tracking-tighter uppercase font-display filter drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
                 {storePillar.title}
               </h2>
-              <span className="text-[10px] text-[#00e03c] tracking-[0.25em] uppercase font-tech font-bold">
-                {storePillar.sub}
-              </span>
             </div>
             <div className="md:w-1/2 flex items-center justify-center max-w-lg w-full">
               <TiltGlassCard imageUrl={storePillar.imageUrl} cursorText={storePillar.cursorText} />

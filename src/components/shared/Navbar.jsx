@@ -102,7 +102,7 @@ export default function Navbar({ isOpen, onToggle }) {
         {/* LOGO DE MARCA CON SENSOR SECRETO DE SOCIOS */}
         <Magnetic>
           <div
-            className="flex items-center gap-3 cursor-none select-none transition-all duration-500"
+            className="flex items-center gap-1.5 cursor-none select-none transition-all duration-500"
             style={logoContainerStyle}
             onClick={() => {
               navigate('/');
@@ -122,29 +122,24 @@ export default function Navbar({ isOpen, onToggle }) {
                 <span className="text-xl font-black text-[#00e03c] tracking-tight" style={logoTextShadow}>A</span>
                 <span className="text-xl font-black text-white tracking-tight" style={logoTextShadow}>M</span>
               </div>
-              <span className="text-[7.5px] uppercase tracking-[0.22em] font-bold text-slate-400 mt-1">
-                Servicios Ambientales
-              </span>
             </div>
           </div>
         </Magnetic>
-      </div>
 
-      {/* ── BOTÓN DEL CARRITO DE COMPRAS EN LA ESQUINA SUPERIOR DERECHA ──────── */}
-      <div className="fixed top-6 right-6 z-[110]">
-        <Magnetic>
-          <button
-            onClick={() => setShowCart(!showCart)}
-            className="p-3 rounded-full bg-slate-950/80 border border-white/10 hover:border-[#00e03c] text-slate-400 hover:text-[#00e03c] transition-all cursor-none pointer-events-auto relative"
-          >
-            <ShoppingCart className="w-4 h-4" />
-            {cartTotal > 0 && (
+        {/* CARRITO CONDICIONAL AL LADO DEL LOGO */}
+        {cartTotal > 0 && (
+          <Magnetic>
+            <button
+              onClick={() => setShowCart(!showCart)}
+              className="p-3 rounded-full bg-slate-950/80 border border-white/10 hover:border-[#00e03c] text-slate-400 hover:text-[#00e03c] transition-all cursor-none pointer-events-auto relative animate-fadeIn"
+            >
+              <ShoppingCart className="w-4 h-4" />
               <span className="absolute -top-1 -right-1 bg-[#00e03c] text-slate-950 text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center animate-bounce">
                 {cartTotal}
               </span>
-            )}
-          </button>
-        </Magnetic>
+            </button>
+          </Magnetic>
+        )}
       </div>
 
       {/* CARRITO DRAWER GLOBAL */}

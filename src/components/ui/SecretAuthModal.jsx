@@ -151,7 +151,7 @@ export default function SecretAuthModal() {
 
   return (
     <div
-      className="fixed inset-0 z-[120] flex items-center justify-center bg-[#061c12]/80 backdrop-blur-xl animate-fadeIn px-4"
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-white/10 backdrop-blur-xl animate-fadeIn px-4"
       role="dialog"
       aria-modal="true"
     >

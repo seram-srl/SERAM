@@ -53,7 +53,7 @@ const createNoiseTexture = () => {
       const dist = Math.sqrt(dx*dx + dy*dy);
       const edgeFade = Math.max(0, 1 - dist * 2.2);
       
-      const alpha = Math.floor(val * 255 * 0.25 * edgeFade);
+      const alpha = Math.floor(val * 255 * 0.55 * edgeFade);
       
       const idx = (x + y * size) * 4;
       data[idx] = 255;       // R
@@ -140,7 +140,7 @@ function InteractiveScene({ hProgressRef }) {
 
     // 2. Trayectoria Orbital B-Roll
     const baseRadius = 5.2;
-    const radiusAmplitude = 1.6;
+    const radiusAmplitude = 0.4;
     const radius = baseRadius - Math.sin(smoothP * Math.PI) * radiusAmplitude;
     const angle = smoothP * Math.PI * 1.5; // Giro orbital de 270 grados
     const height = (1.0 - smoothP) * 2.5 - 0.2; // Descenso de la grúa de cámara
@@ -240,9 +240,9 @@ function InteractiveScene({ hProgressRef }) {
         fgPlantsRef.current.material.opacity = Math.max(0.0, fgOpacity);
       }
 
-      // Las plantas del primer plano están muy cerca de la lente y se mueven muy rápido
-      fgPlantsRef.current.position.x = -state.camera.position.x * 1.35 - targetX.current * 0.8;
-      fgPlantsRef.current.position.y = -2.2 - state.camera.position.y * 1.35 - targetY.current * 0.8;
+      // Las plantas del primer plano están muy cerca de la lente y se mueven con un parallax suave
+      fgPlantsRef.current.position.x = -state.camera.position.x * 0.4 - targetX.current * 0.4;
+      fgPlantsRef.current.position.y = -1.5 - state.camera.position.y * 0.4 - targetY.current * 0.4;
     }
 
     // 6. Intensidad de Luces Reactiva al Scroll (Brillo máximo en Servicios/Academia)
@@ -326,8 +326,8 @@ function InteractiveScene({ hProgressRef }) {
         </mesh>
 
         {/* Capa de Primer Plano (Foreground) - Plantas silvestres */}
-        <mesh ref={fgPlantsRef} position={[0, -2, -3]}>
-          <planeGeometry args={[18, 9]} />
+        <mesh ref={fgPlantsRef} position={[0, -1.5, -2.5]}>
+          <planeGeometry args={[24, 12]} />
           <meshBasicMaterial map={fgPlantsTexture} transparent depthWrite={false} opacity={0.95} />
         </mesh>
       </group>
@@ -494,7 +494,7 @@ export default function EnvironmentalCanvas({ isStorytelling = false, hProgressR
           position: [0, 0, 4.2],
         }}
         gl={{ antialias: true, alpha: false }}
-        dpr={[1, 1.5]}
+        dpr={[1, 2]}
       >
         <ambientLight intensity={0.5} />
         

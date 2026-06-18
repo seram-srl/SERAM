@@ -62,9 +62,21 @@
       "created_at": "2026-06-17",
       "assignee": "implementer",
       "progress_file": "progress/TASK-005.md"
+    },
+    {
+      "id": "TASK-006",
+      "title": "Mega-corrección quirúrgica AAA (Auditoría de UI, R3F y Laboratorio)",
+      "description": "Limpieza de remanentes de laboratorio, correcciones de renderizado R3F y ajustes de UI premium según plan de implementación.",
+      "status": "done",
+      "priority": "high",
+      "estimated_hours": 6,
+      "tags": ["ui", "r3f", "cleanup"],
+      "created_at": "2026-06-18",
+      "assignee": "implementer",
+      "progress_file": "progress/TASK-006.md"
     }
   ],
-  "completed": ["TASK-001", "TASK-002", "TASK-004"],
+  "completed": ["TASK-001", "TASK-002", "TASK-004", "TASK-006"],
   "in_progress": [],
   "notes": "Para agregar una tarea nueva, copiar la estructura de un objeto en 'tasks' e incrementar el ID."
 }

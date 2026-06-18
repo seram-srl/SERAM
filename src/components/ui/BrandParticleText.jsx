@@ -22,15 +22,17 @@ export default function BrandParticleText() {
     const handleResize = () => {
       const rect = canvas.parentNode.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
+      const isMobile = window.innerWidth < 640;
+      const canvasHeight = isMobile ? 220 : 180;
       
       // Ajustar tamaño lógico y físico
       canvas.width = rect.width * dpr;
-      canvas.height = 180 * dpr;
+      canvas.height = canvasHeight * dpr;
       canvas.style.width = `${rect.width}px`;
-      canvas.style.height = `180px`;
+      canvas.style.height = `${canvasHeight}px`;
       
       ctx.scale(dpr, dpr);
-      initParticles(rect.width, 180);
+      initParticles(rect.width, canvasHeight);
     };
 
     // Inicialización de partículas extrayendo píxeles de un canvas oculto
@@ -139,7 +141,7 @@ export default function BrandParticleText() {
       time += 0.02;
       const rect = canvas.getBoundingClientRect();
       const logicalWidth = rect.width;
-      const logicalHeight = 180;
+      const logicalHeight = window.innerWidth < 640 ? 220 : 180;
 
       ctx.clearRect(0, 0, logicalWidth, logicalHeight);
 
@@ -204,7 +206,7 @@ export default function BrandParticleText() {
   }, []);
 
   return (
-    <div className="w-full max-w-4xl mx-auto flex items-center justify-center h-[180px] overflow-hidden select-none pointer-events-auto">
+    <div className="w-full max-w-4xl mx-auto flex items-center justify-center h-[220px] sm:h-[180px] overflow-hidden select-none pointer-events-auto">
       <canvas
         ref={canvasRef}
         className="block cursor-none"

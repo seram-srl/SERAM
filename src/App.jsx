@@ -13,6 +13,8 @@ import SecretAuthModal from './components/ui/SecretAuthModal';
 import Navbar          from './components/shared/Navbar';
 import Toast           from './components/shared/Toast';
 import PartnerModal    from './components/shared/PartnerModal';
+import ChatbotFAB      from './components/ui/ChatbotFAB';
+import NotFoundPage    from './features/NotFoundPage';
 
 // ── Feature pages (cada una es un módulo SRP independiente)
 import HomePage        from './features/home/HomePage';
@@ -80,6 +82,9 @@ export default function App() {
       {/* ── CAPA z-200: Sistema de notificaciones globales ────────────────── */}
       <Toast />
 
+      {/* ── CAPA z-110: Botón de chat de atención al cliente (FAB) ────────── */}
+      <ChatbotFAB />
+
       {/* ── CAPA z-10: Contenido principal con transiciones de ruta ─────── */}
       {/*
         Cada página se monta con AnimatePresence y Framer Motion.
@@ -98,6 +103,7 @@ export default function App() {
             <Route path="/experience" element={<ExperiencePage />}   />
             <Route path="/shop"       element={<ShopPage />}         />
             <Route path="/dashboard"  element={<PartnerDashboard />} />
+            <Route path="*"           element={<NotFoundPage />}     />
           </Routes>
         </AnimatePresence>
       </main>

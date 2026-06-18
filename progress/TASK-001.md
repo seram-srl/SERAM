@@ -39,8 +39,8 @@ manteniendo el portal secreto de socios como está (es un feature intencional).
 5. [X] Crear ProtectedRoute para rutas privadas
 6. [X] Añadir rutas al App.jsx
 7. [X] Integrar enlaces y cierre de sesión en FullscreenMenu
-8. [ ] Verificar build
-9. [ ] Llamar al Revisor
+8. [X] Verificar build
+9. [X] Llamar al Revisor
 
 ## Log de Cambios
 

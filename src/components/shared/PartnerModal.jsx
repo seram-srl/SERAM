@@ -24,7 +24,7 @@ export default function PartnerModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-950/80 backdrop-blur-md animate-fadeIn">
+    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-white/15 backdrop-blur-xl animate-fadeIn">
       <div className="glass-panel-dark border border-white/10 rounded-3xl w-full max-w-sm p-8 shadow-2xl relative animate-fadeIn mx-4">
         {/* Close */}
         <button
