@@ -43,11 +43,11 @@ export default function ShopPage() {
   return (
     <motion.div
       variants={pageVariants} initial="initial" animate="animate" exit="exit"
-      className="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-10"
+      className="inner-page max-w-7xl mx-auto space-y-10"
     >
       {/* ── 1. DISNEY+ FEATURED PRODUCT SHOWCASE ── */}
       {featuredProduct && (
-        <div className="relative w-full h-[40vh] sm:h-[48vh] rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.7)] group border border-white/5 pointer-events-auto">
+        <div className="relative w-full h-[40vh] sm:h-[48vh] rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] group border border-white/10 pointer-events-auto">
           <div className="absolute inset-0">
             <img
               src={featuredProduct.image}
@@ -59,7 +59,7 @@ export default function ShopPage() {
           </div>
 
           <div className="absolute bottom-0 left-0 p-6 sm:p-10 space-y-3 max-w-2xl text-left">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00e03c]/20 text-[#00e03c] text-[10px] font-black uppercase tracking-widest border border-[#00e03c]/30">
+            <div className="neuform-badge-accent neuform-badge">
               <Shield className="w-3 h-3 text-[#00e03c]" /> ENVÍO CARBONO NEUTRO
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight uppercase font-display drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
@@ -71,7 +71,7 @@ export default function ShopPage() {
             <div className="pt-2 flex items-center gap-4">
               <button
                 onClick={() => handleBuyProduct(featuredProduct)}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-slate-950 hover:bg-[#00e03c] hover:text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-lg cursor-none"
+                className="neuform-btn-primary cursor-none"
                 data-cursor-text="COMPRAR"
               >
                 Añadir al Carrito · Bs. {featuredProduct.price}
@@ -95,7 +95,7 @@ export default function ShopPage() {
               className={`relative py-4 px-3 rounded-2xl border flex flex-col items-center justify-center gap-2 cursor-none transition-all duration-300 ${
                 isActive
                   ? 'bg-[#00e03c]/15 border-[#00e03c] text-[#00e03c] shadow-[0_0_20px_rgba(0,224,60,0.25)] scale-105'
-                  : 'bg-white/[0.03] border-white/[0.06] hover:border-[#00e03c]/40 text-slate-400 hover:text-white hover:scale-105 hover:bg-[#00e03c]/5 hover:shadow-[0_0_15px_rgba(0,224,60,0.15)]'
+                  : 'bg-white/[0.02] border-white/[0.07] hover:border-[#00e03c]/40 text-slate-400 hover:text-white hover:scale-105 hover:bg-[#00e03c]/5 hover:shadow-[0_0_15px_rgba(0,224,60,0.15)]'
               }`}
             >
               <div className={`p-2.5 rounded-xl border ${isActive ? 'bg-[#00e03c]/20 border-[#00e03c]/30 text-[#00e03c]' : 'bg-white/5 border-white/10'}`}>
@@ -109,16 +109,17 @@ export default function ShopPage() {
 
       {/* ── 3. PRODUCT ROW GRIDS (Movie-style items) ── */}
       <div className="space-y-6 text-left">
-        <div className="flex justify-between items-center border-b border-white/[0.06] pb-3">
+        <div className="flex justify-between items-center">
           <h2 className="font-extrabold text-lg text-white uppercase tracking-wider flex items-center gap-2">
             <ShoppingCart className="w-4 h-4 text-[#00e03c]" />
             Catálogo: {CATEGORIES.find(c => c.id === activeCategory)?.label}
           </h2>
-          <span className="text-xs text-slate-500">Envíos a toda Bolivia</span>
+          <span className="section-label">Envíos a toda Bolivia</span>
         </div>
+        <div className="neuform-divider mt-2 mb-6" />
 
         {filteredProducts.length === 0 ? (
-          <div className="glass-panel-dark rounded-2xl p-10 text-center text-slate-500 text-xs">
+          <div className="neuform-card p-10 text-center text-slate-500 text-xs">
             No hay productos cargados en esta categoría actualmente.
           </div>
         ) : (
@@ -128,7 +129,7 @@ export default function ShopPage() {
               return (
                 <div
                   key={product.id}
-                  className="group relative rounded-2xl overflow-hidden glass-panel-dark border border-white/[0.06] hover:border-[#00e03c]/40 hover:shadow-[0_10px_30px_rgba(0,224,60,0.15)] transition-all duration-300 flex flex-col h-full cursor-none pointer-events-auto"
+                  className="group relative overflow-hidden neuform-card flex flex-col h-full cursor-none pointer-events-auto"
                 >
                   {/* Imagen del Producto */}
                   <div className="relative aspect-video bg-slate-900 overflow-hidden">
@@ -140,19 +141,19 @@ export default function ShopPage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
                     
                     {/* Categoría */}
-                    <span className="absolute top-3 left-3 bg-slate-950/80 backdrop-blur text-slate-300 text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider border border-white/10">
+                    <span className="absolute top-3 left-3 neuform-badge backdrop-blur-md">
                       {product.category}
                     </span>
 
                     {/* Badge de Interlinking de Ebooks */}
                     {isEbook && (
-                      <span className="absolute top-3 right-3 bg-emerald-500/90 text-slate-950 text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1">
+                      <span className="absolute top-3 right-3 neuform-badge-accent neuform-badge backdrop-blur-md">
                         <BookOpen className="w-3 h-3" /> ACADEMIA
                       </span>
                     )}
 
                     {product.isPremium && (
-                      <span className="absolute top-3 right-3 bg-amber-400 text-slate-950 text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">
+                      <span className="absolute top-3 right-3 neuform-badge backdrop-blur-md text-amber-400 border-amber-400/30 bg-amber-400/10">
                         Premium
                       </span>
                     )}
@@ -183,7 +184,7 @@ export default function ShopPage() {
                               triggerToast('Redirigiendo a recurso en Academy...', 'info');
                               navigate(`/academy/course/${product.courseId}`);
                             }}
-                            className="bg-white/5 hover:bg-white/10 text-white px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border border-white/10"
+                            className="neuform-btn-accent cursor-none !rounded-xl !py-2 !px-3.5"
                             data-cursor-text="LEER"
                           >
                             Ver en Academy
@@ -192,7 +193,7 @@ export default function ShopPage() {
 
                         <button
                           onClick={() => handleBuyProduct(product)}
-                          className="bg-white/10 hover:bg-[#00e03c]/20 text-white px-4 py-2 rounded-xl text-[10px] font-black transition-all border border-white/10 hover:border-[#00e03c]/40 flex items-center gap-1.5 uppercase tracking-wider"
+                          className="neuform-btn-primary cursor-none !rounded-xl !py-2 !px-3.5 flex items-center gap-1.5"
                           data-cursor-text="COMPRAR"
                         >
                           {product.isPremium && !hasPremiumAccess ? (
@@ -212,7 +213,7 @@ export default function ShopPage() {
       </div>
 
       {/* ── 4. BRAND ACCREDITATION BAR (Disney+ Style bottom banner) ── */}
-      <div className="glass-panel-dark rounded-3xl p-6 border border-white/[0.06] flex flex-col sm:flex-row items-center justify-around gap-6 text-center sm:text-left pointer-events-auto">
+      <div className="neuform-card p-6 flex flex-col sm:flex-row items-center justify-around gap-6 text-center sm:text-left pointer-events-auto">
         <div className="flex items-center gap-3">
           <Shield className="w-8 h-8 text-[#00e03c]" />
           <div>

@@ -42,8 +42,8 @@ const SIDEBAR_MODULES = [
 const DarkTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-slate-900 border border-white/10 rounded-xl px-4 py-3 shadow-2xl text-xs">
-      <p className="font-bold text-slate-400 uppercase tracking-widest mb-2">{label}</p>
+    <div className="bg-white/10 border border-white/20 rounded-xl px-4 py-3 shadow-2xl text-xs backdrop-blur-md">
+      <p className="font-bold text-slate-200 uppercase tracking-widest mb-2">{label}</p>
       {payload.map((entry) => (
         <p key={entry.name} className="font-black" style={{ color: entry.color }}>
           {entry.name}: {typeof entry.value === 'number' && entry.name?.toLowerCase().includes('bs')
@@ -74,7 +74,7 @@ const revenueByPillarData = [
 
 // ── GLASS CARD ─────────────────────────────────────────────────────────────
 const GlassCard = ({ children, className = '' }) => (
-  <div className={`bg-white/[0.04] border border-white/[0.08] rounded-2xl ${className}`}>
+  <div className={`bg-white/[0.08] border border-white/[0.14] rounded-2xl shadow-md backdrop-blur-sm ${className}`}>
     {children}
   </div>
 );
@@ -205,8 +205,8 @@ function ServicesModule({ activeServices, registeredEngineers, handlers }) {
     return Math.max(0, Math.min(100, Math.round(((now - s) / total) * 100)));
   };
 
-  const inputCls = "w-full text-xs px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-white placeholder-slate-600 focus:outline-none focus:border-[#00e03c]/40";
-  const selectCls = "w-full text-xs px-3 py-1.5 bg-slate-900 border border-white/[0.08] rounded-lg text-white focus:outline-none focus:border-[#00e03c]/40";
+  const inputCls = "w-full text-xs px-3 py-2 bg-white/[0.08] border border-white/[0.15] rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-[#00e03c] transition-all";
+  const selectCls = "w-full text-xs px-3 py-1.5 bg-white/[0.08] border border-white/[0.15] rounded-lg text-white focus:outline-none focus:border-[#00e03c] transition-all [&>option]:bg-[#0d1622] [&>option]:text-white";
 
   return (
     <div className="space-y-8">
@@ -330,8 +330,8 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
   const [title, setTitle] = useState('');
   const [instructor, setInstructor] = useState(registeredEngineers[0]?.name || '');
 
-  const inputCls = "w-full text-xs px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-white placeholder-slate-600 focus:outline-none focus:border-[#00e03c]/40";
-  const selectCls = "w-full text-xs px-3 py-1.5 bg-slate-900 border border-white/[0.08] rounded-lg text-white focus:outline-none focus:border-[#00e03c]/40";
+  const inputCls = "w-full text-xs px-3 py-2 bg-white/[0.08] border border-white/[0.15] rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-[#00e03c] transition-all";
+  const selectCls = "w-full text-xs px-3 py-1.5 bg-white/[0.08] border border-white/[0.15] rounded-lg text-white focus:outline-none focus:border-[#00e03c] transition-all [&>option]:bg-[#0d1622] [&>option]:text-white";
 
   return (
     <div className="space-y-6">
@@ -382,7 +382,7 @@ function ExperienceModule({ experiences, handlers }) {
           <input required className={inputCls} placeholder="Ubicación" value={form.location} onChange={e => setForm(s => ({ ...s, location: e.target.value }))} />
           <input className={inputCls} type="number" placeholder="Cupo máx." min={1} value={form.capacity} onChange={e => setForm(s => ({ ...s, capacity: +e.target.value }))} />
           <input className={inputCls} type="number" placeholder="Precio (Bs.)" min={0} value={form.price} onChange={e => setForm(s => ({ ...s, price: +e.target.value }))} />
-          <select className="w-full text-xs px-3 py-1.5 bg-slate-900 border border-white/[0.08] rounded-lg text-white focus:outline-none focus:border-[#00e03c]/40" value={form.type} onChange={e => setForm(s => ({ ...s, type: e.target.value }))}>
+          <select className="w-full text-xs px-3 py-1.5 bg-white/[0.08] border border-white/[0.15] rounded-lg text-white focus:outline-none focus:border-[#00e03c] transition-all [&>option]:bg-[#0d1622] [&>option]:text-white" value={form.type} onChange={e => setForm(s => ({ ...s, type: e.target.value }))}>
             {['Voluntariado', 'Ecoturismo', 'Taller', 'Expedición', 'Corporativo'].map(t => <option key={t}>{t}</option>)}
           </select>
           <button type="submit" className="col-span-full bg-[#00e03c] text-slate-950 py-2.5 rounded-xl font-black text-xs uppercase hover:bg-emerald-400 flex items-center justify-center gap-1.5 transition-colors"><Plus className="w-4 h-4" /> Registrar Experiencia</button>
@@ -431,7 +431,7 @@ function StoreModule({ productList, handlers }) {
   const [editingId, setEditingId] = useState(null);
   const [editState, setEditState] = useState({});
 
-  const inputCls = "w-full text-xs px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-white placeholder-slate-600 focus:outline-none focus:border-[#00e03c]/40";
+  const inputCls = "w-full text-xs px-3 py-2 bg-white/[0.08] border border-white/[0.15] rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-[#00e03c] transition-all";
 
   return (
     <div className="space-y-4">
@@ -617,7 +617,7 @@ export default function PartnerDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen neuform-bg flex items-center justify-center relative z-10">
         <div className="space-y-4 text-center">
           <div className="w-12 h-12 rounded-2xl bg-[#00e03c]/10 border border-[#00e03c]/20 flex items-center justify-center mx-auto">
             <Loader2 className="w-6 h-6 text-[#00e03c] animate-spin" />
@@ -631,13 +631,13 @@ export default function PartnerDashboard() {
   if (activeRole !== 'AdminMod') return <Navigate to="/" replace />;
 
   return (
-    <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit" className="min-h-screen bg-slate-950 text-slate-100 flex">
+    <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit" className="min-h-screen neuform-bg text-slate-100 flex relative z-10">
 
       {/* ── SIDEBAR ───────────────────────────────────────────────────── */}
       <motion.aside
         animate={{ width: sidebarOpen ? 240 : 64 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="flex-shrink-0 h-screen sticky top-0 bg-slate-950 border-r border-white/[0.06] flex flex-col z-20 overflow-hidden"
+        className="flex-shrink-0 h-screen sticky top-0 bg-white/[0.03] backdrop-blur-md border-r border-white/[0.12] flex flex-col z-20 overflow-hidden"
       >
         {/* Sidebar Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/[0.06] h-16">

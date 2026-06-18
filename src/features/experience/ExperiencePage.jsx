@@ -39,38 +39,47 @@ export default function ExperiencePage() {
   return (
     <motion.div
       variants={pageVariants} initial="initial" animate="animate" exit="exit"
-      className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
+      className="inner-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10"
     >
       {/* Hero Banner */}
-      <div className="glass-panel-dark border border-emerald-500/20 rounded-2xl p-8 mb-12 relative overflow-hidden">
-        <div className="space-y-2 z-10">
-          <div className="inline-flex items-center gap-2 bg-emerald-800/40 text-emerald-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border border-emerald-500/20">
-            <Award className="w-3 h-3" /> SERAM EXPERIENCE
-          </div>
-          <h1 className="text-3xl font-black text-white">Experiencias y Voluntariados de Conservación</h1>
-          <p className="text-sm text-emerald-300/70 max-w-2xl">
-            Creamos dinámicas corporativas y estudiantiles fuera del aula. Reclutamiento de voluntarios para reforestación,
-            campamentos científicos de biodiversidad y diseño de huertos regenerativos.
+      <div className="neuform-card p-8 sm:p-12 overflow-hidden relative text-left">
+        {/* Background gradient decoration */}
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-blue-500/5 rounded-[1.25rem] pointer-events-none" />
+        
+        <div className="relative z-10 space-y-4">
+          <span className="neuform-badge-accent neuform-badge">
+            <Award className="w-3 h-3" />
+            SERAM EXPERIENCE · Pilar 03
+          </span>
+          <h1 className="text-4xl sm:text-6xl font-black text-white leading-[0.95] tracking-tighter">
+            Experiencias y<br />
+            <span className="text-white/40">Conservación Activa</span>
+          </h1>
+          <p className="text-sm text-white/40 leading-relaxed max-w-xl">
+            Creamos dinámicas corporativas y estudiantiles fuera del aula. Reclutamiento de voluntarios para reforestación, campamentos científicos de biodiversidad y diseño de huertos regenerativos.
           </p>
         </div>
       </div>
 
+      {/* Grid of experiences */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {experiences.map((exp) => (
-          <div key={exp.title} className="glass-panel-dark rounded-xl overflow-hidden flex flex-col justify-between border border-white/[0.06] hover:border-white/12 transition-all group">
+          <div key={exp.title} className="group relative overflow-hidden neuform-card flex flex-col justify-between h-full text-left">
             <div>
-              <div className="overflow-hidden aspect-video">
+              <div className="overflow-hidden aspect-video bg-slate-900">
                 <img src={exp.img} alt={exp.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               </div>
               <div className="p-6 space-y-2">
-                <h3 className="font-extrabold text-white text-lg">{exp.title}</h3>
-                <p className="text-xs text-slate-400">{exp.desc}</p>
+                <h3 className="font-extrabold text-white text-lg group-hover:text-[#00e03c] transition-colors duration-300">
+                  {exp.title}
+                </h3>
+                <p className="text-xs text-white/40 leading-relaxed">{exp.desc}</p>
               </div>
             </div>
-            <div className="p-6 border-t border-white/[0.06]">
+            <div className="p-6 border-t border-white/[0.06] mt-auto">
               <button
                 onClick={() => triggerToast(exp.toast)}
-                className="w-full glass-border text-slate-200 py-2.5 rounded-lg font-bold text-xs uppercase hover:bg-[#00e03c]/10 hover:border-[#00e03c]/30 hover:text-[#00e03c] transition-all"
+                className="neuform-btn-accent cursor-none w-full justify-center !rounded-xl"
                 data-cursor-text={exp.cta.toUpperCase()}
               >
                 {exp.cta}

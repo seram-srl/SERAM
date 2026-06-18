@@ -23,6 +23,9 @@ import QuotePage       from './features/services/QuotePage';
 import ExperiencePage  from './features/experience/ExperiencePage';
 import ShopPage        from './features/shop/ShopPage';
 import PartnerDashboard from './features/partner-portal/PartnerDashboard';
+import LoginPage        from './features/auth/LoginPage';
+import RegisterPage     from './features/auth/RegisterPage';
+import ProtectedRoute   from './components/shared/ProtectedRoute';
 
 export default function App() {
   const location = useLocation();
@@ -44,7 +47,7 @@ export default function App() {
      * z-index: 200 → CustomCursor (siempre encima de todo)
      */
     <div
-      className="min-h-screen cinematic-bg text-slate-100 font-sans"
+      className={`min-h-screen text-slate-100 font-sans ${location.pathname === '/' ? 'cinematic-bg' : 'neuform-bg'}`}
       style={{ position: 'relative' }}
     >
       {/* ── CAPA z-0: Fondo WebGL tridimensional ─────────────────────────── */}
@@ -86,9 +89,11 @@ export default function App() {
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             <Route path="/"           element={<HomePage />}         />
+            <Route path="/login"      element={<LoginPage />}        />
+            <Route path="/register"   element={<RegisterPage />}     />
             <Route path="/quote"      element={<QuotePage />}        />
             <Route path="/academy"    element={<AcademyPage />}      />
-            <Route path="/academy/course/:id" element={<CoursePlayerPage />} />
+            <Route path="/academy/course/:id" element={<ProtectedRoute><CoursePlayerPage /></ProtectedRoute>} />
             <Route path="/services"   element={<ServicesPage />}     />
             <Route path="/experience" element={<ExperiencePage />}   />
             <Route path="/shop"       element={<ShopPage />}         />

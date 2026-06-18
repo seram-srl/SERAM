@@ -151,22 +151,22 @@ export default function SecretAuthModal() {
 
   return (
     <div
-      className="fixed inset-0 z-[120] flex items-center justify-center bg-[#010409]/95 backdrop-blur-xl animate-fadeIn px-4"
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-[#061c12]/80 backdrop-blur-xl animate-fadeIn px-4"
       role="dialog"
       aria-modal="true"
     >
       {/* CÍRCULOS DE LUZ ATMOSFÉRICOS */}
-      <div className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-[#00e03c]/5 blur-[150px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full bg-emerald-500/15 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-[#00e03c]/10 blur-[150px] pointer-events-none" />
 
-      <div className="glass-panel-dark border border-white/10 rounded-3xl w-full max-w-md p-8 sm:p-10 shadow-2xl relative animate-fadeIn">
+      <div className="glass-panel-dark border border-white/20 bg-white/10 rounded-3xl w-full max-w-md p-8 sm:p-10 shadow-2xl relative animate-fadeIn">
         {/* Botón Cerrar */}
         <button
           onClick={handleClose}
-          className="absolute top-5 right-5 p-2 bg-white/[0.03] hover:bg-white/10 rounded-full border border-white/5 transition-all"
+          className="absolute top-5 right-5 p-2 bg-white/[0.05] hover:bg-white/15 rounded-full border border-white/10 transition-all"
           data-cursor-text="CERRAR"
         >
-          <X className="w-4 h-4 text-slate-400 hover:text-white" />
+          <X className="w-4 h-4 text-slate-300 hover:text-white" />
         </button>
 
         {/* Botón Atrás en el formulario */}
@@ -176,10 +176,10 @@ export default function SecretAuthModal() {
               setMode('SELECTION');
               setPassword('');
             }}
-            className="absolute top-5 left-5 p-2 bg-white/[0.03] hover:bg-white/10 rounded-full border border-white/5 transition-all flex items-center justify-center"
+            className="absolute top-5 left-5 p-2 bg-white/[0.05] hover:bg-white/15 rounded-full border border-white/10 transition-all flex items-center justify-center"
             data-cursor-text="ATRÁS"
           >
-            <ArrowLeft className="w-4 h-4 text-slate-400 hover:text-white" />
+            <ArrowLeft className="w-4 h-4 text-slate-300 hover:text-white" />
           </button>
         )}
 
@@ -188,14 +188,14 @@ export default function SecretAuthModal() {
           <div className="animate-fadeIn space-y-6">
             <div className="text-center">
               <div className="flex items-center justify-center mb-4">
-                <div className="bg-[#00e03c]/10 border border-[#00e03c]/20 p-4 rounded-2xl animate-pulse">
+                <div className="bg-[#00e03c]/15 border border-[#00e03c]/35 p-4 rounded-2xl animate-pulse">
                   <ShieldAlert className="w-8 h-8 text-[#00e03c]" />
                 </div>
               </div>
               <h2 className="text-xl font-black text-white tracking-tight uppercase">
                 Área de Alta Seguridad
               </h2>
-              <p className="text-xs text-slate-400 mt-2">
+              <p className="text-xs text-slate-300 mt-2">
                 Selecciona tu perfil de socio exclusivo para iniciar validación RBAC.
               </p>
             </div>
@@ -205,17 +205,17 @@ export default function SecretAuthModal() {
                 <button
                   key={partner.email}
                   onClick={() => handleSelectPartner(idx)}
-                  className="p-4 rounded-2xl border border-white/5 bg-white/[0.01] hover:bg-[#00e03c]/5 hover:border-[#00e03c]/30 text-left transition-all duration-300 flex items-center gap-4 group"
+                  className="p-4 rounded-2xl border border-white/15 bg-white/5 hover:bg-[#00e03c]/15 hover:border-[#00e03c]/40 text-left transition-all duration-300 flex items-center gap-4 group"
                   data-cursor-text="SELECCIONAR"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center text-slate-400 group-hover:text-[#00e03c] group-hover:border-[#00e03c]/20 transition-all shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-slate-300 group-hover:text-[#00e03c] group-hover:border-[#00e03c]/30 transition-all shrink-0">
                     <User className="w-4 h-4" />
                   </div>
                   <div className="truncate">
                     <p className="text-xs font-bold text-slate-200 group-hover:text-white transition-colors">
                       {partner.name}
                     </p>
-                    <p className="text-[9px] text-slate-500 font-mono mt-0.5 truncate">{partner.email}</p>
+                    <p className="text-[9px] text-slate-400 font-mono mt-0.5 truncate">{partner.email}</p>
                   </div>
                 </button>
               ))}
@@ -227,13 +227,13 @@ export default function SecretAuthModal() {
         {mode === 'FORM' && !success && (
           <div className="animate-fadeIn space-y-6">
             <div className="text-center">
-              <span className="text-[10px] font-bold text-[#00e03c] uppercase tracking-widest bg-[#00e03c]/10 border border-[#00e03c]/20 px-3 py-1 rounded-full">
+              <span className="text-[10px] font-bold text-[#00e03c] uppercase tracking-widest bg-[#00e03c]/15 border border-[#00e03c]/30 px-3 py-1 rounded-full">
                 {activePartner.name}
               </span>
               <h3 className="text-lg font-black text-white mt-4 uppercase tracking-tight">
                 {isRegister ? 'Registro de Socio' : 'Validación de Firma'}
               </h3>
-              <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
+              <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
                 {isRegister
                   ? 'Registra tu clave maestra vinculada al metadato del proyecto.'
                   : 'Ingresa tu contraseña directiva configurada en Supabase.'}
@@ -241,12 +241,12 @@ export default function SecretAuthModal() {
             </div>
 
             {/* Alternar pestañas Login/Registro */}
-            <div className="grid grid-cols-2 p-1 bg-slate-950/80 border border-white/5 rounded-xl text-center">
+            <div className="grid grid-cols-2 p-1 bg-white/10 border border-white/15 rounded-xl text-center">
               <button
                 type="button"
                 onClick={() => setIsRegister(false)}
                 className={`py-2 text-[10px] font-bold uppercase rounded-lg transition-all ${
-                  !isRegister ? 'bg-[#00e03c] text-slate-950' : 'text-slate-500 hover:text-slate-300'
+                  !isRegister ? 'bg-[#00e03c] text-slate-950' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
                 Ingresar
@@ -255,7 +255,7 @@ export default function SecretAuthModal() {
                 type="button"
                 onClick={() => setIsRegister(true)}
                 className={`py-2 text-[10px] font-bold uppercase rounded-lg transition-all ${
-                  isRegister ? 'bg-[#00e03c] text-slate-950' : 'text-slate-500 hover:text-slate-300'
+                  isRegister ? 'bg-[#00e03c] text-slate-950' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
                 Registrarme
@@ -276,9 +276,9 @@ export default function SecretAuthModal() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="socio@seram.com"
                     disabled={isSubmitting}
-                    className="w-full bg-slate-950/90 border border-white/10 text-white text-xs px-4 py-3.5 pl-11 rounded-xl focus:outline-none focus:border-[#00e03c] transition-all font-mono"
+                    className="w-full bg-white/10 border border-white/15 focus:bg-white/15 text-white text-xs px-4 py-3.5 pl-11 rounded-xl focus:outline-none focus:border-[#00e03c] transition-all font-mono"
                   />
-                  <Mail className="w-4 h-4 text-slate-600 absolute left-4 top-1/2 -translate-y-1/2" />
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
                 </div>
               </div>
 
@@ -295,10 +295,10 @@ export default function SecretAuthModal() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     disabled={isSubmitting}
-                    className="w-full bg-slate-950/90 border border-white/10 text-white text-xs px-4 py-3.5 pl-11 rounded-xl focus:outline-none focus:border-[#00e03c] transition-all font-mono"
+                    className="w-full bg-white/10 border border-white/15 focus:bg-white/15 text-white text-xs px-4 py-3.5 pl-11 rounded-xl focus:outline-none focus:border-[#00e03c] transition-all font-mono"
                     autoFocus
                   />
-                  <KeyRound className="w-4 h-4 text-slate-600 absolute left-4 top-1/2 -translate-y-1/2" />
+                  <KeyRound className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
                 </div>
               </div>
 

@@ -73,10 +73,15 @@ const createNoiseTexture = () => {
 
 /**
  * @component InteractiveScene
- * @description Escena 3D optimizada para el Home Page. Maneja las transiciones de opacidad
- * entre los 4 fondos correspondientes a los pilares según el avance del scroll.
+ * @description Escena 3D optimizada para el Home Page.
+ * Acepta hProgressRef (ref mutable del carrusel horizontal) para sincronizar
+ * la cámara WebGL con el progreso del carrusel, siguiendo CONTEXT_GUIDE:
+ * PROHIBIDO setState — todas las mutaciones en useFrame con refs.
+ *
+ * @param {Object} hProgressRef - React ref con valor 0→1 del carrusel horizontal.
+ *   Si es null/undefined, se usa el scroll vertical estándar.
  */
-function InteractiveScene() {
+function InteractiveScene({ hProgressRef }) {
   const groupRef = useRef();
   const ambientLightRef = useRef();
   const pointLightRef = useRef();
@@ -118,7 +123,16 @@ function InteractiveScene() {
   }, []);
 
   useFrame((state) => {
-    const p = scrollProgressRef.current;
+    // ── PROGRESO COMBINADO ────────────────────────────────────────────────────
+    // Si el carrusel horizontal está activo (hProgressRef disponible y > 0),
+    // usamos ese progreso para las transiciones de pilares.
+    // En caso contrario, caemos al scroll vertical.
+    const hP = hProgressRef?.current ?? 0;
+    const vP = scrollProgressRef.current;
+
+    // Blend: cuando el carrusel horizontal supera 0.01, priorizamos el progreso horizontal
+    // para las transiciones de fondos y partículas.
+    const p = hP > 0.01 ? hP : vP;
 
     // 1. Suavizado LERP del scroll
     currentScroll.current += (p - currentScroll.current) * 0.1;
@@ -447,7 +461,13 @@ function BackgroundScene({ pathname }) {
  * @component EnvironmentalCanvas
  * @description Contenedor global para el lienzo WebGL. Funciona como un fondo fijo puro.
  */
-export default function EnvironmentalCanvas({ isStorytelling = false }) {
+/**
+ * @component EnvironmentalCanvas
+ * @description Contenedor global para el lienzo WebGL. Funciona como un fondo fijo puro.
+ * @param {boolean} isStorytelling - Activa la escena narrativa del Home Page.
+ * @param {Object} hProgressRef - Ref mutable del carrusel horizontal (0→1). Opcional.
+ */
+export default function EnvironmentalCanvas({ isStorytelling = false, hProgressRef = null }) {
   const location = useLocation();
 
   const containerStyle = {
@@ -480,7 +500,7 @@ export default function EnvironmentalCanvas({ isStorytelling = false }) {
         
         <React.Suspense fallback={null}>
           {isStorytelling ? (
-            <InteractiveScene />
+            <InteractiveScene hProgressRef={hProgressRef} />
           ) : (
             <BackgroundScene pathname={location.pathname} />
           )}

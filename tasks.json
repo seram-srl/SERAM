@@ -1,0 +1,70 @@
+{
+  "version": "1.0",
+  "project": "SERAM",
+  "last_updated": "2026-06-17",
+  "tasks": [
+    {
+      "id": "TASK-001",
+      "title": "Configurar sistema de autenticación con Supabase",
+      "description": "Integrar Supabase Auth para login/registro de usuarios. Proteger rutas con RLS.",
+      "status": "done",
+      "priority": "high",
+      "estimated_hours": 3,
+      "tags": ["auth", "supabase", "backend"],
+      "created_at": "2026-06-17",
+      "assignee": "implementer",
+      "progress_file": "progress/TASK-001.md"
+    },
+    {
+      "id": "TASK-002",
+      "title": "Optimizar rendimiento del CoursePlayerPage",
+      "description": "Reducir re-renders innecesarios en CoursePlayerPage.jsx. Usar React.memo y useCallback donde corresponda.",
+      "status": "done",
+      "priority": "medium",
+      "estimated_hours": 2,
+      "tags": ["performance", "react", "academy"],
+      "created_at": "2026-06-17",
+      "assignee": "implementer",
+      "progress_file": "progress/TASK-002.md"
+    },
+    {
+      "id": "TASK-003",
+      "title": "Añadir página de Contacto con formulario",
+      "description": "Crear ContactPage.jsx en features/contact/. Integrar formulario con validación y envío via Supabase Edge Functions.",
+      "status": "pending",
+      "priority": "medium",
+      "estimated_hours": 2,
+      "tags": ["ui", "forms", "contact"],
+      "created_at": "2026-06-17",
+      "assignee": "implementer",
+      "progress_file": "progress/TASK-003.md"
+    },
+    {
+      "id": "TASK-004",
+      "title": "Implementar sistema de progreso de cursos",
+      "description": "Guardar y recuperar el progreso de cada lección completada por usuario. Persistir en Supabase.",
+      "status": "done",
+      "priority": "high",
+      "estimated_hours": 4,
+      "tags": ["academy", "supabase", "progress"],
+      "created_at": "2026-06-17",
+      "assignee": "implementer",
+      "progress_file": "progress/TASK-004.md"
+    },
+    {
+      "id": "TASK-005",
+      "title": "Migrar Shop a datos reales desde Supabase",
+      "description": "Reemplazar datos mock de ShopPage.jsx con llamadas reales a tabla 'products' en Supabase.",
+      "status": "pending",
+      "priority": "low",
+      "estimated_hours": 2,
+      "tags": ["shop", "supabase", "data"],
+      "created_at": "2026-06-17",
+      "assignee": "implementer",
+      "progress_file": "progress/TASK-005.md"
+    }
+  ],
+  "completed": ["TASK-001", "TASK-002", "TASK-004"],
+  "in_progress": [],
+  "notes": "Para agregar una tarea nueva, copiar la estructura de un objeto en 'tasks' e incrementar el ID."
+}

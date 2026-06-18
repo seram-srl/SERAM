@@ -26,7 +26,7 @@ const NAV_ITEMS = [
 
 export default function FullscreenMenu({ isOpen, onToggle }) {
   const location = useLocation();
-  const { activeRole, currentSocio, handleLogoutPartner } = useApp();
+  const { activeRole, currentSocio, handleLogoutPartner, supabaseUser, handleLogoutPublic } = useApp();
 
   // Bloquear scroll del body cuando el menú está abierto
   useEffect(() => {
@@ -207,7 +207,7 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
 
           {/* Metadata de apoyo lateral */}
           <div className="fullscreen-menu__meta" aria-hidden="true">
-            {activeRole === 'AdminMod' && currentSocio && (
+            {activeRole === 'AdminMod' && currentSocio ? (
               <div style={{ marginBottom: '1.5rem' }}>
                 <p className="fullscreen-menu__meta-label">Socio Activo</p>
                 <p className="fullscreen-menu__meta-value" style={{ color: '#00e03c' }}>
@@ -233,28 +233,57 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
                   Cerrar sesión
                 </button>
               </div>
+            ) : supabaseUser ? (
+              <div style={{ marginBottom: '1.5rem' }}>
+                <p className="fullscreen-menu__meta-label">Usuario Conectado</p>
+                <p className="fullscreen-menu__meta-value text-ellipsis overflow-hidden" style={{ color: '#00e03c', fontSize: '0.75rem' }}>
+                  {supabaseUser.email}
+                </p>
+                <button
+                  onClick={handleLogoutPublic}
+                  className="fullscreen-menu__meta-value"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'rgba(239, 68, 68, 0.7)',
+                    cursor: 'none',
+                    padding: 0,
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    textDecoration: 'underline',
+                    marginTop: '0.25rem',
+                    display: 'block',
+                    textAlign: 'right',
+                  }}
+                >
+                  Cerrar sesión
+                </button>
+              </div>
+            ) : (
+              <div style={{ marginBottom: '1.5rem' }}>
+                <p className="fullscreen-menu__meta-label">Mi Cuenta</p>
+                <NavLink
+                  to="/login"
+                  className="fullscreen-menu__meta-value"
+                  style={{
+                    color: '#00e03c',
+                    textDecoration: 'none',
+                    cursor: 'none',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    display: 'block',
+                    textAlign: 'right',
+                  }}
+                >
+                  Iniciar sesión
+                </NavLink>
+              </div>
             )}
 
-            <p className="fullscreen-menu__meta-label">Sección Activa</p>
+            <p className="fullscreen-menu__meta-label" style={{ marginTop: '1.25rem' }}>
+              Sección Activa
+            </p>
             <p className="fullscreen-menu__meta-value">{getActiveLabel()}</p>
-
-            <p className="fullscreen-menu__meta-label" style={{ marginTop: '1.25rem' }}>
-              Dirección & Socios
-            </p>
-            <p className="fullscreen-menu__meta-value">
-              Ing. Diego Barrientos<br />
-              Ing. Fernando Araujo<br />
-              Ing. Fabricio Orosco
-            </p>
-
-            <p className="fullscreen-menu__meta-label" style={{ marginTop: '1.25rem' }}>
-              Legales
-            </p>
-            <p className="fullscreen-menu__meta-value text-right" style={{ fontSize: '0.68rem', opacity: 0.8, lineHeight: 1.6 }}>
-              <a href="#" className="hover:text-[#00e03c] transition-colors" style={{ cursor: 'none' }}>Términos y condiciones</a><br />
-              <a href="#" className="hover:text-[#00e03c] transition-colors" style={{ cursor: 'none' }}>Políticas y cookies</a><br />
-              <span className="text-slate-500 text-[9px] uppercase tracking-wider block mt-1">© 2026 SERAM. v2.5</span>
-            </p>
           </div>
         </div>
       </nav>

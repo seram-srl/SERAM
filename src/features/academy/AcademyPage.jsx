@@ -48,11 +48,11 @@ export default function AcademyPage() {
   return (
     <motion.div
       variants={pageVariants} initial="initial" animate="animate" exit="exit"
-      className="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-10"
+      className="inner-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10"
     >
       {/* ── 1. DISNEY+ HERO BANNER (Curso Destacado) ── */}
       {featuredCourse && (
-        <div className="relative w-full h-[40vh] sm:h-[50vh] rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.7)] group border border-white/5 pointer-events-auto">
+        <div className="relative w-full h-[40vh] sm:h-[50vh] rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] group border border-white/10 pointer-events-auto">
           {/* Imagen de fondo degradada */}
           <div className="absolute inset-0">
             <img
@@ -66,8 +66,8 @@ export default function AcademyPage() {
 
           {/* Información del Curso Destacado */}
           <div className="absolute bottom-0 left-0 p-6 sm:p-10 space-y-3 max-w-2xl text-left">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00e03c]/20 text-[#00e03c] text-[10px] font-black uppercase tracking-widest border border-[#00e03c]/30">
-              <Star className="w-3 h-3 text-amber-400" /> DESTACADO DE LA ACADEMIA
+            <div className="neuform-badge-accent neuform-badge">
+              <Star className="w-3 h-3 text-amber-400 fill-current" /> DESTACADO DE LA ACADEMIA
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight uppercase font-display drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
               {featuredCourse.title}
@@ -78,7 +78,7 @@ export default function AcademyPage() {
             <div className="pt-2 flex items-center gap-4">
               <button
                 onClick={() => handleOpenCourse(featuredCourse)}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-slate-950 hover:bg-[#00e03c] hover:text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-lg cursor-none"
+                className="neuform-btn-primary cursor-none"
                 data-cursor-text="REPRODUCIR"
               >
                 <Play className="w-4 h-4 fill-current" /> Ver Contenido
@@ -102,7 +102,7 @@ export default function AcademyPage() {
               className={`relative py-4 px-3 rounded-2xl border flex flex-col items-center justify-center gap-2 cursor-none transition-all duration-300 ${
                 isActive
                   ? 'bg-[#00e03c]/15 border-[#00e03c] text-[#00e03c] shadow-[0_0_20px_rgba(0,224,60,0.25)] scale-105'
-                  : 'bg-white/[0.03] border-white/[0.06] hover:border-[#00e03c]/40 text-slate-400 hover:text-white hover:scale-105 hover:bg-[#00e03c]/5 hover:shadow-[0_0_15px_rgba(0,224,60,0.15)]'
+                  : 'bg-white/[0.02] border-white/[0.07] hover:border-[#00e03c]/40 text-slate-400 hover:text-white hover:scale-105 hover:bg-[#00e03c]/5 hover:shadow-[0_0_15px_rgba(0,224,60,0.15)]'
               }`}
             >
               <div className={`p-2.5 rounded-xl border ${isActive ? 'bg-[#00e03c]/20 border-[#00e03c]/30 text-[#00e03c]' : 'bg-white/5 border-white/10'}`}>
@@ -116,16 +116,17 @@ export default function AcademyPage() {
 
       {/* ── 3. LISTADO DE CONTENIDOS FILTRADOS (Disney+ Row Sliders) ── */}
       <div className="space-y-6 text-left">
-        <div className="flex justify-between items-center border-b border-white/[0.06] pb-3">
+        <div className="flex justify-between items-center">
           <h2 className="font-extrabold text-lg text-white uppercase tracking-wider flex items-center gap-2">
             <Library className="w-4 h-4 text-[#00e03c]" /> 
             {CATEGORIES.find(c => c.id === selectedCategory)?.label} Disponibles
           </h2>
-          <span className="text-xs text-slate-500">{filteredCourses.length} recursos encontrados</span>
+          <span className="section-label">{filteredCourses.length} recursos encontrados</span>
         </div>
+        <div className="neuform-divider mt-2 mb-6" />
 
         {filteredCourses.length === 0 ? (
-          <div className="glass-panel-dark rounded-2xl p-10 text-center text-slate-500 text-xs">
+          <div className="neuform-card p-10 text-center text-slate-500 text-xs">
             No hay recursos disponibles en este canal actualmente.
           </div>
         ) : (
@@ -134,7 +135,7 @@ export default function AcademyPage() {
               <div
                 key={course.id}
                 onClick={() => handleOpenCourse(course)}
-                className="group relative rounded-2xl overflow-hidden glass-panel-dark border border-white/[0.06] hover:border-[#00e03c]/40 hover:shadow-[0_10px_30px_rgba(0,224,60,0.15)] transition-all duration-300 flex flex-col h-full cursor-none pointer-events-auto"
+                className="group relative overflow-hidden neuform-card flex flex-col h-full cursor-none pointer-events-auto"
                 data-cursor-text="INGRESAR"
               >
                 {/* Imagen del Curso - Aspecto Video Ancho */}
@@ -147,7 +148,7 @@ export default function AcademyPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
                   
                   {/* Tipo de Recurso */}
-                  <span className="absolute top-3 left-3 bg-slate-950/80 backdrop-blur text-slate-300 text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider border border-white/10">
+                  <span className="absolute top-3 left-3 neuform-badge backdrop-blur-md">
                     {course.type.replace('_', ' ')}
                   </span>
 
@@ -183,11 +184,11 @@ export default function AcademyPage() {
                         {course.duration}
                       </span>
                       {course.isPremium ? (
-                        <span className="text-[10px] font-black text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded flex items-center gap-1">
+                        <span className="neuform-badge text-amber-400 border-amber-400/30 bg-amber-400/10 flex items-center gap-1">
                           <Star className="w-2.5 h-2.5 fill-current" /> Premium
                         </span>
                       ) : (
-                        <span className="text-[10px] font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-2 py-0.5 rounded">
+                        <span className="neuform-badge neuform-badge-accent">
                           Gratis
                         </span>
                       )}
@@ -216,7 +217,7 @@ export default function AcademyPage() {
 
       {/* ── 4. SUBSCRIPCIÓN PREMIUM CTA ── */}
       {!hasPremiumAccess && (
-        <div className="glass-panel-dark rounded-3xl p-8 border border-white/[0.08] relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 pointer-events-auto text-left">
+        <div className="neuform-card p-8 sm:p-12 overflow-hidden relative flex flex-col md:flex-row items-center justify-between gap-6 pointer-events-auto text-left">
           <div className="space-y-2 max-w-xl">
             <h3 className="text-2xl font-black text-white uppercase font-display tracking-tight flex items-center gap-2">
               <Star className="w-6 h-6 text-amber-400 fill-current animate-spin-slow" />
@@ -228,7 +229,7 @@ export default function AcademyPage() {
           </div>
           <button
             onClick={() => navigate('/shop')}
-            className="px-6 py-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-[0_4px_15px_rgba(251,191,36,0.3)] cursor-none shrink-0"
+            className="neuform-btn-primary cursor-none shrink-0 !bg-amber-400 !border-amber-300 hover:!bg-amber-300 shadow-[0_4px_15px_rgba(251,191,36,0.3)] text-slate-950"
             data-cursor-text="PREMIUM"
           >
             Adquirir Membresía Premium

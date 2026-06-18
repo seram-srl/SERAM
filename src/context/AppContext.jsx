@@ -5,6 +5,7 @@ export const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
   // --- AUTH & ROLES ---
+  const [supabaseUser, setSupabaseUser] = useState(null);
   const [activeRole, setActiveRole] = useState('AccessLimit');
   const [currentSocio, setCurrentSocio] = useState(null);
   const [isRegistered, setIsRegistered] = useState(false);
@@ -28,15 +29,20 @@ export function AppProvider({ children }) {
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
 
+  // --- ACADEMY PROGRESS & SUBMISSIONS ---
+  const [completedLessons, setCompletedLessons] = useState({});
+  const [courseExamsApproved, setCourseExamsApproved] = useState({});
+  const [courseAssignments, setCourseAssignments] = useState({});
+
 
 
 
   // --- COURSES ---
   const [courses, setCourses] = useState([
     { id: 1, title: 'Introducción a la Fiscalización Ambiental', instructor: 'Ing. Fernando Araujo', students: 124, status: 'Activo', isPremium: false, type: 'curso_gratis', image: 'https://images.unsplash.com/photo-1500485035595-cbe6f645feb1?auto=format&fit=crop&q=80&w=600', duration: '6 horas', desc: 'Aprende las nociones fundamentales de fiscalización bajo la normativa de medio ambiente boliviana.' },
-    { id: 2, title: 'SIG Aplicado al Ordenamiento Territorial (QGIS)', instructor: 'Ing. Diego Barrientos', students: 85, status: 'Activo', isPremium: true, type: 'curso_pago', price: 150, image: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=600', duration: '20 horas', desc: 'Dominio de sistemas de información geográfica aplicados al mapeo de cuencas y zonificación.' },
+    { id: 2, title: 'SIG Aplicado al Ordenamiento Territorial (QGIS)', instructor: 'Ing. Diego Barrientos', students: 85, status: 'Activo', isPremium: true, type: 'curso_pago', price: 150, image: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=600', duration: '20 horas', desc: 'Dominio de sistemas de información geográfica aplicados al mapeo de cuencas y zonificación.', prerequisiteId: 1 },
     { id: 3, title: 'Taller Práctico: Lombricultura e Hidro-Compostaje', instructor: 'Ing. Fabricio Orosco', students: 42, status: 'Activo', isPremium: false, type: 'taller', image: 'https://images.unsplash.com/photo-1592417817098-8f3d6eb19675?auto=format&fit=crop&q=80&w=600', duration: '4 horas', desc: 'Instalación paso a paso de composteras orgánicas domésticas e industriales.' },
-    { id: 4, title: 'Masterclass: Cálculo de Huella de Carbono Corporativa', instructor: 'Ing. Fabricio Orosco', students: 60, status: 'Activo', isPremium: true, type: 'masterclass', price: 90, image: 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&q=80&w=600', duration: '3 horas', desc: 'Metodologías de cuantificación bajo directrices de protocolo de gases de efecto invernadero.' },
+    { id: 4, title: 'Masterclass: Cálculo de Huella de Carbono Corporativa', instructor: 'Ing. Fabricio Orosco', students: 60, status: 'Activo', isPremium: true, type: 'masterclass', price: 90, image: 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&q=80&w=600', duration: '3 horas', desc: 'Metodologías de cuantificación bajo directrices de protocolo de gases de efecto invernadero.', prerequisiteId: 1 },
     { id: 5, title: 'Ebook: Guía Práctica de la Ley 1333 de Medio Ambiente', instructor: 'SERAM Legal', students: 210, status: 'Activo', isPremium: true, type: 'libro', price: 15, image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=600', duration: '80 páginas', desc: 'Compendio interpretado de legislación boliviana y reglamentos de prevención y control.' },
     { id: 6, title: 'Audiolibro: Liderazgo y Sostenibilidad Ecosistémica', instructor: 'Ing. Diego Barrientos', students: 95, status: 'Activo', isPremium: false, type: 'audiolibro', image: 'https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&q=80&w=600', duration: '2.5 horas', desc: 'Perspectivas audibles sobre la integración del desarrollo económico y la conservación ambiental.' },
     { id: 7, title: 'Suscripción Academia Premium (Anual)', instructor: 'SERAM Team', students: 150, status: 'Activo', isPremium: true, type: 'suscripcion', price: 35, image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=600', duration: 'Membresía anual', desc: 'Acceso ilimitado a todos los cursos de pago, masterclasses y ebooks de SERAM.' }
@@ -90,6 +96,53 @@ export function AppProvider({ children }) {
       return () => clearTimeout(timer);
     }
   }, [logoClicks]);
+
+  // --- AUTH REAL SUPABASE LISTENERS ---
+  useEffect(() => {
+    const syncUser = (user) => {
+      if (!user) return;
+      setRegisteredUsers(prev => {
+        const exists = prev.some(u => u.email.toLowerCase() === user.email.toLowerCase());
+        if (!exists) {
+          return [...prev, {
+            email: user.email,
+            role: 'AccessLimit',
+            name: user.user_metadata?.name || 'Usuario Registrado',
+            isPremiumApproved: false
+          }];
+        }
+        return prev;
+      });
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSupabaseUser(session?.user ?? null);
+      if (session?.user) {
+        setIsRegistered(true);
+        setCurrentUserEmail(session.user.email);
+        syncUser(session.user);
+        fetchProgressData(session.user.id);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSupabaseUser(session?.user ?? null);
+      if (session?.user) {
+        setIsRegistered(true);
+        setCurrentUserEmail(session.user.email);
+        syncUser(session.user);
+        fetchProgressData(session.user.id);
+      } else {
+        setIsRegistered(false);
+        setCurrentUserEmail('');
+        setCompletedLessons({});
+        setCourseExamsApproved({});
+        setCourseAssignments({});
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // --- LOAD DATA FROM SUPABASE WITH RESILIENT FALLBACK ---
   useEffect(() => {
@@ -177,6 +230,218 @@ export function AppProvider({ children }) {
       triggerToast('Contraseña incorrecta. Acceso denegado.', 'error');
     }
     return { success: false };
+  };
+
+  const handleRegisterSupabase = async (email, password, name) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name: name || 'Usuario Registrado'
+          }
+        }
+      });
+      if (error) throw error;
+      triggerToast('Registro exitoso. Revisa tu correo para verificar tu cuenta.', 'success');
+      return { success: true, data };
+    } catch (err) {
+      triggerToast(`Error al registrarse: ${err.message}`, 'error');
+      return { success: false, error: err };
+    }
+  };
+
+  const handleLoginSupabase = async (email, password) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      if (error) throw error;
+      triggerToast('Sesión iniciada correctamente.', 'success');
+      return { success: true, data };
+    } catch (err) {
+      triggerToast(`Error de acceso: ${err.message}`, 'error');
+      return { success: false, error: err };
+    }
+  };
+
+  const handleLogoutPublic = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      triggerToast('Sesión cerrada.', 'info');
+    } catch (err) {
+      triggerToast(`Error al cerrar sesión: ${err.message}`, 'error');
+    }
+  };
+
+  // --- ACADEMY DATA MUTATORS ---
+  const fetchProgressData = async (userId) => {
+    try {
+      // 1. Lecciones completadas
+      const { data: lessonData, error: lessonError } = await supabase
+        .from('lesson_progress')
+        .select('course_id, lesson_id')
+        .eq('user_id', userId)
+        .eq('completed', true);
+      
+      if (lessonError) {
+        if (lessonError.code === 'PGRST205') {
+          const localProgress = localStorage.getItem(`completed_lessons_${userId}`);
+          if (localProgress) setCompletedLessons(JSON.parse(localProgress));
+        } else {
+          throw lessonError;
+        }
+      } else if (lessonData) {
+        const grouped = {};
+        lessonData.forEach(item => {
+          if (!grouped[item.course_id]) grouped[item.course_id] = [];
+          grouped[item.course_id].push(item.lesson_id);
+        });
+        setCompletedLessons(grouped);
+      }
+
+      // 2. Exámenes aprobados
+      const { data: examData, error: examError } = await supabase
+        .from('course_exams')
+        .select('course_id, approved')
+        .eq('user_id', userId);
+      
+      if (examError) {
+        if (examError.code === 'PGRST205') {
+          const localExams = localStorage.getItem(`exams_approved_${userId}`);
+          if (localExams) setCourseExamsApproved(JSON.parse(localExams));
+        } else {
+          throw examError;
+        }
+      } else if (examData) {
+        const approvedMap = {};
+        examData.forEach(item => {
+          approvedMap[item.course_id] = item.approved;
+        });
+        setCourseExamsApproved(approvedMap);
+      }
+
+      // 3. Tareas entregadas
+      const { data: assData, error: assError } = await supabase
+        .from('course_assignments')
+        .select('course_id, file_name, submitted_at')
+        .eq('user_id', userId);
+      
+      if (assError) {
+        if (assError.code === 'PGRST205') {
+          const localAss = localStorage.getItem(`assignments_${userId}`);
+          if (localAss) setCourseAssignments(JSON.parse(localAss));
+        } else {
+          throw assError;
+        }
+      } else if (assData) {
+        const assMap = {};
+        assData.forEach(item => {
+          assMap[item.course_id] = { fileName: item.file_name, submittedAt: item.submitted_at };
+        });
+        setCourseAssignments(assMap);
+      }
+    } catch (err) {
+      console.warn('Error fetching progress data:', err.message);
+    }
+  };
+
+  const toggleLessonCompleted = async (courseId, lessonId) => {
+    const userId = supabaseUser?.id || 'guest';
+
+    setCompletedLessons(prev => {
+      const current = prev[courseId] || [];
+      let updated;
+      if (current.includes(lessonId)) {
+        updated = current.filter(id => id !== lessonId);
+      } else {
+        updated = [...current, lessonId];
+      }
+      const newProgress = { ...prev, [courseId]: updated };
+      localStorage.setItem(`completed_lessons_${userId}`, JSON.stringify(newProgress));
+      return newProgress;
+    });
+
+    if (supabaseUser) {
+      try {
+        const alreadyCompleted = completedLessons[courseId]?.includes(lessonId) || false;
+        if (alreadyCompleted) {
+          const { error } = await supabase
+            .from('lesson_progress')
+            .delete()
+            .eq('user_id', supabaseUser.id)
+            .eq('course_id', courseId)
+            .eq('lesson_id', lessonId);
+          if (error && error.code !== 'PGRST205') throw error;
+        } else {
+          const { error } = await supabase
+            .from('lesson_progress')
+            .upsert({
+              user_id: supabaseUser.id,
+              course_id: courseId,
+              lesson_id: lessonId,
+              completed: true
+            });
+          if (error && error.code !== 'PGRST205') throw error;
+        }
+      } catch (err) {
+        console.warn('[Supabase Sync Warning - LessonProgress]:', err.message);
+      }
+    }
+  };
+
+  const approveCourseExam = async (courseId) => {
+    const userId = supabaseUser?.id || 'guest';
+    setCourseExamsApproved(prev => {
+      const newMap = { ...prev, [courseId]: true };
+      localStorage.setItem(`exams_approved_${userId}`, JSON.stringify(newMap));
+      return newMap;
+    });
+
+    if (supabaseUser) {
+      try {
+        const { error } = await supabase
+          .from('course_exams')
+          .upsert({
+            user_id: supabaseUser.id,
+            course_id: courseId,
+            approved: true
+          });
+        if (error && error.code !== 'PGRST205') throw error;
+      } catch (err) {
+        console.warn('[Supabase Sync Warning - CourseExam]:', err.message);
+      }
+    }
+  };
+
+  const submitAssignment = async (courseId, fileName) => {
+    const userId = supabaseUser?.id || 'guest';
+    const submittedAt = new Date().toISOString();
+    
+    setCourseAssignments(prev => {
+      const newMap = { ...prev, [courseId]: { fileName, submittedAt } };
+      localStorage.setItem(`assignments_${userId}`, JSON.stringify(newMap));
+      return newMap;
+    });
+
+    if (supabaseUser) {
+      try {
+        const { error } = await supabase
+          .from('course_assignments')
+          .upsert({
+            user_id: supabaseUser.id,
+            course_id: courseId,
+            file_name: fileName,
+            submitted_at: submittedAt
+          });
+        if (error && error.code !== 'PGRST205') throw error;
+      } catch (err) {
+        console.warn('[Supabase Sync Warning - CourseAssignment]:', err.message);
+      }
+    }
   };
 
   const handleRegister = (e, nameValue) => {
@@ -480,6 +745,7 @@ export function AppProvider({ children }) {
   return (
     <AppContext.Provider value={{
       // Auth
+      supabaseUser, setSupabaseUser,
       activeRole, setActiveRole, currentSocio, setCurrentSocio,
       isRegistered, setIsRegistered, currentUserEmail, setCurrentUserEmail,
       registerEmail, setRegisterEmail, registeredUsers, setRegisteredUsers,
@@ -495,6 +761,8 @@ export function AppProvider({ children }) {
       // Data
       products: productList, productList, courses, setCourses, activeServices, setActiveServices,
       experiences, setExperiences,
+      // Academy progress
+      completedLessons, courseExamsApproved, courseAssignments,
       // Modals
       showPremiumRegisterModal, setShowPremiumRegisterModal,
       showPremiumBlockedModal, setShowPremiumBlockedModal,
@@ -503,6 +771,8 @@ export function AppProvider({ children }) {
       toast, triggerToast,
       // Handlers
       handleLogoClick, handlePartnerLogin, handleRegister,
+      handleRegisterSupabase, handleLoginSupabase, handleLogoutPublic,
+      toggleLessonCompleted, approveCourseExam, submitAssignment,
       handleAccessItem, handleAddToCart, handleRemoveFromCart, handleCheckout,
       handleAddCourse, handleDeleteCourse, handleToggleCoursePremium,
       handleAddProject, handleUpdateProjectProgress, handleDeleteProject,
