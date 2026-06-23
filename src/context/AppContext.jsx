@@ -193,6 +193,31 @@ export function AppProvider({ children }) {
           }));
           setActiveServices(mappedProjects);
         }
+
+        // Fetch products
+        const { data: productsData, error: productsError } = await supabase
+          .from('products')
+          .select('*');
+        if (productsError) {
+          if (productsError.code === 'PGRST205') {
+            console.warn('[Supabase AppContext Load]: La tabla "products" no existe. Usando datos mock locales.');
+          } else {
+            throw productsError;
+          }
+        } else if (productsData && productsData.length > 0) {
+          const mappedProducts = productsData.map(p => ({
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            category: p.category,
+            image: p.image,
+            desc: p.desc || p.description || '',
+            stock: p.stock || 0,
+            isPremium: p.is_premium ?? p.isPremium ?? false,
+            courseId: p.course_id || p.courseId || null
+          }));
+          setProductList(mappedProducts);
+        }
       } catch (err) {
         console.warn('[Supabase AppContext Load Error]: Fallo al cargar datos. Usando fallbacks locales.', err.message);
       }
@@ -723,23 +748,123 @@ export function AppProvider({ children }) {
   };
 
   // --- PRODUCT HANDLERS (dashboard) ---
-  const handleAddProduct = (prod) => {
-    setProductList(prev => [...prev, { id: Date.now(), ...prod, isPremium: false }]);
+  const handleAddProduct = async (prod) => {
+    const newId = Date.now();
+    const newProduct = { id: newId, ...prod, isPremium: false };
+    setProductList(prev => [...prev, newProduct]);
     triggerToast('Producto añadido al catálogo', 'success');
+
+    try {
+      const insertData = {
+        id: newId,
+        name: prod.name,
+        price: prod.price,
+        category: prod.category,
+        image: prod.image,
+        description: prod.desc || prod.description || '',
+        stock: prod.stock || 0,
+        is_premium: false,
+        course_id: prod.courseId || null
+      };
+
+      let { error } = await supabase.from('products').insert([insertData]);
+      if (error && error.code === '42703') {
+        // Retry with 'desc' instead of 'description'
+        delete insertData.description;
+        insertData.desc = prod.desc || prod.description || '';
+        const retry = await supabase.from('products').insert([insertData]);
+        error = retry.error;
+      }
+      if (error && error.code !== 'PGRST205') {
+        throw error;
+      }
+    } catch (err) {
+      console.warn('[Supabase Sync Warning - AddProduct]:', err.message);
+    }
   };
 
-  const handleEditProduct = (id, fields) => {
+  const handleEditProduct = async (id, fields) => {
     setProductList(prev => prev.map(p => p.id === id ? { ...p, ...fields } : p));
     triggerToast('Producto actualizado', 'success');
+
+    try {
+      const updateData = {};
+      if (fields.name !== undefined) updateData.name = fields.name;
+      if (fields.price !== undefined) updateData.price = fields.price;
+      if (fields.category !== undefined) updateData.category = fields.category;
+      if (fields.image !== undefined) updateData.image = fields.image;
+      if (fields.stock !== undefined) updateData.stock = fields.stock;
+      if (fields.isPremium !== undefined) updateData.is_premium = fields.isPremium;
+      if (fields.courseId !== undefined) updateData.course_id = fields.courseId;
+      if (fields.desc !== undefined || fields.description !== undefined) {
+        updateData.description = fields.desc || fields.description;
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        let { error } = await supabase
+          .from('products')
+          .update(updateData)
+          .eq('id', id);
+        
+        if (error && error.code === '42703' && updateData.description !== undefined) {
+          // Retry with 'desc'
+          updateData.desc = updateData.description;
+          delete updateData.description;
+          const retry = await supabase
+            .from('products')
+            .update(updateData)
+            .eq('id', id);
+          error = retry.error;
+        }
+        if (error && error.code !== 'PGRST205') {
+          throw error;
+        }
+      }
+    } catch (err) {
+      console.warn('[Supabase Sync Warning - EditProduct]:', err.message);
+    }
   };
 
-  const handleDeleteProduct = (id) => {
+  const handleDeleteProduct = async (id) => {
     setProductList(prev => prev.filter(p => p.id !== id));
     triggerToast('Producto eliminado del catálogo', 'info');
+
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+      if (error && error.code !== 'PGRST205') {
+        throw error;
+      }
+    } catch (err) {
+      console.warn('[Supabase Sync Warning - DeleteProduct]:', err.message);
+    }
   };
 
-  const handleToggleProductPremium = (id) => {
-    setProductList(prev => prev.map(p => p.id === id ? { ...p, isPremium: !p.isPremium } : p));
+  const handleToggleProductPremium = async (id) => {
+    let updatedProduct = null;
+    setProductList(prev => prev.map(p => {
+      if (p.id === id) {
+        updatedProduct = { ...p, isPremium: !p.isPremium };
+        return updatedProduct;
+      }
+      return p;
+    }));
+
+    try {
+      if (updatedProduct) {
+        const { error } = await supabase
+          .from('products')
+          .update({ is_premium: updatedProduct.isPremium })
+          .eq('id', id);
+        if (error && error.code !== 'PGRST205') {
+          throw error;
+        }
+      }
+    } catch (err) {
+      console.warn('[Supabase Sync Warning - ToggleProductPremium]:', err.message);
+    }
   };
 
   return (
