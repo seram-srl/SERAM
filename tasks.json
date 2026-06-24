@@ -170,9 +170,21 @@
       "created_at": "2026-06-24",
       "assignee": "implementer",
       "progress_file": "progress/TASK-015.md"
+    },
+    {
+      "id": "TASK-016",
+      "title": "Reducir máscara de degradado en un 50% y aclarar fondo WebGL",
+      "description": "Modificar EnvironmentalCanvas.jsx para subir la luminosidad de la malla de fondo y reducir la opacidad de vignette-overlay-sides en cinematic-ui.css en un 50%, restaurándola en App.jsx.",
+      "status": "done",
+      "priority": "high",
+      "estimated_hours": 1,
+      "tags": ["ui", "css", "threejs", "vignette"],
+      "created_at": "2026-06-24",
+      "assignee": "implementer",
+      "progress_file": "progress/TASK-016.md"
     }
   ],
-  "completed": ["TASK-001", "TASK-002", "TASK-003", "TASK-004", "TASK-005", "TASK-006", "TASK-007", "TASK-008", "TASK-009", "TASK-010", "TASK-011", "TASK-012", "TASK-014", "TASK-015"],
+  "completed": ["TASK-001", "TASK-002", "TASK-003", "TASK-004", "TASK-005", "TASK-006", "TASK-007", "TASK-008", "TASK-009", "TASK-010", "TASK-011", "TASK-012", "TASK-014", "TASK-015", "TASK-016"],
   "in_progress": [],
   "notes": "Para agregar una tarea nueva, copiar la estructura de un objeto en 'tasks' e incrementar el ID."
 }

@@ -58,7 +58,7 @@ export default function App() {
       {location.pathname !== '/' && <EnvironmentalCanvas />}
 
       {/* ── CAPA z-2: Vignette degradé lateral para el home y páginas ───── */}
-      {location.pathname !== '/' && <div className="vignette-overlay-sides" />}
+      <div className="vignette-overlay-sides" />
 
       {/* ── CAPA z-200: Cursor personalizado ─────────────────────────────── */}
       <CustomCursor />

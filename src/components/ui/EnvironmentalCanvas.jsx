@@ -287,7 +287,7 @@ function InteractiveScene({ hProgressRef }) {
         {/* Fondo 1: Hero */}
         <mesh ref={heroBgRef} position={[0, 0, -0.04]}>
           <planeGeometry args={[44, 22]} />
-          <meshBasicMaterial map={heroBgTexture} color="#555555" transparent depthWrite={false} opacity={1} dithering={true} />
+          <meshBasicMaterial map={heroBgTexture} color="#aaaaaa" transparent depthWrite={false} opacity={1} dithering={true} />
         </mesh>
         
         {/* Fondo 2: Servicios */}
