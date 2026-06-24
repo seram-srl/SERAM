@@ -16,12 +16,12 @@
 
 /* 1. Cinematic Background with HSL Gradients (Brighter Forest to Slate) */
 .cinematic-bg {
-  background-color: #0c1a13;
+  background-color: #122a1f;
   background-image: 
-    radial-gradient(at 0% 0%, rgba(10, 58, 32, 0.75) 0px, transparent 65%),
-    radial-gradient(at 100% 0%, rgba(0, 224, 60, 0.12) 0px, transparent 55%),
-    radial-gradient(at 50% 100%, rgba(18, 36, 28, 0.8) 0px, transparent 65%),
-    linear-gradient(to bottom, #061e12 0%, #0d1622 100%);
+    radial-gradient(at 0% 0%, rgba(15, 87, 48, 0.75) 0px, transparent 65%),
+    radial-gradient(at 100% 0%, rgba(0, 224, 60, 0.22) 0px, transparent 55%),
+    radial-gradient(at 50% 100%, rgba(28, 56, 44, 0.8) 0px, transparent 65%),
+    linear-gradient(to bottom, #0e301e 0%, #152233 100%);
   position: relative;
 }
 

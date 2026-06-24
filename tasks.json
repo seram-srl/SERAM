@@ -110,9 +110,57 @@
       "created_at": "2026-06-24",
       "assignee": "implementer",
       "progress_file": "progress/TASK-010.md"
+    },
+    {
+      "id": "TASK-011",
+      "title": "Configurar cabeceras de seguridad HTTP (vercel.json)",
+      "description": "Crear archivo vercel.json en la raíz configurando cabeceras CSP, HSTS, X-Frame-Options, X-Content-Type-Options y Referrer-Policy.",
+      "status": "done",
+      "priority": "medium",
+      "estimated_hours": 2,
+      "tags": ["security", "deployment", "hardening"],
+      "created_at": "2026-06-24",
+      "assignee": "implementer",
+      "progress_file": "progress/TASK-011.md"
+    },
+    {
+      "id": "TASK-012",
+      "title": "Implementar Time Tracker de socios conectado a Supabase",
+      "description": "Desarrollar la interfaz del Time Tracker dentro del panel de socios y conectar la lógica con la tabla time_logs en AppContext.",
+      "status": "done",
+      "priority": "high",
+      "estimated_hours": 3,
+      "tags": ["partner-portal", "supabase", "time-tracker"],
+      "created_at": "2026-06-24",
+      "assignee": "implementer",
+      "progress_file": "progress/TASK-012.md"
+    },
+    {
+      "id": "TASK-013",
+      "title": "Efecto constelación de partículas e iluminación de fondo",
+      "description": "Rediseñar BrandParticleText.jsx para crear mallas de constelaciones interactivas sobre letras sólidas/vectoriales, y reducir la viñeta oscura lateral y vertical un 50% en cinematic-ui.css.",
+      "status": "failed",
+      "priority": "high",
+      "estimated_hours": 2,
+      "tags": ["ui", "canvas", "constellation", "css"],
+      "created_at": "2026-06-24",
+      "assignee": "implementer",
+      "progress_file": "progress/TASK-013.md"
+    },
+    {
+      "id": "TASK-014",
+      "title": "Aclarar fondo de la Home y máscara de transparencia",
+      "description": "Modificar cinematic-bg en index.css para subir la luminosidad y cambiar vignette-overlay-sides en cinematic-ui.css para establecer transparencia mayor al 50% (opacidad < 0.5).",
+      "status": "done",
+      "priority": "high",
+      "estimated_hours": 1,
+      "tags": ["ui", "css", "background", "vignette"],
+      "created_at": "2026-06-24",
+      "assignee": "implementer",
+      "progress_file": "progress/TASK-014.md"
     }
   ],
-  "completed": ["TASK-001", "TASK-002", "TASK-003", "TASK-004", "TASK-005", "TASK-006", "TASK-007", "TASK-008", "TASK-009", "TASK-010"],
+  "completed": ["TASK-001", "TASK-002", "TASK-003", "TASK-004", "TASK-005", "TASK-006", "TASK-007", "TASK-008", "TASK-009", "TASK-010", "TASK-011", "TASK-012", "TASK-014"],
   "in_progress": [],
   "notes": "Para agregar una tarea nueva, copiar la estructura de un objeto en 'tasks' e incrementar el ID."
 }
