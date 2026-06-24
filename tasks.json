@@ -158,9 +158,21 @@
       "created_at": "2026-06-24",
       "assignee": "implementer",
       "progress_file": "progress/TASK-014.md"
+    },
+    {
+      "id": "TASK-015",
+      "title": "Remover máscara de fondo definitivamente del Home",
+      "description": "Modificar App.jsx para no renderizar vignette-overlay-sides en la página de inicio (/).",
+      "status": "done",
+      "priority": "high",
+      "estimated_hours": 1,
+      "tags": ["ui", "react", "background", "vignette"],
+      "created_at": "2026-06-24",
+      "assignee": "implementer",
+      "progress_file": "progress/TASK-015.md"
     }
   ],
-  "completed": ["TASK-001", "TASK-002", "TASK-003", "TASK-004", "TASK-005", "TASK-006", "TASK-007", "TASK-008", "TASK-009", "TASK-010", "TASK-011", "TASK-012", "TASK-014"],
+  "completed": ["TASK-001", "TASK-002", "TASK-003", "TASK-004", "TASK-005", "TASK-006", "TASK-007", "TASK-008", "TASK-009", "TASK-010", "TASK-011", "TASK-012", "TASK-014", "TASK-015"],
   "in_progress": [],
   "notes": "Para agregar una tarea nueva, copiar la estructura de un objeto en 'tasks' e incrementar el ID."
 }
