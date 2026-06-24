@@ -23,10 +23,14 @@ const vertexShader = `
     pos.z += sin(uTime * 0.9 + position.x * position.y) * (vaporStrength * 0.5);
 
     // Parallax del Cursor: Empuje elástico suave
-    float distToMouse = distance(pos.xy, uMouse * 2.5);
+    // La cámara mira desde el eje X, así que el plano frontal es ZY.
+    vec2 posScreen = vec2(pos.z, pos.y);
+    float distToMouse = distance(posScreen, uMouse * 2.5);
     if (distToMouse < 2.0) {
       float force = (1.0 - distToMouse / 2.0) * 0.22;
-      pos.xy += normalize(pos.xy - uMouse * 2.5) * force;
+      vec2 push = normalize(posScreen - uMouse * 2.5) * force;
+      pos.z += push.x;
+      pos.y += push.y;
     }
 
     // Transformar a coordenadas de pantalla
@@ -90,7 +94,7 @@ export default function EcosystemNucleus({ scrollRef }) {
       const v = Math.random();
       const theta = u * 2.0 * Math.PI;
       const phi = Math.acos(2.0 * v - 1.0);
-      const rSphere = 3.6 + Math.random() * 0.6;
+      const rSphere = 2.1 + Math.random() * 0.4;
       arr[i * 3] = rSphere * Math.sin(phi) * Math.cos(theta);
       arr[i * 3 + 1] = rSphere * Math.sin(phi) * Math.sin(theta);
       arr[i * 3 + 2] = rSphere * Math.cos(phi);
@@ -117,9 +121,9 @@ export default function EcosystemNucleus({ scrollRef }) {
           const idx = (x + y * 128) * 4;
           const alpha = imgData[idx + 3];
           if (alpha > 120) {
-            // Escalar de [0, 128] a un rango espacial más grande [ -4.1, 4.1 ] (x2.28 mayor)
-            const px = ((x / 128) - 0.5) * 8.2;
-            const py = -((y / 128) - 0.5) * 8.2;
+            // Escalar de [0, 128] a un rango espacial adecuado [ -2.25, 2.25 ]
+            const px = ((x / 128) - 0.5) * 4.5;
+            const py = -((y / 128) - 0.5) * 4.5;
             points.push({ x: px, y: py });
           }
         }
@@ -129,9 +133,9 @@ export default function EcosystemNucleus({ scrollRef }) {
         const arr = initialPositionRef.current.array;
         for (let i = 0; i < count; i++) {
           const pt = points[Math.floor(Math.random() * points.length)];
-          arr[i * 3] = (Math.random() - 0.5) * 0.25;
-          arr[i * 3 + 1] = pt.y + (Math.random() - 0.5) * 0.05;
-          arr[i * 3 + 2] = -pt.x + (Math.random() - 0.5) * 0.05;
+          arr[i * 3] = (Math.random() - 0.5) * 0.08;
+          arr[i * 3 + 1] = pt.y + (Math.random() - 0.5) * 0.02;
+          arr[i * 3 + 2] = pt.x + (Math.random() - 0.5) * 0.02;
         }
         initialPositionRef.current.needsUpdate = true;
       }

@@ -44,7 +44,10 @@ export default function BrandParticleText() {
       offscreen.height = height;
       
       // Ajustar dinámicamente el tamaño de la tipografía
-      const fontSize = Math.min(width / 6.2, 135);
+      const isMobile = window.innerWidth < 640;
+      const fontSize = isMobile 
+        ? Math.min(width / 4.8, 90)
+        : Math.min(width / 6.2, 135);
       offCtx.font = `900 ${fontSize}px 'Outfit', 'Inter', sans-serif`;
       offCtx.textAlign = 'center';
       offCtx.textBaseline = 'middle';
@@ -122,10 +125,36 @@ export default function BrandParticleText() {
       mouseRef.current.y = -1000;
     };
 
-    // Vincular redimensionamiento y mouse
+    // Escuchas táctiles para dispositivos móviles
+    const handleTouchStart = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      if (e.touches && e.touches[0]) {
+        mouseRef.current.x = e.touches[0].clientX - rect.left;
+        mouseRef.current.y = e.touches[0].clientY - rect.top;
+      }
+    };
+
+    const handleTouchMove = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      if (e.touches && e.touches[0]) {
+        mouseRef.current.x = e.touches[0].clientX - rect.left;
+        mouseRef.current.y = e.touches[0].clientY - rect.top;
+      }
+    };
+
+    const handleTouchEnd = () => {
+      mouseRef.current.x = -1000;
+      mouseRef.current.y = -1000;
+    };
+
+    // Vincular redimensionamiento y eventos de interacción
     window.addEventListener('resize', handleResize);
     canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('mouseleave', handleMouseLeave);
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: true });
+    canvas.addEventListener('touchend', handleTouchEnd, { passive: true });
+    canvas.addEventListener('touchcancel', handleTouchEnd, { passive: true });
 
     // Ejecución inicial de escala y renderizado
     handleResize();
@@ -200,6 +229,10 @@ export default function BrandParticleText() {
       if (canvas) {
         canvas.removeEventListener('mousemove', handleMouseMove);
         canvas.removeEventListener('mouseleave', handleMouseLeave);
+        canvas.removeEventListener('touchstart', handleTouchStart);
+        canvas.removeEventListener('touchmove', handleTouchMove);
+        canvas.removeEventListener('touchend', handleTouchEnd);
+        canvas.removeEventListener('touchcancel', handleTouchEnd);
       }
       cancelAnimationFrame(animationFrameRef.current);
     };

@@ -7,11 +7,11 @@ import EcosystemNucleus from './EcosystemNucleus';
 
 
 // ── ASSETS — ECOSISTEMAS BOLIVIANOS (IA-generados) ───────────────────────────
-const landscapeBg    = '/assets/3d-backend/bg_hero_amazonia.webp';     // Amazonía boliviana (Fondo Premium)
-const fondo2doPanel  = '/assets/3d-backend/bg_services_river.webp';    // Río / GIS
-const panel2ServiceBg= '/assets/3d-backend/bg_services_river.webp';    // Servicios alt
-const academyBg      = '/assets/3d-backend/bg_academy_cloudforest.webp'; // Bosque nublado
-const expBg          = '/assets/3d-backend/bg_experience_salar.webp';  // Salar de Uyuni
+const landscapeBg    = '/assets/3d-backend/bg_home.webp';     // Amazonía boliviana (Fondo Premium)
+const fondo2doPanel  = '/assets/3d-backend/panel2-service-background.webp';    // Río / GIS
+const panel2ServiceBg= '/assets/3d-backend/panel2-service-background.webp';    // Servicios alt
+const academyBg      = '/assets/3d-backend/bg_academy.webp'; // Bosque nublado
+const expBg          = '/assets/3d-backend/bg_experience.webp';  // Salar de Uyuni
 const shopBg         = '/assets/3d-backend/bg_store_ecomarket.webp';   // Jardín botánico
 
 
@@ -96,7 +96,6 @@ function InteractiveScene({ hProgressRef }) {
   const academyBgTexture = useTexture(academyBg);
   const expBgTexture = useTexture(expBg);
   const shopBgTexture = useTexture(shopBg);
-  const fgPlantsTexture = useTexture('/assets/3d-backend/foreground-plants.webp');
 
   // Refs para el billboard y los planos individuales
   const bgGroupRef = useRef();
@@ -105,7 +104,6 @@ function InteractiveScene({ hProgressRef }) {
   const academyBgRef = useRef();
   const expBgRef = useRef();
   const shopBgRef = useRef();
-  const fgPlantsRef = useRef();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -123,7 +121,7 @@ function InteractiveScene({ hProgressRef }) {
   }, []);
 
   useEffect(() => {
-    [heroBgTexture, servicesBgTexture, academyBgTexture, expBgTexture, shopBgTexture, fgPlantsTexture].forEach((t) => {
+    [heroBgTexture, servicesBgTexture, academyBgTexture, expBgTexture, shopBgTexture].forEach((t) => {
       if (t) {
         t.colorSpace = THREE.SRGBColorSpace;
         t.minFilter = THREE.LinearFilter;
@@ -131,7 +129,7 @@ function InteractiveScene({ hProgressRef }) {
         t.needsUpdate = true;
       }
     });
-  }, [heroBgTexture, servicesBgTexture, academyBgTexture, expBgTexture, shopBgTexture, fgPlantsTexture]);
+  }, [heroBgTexture, servicesBgTexture, academyBgTexture, expBgTexture, shopBgTexture]);
 
   useFrame((state) => {
     // ── PROGRESO COMBINADO ────────────────────────────────────────────────────
@@ -236,26 +234,6 @@ function InteractiveScene({ hProgressRef }) {
       ref.current.position.y = -state.camera.position.y * worldFixedRatio - targetY.current * 0.3 * (index + 1);
     });
 
-    // Control del Primer Plano (Foreground) - Plantas silvestres
-    if (fgPlantsRef.current) {
-      const fgZ = -3.8 + smoothP * 18.0;
-      fgPlantsRef.current.position.z = fgZ;
-
-      let fgOpacity = 0;
-      if (fgZ >= -10.0 && fgZ < -1.8) {
-        fgOpacity = 0.95;
-      } else if (fgZ >= -1.8 && fgZ < 0.0) {
-        fgOpacity = 0.95 * (fgZ / -1.8);
-      }
-      if (fgPlantsRef.current.material) {
-        fgPlantsRef.current.material.opacity = Math.max(0.0, fgOpacity);
-      }
-
-      // Las plantas del primer plano están muy cerca de la lente y se mueven con un parallax suave
-      fgPlantsRef.current.position.x = -state.camera.position.x * 0.4 - targetX.current * 0.4;
-      fgPlantsRef.current.position.y = -1.5 - state.camera.position.y * 0.4 - targetY.current * 0.4;
-    }
-
     // 6. Intensidad de Luces Reactiva al Scroll (Brillo máximo en Servicios/Academia)
     let intensityFactor = 0.0;
     if (smoothP < 0.25) {
@@ -309,7 +287,7 @@ function InteractiveScene({ hProgressRef }) {
         {/* Fondo 1: Hero */}
         <mesh ref={heroBgRef} position={[0, 0, -0.04]}>
           <planeGeometry args={[44, 22]} />
-          <meshBasicMaterial map={heroBgTexture} transparent depthWrite={false} opacity={1} dithering={true} />
+          <meshBasicMaterial map={heroBgTexture} color="#555555" transparent depthWrite={false} opacity={1} dithering={true} />
         </mesh>
         
         {/* Fondo 2: Servicios */}
@@ -336,11 +314,7 @@ function InteractiveScene({ hProgressRef }) {
           <meshBasicMaterial map={shopBgTexture} transparent depthWrite={false} opacity={0} dithering={true} />
         </mesh>
 
-        {/* Capa de Primer Plano (Foreground) - Plantas silvestres */}
-        <mesh ref={fgPlantsRef} position={[0, -1.5, -2.5]}>
-          <planeGeometry args={[24, 12]} />
-          <meshBasicMaterial map={fgPlantsTexture} transparent depthWrite={false} opacity={0.95} dithering={true} />
-        </mesh>
+
       </group>
 
       {/* Renderizar el Núcleo Ecosistémico de Partículas */}

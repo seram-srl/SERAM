@@ -28,6 +28,8 @@ import PartnerDashboard from './features/partner-portal/PartnerDashboard';
 import LoginPage        from './features/auth/LoginPage';
 import RegisterPage     from './features/auth/RegisterPage';
 import ProtectedRoute   from './components/shared/ProtectedRoute';
+import ContactPage      from './features/contact/ContactPage';
+
 
 export default function App() {
   const location = useLocation();
@@ -103,6 +105,7 @@ export default function App() {
             <Route path="/experience" element={<ExperiencePage />}   />
             <Route path="/shop"       element={<ShopPage />}         />
             <Route path="/dashboard"  element={<PartnerDashboard />} />
+            <Route path="/contact"    element={<ContactPage />}      />
             <Route path="*"           element={<NotFoundPage />}     />
           </Routes>
         </AnimatePresence>

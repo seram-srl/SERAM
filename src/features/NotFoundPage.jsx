@@ -14,7 +14,7 @@ export default function NotFoundPage() {
     <div
       className="inner-page min-h-screen flex items-center justify-center bg-cover bg-center relative"
       style={{
-        backgroundImage: "url('/assets/3d-backend/menu-background.webp')",
+        backgroundImage: "url('/assets/3d-backend/bg_menu.webp')",
       }}
     >
       {/* Vignette/Overlay oscuro para mayor legibilidad */}

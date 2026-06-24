@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import CartDrawer from './CartDrawer';
@@ -17,6 +17,7 @@ import Magnetic from '../ui/Magnetic';
  */
 export default function Navbar({ isOpen, onToggle }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const {
     cart,
     showCart,
@@ -27,10 +28,12 @@ export default function Navbar({ isOpen, onToggle }) {
 
   const clickTrackerRef = useRef({ count: 0, lastTime: 0 });
   const [scrollZone, setScrollZone] = useState('dark'); // 'dark' | 'bright'
+  const [scrollY, setScrollY] = useState(0);
 
-  // Detectar zona de scroll para adaptar contraste del logo
+  // Detectar zona de scroll y posición vertical para adaptar contraste y logos interactivos
   useEffect(() => {
     const handleScroll = () => {
+      setScrollY(window.scrollY);
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
       const progress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
       // Zona 30%-70% = fondos potencialmente brillantes
@@ -99,10 +102,14 @@ export default function Navbar({ isOpen, onToggle }) {
           </button>
         </Magnetic>
 
-        {/* LOGO DE MARCA CON SENSOR SECRETO DE SOCIOS */}
+        {/* LOGO DE MARCA CON SENSOR SECRETO DE SOCIOS (Oculto en portada de Home) */}
         <Magnetic>
           <div
-            className="flex items-center gap-1.5 cursor-none select-none transition-all duration-500"
+            className={`flex items-center gap-1.5 cursor-none select-none transition-all duration-700 ease-out ${
+              location.pathname === '/'
+                ? 'opacity-0 pointer-events-none -translate-x-6'
+                : 'opacity-100 pointer-events-auto translate-x-0'
+            }`}
             style={logoContainerStyle}
             onClick={() => {
               navigate('/');
@@ -141,6 +148,37 @@ export default function Navbar({ isOpen, onToggle }) {
           </Magnetic>
         )}
       </div>
+
+      {/* LOGO DE MARCA CENTRADO EN EL HEADER (Aparece en Home al hacer scroll y desaparecer el del Hero) */}
+      {location.pathname === '/' && (
+        <div
+          className={`fixed top-6 left-1/2 -translate-x-1/2 z-[109] pointer-events-auto select-none transition-all duration-700 ease-out flex items-center gap-1.5 cursor-pointer ${
+            scrollY >= window.innerHeight * 0.65
+              ? 'opacity-100 translate-y-0 scale-100'
+              : 'opacity-0 -translate-y-4 scale-90 pointer-events-none'
+          }`}
+          style={logoContainerStyle}
+          onClick={() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            handleLogoSecretClick();
+          }}
+        >
+          <div className="relative w-9 h-9 shrink-0 flex items-center justify-center">
+            <img
+              src="/assets/brand/ícono_logo.png"
+              alt="Logo SERAM"
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <div className="flex flex-col leading-none">
+            <div className="flex items-baseline">
+              <span className="text-lg font-black text-white tracking-tight" style={logoTextShadow}>SER</span>
+              <span className="text-lg font-black text-[#00e03c] tracking-tight" style={logoTextShadow}>A</span>
+              <span className="text-lg font-black text-white tracking-tight" style={logoTextShadow}>M</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* CARRITO DRAWER GLOBAL */}
       {showCart && <CartDrawer />}

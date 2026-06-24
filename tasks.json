@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "project": "SERAM",
-  "last_updated": "2026-06-17",
+  "last_updated": "2026-06-24",
   "tasks": [
     {
       "id": "TASK-001",
@@ -64,19 +64,55 @@
       "progress_file": "progress/TASK-005.md"
     },
     {
-      "id": "TASK-006",
-      "title": "Mega-corrección quirúrgica AAA (Auditoría de UI, R3F y Laboratorio)",
-      "description": "Limpieza de remanentes de laboratorio, correcciones de renderizado R3F y ajustes de UI premium según plan de implementación.",
+      "id": "TASK-007",
+      "title": "Ajustes de UI, hover interactivo y paralaje en la portada",
+      "description": "Cambiar textos a h2/h3 con hovers y subrayados verdes, centrar el indicador de scroll y añadir efectos de paralaje sutil reactivos al ratón.",
       "status": "done",
       "priority": "high",
-      "estimated_hours": 6,
-      "tags": ["ui", "r3f", "cleanup"],
-      "created_at": "2026-06-18",
+      "estimated_hours": 2,
+      "tags": ["ui", "framer-motion", "parallax"],
+      "created_at": "2026-06-24",
       "assignee": "implementer",
-      "progress_file": "progress/TASK-006.md"
+      "progress_file": "progress/TASK-007.md"
+    },
+    {
+      "id": "TASK-008",
+      "title": "Ajuste de tipografía del Hero y logo del Navbar interactivo al scroll",
+      "description": "Incrementar el tamaño de H2 y H3 en la Home, ocultar el logo lateral en la portada y hacer emerger un logo centrado al scroll.",
+      "status": "done",
+      "priority": "high",
+      "estimated_hours": 2,
+      "tags": ["ui", "navbar", "framer-motion"],
+      "created_at": "2026-06-24",
+      "assignee": "implementer",
+      "progress_file": "progress/TASK-008.md"
+    },
+    {
+      "id": "TASK-009",
+      "title": "Restauración de escala del logo e iluminación del fondo en la Home",
+      "description": "Corregir el colapso del canvas del logo aplicando w-full y flex a su contenedor animado, y atenuar la viñeta oscura del fondo en un 10%.",
+      "status": "done",
+      "priority": "high",
+      "estimated_hours": 2,
+      "tags": ["ui", "css", "canvas"],
+      "created_at": "2026-06-24",
+      "assignee": "implementer",
+      "progress_file": "progress/TASK-009.md"
+    },
+    {
+      "id": "TASK-010",
+      "title": "Aclarado de fondo adicional, indicador táctil responsivo y física multitouch",
+      "description": "Reducir viñeta oscura un 20% más en cinematic-ui.css, alternar icono de deslizar a smartphone en móvil y dar soporte touch dinámico en BrandParticleText.jsx sin congelamientos.",
+      "status": "done",
+      "priority": "high",
+      "estimated_hours": 2,
+      "tags": ["ui", "mobile", "multitouch"],
+      "created_at": "2026-06-24",
+      "assignee": "implementer",
+      "progress_file": "progress/TASK-010.md"
     }
   ],
-  "completed": ["TASK-001", "TASK-002", "TASK-003", "TASK-004", "TASK-005", "TASK-006"],
+  "completed": ["TASK-001", "TASK-002", "TASK-003", "TASK-004", "TASK-005", "TASK-006", "TASK-007", "TASK-008", "TASK-009", "TASK-010"],
   "in_progress": [],
   "notes": "Para agregar una tarea nueva, copiar la estructura de un objeto en 'tasks' e incrementar el ID."
 }

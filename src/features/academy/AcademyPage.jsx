@@ -102,10 +102,10 @@ export default function AcademyPage() {
               className={`relative py-4 px-3 rounded-2xl border flex flex-col items-center justify-center gap-2 cursor-none transition-all duration-300 ${
                 isActive
                   ? 'bg-[#00e03c]/15 border-[#00e03c] text-[#00e03c] shadow-[0_0_20px_rgba(0,224,60,0.25)] scale-105'
-                  : 'bg-white/[0.02] border-white/[0.07] hover:border-[#00e03c]/40 text-slate-400 hover:text-white hover:scale-105 hover:bg-[#00e03c]/5 hover:shadow-[0_0_15px_rgba(0,224,60,0.15)]'
+                  : 'bg-white/[0.05] border-white/[0.12] hover:border-[#00e03c]/40 text-slate-300 hover:text-white hover:scale-105 hover:bg-[#00e03c]/5 hover:shadow-[0_0_15px_rgba(0,224,60,0.15)]'
               }`}
             >
-              <div className={`p-2.5 rounded-xl border ${isActive ? 'bg-[#00e03c]/20 border-[#00e03c]/30 text-[#00e03c]' : 'bg-white/5 border-white/10'}`}>
+              <div className={`p-2.5 rounded-xl border ${isActive ? 'bg-[#00e03c]/20 border-[#00e03c]/30 text-[#00e03c]' : 'bg-white/8 border-white/20'}`}>
                 {cat.icon}
               </div>
               <span className="text-[10px] font-black uppercase tracking-wider text-center">{cat.label}</span>
@@ -176,11 +176,11 @@ export default function AcademyPage() {
                   </div>
 
                   <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between">
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                    <span className="text-[10px] text-slate-300 font-bold uppercase tracking-wider">
                       {course.instructor}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black text-slate-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded">
+                      <span className="text-[10px] font-black text-slate-300 bg-white/5 border border-white/15 px-2 py-0.5 rounded">
                         {course.duration}
                       </span>
                       {course.isPremium ? (

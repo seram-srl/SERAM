@@ -21,6 +21,7 @@ const NAV_ITEMS = [
   { to: '/services',   label: 'SERAM SERVICES',  index: '03' },
   { to: '/experience', label: 'SERAM EXPERIENCE',index: '04' },
   { to: '/shop',       label: 'SERAM STORE',     index: '05' },
+  { to: '/contact',    label: 'CONTACTO',        index: '06' },
 ];
 
 
@@ -134,7 +135,7 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
           style={{
             position: 'absolute',
             inset: 0,
-            backgroundImage: "url('/assets/3d-backend/menu-background.webp')",
+            backgroundImage: "url('/assets/3d-backend/bg_menu.webp')",
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             opacity: isOpen ? 0.35 : 0,
@@ -194,7 +195,7 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
                   className={({ isActive }) =>
                     `fullscreen-menu__link ${isActive ? 'is-active' : ''}`
                   }
-                  data-index="06"
+                  data-index="07"
                   style={({ isActive }) => ({
                     color: isActive ? '#00e03c' : 'rgba(0, 224, 60, 0.4)',
                   })}

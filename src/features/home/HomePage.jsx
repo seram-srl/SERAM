@@ -1,17 +1,23 @@
 /**
  * @file HomePage.jsx
- * @description Página principal de SERAM con scroll híbrido (vertical-horizontal-vertical-horizontal-vertical) AAA.
+ * @description Página principal de SERAM con scroll híbrido AAA.
+ * GSAP ScrollTrigger maneja las secciones de Servicios y Tienda (Scale-on-Scroll).
  */
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   BookOpen, Briefcase, Award, ChevronRight, ShoppingCart, Instagram, Youtube,
 } from 'lucide-react';
 import { useApp, AppContext } from '../../context/AppContext';
 import EnvironmentalCanvas from '../../components/ui/EnvironmentalCanvas';
 import BrandParticleText from '../../components/ui/BrandParticleText';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useGSAP } from '@gsap/react';
+
+gsap.registerPlugin(ScrollTrigger);
 
 // ─── FRAMER MOTION VARIANTS ───────────────────────────────────────────────────
 const pageVariants = {
@@ -30,7 +36,18 @@ const staggerChild = {
 };
 
 // ─── CONSTANTES ───────────────────────────────────────────────────────────────
-const LERP_SPEED = 0.09;    // Amortiguación orgánica
+// LERP_SPEED removido: scroll hijacking ahora manejado por GSAP ScrollTrigger
+
+// ─── CARD BASE STYLES ─────────────────────────────────────────────────────────
+const cardBaseStyle = {
+  position: 'absolute',
+  top: '50%',
+  transform: 'translateY(-50%)',
+  borderRadius: '1.5rem',
+  overflow: 'hidden',
+  willChange: 'width, height, right, transform, border-radius',
+  boxShadow: '-10px 0 30px rgba(0,0,0,0.7)',
+};
 
 // TikTok SVG Icon (high fidelity, styled)
 const TikTokIcon = ({ className }) => (
@@ -59,7 +76,7 @@ const PILLARS = [
     id: 'academy',
     title: 'SERAM ACADEMY',
     sub: 'Pilar 02 // Formación',
-    imageUrl: '/assets/3d-backend/fondo SERAM-ACADEMY2.webp',
+    imageUrl: '/assets/3d-backend/bg_academy.webp',
     cursorText: 'APRENDER',
     icon: <BookOpen className="w-6 h-6" />,
     headline: 'CAPACITACIÓN ECOLÓGICA Y TÉCNICA',
@@ -73,7 +90,7 @@ const PILLARS = [
     id: 'experience',
     title: 'SERAM EXPERIENCE',
     sub: 'Pilar 03 // Vivencial',
-    imageUrl: '/assets/3d-backend/Seram-Exp-background.webp',
+    imageUrl: '/assets/3d-backend/bg_experience.webp',
     cursorText: 'VIVIR',
     icon: <Award className="w-6 h-6" />,
     headline: 'RESTAURACIÓN ECOLÓGICA ACTIVA',
@@ -178,168 +195,225 @@ function PanelB({ pillar }) {
 }
 
 function HeroSection() {
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const springConfig = { damping: 30, stiffness: 120, mass: 0.6 };
+  
+  // Capa Logo/BrandParticleText (movimiento intermedio)
+  const logoX = useSpring(useTransform(mouseX, [-window.innerWidth / 2, window.innerWidth / 2], [-20, 20]), springConfig);
+  const logoY = useSpring(useTransform(mouseY, [-window.innerHeight / 2, window.innerHeight / 2], [-20, 20]), springConfig);
+
+  // Capa H2 (movimiento ligeramente diferente)
+  const h2X = useSpring(useTransform(mouseX, [-window.innerWidth / 2, window.innerWidth / 2], [-12, 12]), springConfig);
+  const h2Y = useSpring(useTransform(mouseY, [-window.innerHeight / 2, window.innerHeight / 2], [-12, 12]), springConfig);
+
+  // Capa H3 (movimiento sutil)
+  const h3X = useSpring(useTransform(mouseX, [-window.innerWidth / 2, window.innerWidth / 2], [-7, 7]), springConfig);
+  const h3Y = useSpring(useTransform(mouseY, [-window.innerHeight / 2, window.innerHeight / 2], [-7, 7]), springConfig);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      const { clientX, clientY } = e;
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      mouseX.set(clientX - centerX);
+      mouseY.set(clientY - centerY);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [mouseX, mouseY]);
+
   return (
     <section
       className="relative overflow-hidden min-h-screen w-full flex flex-col items-center justify-center py-20 px-6 sm:px-12 select-none bg-transparent"
       aria-label="Portada SERAM"
     >
       <div className="text-center space-y-8 z-10 w-full max-w-4xl flex flex-col items-center justify-center">
-        <motion.div custom={1} variants={staggerChild} initial="initial" animate="animate" className="w-full flex flex-col items-center gap-3">
-          <BrandParticleText />
-          <p className="text-[10px] sm:text-xs text-slate-400 font-tech uppercase tracking-[0.25em] max-w-lg mt-2 text-center select-none leading-relaxed">
-            SERVICIOS AMBIENTALES.
-          </p>
-        </motion.div>
+        <div className="w-full flex flex-col items-center gap-3">
+          {/* Logo con animación de entrada y paralaje */}
+          <motion.div
+            custom={1}
+            variants={staggerChild}
+            initial="initial"
+            animate="animate"
+            style={{ x: logoX, y: logoY }}
+            className="w-full will-change-transform flex justify-center"
+          >
+            <BrandParticleText />
+          </motion.div>
+
+          {/* H2 con animación de entrada, hover verde y paralaje */}
+          <motion.h2
+            custom={2}
+            variants={staggerChild}
+            initial="initial"
+            animate="animate"
+            style={{ x: h2X, y: h2Y }}
+            className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-slate-200 font-mono uppercase tracking-[0.35em] mt-4 text-center select-none will-change-transform"
+          >
+            SERVICIOS <span className="hover:text-[#00e03c] transition-colors duration-300 cursor-pointer">AMBIENTALES.</span>
+          </motion.h2>
+
+          {/* H3 con animación de entrada, palabras clave subrayadas y paralaje sutil */}
+          <motion.h3
+            custom={3}
+            variants={staggerChild}
+            initial="initial"
+            animate="animate"
+            style={{ x: h3X, y: h3Y }}
+            className="text-xs sm:text-sm md:text-base text-slate-300/95 font-sans tracking-wide max-w-2xl mt-4 text-center leading-relaxed select-none will-change-transform"
+          >
+            Ingeniería y consultoría de precisión para el <span className="underline decoration-[#00e03c] decoration-2 underline-offset-2 font-medium text-slate-300">cumplimiento normativo</span>, <span className="underline decoration-[#00e03c] decoration-2 underline-offset-2 font-medium text-slate-300">monitoreo ecosistémico</span> y <span className="underline decoration-[#00e03c] decoration-2 underline-offset-2 font-medium text-slate-300">desarrollo sostenible</span> en Bolivia.
+          </motion.h3>
+        </div>
       </div>
 
-      <motion.div
-        custom={2}
-        variants={staggerChild}
-        initial="initial"
-        animate="animate"
-        className="absolute bottom-6 opacity-60 flex flex-col items-center gap-2 z-20"
-        style={{ left: '50%', transform: 'translateX(-50%)' }}
-      >
-        <div className="w-[24px] h-[40px] border-2 border-white/50 rounded-full flex justify-center p-1.5">
-          <div className="w-[3px] h-[7px] bg-[#00e03c] rounded-full animate-scrollIndicator" />
-        </div>
-        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-tech select-none">
-          Desliza para explorar
-        </span>
-      </motion.div>
+      {/* Indicador de deslizar centrado */}
+      <div className="absolute bottom-6 left-0 right-0 flex flex-col items-center justify-center z-20 pointer-events-none">
+        <motion.div
+          custom={4}
+          variants={staggerChild}
+          initial="initial"
+          animate="animate"
+          className="opacity-60 flex flex-col items-center gap-2 pointer-events-auto"
+        >
+          {/* Indicador de Mouse para pantallas de escritorio */}
+          <div className="hidden sm:flex w-[24px] h-[40px] border-2 border-white/50 rounded-full justify-center p-1.5">
+            <div className="w-[3px] h-[7px] bg-[#00e03c] rounded-full animate-scrollIndicator" />
+          </div>
+          {/* Indicador de Smartphone para pantallas táctiles móviles */}
+          <div className="flex sm:hidden w-[26px] h-[44px] border-2 border-white/50 rounded-[6px] justify-center p-1 relative">
+            <div className="absolute top-1 w-3 h-[2px] bg-white/30 rounded-full" />
+            <div className="w-[4px] h-[8px] bg-[#00e03c] rounded-full animate-scrollIndicator mt-2" />
+          </div>
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-tech select-none">
+            Desliza para explorar
+          </span>
+        </motion.div>
+      </div>
     </section>
   );
 }
 
-// ─── SERVICES HORIZONTAL SECTION ──────────────────────────────────────────────
-function PanelServicesList() {
-  const services = [
-    {
-      title: 'Monitoreo Ambiental',
-      desc: 'Medición de precisión para aire, agua y suelos bajo estándares internacionales.',
-      icon: '📊',
-    },
-    {
-      title: 'Sistemas de Info Geográfica (SIG)',
-      desc: 'Cartografía avanzada y análisis espacial para ordenamiento territorial y licencias.',
-      icon: '🗺️',
-    },
-    {
-      title: 'Gestión de Residuos',
-      desc: 'Soluciones de economía circular y lombricultura industrial a gran escala.',
-      icon: '♻️',
-    },
-  ];
 
-  return (
-    <div className="w-[100vw] h-screen flex flex-col justify-center px-10 sm:px-24 flex-shrink-0 bg-transparent select-none">
-      <div className="max-w-5xl w-full mx-auto space-y-8">
-        <div className="text-left space-y-2">
-          <span className="text-[10px] text-[#00e03c] tracking-[0.25em] uppercase font-tech font-bold">Portafolio</span>
-          <h3 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight font-display">
-            Servicios Destacados
-          </h3>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {services.map((s, idx) => (
-            <div
-              key={idx}
-              className="p-6 rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-xl flex flex-col items-start gap-4 transition-all duration-300 hover:bg-white/10 hover:border-[#00e03c]/30"
-            >
-              <div className="w-12 h-12 rounded-2xl bg-[#00e03c]/10 text-[#00e03c] flex items-center justify-center border border-[#00e03c]/20 text-xl font-bold">
-                {s.icon}
-              </div>
-              <h4 className="text-lg font-bold text-white uppercase tracking-tight">{s.title}</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">{s.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
+// ─── GSAP SERVICES SCALE-ON-SCROLL ──────────────────────────────────────────────────────
 function ServicesHorizontalSection() {
-  const outerRef = useRef(null);
-  const trackRef = useRef(null);
-  const targetXRef = useRef(0);
-  const currentXRef = useRef(0);
-  const rafIdRef = useRef(null);
+  // triggerRef: el elemento exterior estable en el flujo del scroll
+  const triggerRef = useRef(null);
+  // pinRef: el contenedor interior que se fijará (con overflow: hidden para las tarjetas)
+  const pinRef = useRef(null);
+  const navigate = useNavigate();
 
-  const rafLoop = useCallback(() => {
-    const curr = currentXRef.current;
-    const target = targetXRef.current;
-    const next = curr + (target - curr) * LERP_SPEED;
+  useGSAP(() => {
+    const triggerEl = triggerRef.current;
+    const pinEl = pinRef.current;
+    if (!triggerEl || !pinEl) return;
 
-    if (trackRef.current) {
-      trackRef.current.style.transform = `translateX(${-next}px)`;
-    }
-    currentXRef.current = next;
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: triggerEl,
+        start: 'top top',
+        end: '+=400%',
+        scrub: 1,
+        pin: pinEl,
+        pinSpacing: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+      },
+    });
 
-    rafIdRef.current = requestAnimationFrame(rafLoop);
-  }, []);
+    // Transición 1: Intro fade + Tarjeta 1 se expande
+    tl.to('#svc-intro', { opacity: 0, x: -100, duration: 1 }, 0)
+      .to('#svc-card-1', { width: '100vw', height: '100vh', right: 0, top: 0, transform: 'translateY(0)', borderRadius: 0, duration: 2, ease: 'power2.inOut' }, 0)
+      .to('#svc-card-1 .card-content', { opacity: 1, duration: 1 }, 1.5)
+      .to('#svc-card-3', { right: '-15vw', duration: 2, ease: 'power2.inOut' }, 0);
 
-  const handleScroll = useCallback(() => {
-    const outer = outerRef.current;
-    if (!outer) return;
+    // Transición 2: Tarjeta 2 cubre la 1
+    tl.to('#svc-card-1 .card-content', { opacity: 0, duration: 0.5 }, 3)
+      .to('#svc-card-2', { width: '100vw', height: '100vh', right: 0, top: 0, transform: 'translateY(0)', borderRadius: 0, duration: 2, ease: 'power2.inOut' }, 3)
+      .to('#svc-card-2 .card-content', { opacity: 1, duration: 1 }, 4.5)
+      .to('#svc-card-3', { right: '5vw', duration: 2, ease: 'power2.inOut' }, 3);
 
-    const outerTop = outer.offsetTop;
-    const scrollY = window.scrollY;
-    const relativeY = scrollY - outerTop;
+    // Transición 3: Tarjeta 3 cubre todo
+    tl.to('#svc-card-2 .card-content', { opacity: 0, duration: 0.5 }, 6)
+      .to('#svc-card-3', { width: '100vw', height: '100vh', right: 0, top: 0, transform: 'translateY(0)', borderRadius: 0, duration: 2, ease: 'power2.inOut' }, 6)
+      .to('#svc-card-3 .card-content', { opacity: 1, duration: 1 }, 7.5);
 
-    if (relativeY < 0) {
-      targetXRef.current = 0;
-    } else {
-      const scrollableHeight = outer.offsetHeight - window.innerHeight;
-      const progress = Math.min(1, Math.max(0, relativeY / scrollableHeight));
-      const maxX = window.innerWidth * 2; // Translates exactly 200vw
-      targetXRef.current = progress * maxX;
-    }
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    rafIdRef.current = requestAnimationFrame(rafLoop);
-    handleScroll();
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
-    };
-  }, [handleScroll, rafLoop]);
-
-  const servicesPillar = PILLARS[0];
+  }, { scope: triggerRef });
 
   return (
-    <div ref={outerRef} style={{ height: '300vh' }} className="relative bg-transparent z-10">
-      <div style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'hidden' }} className="flex flex-col justify-center">
-        <div className="absolute left-8 top-24 z-20 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#00e03c] animate-pulse" />
-          <span className="text-[10px] font-black text-white/50 uppercase tracking-widest font-tech">Servicios Ambientales</span>
+    // triggerRef: define la sección en el scroll.
+    <div ref={triggerRef} className="relative w-full z-10">
+      {/* pinRef: el contenedor que GSAP fijará. Tiene overflow: hidden y es relative. */}
+      <div ref={pinRef} className="relative w-full h-screen overflow-hidden bg-transparent">
+        {/* Intro panel */}
+        <div id="svc-intro" className="absolute inset-0 flex items-center px-8 md:px-24 z-10 pointer-events-none">
+          <div className="w-full md:w-1/2 max-w-lg p-10 rounded-3xl bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl pointer-events-auto">
+            <span className="text-[10px] text-[#00e03c] tracking-[0.3em] uppercase font-tech font-bold">Pilar 01 // Consultoría</span>
+            <h2 className="mt-3 text-5xl md:text-6xl font-black text-white leading-none tracking-tighter uppercase font-display">
+              SERAM <br /><span className="text-[#00e03c]">SERVICES</span>
+            </h2>
+            <p className="mt-5 text-slate-300 font-light leading-relaxed text-sm">
+              Consultoría ambiental corporativa y monitoreo de alta precisión. Asegura el cumplimiento de licencias ambientales y mitiga riesgos normativos.
+            </p>
+            <button onClick={() => navigate('/services')} className="mt-8 px-8 py-3.5 bg-white text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-[#00e03c] transition-colors duration-300 pointer-events-auto">
+              Ir a la página de servicios
+            </button>
+          </div>
         </div>
 
-        <div
-          ref={trackRef}
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            flexWrap: 'nowrap',
-            alignItems: 'center',
-            height: '100%',
-            width: '300vw',
-            willChange: 'transform',
-            transform: 'translateX(0px)',
-          }}
-        >
-          <PanelA pillar={servicesPillar} />
-          <PanelServicesList />
-          <PanelB pillar={servicesPillar} />
+        {/* Tarjeta 1: Monitoreo Ambiental — z-20 */}
+        <div id="svc-card-1" style={{ ...cardBaseStyle, right: '30vw', width: '22vw', height: '65vh', zIndex: 20 }}>
+          <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=1200&auto=format&fit=crop" alt="Monitoreo" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/35" />
+          <div className="card-content opacity-0 absolute inset-0 flex flex-col justify-center px-8 md:px-24">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
+              <h3 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">Monitoreo Ambiental</h3>
+              <p className="text-slate-200 mb-8 font-light leading-relaxed">Evaluación de calidad de agua, aire y suelo bajo estándares internacionales. Garantizamos la sostenibilidad de tus operaciones industriales.</p>
+              <button onClick={() => navigate('/quote')} className="px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Cotiza gratis ahora</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Tarjeta 2: Reforestación — z-30 */}
+        <div id="svc-card-2" style={{ ...cardBaseStyle, right: '5vw', width: '22vw', height: '65vh', zIndex: 30 }}>
+          <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200&auto=format&fit=crop" alt="Reforestación" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/35" />
+          <div className="card-content opacity-0 absolute inset-0 flex flex-col justify-center px-8 md:px-24">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
+              <h3 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">Reforestación a Escala</h3>
+              <p className="text-slate-200 mb-8 font-light leading-relaxed">Proyectos de compensación de huella de carbono y restauración ecológica de hábitats degradados para empresas comprometidas.</p>
+              <button onClick={() => navigate('/quote')} className="px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Cotiza gratis ahora</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Tarjeta 3: Sistemas SIG — z-40 */}
+        <div id="svc-card-3" style={{ ...cardBaseStyle, right: '-20vw', width: '22vw', height: '65vh', zIndex: 40 }}>
+          <img src="https://images.unsplash.com/photo-1518398046578-8cca57782e17?q=80&w=1200&auto=format&fit=crop" alt="Sistemas SIG" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/35" />
+          <div className="card-content opacity-0 absolute inset-0 flex flex-col justify-center px-8 md:px-24">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
+              <h3 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">Sistemas de Información Geográfica</h3>
+              <p className="text-slate-200 mb-6 font-light leading-relaxed">Mapeo satelital avanzado y análisis de datos topográficos para la toma de decisiones precisas sobre el territorio.</p>
+              <button onClick={() => navigate('/quote')} className="px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Cotiza gratis ahora</button>
+              <div className="mt-6">
+                <button onClick={() => navigate('/services')} className="text-sm font-medium text-slate-300 hover:text-[#00e03c] transition-colors duration-300 pointer-events-auto">
+                  Explora todos nuestros servicios en detalle &rarr;
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-// ─── ACADEMY VERTICAL SECTION ─────────────────────────────────────────────────
+
+// ─── ACADEMY VERTICAL SECTION ─────────────────────────────────────────────────────
 function AcademyVerticalSection() {
   const academyPillar = PILLARS[1];
   const navigate = useNavigate();
@@ -353,17 +427,12 @@ function AcademyVerticalSection() {
               {academyPillar.title}
             </h2>
           </div>
-          
           <div className="w-full p-8 sm:p-10 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl flex flex-col items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-[#00e03c]/20 text-[#00e03c] flex items-center justify-center border border-[#00e03c]/30">
               {academyPillar.icon}
             </div>
-            <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">
-              {academyPillar.headline}
-            </h3>
-            <p className="text-xs sm:text-sm leading-relaxed text-slate-300">
-              {academyPillar.desc}
-            </p>
+            <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">{academyPillar.headline}</h3>
+            <p className="text-xs sm:text-sm leading-relaxed text-slate-300">{academyPillar.desc}</p>
             <button
               onClick={() => navigate(academyPillar.route)}
               className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-white/5 hover:bg-[#00e03c]/10 border border-white/10 hover:border-[#00e03c]/40 text-white hover:text-[#00e03c] rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300"
@@ -373,16 +442,15 @@ function AcademyVerticalSection() {
             </button>
           </div>
         </div>
-
-        <div className="w-full md:w-1/2 flex items-center justify-center max-w-lg">
-          <TiltGlassCard imageUrl={academyPillar.imageUrl} cursorText={academyPillar.cursorText} />
+        <div className="w-full md:w-1/2 flex items-center justify-center">
+          <img src={academyPillar.imageUrl} alt={academyPillar.title} className="w-full max-w-lg rounded-3xl object-cover aspect-video shadow-2xl border border-white/10" />
         </div>
       </div>
     </section>
   );
 }
 
-// ─── EXPERIENCE VERTICAL SECTION ──────────────────────────────────────────────
+// ─── EXPERIENCE VERTICAL SECTION ──────────────────────────────────────────────────────
 function ExperienceVerticalSection() {
   const experiencePillar = PILLARS[2];
   const navigate = useNavigate();
@@ -396,17 +464,12 @@ function ExperienceVerticalSection() {
               {experiencePillar.title}
             </h2>
           </div>
-          
           <div className="w-full p-8 sm:p-10 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl flex flex-col items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-[#00e03c]/20 text-[#00e03c] flex items-center justify-center border border-[#00e03c]/30">
               {experiencePillar.icon}
             </div>
-            <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">
-              {experiencePillar.headline}
-            </h3>
-            <p className="text-xs sm:text-sm leading-relaxed text-slate-300">
-              {experiencePillar.desc}
-            </p>
+            <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">{experiencePillar.headline}</h3>
+            <p className="text-xs sm:text-sm leading-relaxed text-slate-300">{experiencePillar.desc}</p>
             <button
               onClick={() => navigate(experiencePillar.route)}
               className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-[#00e03c]/15 hover:bg-[#00e03c]/25 border border-[#00e03c]/45 text-[#00e03c] rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300"
@@ -416,168 +479,138 @@ function ExperienceVerticalSection() {
             </button>
           </div>
         </div>
-
-        <div className="w-full md:w-1/2 flex items-center justify-center max-w-lg">
-          <TiltGlassCard imageUrl={experiencePillar.imageUrl} cursorText={experiencePillar.cursorText} />
+        <div className="w-full md:w-1/2 flex items-center justify-center">
+          <img src={experiencePillar.imageUrl} alt={experiencePillar.title} className="w-full max-w-lg rounded-3xl object-cover aspect-video shadow-2xl border border-white/10" />
         </div>
       </div>
     </section>
   );
 }
 
-// ─── STORE HORIZONTAL SECTION ─────────────────────────────────────────────────
+// ─── GSAP STORE SCALE-ON-SCROLL ──────────────────────────────────────────────────
 function StoreHorizontalSection() {
+  // triggerRef: el elemento exterior estable en el flujo del scroll
+  const triggerRef = useRef(null);
+  // pinRef: el contenedor interior que se fijará (con overflow: hidden para las tarjetas)
+  const pinRef = useRef(null);
   const navigate = useNavigate();
-  const { productList, handleAddToCart, handleAccessItem } = useApp();
-  const outerRef = useRef(null);
-  const trackRef = useRef(null);
-  const targetXRef = useRef(0);
-  const currentXRef = useRef(0);
-  const rafIdRef = useRef(null);
+  const { handleAddToCart, handleAccessItem, productList } = useApp();
 
-  const rafLoop = useCallback(() => {
-    const curr = currentXRef.current;
-    const target = targetXRef.current;
-    const next = curr + (target - curr) * LERP_SPEED;
+  useGSAP(() => {
+    const triggerEl = triggerRef.current;
+    const pinEl = pinRef.current;
+    if (!triggerEl || !pinEl) return;
 
-    if (trackRef.current) {
-      trackRef.current.style.transform = `translateX(${-next}px)`;
-    }
-    currentXRef.current = next;
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: triggerEl,
+        start: 'top top',
+        end: '+=400%',
+        scrub: 1,
+        pin: pinEl,
+        pinSpacing: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+      },
+    });
 
-    rafIdRef.current = requestAnimationFrame(rafLoop);
-  }, []);
+    tl.to('#store-intro', { opacity: 0, x: -100, duration: 1 }, 0)
+      .to('#store-card-1', { width: '100vw', height: '100vh', right: 0, top: 0, transform: 'translateY(0)', borderRadius: 0, duration: 2, ease: 'power2.inOut' }, 0)
+      .to('#store-card-1 .card-content', { opacity: 1, duration: 1 }, 1.5)
+      .to('#store-card-3', { right: '-15vw', duration: 2, ease: 'power2.inOut' }, 0);
 
-  const handleScroll = useCallback(() => {
-    const outer = outerRef.current;
-    if (!outer) return;
+    tl.to('#store-card-1 .card-content', { opacity: 0, duration: 0.5 }, 3)
+      .to('#store-card-2', { width: '100vw', height: '100vh', right: 0, top: 0, transform: 'translateY(0)', borderRadius: 0, duration: 2, ease: 'power2.inOut' }, 3)
+      .to('#store-card-2 .card-content', { opacity: 1, duration: 1 }, 4.5)
+      .to('#store-card-3', { right: '5vw', duration: 2, ease: 'power2.inOut' }, 3);
 
-    const outerTop = outer.offsetTop;
-    const scrollY = window.scrollY;
-    const relativeY = scrollY - outerTop;
+    tl.to('#store-card-2 .card-content', { opacity: 0, duration: 0.5 }, 6)
+      .to('#store-card-3', { width: '100vw', height: '100vh', right: 0, top: 0, transform: 'translateY(0)', borderRadius: 0, duration: 2, ease: 'power2.inOut' }, 6)
+      .to('#store-card-3 .card-content', { opacity: 1, duration: 1 }, 7.5);
 
-    if (relativeY < 0) {
-      targetXRef.current = 0;
-    } else {
-      const scrollableHeight = outer.offsetHeight - window.innerHeight;
-      const progress = Math.min(1, Math.max(0, relativeY / scrollableHeight));
-      const maxX = window.innerWidth;
-      targetXRef.current = progress * maxX;
-    }
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    rafIdRef.current = requestAnimationFrame(rafLoop);
-    handleScroll();
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
-    };
-  }, [handleScroll, rafLoop]);
-
-  const storePillar = PILLARS[3];
+  }, { scope: triggerRef });
 
   const handleBuyProduct = (product) => {
-    handleAccessItem(product, 'product', () => {
-      handleAddToCart(product);
-    });
+    handleAccessItem(product, 'product', () => handleAddToCart(product));
   };
+  const featured = productList.slice(0, 3);
 
   return (
-    <div ref={outerRef} style={{ height: '200vh' }} className="relative bg-transparent z-10">
-      <div style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'hidden' }} className="flex flex-col justify-center">
-        <div className="absolute left-8 top-24 z-20 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#00e03c] animate-pulse" />
-          <span className="text-[10px] font-black text-white/50 uppercase tracking-widest font-tech">Eco-Tienda y Recursos</span>
+    // triggerRef: define la sección en el scroll.
+    <div ref={triggerRef} className="relative w-full z-10">
+      {/* pinRef: el contenedor que GSAP fijará. Tiene overflow: hidden y es relative. */}
+      <div ref={pinRef} className="relative w-full h-screen overflow-hidden bg-transparent">
+        {/* Intro panel */}
+        <div id="store-intro" className="absolute inset-0 flex items-center px-8 md:px-24 z-10 pointer-events-none">
+          <div className="w-full md:w-1/2 max-w-lg p-10 rounded-3xl bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl pointer-events-auto">
+            <span className="text-[10px] text-[#00e03c] tracking-[0.3em] uppercase font-tech font-bold">Pilar 04 // Tienda</span>
+            <h2 className="mt-3 text-5xl md:text-6xl font-black text-white leading-none tracking-tighter uppercase font-display">
+              SERAM <br /><span className="text-[#00e03c]">STORE</span>
+            </h2>
+            <p className="mt-5 text-slate-300 font-light leading-relaxed text-sm">
+              Biblioteca de recursos y eco-compras. Libros técnicos, guías ecológicas y bio-insumos con envíos carbono neutro.
+            </p>
+            <button onClick={() => navigate('/shop')} className="mt-8 px-8 py-3.5 bg-white text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-[#00e03c] transition-colors duration-300 pointer-events-auto">
+              Ver tienda completa
+            </button>
+          </div>
         </div>
 
-        <div
-          ref={trackRef}
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            flexWrap: 'nowrap',
-            alignItems: 'center',
-            height: '100%',
-            width: '200vw',
-            willChange: 'transform',
-            transform: 'translateX(0px)',
-          }}
-        >
-          {/* Panel A: Intro */}
-          <div className="w-[100vw] h-screen flex flex-col md:flex-row items-center justify-center gap-12 px-10 sm:px-24 flex-shrink-0 select-none bg-transparent">
-            <div className="md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left space-y-4">
-              <h2 className="text-[3.5rem] sm:text-[5.5rem] font-black text-white leading-none tracking-tighter uppercase font-display filter drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
-                {storePillar.title}
-              </h2>
-            </div>
-            <div className="md:w-1/2 flex items-center justify-center max-w-lg w-full">
-              <TiltGlassCard imageUrl={storePillar.imageUrl} cursorText={storePillar.cursorText} />
+        {/* Tarjeta 1: Insumos Orgánicos — z-20 */}
+        <div id="store-card-1" style={{ ...cardBaseStyle, right: '30vw', width: '22vw', height: '65vh', zIndex: 20 }}>
+          <img src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?q=80&w=1200&auto=format&fit=crop" alt="Insumos Orgánicos" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/35" />
+          <div className="card-content opacity-0 absolute inset-0 flex flex-col justify-center px-8 md:px-24">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
+              <span className="text-xs text-[#00e03c] font-tech tracking-widest uppercase">Categoría 01</span>
+              <h3 className="mt-2 text-4xl md:text-5xl font-black text-white mb-4 leading-tight">Insumos Orgánicos</h3>
+              <p className="text-slate-200 mb-8 font-light leading-relaxed">Bio-fertilizantes de lombricompostaje, sustratos premium y soluciones naturales para jardines y proyectos de reforestación.</p>
+              {featured[0] && (
+                <button onClick={() => handleBuyProduct(featured[0])} className="px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">
+                  Añadir al carrito — Bs. {featured[0].price}
+                </button>
+              )}
             </div>
           </div>
+        </div>
 
-          {/* Panel B: Productos */}
-          <div className="w-[100vw] h-screen flex flex-col items-center justify-center px-6 sm:px-12 md:px-20 flex-shrink-0 bg-transparent relative">
-            <div className="max-w-6xl w-full text-left mb-6">
-              <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">
-                {storePillar.headline}
-              </h3>
-              <p className="text-xs text-slate-400 mt-1 max-w-xl">
-                Desliza horizontalmente para explorar nuestros insumos orgánicos, libros técnicos y herramientas SIG.
-              </p>
+        {/* Tarjeta 2: Biblioteca Técnica — z-30 */}
+        <div id="store-card-2" style={{ ...cardBaseStyle, right: '5vw', width: '22vw', height: '65vh', zIndex: 30 }}>
+          <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=1200&auto=format&fit=crop" alt="Biblioteca Técnica" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/35" />
+          <div className="card-content opacity-0 absolute inset-0 flex flex-col justify-center px-8 md:px-24">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
+              <span className="text-xs text-[#00e03c] font-tech tracking-widest uppercase">Categoría 02</span>
+              <h3 className="mt-2 text-4xl md:text-5xl font-black text-white mb-4 leading-tight">Biblioteca Técnica</h3>
+              <p className="text-slate-200 mb-8 font-light leading-relaxed">Guías SIG, manuales de auditoría ambiental, ebooks de legislación y recursos didácticos exclusivos de SERAM ACADEMY.</p>
+              {featured[1] && (
+                <button onClick={() => handleBuyProduct(featured[1])} className="px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">
+                  Añadir al carrito — Bs. {featured[1].price}
+                </button>
+              )}
             </div>
+          </div>
+        </div>
 
-            <div className="w-full max-w-6xl overflow-x-auto py-6 px-2 flex gap-6 flex-nowrap scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#00e03c]/20 scroll-smooth pointer-events-auto">
-              {productList.map((product) => (
-                <div
-                  key={product.id}
-                  className="w-72 bg-white/[0.08] border border-white/[0.14] rounded-2xl p-5 flex flex-col justify-between shrink-0 transition-all duration-300 shadow-lg hover:border-[#00e03c]/40 hover:shadow-[0_0_15px_rgba(0,224,60,0.15)] group relative"
-                >
-                  <div className="space-y-3">
-                    <div className="relative aspect-video rounded-xl overflow-hidden bg-slate-900/60 border border-white/5">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <span className="absolute top-2 left-2 text-[8px] font-black uppercase tracking-wider bg-[#00e03c]/20 border border-[#00e03c]/35 text-[#00e03c] px-2 py-0.5 rounded">
-                        {product.category}
-                      </span>
-                    </div>
-
-                    <div>
-                      <h4 className="text-sm font-extrabold text-white line-clamp-1 group-hover:text-[#00e03c] transition-colors">
-                        {product.name}
-                      </h4>
-                      <p className="text-[11px] text-slate-400 leading-relaxed mt-1 line-clamp-2">
-                        {product.desc}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between mt-5 pt-3 border-t border-white/5">
-                    <span className="text-sm font-black text-[#00e03c]">
-                      Bs. {product.price}
-                    </span>
-                    <button
-                      onClick={() => handleBuyProduct(product)}
-                      className="px-3.5 py-1.5 bg-[#00e03c] text-slate-950 font-black uppercase tracking-wider text-[9px] rounded-lg hover:bg-emerald-400 transition-all shadow-md shadow-emerald-500/10 active:scale-95"
-                    >
-                      Añadir
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-8 flex justify-end max-w-6xl w-full">
-              <button
-                onClick={() => navigate('/shop')}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/5 hover:bg-[#00e03c]/15 border border-white/10 hover:border-[#00e03c]/40 text-white hover:text-[#00e03c] rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 pointer-events-auto"
-              >
-                Ir a Tienda Completa <ChevronRight className="w-4.5 h-4.5" />
-              </button>
+        {/* Tarjeta 3: Membresía Premium — z-40 */}
+        <div id="store-card-3" style={{ ...cardBaseStyle, right: '-20vw', width: '22vw', height: '65vh', zIndex: 40 }}>
+          <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1200&auto=format&fit=crop" alt="Membresía" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/35" />
+          <div className="card-content opacity-0 absolute inset-0 flex flex-col justify-center px-8 md:px-24">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
+              <span className="text-xs text-[#00e03c] font-tech tracking-widest uppercase">Categoría 03</span>
+              <h3 className="mt-2 text-4xl md:text-5xl font-black text-white mb-4 leading-tight">Membresía Premium</h3>
+              <p className="text-slate-200 mb-6 font-light leading-relaxed">Accede a todos los cursos de Academy, descuentos en consultoría y envíos prioritarios. El plan para profesionales comprometidos.</p>
+              {featured[2] && (
+                <button onClick={() => handleBuyProduct(featured[2])} className="px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">
+                  Añadir al carrito — Bs. {featured[2].price}
+                </button>
+              )}
+              <div className="mt-6">
+                <button onClick={() => navigate('/shop')} className="text-sm font-medium text-slate-300 hover:text-[#00e03c] transition-colors duration-300 pointer-events-auto">
+                  Explora todos nuestros productos &rarr;
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -650,6 +683,7 @@ function FooterSection() {
             <p>Calle Presbítero Medina N° 2026, Sopocachi, La Paz</p>
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+            <Link to="/contact" className="hover:text-white transition-colors pointer-events-auto">Contacto</Link>
             <a href="#" className="hover:text-white transition-colors pointer-events-auto">Términos</a>
             <a href="#" className="hover:text-white transition-colors pointer-events-auto">Privacidad</a>
             <a href="#" className="hover:text-white transition-colors pointer-events-auto">Cookies</a>
@@ -667,23 +701,9 @@ function FooterSection() {
 export default function HomePage() {
   const outsideAppValue = useApp();
 
-  // Ref compartido con EnvironmentalCanvas para sincronización WebGL sin re-render
+  // Ref compartido con EnvironmentalCanvas — el canvas lee este valor en su propio
+  // scroll listener interno (InteractiveScene), así evitamos listeners duplicados.
   const hProgressRef = useRef(0);
-
-  // Listener para el scroll global de la página
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = maxScroll > 0 ? scrollY / maxScroll : 0;
-      hProgressRef.current = progress;
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
 
   return (
     <div className="relative w-full min-h-screen neuform-bg text-slate-100 overflow-x-clip">
