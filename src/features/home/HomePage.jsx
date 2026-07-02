@@ -65,11 +65,11 @@ const PILLARS = [
     imageUrl: '/assets/3d-backend/panel2-service-background.webp',
     cursorText: 'SERVICIOS',
     icon: <Briefcase className="w-6 h-6" />,
-    headline: 'DIAGNÓSTICO Y SOLUCIONES DE VANGUARDIA',
-    desc: 'Consultoría ambiental corporativa y monitoreo de alta precisión. Asegura el cumplimiento de licencias ambientales y mitiga riesgos normativos con SIG especializado, gestión de residuos y lombricultura a gran escala.',
-    cta: 'Cotizar Gratis con Diagnóstico Digital',
-    route: '/quote',
-    ctaCursor: 'COTIZAR',
+    headline: 'Evita multas y paralizaciones: asegura tu cumplimiento ambiental hoy mismo.',
+    desc: 'Garantiza la continuidad de tu negocio con consultoría ambiental y monitoreo de alta precisión. Convertimos la complejidad de las licencias ambientales en un proceso ágil, mitigando riesgos normativos antes de que se conviertan en sanciones.',
+    cta: 'Ver Servicios y Asegurar Cumplimiento',
+    route: '/services',
+    ctaCursor: 'SERVICIOS',
     variant: 'light',
   },
   {
@@ -328,18 +328,26 @@ function ServicesHorizontalSection() {
     tl.to('#svc-intro', { opacity: 0, x: -100, duration: 1 }, 0)
       .to('#svc-card-1', { width: '100vw', height: '100vh', right: 0, top: 0, transform: 'translateY(0)', borderRadius: 0, duration: 2, ease: 'power2.inOut' }, 0)
       .to('#svc-card-1 .card-content', { opacity: 1, duration: 1 }, 1.5)
-      .to('#svc-card-3', { right: '-15vw', duration: 2, ease: 'power2.inOut' }, 0);
+      .to('#svc-card-3', { right: '-10vw', duration: 2, ease: 'power2.inOut' }, 0)
+      .to('#svc-card-4', { right: '-35vw', duration: 2, ease: 'power2.inOut' }, 0);
 
     // Transición 2: Tarjeta 2 cubre la 1
     tl.to('#svc-card-1 .card-content', { opacity: 0, duration: 0.5 }, 3)
       .to('#svc-card-2', { width: '100vw', height: '100vh', right: 0, top: 0, transform: 'translateY(0)', borderRadius: 0, duration: 2, ease: 'power2.inOut' }, 3)
       .to('#svc-card-2 .card-content', { opacity: 1, duration: 1 }, 4.5)
-      .to('#svc-card-3', { right: '5vw', duration: 2, ease: 'power2.inOut' }, 3);
+      .to('#svc-card-3', { right: '10vw', duration: 2, ease: 'power2.inOut' }, 3)
+      .to('#svc-card-4', { right: '-10vw', duration: 2, ease: 'power2.inOut' }, 3);
 
-    // Transición 3: Tarjeta 3 cubre todo
+    // Transición 3: Tarjeta 3 cubre la 2
     tl.to('#svc-card-2 .card-content', { opacity: 0, duration: 0.5 }, 6)
       .to('#svc-card-3', { width: '100vw', height: '100vh', right: 0, top: 0, transform: 'translateY(0)', borderRadius: 0, duration: 2, ease: 'power2.inOut' }, 6)
-      .to('#svc-card-3 .card-content', { opacity: 1, duration: 1 }, 7.5);
+      .to('#svc-card-3 .card-content', { opacity: 1, duration: 1 }, 7.5)
+      .to('#svc-card-4', { right: '10vw', duration: 2, ease: 'power2.inOut' }, 6);
+
+    // Transición 4: Tarjeta 4 cubre la 3
+    tl.to('#svc-card-3 .card-content', { opacity: 0, duration: 0.5 }, 9)
+      .to('#svc-card-4', { width: '100vw', height: '100vh', right: 0, top: 0, transform: 'translateY(0)', borderRadius: 0, duration: 2, ease: 'power2.inOut' }, 9)
+      .to('#svc-card-4 .card-content', { opacity: 1, duration: 1 }, 10.5);
 
   }, { scope: triggerRef });
 
@@ -351,53 +359,76 @@ function ServicesHorizontalSection() {
         {/* Intro panel */}
         <div id="svc-intro" className="absolute inset-0 flex items-center px-8 md:px-24 z-10 pointer-events-none">
           <div className="w-full md:w-1/2 max-w-lg p-10 rounded-3xl bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl pointer-events-auto">
-            <span className="text-[10px] text-[#00e03c] tracking-[0.3em] uppercase font-tech font-bold">Pilar 01 // Consultoría</span>
-            <h2 className="mt-3 text-5xl md:text-6xl font-black text-white leading-none tracking-tighter uppercase font-display">
-              SERAM <br /><span className="text-[#00e03c]">SERVICES</span>
+            <span className="text-[10px] text-[#00e03c] tracking-[0.3em] uppercase font-tech font-bold">SERAM Services</span>
+            <h2 className="mt-3 font-black text-slate-100 leading-tight font-display select-none">
+              <span className="text-3xl md:text-4xl uppercase block mb-2">
+                Evita <span className="hover:text-[#68a379] transition-colors duration-300 cursor-pointer font-extrabold underline decoration-[#4e7a5c]/60 decoration-2 underline-offset-4 pointer-events-auto">multas y paralizaciones</span>:
+              </span>
+              <span className="text-2xl md:text-3xl text-[#00e03c] hover:text-white transition-colors duration-300 cursor-pointer font-extrabold underline decoration-[#00e03c]/50 decoration-2 underline-offset-4 pointer-events-auto block mt-1">
+                Asegura tu cumplimiento ambiental
+              </span>
+              <span className="text-2xl md:text-3xl block mt-1">hoy mismo</span>
             </h2>
-            <p className="mt-5 text-slate-300 font-light leading-relaxed text-sm">
-              Consultoría ambiental corporativa y monitoreo de alta precisión. Asegura el cumplimiento de licencias ambientales y mitiga riesgos normativos.
+            <p className="mt-5 text-slate-300 font-light leading-relaxed text-base select-none">
+              Garantiza la <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">continuidad de tu negocio</span> con consultoría ambiental y <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">monitoreo de alta precisión</span>. Convertimos la complejidad de las <span className="underline decoration-slate-400/50 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">licencias ambientales</span> en un proceso ágil, mitigando riesgos normativos antes de que se conviertan en <span className="underline decoration-[#4e7a5c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#68a379] transition-colors duration-300 cursor-pointer pointer-events-auto">sanciones</span>.
             </p>
             <button onClick={() => navigate('/services')} className="mt-8 px-8 py-3.5 bg-white text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-[#00e03c] transition-colors duration-300 pointer-events-auto">
-              Ir a la página de servicios
+              Ver Servicios y Asegurar Cumplimiento
             </button>
           </div>
         </div>
 
-        {/* Tarjeta 1: Monitoreo Ambiental — z-20 */}
-        <div id="svc-card-1" style={{ ...cardBaseStyle, right: '30vw', width: '22vw', height: '65vh', zIndex: 20 }}>
-          <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=1200&auto=format&fit=crop" alt="Monitoreo" className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-black/35" />
+        {/* Tarjeta 1: Regularización y Licencias Ambientales (FNCA) — z-20 */}
+        <div id="svc-card-1" style={{ ...cardBaseStyle, right: '35vw', width: '20vw', height: '65vh', zIndex: 20 }}>
+          <img src="/assets/3d-backend/licencias_fnca.webp" alt="Licencias Ambientales" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/45" />
           <div className="card-content opacity-0 absolute inset-0 flex flex-col justify-center px-8 md:px-24">
             <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
-              <h3 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">Monitoreo Ambiental</h3>
-              <p className="text-slate-200 mb-8 font-light leading-relaxed">Evaluación de calidad de agua, aire y suelo bajo estándares internacionales. Garantizamos la sostenibilidad de tus operaciones industriales.</p>
+              <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#00e03c]/90 font-tech mb-2 block">Regularización y Licencias Ambientales</span>
+              <h3 className="text-xl md:text-2xl font-black text-white mb-3 leading-tight">Formulario de Categorización Ambiental (FNCA)</h3>
+              <p className="text-slate-200 mb-6 text-sm font-light leading-relaxed">El inicio rápido obligatorio para todo proyecto comercial o civil.</p>
               <button onClick={() => navigate('/quote')} className="px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Cotiza gratis ahora</button>
             </div>
           </div>
         </div>
 
-        {/* Tarjeta 2: Reforestación — z-30 */}
-        <div id="svc-card-2" style={{ ...cardBaseStyle, right: '5vw', width: '22vw', height: '65vh', zIndex: 30 }}>
-          <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200&auto=format&fit=crop" alt="Reforestación" className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-black/35" />
+        {/* Tarjeta 2: Registro Ambiental Industrial (RAI) — z-30 */}
+        <div id="svc-card-2" style={{ ...cardBaseStyle, right: '10vw', width: '20vw', height: '65vh', zIndex: 30 }}>
+          <img src="/assets/3d-backend/registro_rai.png" alt="Registro Ambiental Industrial" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/45" />
           <div className="card-content opacity-0 absolute inset-0 flex flex-col justify-center px-8 md:px-24">
             <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
-              <h3 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">Reforestación a Escala</h3>
-              <p className="text-slate-200 mb-8 font-light leading-relaxed">Proyectos de compensación de huella de carbono y restauración ecológica de hábitats degradados para empresas comprometidas.</p>
+              <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#00e03c]/90 font-tech mb-2 block">Trámites Ambientales Express</span>
+              <h3 className="text-xl md:text-2xl font-black text-white mb-3 leading-tight">Registro Ambiental Industrial (RAI)</h3>
+              <p className="text-slate-200 mb-6 text-sm font-light leading-relaxed">Categorización y obtención de licencias para industrias manufactureras urbanas (Categorías 3 y 4).</p>
               <button onClick={() => navigate('/quote')} className="px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Cotiza gratis ahora</button>
             </div>
           </div>
         </div>
 
-        {/* Tarjeta 3: Sistemas SIG — z-40 */}
-        <div id="svc-card-3" style={{ ...cardBaseStyle, right: '-20vw', width: '22vw', height: '65vh', zIndex: 40 }}>
-          <img src="https://images.unsplash.com/photo-1518398046578-8cca57782e17?q=80&w=1200&auto=format&fit=crop" alt="Sistemas SIG" className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-black/35" />
+        {/* Tarjeta 3: Formulario de Prospección Minera & EMAP — z-40 */}
+        <div id="svc-card-3" style={{ ...cardBaseStyle, right: '-15vw', width: '20vw', height: '65vh', zIndex: 40 }}>
+          <img src="/assets/3d-backend/prospeccion_minera.png" alt="Prospección Minera y EMAP" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/45" />
           <div className="card-content opacity-0 absolute inset-0 flex flex-col justify-center px-8 md:px-24">
             <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
-              <h3 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">Sistemas de Información Geográfica</h3>
-              <p className="text-slate-200 mb-6 font-light leading-relaxed">Mapeo satelital avanzado y análisis de datos topográficos para la toma de decisiones precisas sobre el territorio.</p>
+              <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#00e03c]/90 font-tech mb-2 block">Trámites Ambientales Express</span>
+              <h3 className="text-xl md:text-2xl font-black text-white mb-3 leading-tight">Prospección Minera (PM) y EMAP</h3>
+              <p className="text-slate-200 mb-6 text-sm font-light leading-relaxed">Soluciones cartográficas y carpetas rápidas para cooperativas y pequeños mineros.</p>
+              <button onClick={() => navigate('/quote')} className="px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Cotiza gratis ahora</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Tarjeta 4: Geotecnología, Cartografía y Regularización de Tierras (SIG) — z-50 */}
+        <div id="svc-card-4" style={{ ...cardBaseStyle, right: '-40vw', width: '20vw', height: '65vh', zIndex: 50 }}>
+          <img src="/assets/3d-backend/gis_satellite_mapping.webp" alt="Geotecnología y Cartografía" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/45" />
+          <div className="card-content opacity-0 absolute inset-0 flex flex-col justify-center px-8 md:px-24">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
+              <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#00e03c]/90 font-tech mb-2 block">Geotecnología, Cartografía y Regularización de Tierras</span>
+              <h3 className="text-xl md:text-2xl font-black text-white mb-3 leading-tight">Sistemas de Información Geográfica (SIG)</h3>
+              <p className="text-slate-200 mb-6 text-sm font-light leading-relaxed">Análisis espacial, mapeo multitemporal de cobertura y dibujo de planos técnicos.</p>
               <button onClick={() => navigate('/quote')} className="px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Cotiza gratis ahora</button>
               <div className="mt-6">
                 <button onClick={() => navigate('/services')} className="text-sm font-medium text-slate-300 hover:text-[#00e03c] transition-colors duration-300 pointer-events-auto">

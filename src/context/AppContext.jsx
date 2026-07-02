@@ -15,7 +15,6 @@ export function AppProvider({ children }) {
     { email: 'barrientoso2401@gmail.com', role: 'AdminMod', name: 'Ing. Diego Barrientos', isPremiumApproved: true },
     { email: 'fernandoaraujo1912@gmail.com', role: 'AdminMod', name: 'Ing. Fernando Araujo', isPremiumApproved: true },
     { email: 'sebastiansbs51@gmail.com', role: 'AdminMod', name: 'Ing. Fabricio Orosco', isPremiumApproved: true },
-    { email: 'freddy@gmail.com', role: 'AdminMod', name: 'Ing. Freddy Farrachol', isPremiumApproved: true },
   ]);
 
   // --- SECRET PARTNER PORTAL ---
@@ -50,16 +49,75 @@ export function AppProvider({ children }) {
 
   // --- PROJECTS ---
   const [activeServices, setActiveServices] = useState([
-    { id: 101, client: 'Minera Los Andes', type: 'Estudio de Impacto Ambiental (EsIA)', progress: 85, lead: 'Ing. Diego Barrientos', startDate: '2026-01-15', endDate: '2026-08-30', involved: ['Ing. Fabricio Orosco', 'Ing. Freddy Farrachol'] },
-    { id: 102, client: 'EcoIndustrial S.A.', type: 'Auditoría de Gestión de Residuos', progress: 40, lead: 'Ing. Fabricio Orosco', startDate: '2026-03-01', endDate: '2026-12-15', involved: ['Ing. Fernando Araujo'] },
-    { id: 103, client: 'Municipio Metropolitano', type: 'Plan de Ordenamiento Territorial', progress: 100, lead: 'Ing. Fernando Araujo', startDate: '2025-10-01', endDate: '2026-05-30', involved: ['Ing. Diego Barrientos', 'Ing. Freddy Farrachol'] },
+    { id: 101, client: 'Minera Los Andes', type: 'Estudio de Impacto Ambiental (EsIA)', progress: 85, lead: 'Ing. Diego Barrientos', startDate: '2026-01-15', endDate: '2026-08-30', involved: ['Ing. Fabricio Orosco'], budget: 25000, labCosts: 3000, subcontractorCosts: 4000, taxRegime: 'Régimen General' },
+    { id: 102, client: 'EcoIndustrial S.A.', type: 'Auditoría de Gestión de Residuos', progress: 40, lead: 'Ing. Fabricio Orosco', startDate: '2026-03-01', endDate: '2026-12-15', involved: ['Ing. Fernando Araujo'], budget: 15000, labCosts: 1000, subcontractorCosts: 2000, taxRegime: 'Régimen General' },
+    { id: 103, client: 'Municipio Metropolitano', type: 'Plan de Ordenamiento Territorial', progress: 100, lead: 'Ing. Fernando Araujo', startDate: '2025-10-01', endDate: '2026-05-30', involved: ['Ing. Diego Barrientos'], budget: 35000, labCosts: 5000, subcontractorCosts: 6000, taxRegime: 'Régimen General' },
   ]);
+
+  // --- DINAMIC SERVICES IN PUBLIC SITE ---
+  const [publicServices, setPublicServices] = useState([
+    // Línea 1
+    { id: 'srv-1', title: 'FNCA', line: 'Trámites Ambientales Express', desc: 'Formulario de Nivel de Categorización Ambiental para categorizar cualquier proyecto en Bolivia.', tag: 'RENCA A', icon: 'FileText' },
+    { id: 'srv-2', title: 'Registro Ambiental Industrial (RAI)', line: 'Trámites Ambientales Express', desc: 'Categorización y obtención de licencias para industrias manufactureras urbanas (Categorías 3 y 4)', tag: 'RENCA A', icon: 'Activity' },
+    { id: 'srv-3', title: 'Formulario de Prospección Minera (PM) y EMAP', line: 'Trámites Ambientales Express', desc: 'Soluciones cartográficas y carpetas rápidas para cooperativas y pequeños mineros.', tag: 'RENCA A', icon: 'Compass' },
+    // Línea 2
+    { id: 'srv-4', title: 'PSST (Higiene y Seguridad)', line: 'Ingeniería y Seguridad Industrial', desc: 'Programa de Seguridad y Salud en el Trabajo visado por Ingeniero SySO externo habilitado ante el Min. de Trabajo.', tag: 'Brokerage', icon: 'Briefcase' },
+    { id: 'srv-5', title: 'LASP (Sustancias Peligrosas)', line: 'Ingeniería y Seguridad Industrial', desc: 'Trámite de Licencia de Actividades con Sustancias Peligrosas para manejo y almacenamiento de químicos.', tag: 'Brokerage', icon: 'Trash2' },
+    { id: 'srv-6', title: 'Manifiestos Ambientales (MA)', line: 'Ingeniería y Seguridad Industrial', desc: 'Adecuación ambiental para proyectos en marcha Categorías 1 y 2, firmados por peritos RENCA B/C externos.', tag: 'Brokerage', icon: 'Leaf' },
+    { id: 'srv-7', title: 'Monitoreos Físicos de Laboratorio', line: 'Ingeniería y Seguridad Industrial', desc: 'Monitoreo de ruido laboral, iluminación, calidad de agua y aire subcontratando laboratorios certificados.', tag: 'Brokerage', icon: 'Globe' },
+    // Línea 3
+    { id: 'srv-8', title: 'Análisis de Deforestación y Quemas', line: 'Servicios GIS Ambientales', desc: 'Análisis multitemporal de cobertura forestal y quemas mediante imágenes satelitales.', tag: 'SIG', icon: 'Map' },
+    { id: 'srv-9', title: 'Mapeo y Zonificación para POP', line: 'Servicios GIS Ambientales', desc: 'Diseño de mapas temáticos para Planes de Ordenamiento Predial bajo normas de la ABT.', tag: 'SIG', icon: 'Compass' },
+    { id: 'srv-10', title: 'Soporte Cartográfico B2B', line: 'Servicios GIS Ambientales', desc: 'Tercerización de análisis espacial y dibujo de planos para consultores y empresas senior.', tag: 'SIG', icon: 'FileText' },
+    { id: 'srv-11', title: 'Riesgo Hidrológico e Inundaciones', line: 'Servicios GIS Ambientales', desc: 'Modelamiento hidráulico predictivo y mapas de inundación para constructoras e inmobiliarias.', tag: 'SIG', icon: 'Activity' },
+    { id: 'srv-12', title: 'Cálculo de Huella de Carbono', line: 'Servicios GIS Ambientales', desc: 'Cuantificación corporativa de gases de efecto invernadero (Alcances 1, 2 y 3) bajo GHG Protocol.', tag: 'Sostenibilidad', icon: 'Leaf' },
+    { id: 'srv-13', title: 'Sostenibilidad de Exportación', line: 'Servicios GIS Ambientales', desc: 'Análisis de ciclo de vida (ACV) y descarbonización para cumplir barreras verdes internacionales.', tag: 'Sostenibilidad', icon: 'Globe' },
+  ]);
+
+  const handleAddPublicService = (service) => {
+    setPublicServices(prev => [...prev, { id: 'srv-' + Date.now(), ...service }]);
+    triggerToast('Servicio público agregado correctamente', 'success');
+  };
+  const handleEditPublicService = (id, fields) => {
+    setPublicServices(prev => prev.map(s => s.id === id ? { ...s, ...fields } : s));
+    triggerToast('Servicio público actualizado', 'success');
+  };
+  const handleDeletePublicService = (id) => {
+    setPublicServices(prev => prev.filter(s => s.id !== id));
+    triggerToast('Servicio público eliminado', 'info');
+  };
+
+  // --- SPECIALISTS DB (BROKER NETWORK) ---
+  const [specialists, setSpecialists] = useState([
+    { id: 1, name: 'Ing. Mariana Camacho', contact: '+591 78945612', renca: 'B-10254', syso: 'MTE-2301-A', city: 'Santa Cruz', rate: 1500, hasFactura: false },
+    { id: 2, name: 'Ing. Carlos Mendoza', contact: '+591 67812345', renca: 'C-22941', syso: 'MTE-1042-B', city: 'Cochabamba', rate: 2000, hasFactura: true },
+    { id: 3, name: 'Dra. Gabriela Rojas', contact: '+591 71234567', renca: 'B-09412', syso: 'N/A', city: 'La Paz', rate: 1800, hasFactura: false },
+  ]);
+
+  const handleAddSpecialist = (spec) => {
+    setSpecialists(prev => [...prev, { id: Date.now(), ...spec }]);
+    triggerToast('Especialista agregado a la red', 'success');
+  };
+  const handleEditSpecialist = (id, fields) => {
+    setSpecialists(prev => prev.map(s => s.id === id ? { ...s, ...fields } : s));
+    triggerToast('Especialista actualizado', 'success');
+  };
+  const handleDeleteSpecialist = (id) => {
+    setSpecialists(prev => prev.filter(s => s.id !== id));
+    triggerToast('Especialista eliminado de la red', 'info');
+  };
 
   // --- EXPERIENCES ---
   const [experiences, setExperiences] = useState([
     { id: 201, name: 'Voluntariado de Restauración Ecológica', date: '2026-07-12', location: 'Valle de Zongo', capacity: 20, enrolled: 14, price: 0, type: 'Voluntariado', status: 'Activo' },
     { id: 202, name: 'Expedición Científica Salar de Uyuni', date: '2026-08-05', location: 'Potosí, Bolivia', capacity: 12, enrolled: 8, price: 350, type: 'Ecoturismo', status: 'Activo' },
     { id: 203, name: 'Taller de Lombricultura Urbana', date: '2026-07-20', location: 'La Paz, Bolivia', capacity: 25, enrolled: 25, price: 80, type: 'Taller', status: 'Lleno' },
+  ]);
+
+  // --- TIME LOGS (intranet tracker) ---
+  const [timeLogs, setTimeLogs] = useState([
+    { id: 1, partner_id: 'barrientoso2401@gmail.com', partner_name: 'Ing. Diego Barrientos', project_id: 101, project_title: 'Minera Los Andes', hours: 4.5, description: 'Revisión y corrección del EsIA - Minera Los Andes', logged_at: '2026-06-23T14:30:00Z' },
+    { id: 2, partner_id: 'fernandoaraujo1912@gmail.com', partner_name: 'Ing. Fernando Araujo', project_id: 102, project_title: 'EcoIndustrial S.A.', hours: 6.0, description: 'Auditoría in-situ y muestreo de suelos', logged_at: '2026-06-24T09:00:00Z' },
   ]);
 
   // --- PRODUCTS (mutable) ---
@@ -217,6 +275,32 @@ export function AppProvider({ children }) {
             courseId: p.course_id || p.courseId || null
           }));
           setProductList(mappedProducts);
+        }
+
+        // Fetch time logs
+        const { data: logsData, error: logsError } = await supabase
+          .from('time_logs')
+          .select('*');
+        if (logsError) {
+          if (logsError.code === 'PGRST205') {
+            console.warn('[Supabase AppContext Load]: La tabla "time_logs" no existe. Usando datos mock locales.');
+          } else {
+            throw logsError;
+          }
+        } else if (logsData && logsData.length > 0) {
+          const mappedLogs = logsData.map(l => {
+            return {
+              id: l.id,
+              partner_id: l.partner_id,
+              partner_name: l.partner_name || 'Socio',
+              project_id: l.project_id,
+              project_title: l.project_title || 'Proyecto',
+              hours: parseFloat(l.hours),
+              description: l.description,
+              logged_at: l.logged_at
+            };
+          });
+          setTimeLogs(mappedLogs);
         }
       } catch (err) {
         console.warn('[Supabase AppContext Load Error]: Fallo al cargar datos. Usando fallbacks locales.', err.message);
@@ -582,7 +666,7 @@ export function AppProvider({ children }) {
     }
   };
 
-  const handleAddProject = async (client, type, lead, startDate, endDate, involved = []) => {
+  const handleAddProject = async (client, type, lead, startDate, endDate, involved = [], budget = 0, labCosts = 0, subcontractorCosts = 0, taxRegime = 'Régimen General') => {
     const newProj = {
       id: Date.now(),
       client,
@@ -591,7 +675,11 @@ export function AppProvider({ children }) {
       lead: lead || currentSocio?.name || 'Ing. Diego Barrientos',
       startDate: startDate || new Date().toISOString().split('T')[0],
       endDate: endDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      involved: involved
+      involved: involved,
+      budget: parseFloat(budget),
+      labCosts: parseFloat(labCosts),
+      subcontractorCosts: parseFloat(subcontractorCosts),
+      taxRegime: taxRegime
     };
 
     setActiveServices(prev => [...prev, newProj]);
@@ -605,7 +693,11 @@ export function AppProvider({ children }) {
         lead: newProj.lead,
         start_date: newProj.startDate,
         end_date: newProj.endDate,
-        involved
+        involved,
+        budget: parseFloat(budget),
+        lab_costs: parseFloat(labCosts),
+        subcontractor_costs: parseFloat(subcontractorCosts),
+        tax_regime: taxRegime
       }]);
       if (error && error.code !== 'PGRST205') {
         throw error;
@@ -675,6 +767,10 @@ export function AppProvider({ children }) {
         if (updatedFields.endDate !== undefined) dbFields.end_date = updatedFields.endDate;
         if (updatedFields.progress !== undefined) dbFields.progress_percent = updatedFields.progress;
         if (updatedFields.involved !== undefined) dbFields.involved = updatedFields.involved;
+        if (updatedFields.budget !== undefined) dbFields.budget = parseFloat(updatedFields.budget);
+        if (updatedFields.labCosts !== undefined) dbFields.lab_costs = parseFloat(updatedFields.labCosts);
+        if (updatedFields.subcontractorCosts !== undefined) dbFields.subcontractor_costs = parseFloat(updatedFields.subcontractorCosts);
+        if (updatedFields.taxRegime !== undefined) dbFields.tax_regime = updatedFields.taxRegime;
 
         const { error } = await supabase
           .from('projects')
@@ -867,6 +963,56 @@ export function AppProvider({ children }) {
     }
   };
 
+  // --- TIME TRACKER HANDLERS ---
+  const handleAddTimeLog = async (projectId, hours, description) => {
+    const partnerId = currentSocio?.email || supabaseUser?.email || 'socio@seram.com';
+    const partnerName = currentSocio?.name || supabaseUser?.user_metadata?.name || 'Socio directivo';
+    const proj = activeServices.find(p => p.id === projectId || p.id === parseInt(projectId)) || {};
+
+    const newLog = {
+      id: Date.now(),
+      partner_id: partnerId,
+      partner_name: partnerName,
+      project_id: projectId,
+      project_title: proj.client || proj.title || 'Proyecto',
+      hours: parseFloat(hours),
+      description,
+      logged_at: new Date().toISOString()
+    };
+
+    setTimeLogs(prev => [newLog, ...prev]);
+    triggerToast('Horas registradas exitosamente', 'success');
+
+    try {
+      const { error } = await supabase.from('time_logs').insert([{
+        partner_id: supabaseUser?.id || partnerId,
+        project_id: projectId,
+        hours: parseFloat(hours),
+        description,
+        logged_at: newLog.logged_at
+      }]);
+      if (error && error.code !== 'PGRST205') {
+        throw error;
+      }
+    } catch (err) {
+      console.warn('[Supabase Sync Warning - AddTimeLog]:', err.message);
+    }
+  };
+
+  const handleDeleteTimeLog = async (id) => {
+    setTimeLogs(prev => prev.filter(l => l.id !== id));
+    triggerToast('Registro de tiempo eliminado', 'info');
+
+    try {
+      const { error } = await supabase.from('time_logs').delete().eq('id', id);
+      if (error && error.code !== 'PGRST205') {
+        throw error;
+      }
+    } catch (err) {
+      console.warn('[Supabase Sync Warning - DeleteTimeLog]:', err.message);
+    }
+  };
+
   return (
     <AppContext.Provider value={{
       // Auth
@@ -886,6 +1032,8 @@ export function AppProvider({ children }) {
       // Data
       products: productList, productList, courses, setCourses, activeServices, setActiveServices,
       experiences, setExperiences,
+      timeLogs, setTimeLogs,
+      publicServices, setPublicServices, specialists, setSpecialists,
       // Academy progress
       completedLessons, courseExamsApproved, courseAssignments,
       // Modals
@@ -907,6 +1055,12 @@ export function AppProvider({ children }) {
       handleAddExperience, handleEditExperience, handleDeleteExperience, handleEnrollExperience,
       // Product handlers
       handleAddProduct, handleEditProduct, handleDeleteProduct, handleToggleProductPremium,
+      // Time Tracker handlers
+      handleAddTimeLog, handleDeleteTimeLog,
+      // Public services dynamic handlers
+      handleAddPublicService, handleEditPublicService, handleDeletePublicService,
+      // Specialist handlers
+      handleAddSpecialist, handleEditSpecialist, handleDeleteSpecialist,
     }}>
       {children}
     </AppContext.Provider>
