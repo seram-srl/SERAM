@@ -276,3 +276,12 @@ a, button, [role="button"], .cursor-hover-premium {
   z-index: 10;
   padding-top: 5rem; /* clearance for fixed navbar */
 }
+
+/* 16. HUD Scan and Radar Animations */
+@keyframes scan {
+  0% { top: 0%; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+

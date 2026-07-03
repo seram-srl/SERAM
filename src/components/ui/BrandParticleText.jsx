@@ -49,7 +49,7 @@ export default function BrandParticleText() {
         ? Math.min(width / 4.8, 90)
         : Math.min(width / 6.2, 135);
       offCtx.font = `900 ${fontSize}px 'Outfit', 'Inter', sans-serif`;
-      offCtx.textAlign = 'center';
+      offCtx.textAlign = 'left';
       offCtx.textBaseline = 'middle';
       
       // Limpiar lienzo temporal
@@ -66,17 +66,17 @@ export default function BrandParticleText() {
       // Dibujar letra por letra para capturar colores de pixel perfectos
       // "SER" (blanco)
       offCtx.fillStyle = '#ffffff';
-      offCtx.fillText('SER', startX + offCtx.measureText('SER').width / 2, centerY);
+      offCtx.fillText('SER', startX, centerY);
       currentX += offCtx.measureText('SER').width;
 
       // "A" (verde esmeralda)
       offCtx.fillStyle = '#00e03c';
-      offCtx.fillText('A', currentX + offCtx.measureText('A').width / 2, centerY);
+      offCtx.fillText('A', currentX, centerY);
       currentX += offCtx.measureText('A').width;
 
       // "M" (blanco)
       offCtx.fillStyle = '#ffffff';
-      offCtx.fillText('M', currentX + offCtx.measureText('M').width / 2, centerY);
+      offCtx.fillText('M', currentX, centerY);
 
       // Extraer datos de píxeles
       const imgData = offCtx.getImageData(0, 0, width, height).data;

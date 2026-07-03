@@ -195,6 +195,7 @@ function PanelB({ pillar }) {
 }
 
 function HeroSection() {
+  const heroRef = useRef(null);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
@@ -225,8 +226,37 @@ function HeroSection() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [mouseX, mouseY]);
 
+  useGSAP(() => {
+    // Animación de salida al hacer scroll hacia abajo para H2
+    gsap.to('#hero-h2', {
+      scrollTrigger: {
+        trigger: heroRef.current,
+        start: 'top top',
+        end: 'bottom top',
+        scrub: true,
+      },
+      opacity: 0,
+      y: -50,
+      ease: 'power1.in',
+    });
+
+    // Salida para el H3 (descripción)
+    gsap.to('#hero-desc', {
+      scrollTrigger: {
+        trigger: heroRef.current,
+        start: 'top top',
+        end: 'bottom top',
+        scrub: true,
+      },
+      opacity: 0,
+      y: -30,
+      ease: 'power1.in',
+    });
+  }, { scope: heroRef });
+
   return (
     <section
+      ref={heroRef}
       className="relative overflow-hidden min-h-screen w-full flex flex-col items-center justify-center py-20 px-6 sm:px-12 select-none bg-transparent"
       aria-label="Portada SERAM"
     >
@@ -246,18 +276,20 @@ function HeroSection() {
 
           {/* H2 con animación de entrada, hover verde y paralaje */}
           <motion.h2
+            id="hero-h2"
             custom={2}
             variants={staggerChild}
             initial="initial"
             animate="animate"
             style={{ x: h2X, y: h2Y }}
-            className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-slate-200 font-mono uppercase tracking-[0.35em] mt-4 text-center select-none will-change-transform"
+            className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-white font-display uppercase tracking-[0.3em] mt-4 text-center select-none will-change-transform"
           >
             SERVICIOS <span className="hover:text-[#00e03c] transition-colors duration-300 cursor-pointer">AMBIENTALES.</span>
           </motion.h2>
 
           {/* H3 con animación de entrada, palabras clave subrayadas y paralaje sutil */}
           <motion.h3
+            id="hero-desc"
             custom={3}
             variants={staggerChild}
             initial="initial"
@@ -297,16 +329,44 @@ function HeroSection() {
   );
 }
 
-
 // ─── GSAP SERVICES SCALE-ON-SCROLL ──────────────────────────────────────────────────────
 function ServicesHorizontalSection() {
-  // triggerRef: el elemento exterior estable en el flujo del scroll
   const triggerRef = useRef(null);
-  // pinRef: el contenedor interior que se fijará (con overflow: hidden para las tarjetas)
   const pinRef = useRef(null);
   const navigate = useNavigate();
 
+  const [isMobile, setIsMobile] = React.useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const getCardStyle = (index) => {
+    const rights = ['25vw', '1vw', '-23vw', '-47vw'];
+    return {
+      ...cardBaseStyle,
+      right: rights[index],
+      width: '20vw',
+      height: '65vh',
+      zIndex: (index + 2) * 10,
+    };
+  };
+
   useGSAP(() => {
+    if (isMobile) {
+      // Limpiar y revertir explícitamente cualquier ScrollTrigger de esta sección al cambiar a móvil
+      ScrollTrigger.getAll().forEach(trigger => {
+        if (trigger.trigger === triggerRef.current) {
+          trigger.kill(true);
+        }
+      });
+      return;
+    }
+
     const triggerEl = triggerRef.current;
     const pinEl = pinRef.current;
     if (!triggerEl || !pinEl) return;
@@ -315,7 +375,7 @@ function ServicesHorizontalSection() {
       scrollTrigger: {
         trigger: triggerEl,
         start: 'top top',
-        end: '+=400%',
+        end: '+=700%', // Desacelera la velocidad física del scroll
         scrub: 1,
         pin: pinEl,
         pinSpacing: true,
@@ -324,32 +384,230 @@ function ServicesHorizontalSection() {
       },
     });
 
-    // Transición 1: Intro fade + Tarjeta 1 se expande
-    tl.to('#svc-intro', { opacity: 0, x: -100, duration: 1 }, 0)
-      .to('#svc-card-1', { width: '100vw', height: '100vh', right: 0, top: 0, transform: 'translateY(0)', borderRadius: 0, duration: 2, ease: 'power2.inOut' }, 0)
-      .to('#svc-card-1 .card-content', { opacity: 1, duration: 1 }, 1.5)
-      .to('#svc-card-3', { right: '-10vw', duration: 2, ease: 'power2.inOut' }, 0)
-      .to('#svc-card-4', { right: '-35vw', duration: 2, ease: 'power2.inOut' }, 0);
+    // TIMELINE PARA ESCRITORIO
+    // Transición 1: Intro fade + Tarjeta 1 se expande (0 a 3)
+    tl.to('#svc-intro', { opacity: 0, x: -100, duration: 1.8, ease: 'power2.inOut' }, 0)
+      .to('#svc-card-1', { width: '100vw', height: '100vh', right: 0, top: 0, transform: 'translateY(0)', borderRadius: 0, duration: 2.5, ease: 'power2.inOut' }, 0)
+      .to('#svc-card-1 .card-content', { opacity: 1, duration: 0.5 }, 1.8)
+      .fromTo('#svc-card-1 .card-tag', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 1.9)
+      .fromTo('#svc-card-1 .card-title', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 2.0)
+      .fromTo('#svc-card-1 .card-subtitle', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 2.1)
+      .fromTo('#svc-card-1 .card-desc', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 2.2)
+      .fromTo('#svc-card-1 .card-btn', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 2.3)
+      .to('#svc-card-3', { right: '-10vw', duration: 2.5, ease: 'power2.inOut' }, 0)
+      .to('#svc-card-4', { right: '-35vw', duration: 2.5, ease: 'power2.inOut' }, 0);
 
-    // Transición 2: Tarjeta 2 cubre la 1
-    tl.to('#svc-card-1 .card-content', { opacity: 0, duration: 0.5 }, 3)
-      .to('#svc-card-2', { width: '100vw', height: '100vh', right: 0, top: 0, transform: 'translateY(0)', borderRadius: 0, duration: 2, ease: 'power2.inOut' }, 3)
-      .to('#svc-card-2 .card-content', { opacity: 1, duration: 1 }, 4.5)
-      .to('#svc-card-3', { right: '10vw', duration: 2, ease: 'power2.inOut' }, 3)
-      .to('#svc-card-4', { right: '-10vw', duration: 2, ease: 'power2.inOut' }, 3);
+    // PAUSA DE LECTURA 1 (3 a 5)
+    tl.to({}, { duration: 2 }, 3);
 
-    // Transición 3: Tarjeta 3 cubre la 2
-    tl.to('#svc-card-2 .card-content', { opacity: 0, duration: 0.5 }, 6)
-      .to('#svc-card-3', { width: '100vw', height: '100vh', right: 0, top: 0, transform: 'translateY(0)', borderRadius: 0, duration: 2, ease: 'power2.inOut' }, 6)
-      .to('#svc-card-3 .card-content', { opacity: 1, duration: 1 }, 7.5)
-      .to('#svc-card-4', { right: '10vw', duration: 2, ease: 'power2.inOut' }, 6);
+    // Transición 2: Tarjeta 2 cubre la 1 (5 a 8)
+    tl.to('#svc-card-1 .card-content', { opacity: 0, duration: 0.8 }, 5)
+      .to('#svc-card-2', { width: '100vw', height: '100vh', right: 0, top: 0, transform: 'translateY(0)', borderRadius: 0, duration: 2.5, ease: 'power2.inOut' }, 5)
+      .to('#svc-card-2 .card-content', { opacity: 1, duration: 0.5 }, 6.8)
+      .fromTo('#svc-card-2 .card-tag', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 6.9)
+      .fromTo('#svc-card-2 .card-title', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 7.0)
+      .fromTo('#svc-card-2 .card-desc', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 7.1)
+      .fromTo('#svc-card-2 .card-btn', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 7.2)
+      .to('#svc-card-3', { right: '10vw', duration: 2.5, ease: 'power2.inOut' }, 5)
+      .to('#svc-card-4', { right: '-10vw', duration: 2.5, ease: 'power2.inOut' }, 5);
 
-    // Transición 4: Tarjeta 4 cubre la 3
-    tl.to('#svc-card-3 .card-content', { opacity: 0, duration: 0.5 }, 9)
-      .to('#svc-card-4', { width: '100vw', height: '100vh', right: 0, top: 0, transform: 'translateY(0)', borderRadius: 0, duration: 2, ease: 'power2.inOut' }, 9)
-      .to('#svc-card-4 .card-content', { opacity: 1, duration: 1 }, 10.5);
+    // PAUSA DE LECTURA 2 (8 a 10)
+    tl.to({}, { duration: 2 }, 8);
 
-  }, { scope: triggerRef });
+    // Transición 3: Tarjeta 3 cubre la 2 (10 a 13)
+    tl.to('#svc-card-2 .card-content', { opacity: 0, duration: 0.8 }, 10)
+      .to('#svc-card-3', { width: '100vw', height: '100vh', right: 0, top: 0, transform: 'translateY(0)', borderRadius: 0, duration: 2.5, ease: 'power2.inOut' }, 10)
+      .to('#svc-card-3 .card-content', { opacity: 1, duration: 0.5 }, 11.8)
+      .fromTo('#svc-card-3 .card-tag', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 11.9)
+      .fromTo('#svc-card-3 .card-title', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 12.0)
+      .fromTo('#svc-card-3 .card-desc', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 12.1)
+      .fromTo('#svc-card-3 .card-btn', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 12.2)
+      .to('#svc-card-4', { right: '10vw', duration: 2.5, ease: 'power2.inOut' }, 10);
+
+    // PAUSA DE LECTURA 3 (13 a 15)
+    tl.to({}, { duration: 2 }, 13);
+
+    // Transición 4: Tarjeta 4 cubre la 3 (15 a 18)
+    tl.to('#svc-card-3 .card-content', { opacity: 0, duration: 0.8 }, 15)
+      .to('#svc-card-4', { width: '100vw', height: '100vh', right: 0, top: 0, transform: 'translateY(0)', borderRadius: 0, duration: 2.5, ease: 'power2.inOut' }, 15)
+      .to('#svc-card-4 .card-content', { opacity: 1, duration: 0.5 }, 16.8)
+      .fromTo('#svc-card-4 .card-tag', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 16.9)
+      .fromTo('#svc-card-4 .card-title', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 17.0)
+      .fromTo('#svc-card-4 .card-desc', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 17.1)
+      .fromTo('#svc-card-4 .card-btn', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 17.2)
+      .fromTo('#svc-card-4 .card-extra', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 17.3);
+
+    // PAUSA DE LECTURA 4 (18 a 20)
+    tl.to({}, { duration: 2 }, 18);
+
+  }, { scope: triggerRef, dependencies: [isMobile] });
+
+  if (isMobile) {
+    return (
+      <div ref={triggerRef} className="relative w-full py-20 px-4 flex flex-col gap-12 bg-transparent text-slate-100 z-10">
+        {/* Intro panel */}
+        <div id="svc-intro-mobile" className="w-full max-w-lg mx-auto p-8 rounded-3xl bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl">
+          <span className="text-[10px] text-[#00e03c] tracking-[0.3em] uppercase font-tech font-bold block mb-2 select-none">
+            SERAM Services
+          </span>
+          <h2 className="mt-3 font-black text-slate-100 leading-tight font-display select-none">
+            <span className="text-2xl uppercase block mb-2">
+              Evita <span className="hover:text-[#68a379] transition-colors duration-300 cursor-pointer font-extrabold underline decoration-[#4e7a5c]/60 decoration-2 underline-offset-4 pointer-events-auto inline-block">multas y paralizaciones</span>:
+            </span>
+            <span className="text-xl text-[#00e03c] hover:text-white transition-colors duration-300 cursor-pointer font-extrabold underline decoration-[#00e03c]/50 decoration-2 underline-offset-4 pointer-events-auto block mt-1 text-left">
+              Asegura tu cumplimiento ambiental
+            </span>
+            <span className="text-xl block mt-1">
+              hoy mismo
+            </span>
+          </h2>
+          <p className="mt-5 text-slate-300 font-light leading-relaxed text-sm select-none">
+            Garantiza la <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">continuidad de tu negocio</span> con consultoría ambiental y <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 pointer-events-auto">monitoreo de alta precisión</span>. Convertimos la complejidad de las <span className="underline decoration-slate-400/50 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">licencias ambientales</span> en un proceso ágil, mitigando riesgos normativos antes de que se conviertan en <span className="underline decoration-[#4e7a5c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#68a379] transition-colors duration-300 cursor-pointer pointer-events-auto">sanciones</span>.
+          </p>
+          <button onClick={() => navigate('/services')} className="mt-8 px-8 py-3.5 bg-white text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-[#00e03c] transition-colors duration-300 pointer-events-auto w-full">
+            Ver Servicios y Asegurar Cumplimiento
+          </button>
+        </div>
+
+        {/* Tarjeta 1 */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ duration: 0.6 }}
+          className="relative w-full max-w-lg mx-auto rounded-3xl overflow-hidden shadow-2xl border border-white/10" 
+          style={{ height: '480px' }}
+        >
+          <img src="/assets/3d-backend/licencias_fnca.png" alt="Licencias Ambientales" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/55" />
+          <div className="absolute inset-0 flex flex-col justify-end p-5">
+            <div className="bg-black/50 backdrop-blur-md border border-white/10 p-5 rounded-2xl">
+              <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#00e03c]/90 font-tech mb-1.5 block">Regularización y Licencias Ambientales</span>
+              <h3 className="text-lg font-black text-white mb-1.5 leading-tight select-none">
+                ¿Tu proyecto está listo para iniciar pero te falta la Categorización Ambiental?
+              </h3>
+              <h4 className="text-xs font-bold text-[#00e03c] mb-2 leading-tight select-none">
+                No arriesgues tu inversión por frenos administrativos o sanciones.
+              </h4>
+              <p className="text-slate-300 mb-4 text-[11px] font-light leading-relaxed select-none">
+                El Formulario de Nivel de Categorización Ambiental (FNCA) es el Instrumento de Regulación de Alcance Particular (IRAP) obligatorio por normativa boliviana. Nosotros lo gestionamos con precisión técnica para que tu obra civil o comercial empiece a generar ingresos.
+              </p>
+              <button onClick={() => navigate('/quote')} className="w-full py-3 bg-[#00e03c] text-black font-black rounded-full text-[10px] tracking-wider uppercase hover:bg-white transition-colors duration-300">Categorizar Mi Proyecto y Cotizar Gratis</button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Tarjeta 2 */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ duration: 0.6 }}
+          className="relative w-full max-w-lg mx-auto rounded-3xl overflow-hidden shadow-2xl border border-white/10" 
+          style={{ height: '480px' }}
+        >
+          {/* Fondo estilo HUD tecnológico futurista */}
+          <div className="absolute inset-0 bg-slate-950 overflow-hidden">
+            <img 
+              src="/assets/3d-backend/registro_rai_inspiration.jpg" 
+              alt="Registro Ambiental Industrial" 
+              className="absolute inset-0 w-full h-full object-cover opacity-45 mix-blend-luminosity" 
+            />
+            <div 
+              className="absolute inset-0 opacity-15"
+              style={{
+                backgroundImage: `radial-gradient(rgba(0, 224, 60, 0.4) 1px, transparent 1px)`,
+                backgroundSize: '16px 16px'
+              }}
+            />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,224,60,0.08),transparent_70%)] animate-[pulse_6s_infinite]" />
+            <div 
+              className="absolute inset-0 opacity-[0.03]"
+              style={{
+                backgroundImage: 'linear-gradient(rgba(0, 224, 60, 1) 50%, transparent 50%)',
+                backgroundSize: '100% 4px'
+              }}
+            />
+            <div className="absolute left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#00e03c]/40 to-transparent top-0 animate-[scan_4s_linear_infinite]" />
+            <div className="absolute inset-4 pointer-events-none border border-white/[0.03]">
+              <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-[#00e03c] shadow-[0_0_6px_rgba(0,224,60,0.5)]" />
+              <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-[#00e03c] shadow-[0_0_6px_rgba(0,224,60,0.5)]" />
+              <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-[#00e03c] shadow-[0_0_6px_rgba(0,224,60,0.5)]" />
+              <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-[#00e03c] shadow-[0_0_6px_rgba(0,224,60,0.5)]" />
+            </div>
+            <div className="absolute top-4 right-4 w-12 h-12 pointer-events-none opacity-30">
+              <div className="absolute inset-0 rounded-full border border-dashed border-[#00e03c]/30 animate-[spin_20s_linear_infinite]" />
+              <div className="absolute inset-2 rounded-full border border-[#00e03c]/15" />
+              <div className="absolute inset-3 rounded-full border-2 border-t-transparent border-r-transparent border-b-transparent border-[#00e03c]/60 animate-[spin_3s_linear_infinite]" />
+            </div>
+            <div className="absolute top-4 left-6 font-tech text-[7px] text-[#00e03c]/40 uppercase tracking-widest pointer-events-none select-none">
+              SYS_STATUS: ACTIVE // COORD_LOCK: 16.489-S
+            </div>
+          </div>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="absolute inset-0 flex flex-col justify-end p-5">
+            <div className="bg-black/60 backdrop-blur-md border border-white/10 p-5 rounded-2xl">
+              <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#00e03c]/90 font-tech mb-1.5 block">Regularización Industrial</span>
+              <h3 className="text-lg font-black text-white mb-2 leading-tight">Registro Ambiental Industrial (RAI): Evita Clausuras y Sanciones</h3>
+              <p className="text-slate-300 mb-4 text-[11px] font-light leading-relaxed">
+                Protege tu fábrica de precintos y multas. Gestionamos tu Registro Ambiental Industrial (RAI) y la categorización industrial obligatoria para industrias manufactureras urbanas de categorías 3 y 4 con blindaje legal garantizado.
+              </p>
+              <button onClick={() => navigate('/quote')} className="w-full py-3 bg-[#00e03c] text-black font-black rounded-full text-[10px] tracking-wider uppercase hover:bg-white transition-colors duration-300">Obtener RAI y Blindar Fábrica</button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Tarjeta 3 */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ duration: 0.6 }}
+          className="relative w-full max-w-lg mx-auto rounded-3xl overflow-hidden shadow-2xl border border-white/10" 
+          style={{ height: '480px' }}
+        >
+          <img src="/assets/3d-backend/prospeccion_minera_es.png" alt="Prospección Minera y EMAP" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/55" />
+          <div className="absolute inset-0 flex flex-col justify-end p-5">
+            <div className="bg-black/50 backdrop-blur-md border border-white/10 p-5 rounded-2xl">
+              <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#00e03c]/90 font-tech mb-1.5 block">Minería sin Frenos Administrativos</span>
+              <h3 className="text-lg font-black text-white mb-2 leading-tight">Prospección Minera y EMAP: Asegura tu Licencia de Explotación</h3>
+              <p className="text-slate-300 mb-4 text-[11px] font-light leading-relaxed">
+                Evita retrasos críticos en el inicio de tus operaciones. Diseñamos soluciones cartográficas exactas y elaboramos carpetas rápidas para minería para la aprobación ágil del plan EMAP en tus concesiones mineras.
+              </p>
+              <button onClick={() => navigate('/quote')} className="w-full py-3 bg-[#00e03c] text-black font-black rounded-full text-[10px] tracking-wider uppercase hover:bg-white transition-colors duration-300">Aprobar Trámite Minero y Explotar</button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Tarjeta 4 */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ duration: 0.6 }}
+          className="relative w-full max-w-lg mx-auto rounded-3xl overflow-hidden shadow-2xl border border-white/10" 
+          style={{ height: '530px' }}
+        >
+          <img src="/assets/3d-backend/gis_satellite_mapping.webp" alt="Geotecnología y Cartografía" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/55" />
+          <div className="absolute inset-0 flex flex-col justify-end p-5">
+            <div className="bg-black/50 backdrop-blur-md border border-white/10 p-5 rounded-2xl">
+              <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#00e03c]/90 font-tech mb-1.5 block">Ingeniería Cartográfica de Alta Precisión</span>
+              <h3 className="text-lg font-black text-white mb-2 leading-tight">Sistemas de Información Geográfica (SIG): Mapas Libres de Rechazo</h3>
+              <p className="text-slate-300 mb-3 text-[11px] font-light leading-relaxed">
+                Desarrollamos Sistemas de Información Geográfica (SIG), mapas ambientales e informes de levantamiento cartográfico en Bolivia con precisión geodésica quirúrgica.
+              </p>
+              <button onClick={() => navigate('/quote')} className="w-full py-3 bg-[#00e03c] text-black font-black rounded-full text-[10px] tracking-wider uppercase hover:bg-white transition-colors duration-300 mb-3">Diseñar Planos Con Precisión Quirúrgica</button>
+              <button onClick={() => navigate('/services')} className="w-full text-center text-[10px] font-medium text-slate-300 hover:text-[#00e03c] transition-colors duration-300 block">
+                Acceder a nuestra suite completa de ingeniería y blindaje ambiental &rarr;
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     // triggerRef: define la sección en el scroll.
@@ -359,15 +617,19 @@ function ServicesHorizontalSection() {
         {/* Intro panel */}
         <div id="svc-intro" className="absolute inset-0 flex items-center px-8 md:px-24 z-10 pointer-events-none">
           <div className="w-full md:w-1/2 max-w-lg p-10 rounded-3xl bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl pointer-events-auto">
-            <span className="text-[10px] text-[#00e03c] tracking-[0.3em] uppercase font-tech font-bold">SERAM Services</span>
+            <span className="text-[10px] text-[#00e03c] tracking-[0.3em] uppercase font-tech font-bold block mb-2 select-none">
+              SERAM Services
+            </span>
             <h2 className="mt-3 font-black text-slate-100 leading-tight font-display select-none">
-              <span className="text-3xl md:text-4xl uppercase block mb-2">
-                Evita <span className="hover:text-[#68a379] transition-colors duration-300 cursor-pointer font-extrabold underline decoration-[#4e7a5c]/60 decoration-2 underline-offset-4 pointer-events-auto">multas y paralizaciones</span>:
+              <span className="text-2xl md:text-3xl uppercase block mb-2">
+                Evita <span className="hover:text-[#68a379] transition-colors duration-300 cursor-pointer font-extrabold underline decoration-[#4e7a5c]/60 decoration-2 underline-offset-4 pointer-events-auto inline-block">multas y paralizaciones</span>:
               </span>
-              <span className="text-2xl md:text-3xl text-[#00e03c] hover:text-white transition-colors duration-300 cursor-pointer font-extrabold underline decoration-[#00e03c]/50 decoration-2 underline-offset-4 pointer-events-auto block mt-1">
+              <span className="text-xl md:text-2xl text-[#00e03c] hover:text-white transition-colors duration-300 cursor-pointer font-extrabold underline decoration-[#00e03c]/50 decoration-2 underline-offset-4 pointer-events-auto block mt-1 text-left">
                 Asegura tu cumplimiento ambiental
               </span>
-              <span className="text-2xl md:text-3xl block mt-1">hoy mismo</span>
+              <span className="text-xl md:text-2xl block mt-1">
+                hoy mismo
+              </span>
             </h2>
             <p className="mt-5 text-slate-300 font-light leading-relaxed text-base select-none">
               Garantiza la <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">continuidad de tu negocio</span> con consultoría ambiental y <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">monitoreo de alta precisión</span>. Convertimos la complejidad de las <span className="underline decoration-slate-400/50 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">licencias ambientales</span> en un proceso ágil, mitigando riesgos normativos antes de que se conviertan en <span className="underline decoration-[#4e7a5c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#68a379] transition-colors duration-300 cursor-pointer pointer-events-auto">sanciones</span>.
@@ -379,60 +641,110 @@ function ServicesHorizontalSection() {
         </div>
 
         {/* Tarjeta 1: Regularización y Licencias Ambientales (FNCA) — z-20 */}
-        <div id="svc-card-1" style={{ ...cardBaseStyle, right: '35vw', width: '20vw', height: '65vh', zIndex: 20 }}>
-          <img src="/assets/3d-backend/licencias_fnca.webp" alt="Licencias Ambientales" className="absolute inset-0 w-full h-full object-cover" />
+        <div id="svc-card-1" style={getCardStyle(0)}>
+          <img src="/assets/3d-backend/licencias_fnca.png" alt="Licencias Ambientales" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/45" />
           <div className="card-content opacity-0 absolute inset-0 flex flex-col justify-center px-8 md:px-24">
             <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
-              <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#00e03c]/90 font-tech mb-2 block">Regularización y Licencias Ambientales</span>
-              <h3 className="text-xl md:text-2xl font-black text-white mb-3 leading-tight">Formulario de Categorización Ambiental (FNCA)</h3>
-              <p className="text-slate-200 mb-6 text-sm font-light leading-relaxed">El inicio rápido obligatorio para todo proyecto comercial o civil.</p>
-              <button onClick={() => navigate('/quote')} className="px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Cotiza gratis ahora</button>
+              <span className="card-tag text-[11px] uppercase tracking-wider font-extrabold text-[#00e03c]/90 font-tech mb-2 block">Regularización y Licencias Ambientales</span>
+              <h3 className="card-title text-2xl md:text-3xl font-black text-white mb-2 leading-tight select-none">
+                ¿Tu proyecto está listo para iniciar pero te falta la Categorización Ambiental?
+              </h3>
+              <h4 className="card-subtitle text-base font-bold text-[#00e03c] mb-3 leading-tight select-none">
+                No arriesgues tu inversión por frenos administrativos o sanciones.
+              </h4>
+              <p className="card-desc text-slate-200 mb-6 text-sm font-light leading-relaxed select-none">
+                El <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">Formulario de Nivel de Categorización Ambiental (FNCA)</span> es el <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">Instrumento de Regulación de Alcance Particular (IRAP)</span> obligatorio por normativa boliviana para definir el rumbo legal de tu <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">Licencia Ambiental</span>. Nosotros lo gestionamos con precisión técnica para que tu <span className="underline decoration-slate-400/50 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">obra civil o comercial</span> empiece a <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">generar ingresos</span> sin mirar atrás.
+              </p>
+              <button onClick={() => navigate('/quote')} className="card-btn px-6 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-[11px] tracking-wider uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Categorizar Mi Proyecto y Cotizar Gratis</button>
             </div>
           </div>
         </div>
 
         {/* Tarjeta 2: Registro Ambiental Industrial (RAI) — z-30 */}
-        <div id="svc-card-2" style={{ ...cardBaseStyle, right: '10vw', width: '20vw', height: '65vh', zIndex: 30 }}>
-          <img src="/assets/3d-backend/registro_rai.png" alt="Registro Ambiental Industrial" className="absolute inset-0 w-full h-full object-cover" />
+        <div id="svc-card-2" style={getCardStyle(1)}>
+          {/* Fondo estilo HUD tecnológico futurista */}
+          <div className="absolute inset-0 bg-slate-950 overflow-hidden">
+            <img 
+              src="/assets/3d-backend/registro_rai_inspiration.jpg" 
+              alt="Registro Ambiental Industrial" 
+              className="absolute inset-0 w-full h-full object-cover opacity-45 mix-blend-luminosity" 
+            />
+            <div 
+              className="absolute inset-0 opacity-15"
+              style={{
+                backgroundImage: `radial-gradient(rgba(0, 224, 60, 0.4) 1px, transparent 1px)`,
+                backgroundSize: '16px 16px'
+              }}
+            />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0, 224, 60, 0.08),transparent_70%)] animate-[pulse_6s_infinite]" />
+            <div 
+              className="absolute inset-0 opacity-[0.03]"
+              style={{
+                backgroundImage: 'linear-gradient(rgba(0, 224, 60, 1) 50%, transparent 50%)',
+                backgroundSize: '100% 4px'
+              }}
+            />
+            <div className="absolute left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#00e03c]/40 to-transparent top-0 animate-[scan_4s_linear_infinite]" />
+            <div className="absolute inset-8 pointer-events-none border border-white/[0.03]">
+              <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#00e03c] shadow-[0_0_8px_rgba(0,224,60,0.5)]" />
+              <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[#00e03c] shadow-[0_0_8px_rgba(0,224,60,0.5)]" />
+              <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[#00e03c] shadow-[0_0_8px_rgba(0,224,60,0.5)]" />
+              <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#00e03c] shadow-[0_0_8px_rgba(0,224,60,0.5)]" />
+            </div>
+            <div className="absolute top-8 right-8 w-16 h-16 pointer-events-none opacity-40">
+              <div className="absolute inset-0 rounded-full border border-dashed border-[#00e03c]/30 animate-[spin_20s_linear_infinite]" />
+              <div className="absolute inset-2 rounded-full border border-[#00e03c]/15" />
+              <div className="absolute inset-4 rounded-full border-2 border-t-transparent border-r-transparent border-b-transparent border-[#00e03c]/60 animate-[spin_3s_linear_infinite]" />
+            </div>
+            <div className="absolute top-6 left-8 font-tech text-[8px] text-[#00e03c]/40 uppercase tracking-widest pointer-events-none select-none">
+              SYS_STATUS: ACTIVE // COORD_LOCK: 16.489-S_68.119-W
+            </div>
+          </div>
           <div className="absolute inset-0 bg-black/45" />
           <div className="card-content opacity-0 absolute inset-0 flex flex-col justify-center px-8 md:px-24">
             <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
-              <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#00e03c]/90 font-tech mb-2 block">Trámites Ambientales Express</span>
-              <h3 className="text-xl md:text-2xl font-black text-white mb-3 leading-tight">Registro Ambiental Industrial (RAI)</h3>
-              <p className="text-slate-200 mb-6 text-sm font-light leading-relaxed">Categorización y obtención de licencias para industrias manufactureras urbanas (Categorías 3 y 4).</p>
-              <button onClick={() => navigate('/quote')} className="px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Cotiza gratis ahora</button>
+              <span className="card-tag text-[10px] uppercase tracking-wider font-extrabold text-[#00e03c]/90 font-tech mb-2 block">Regularización Industrial</span>
+              <h3 className="card-title text-xl md:text-2xl font-black text-white mb-3 leading-tight">Registro Ambiental Industrial (RAI): Evita Clausuras y Sanciones</h3>
+              <p className="card-desc text-slate-200 mb-6 text-sm font-light leading-relaxed">
+                Protege tu fábrica de precintos y multas. Gestionamos tu <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">Registro Ambiental Industrial (RAI)</span> y la <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">categorización industrial</span> obligatoria para <span className="underline decoration-slate-400/50 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">industrias manufactureras</span> urbanas (Categorías 3 y 4) con velocidad express y blindaje legal garantizado.
+              </p>
+              <button onClick={() => navigate('/quote')} className="card-btn px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Obtener RAI y Blindar Fábrica</button>
             </div>
           </div>
         </div>
 
         {/* Tarjeta 3: Formulario de Prospección Minera & EMAP — z-40 */}
-        <div id="svc-card-3" style={{ ...cardBaseStyle, right: '-15vw', width: '20vw', height: '65vh', zIndex: 40 }}>
-          <img src="/assets/3d-backend/prospeccion_minera.png" alt="Prospección Minera y EMAP" className="absolute inset-0 w-full h-full object-cover" />
+        <div id="svc-card-3" style={getCardStyle(2)}>
+          <img src="/assets/3d-backend/prospeccion_minera_es.png" alt="Prospección Minera y EMAP" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/45" />
           <div className="card-content opacity-0 absolute inset-0 flex flex-col justify-center px-8 md:px-24">
             <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
-              <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#00e03c]/90 font-tech mb-2 block">Trámites Ambientales Express</span>
-              <h3 className="text-xl md:text-2xl font-black text-white mb-3 leading-tight">Prospección Minera (PM) y EMAP</h3>
-              <p className="text-slate-200 mb-6 text-sm font-light leading-relaxed">Soluciones cartográficas y carpetas rápidas para cooperativas y pequeños mineros.</p>
-              <button onClick={() => navigate('/quote')} className="px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Cotiza gratis ahora</button>
+              <span className="card-tag text-[10px] uppercase tracking-wider font-extrabold text-[#00e03c]/90 font-tech mb-2 block">Minería sin Frenos Administrativos</span>
+              <h3 className="card-title text-xl md:text-2xl font-black text-white mb-3 leading-tight">Prospección Minera y EMAP: Asegura tu Licencia de Explotación</h3>
+              <p className="card-desc text-slate-200 mb-6 text-sm font-light leading-relaxed">
+                Evita retrasos críticos en el inicio de tus operaciones. Diseñamos <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">soluciones cartográficas</span> exactas y elaboramos <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">carpetas rápidas para minería</span> para la aprobación ágil del plan <span className="underline decoration-slate-400/50 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">EMAP</span> y trámites de <span className="underline decoration-slate-400/50 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">prospección minera</span> en tus <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">concesiones mineras</span>.
+              </p>
+              <button onClick={() => navigate('/quote')} className="card-btn px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Aprobar Trámite Minero y Explotar</button>
             </div>
           </div>
         </div>
 
         {/* Tarjeta 4: Geotecnología, Cartografía y Regularización de Tierras (SIG) — z-50 */}
-        <div id="svc-card-4" style={{ ...cardBaseStyle, right: '-40vw', width: '20vw', height: '65vh', zIndex: 50 }}>
+        <div id="svc-card-4" style={getCardStyle(3)}>
           <img src="/assets/3d-backend/gis_satellite_mapping.webp" alt="Geotecnología y Cartografía" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/45" />
           <div className="card-content opacity-0 absolute inset-0 flex flex-col justify-center px-8 md:px-24">
             <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
-              <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#00e03c]/90 font-tech mb-2 block">Geotecnología, Cartografía y Regularización de Tierras</span>
-              <h3 className="text-xl md:text-2xl font-black text-white mb-3 leading-tight">Sistemas de Información Geográfica (SIG)</h3>
-              <p className="text-slate-200 mb-6 text-sm font-light leading-relaxed">Análisis espacial, mapeo multitemporal de cobertura y dibujo de planos técnicos.</p>
-              <button onClick={() => navigate('/quote')} className="px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Cotiza gratis ahora</button>
-              <div className="mt-6">
+              <span className="card-tag text-[10px] uppercase tracking-wider font-extrabold text-[#00e03c]/90 font-tech mb-2 block">Ingeniería Cartográfica de Alta Precisión</span>
+              <h3 className="card-title text-xl md:text-2xl font-black text-white mb-3 leading-tight">Sistemas de Información Geográfica (SIG): Mapas Libres de Rechazo</h3>
+              <p className="card-desc text-slate-200 mb-6 text-sm font-light leading-relaxed">
+                No permitas que planos observados retrasen tus aprobaciones. Desarrollamos <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">Sistemas de Información Geográfica (SIG)</span>, <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">mapas ambientales</span> e informes de <span className="underline decoration-slate-400/50 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">levantamiento cartográfico</span> y <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">catastro ambiental en Bolivia</span> con precisión geodésica quirúrgica.
+              </p>
+              <button onClick={() => navigate('/quote')} className="card-btn px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Diseñar Planos Con Precisión Quirúrgica</button>
+              <div className="card-extra mt-6">
                 <button onClick={() => navigate('/services')} className="text-sm font-medium text-slate-300 hover:text-[#00e03c] transition-colors duration-300 pointer-events-auto">
-                  Explora todos nuestros servicios en detalle &rarr;
+                  Acceder a nuestra suite completa de ingeniería y blindaje ambiental &rarr;
                 </button>
               </div>
             </div>
