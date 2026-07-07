@@ -16,109 +16,109 @@ import { useNavigate } from 'react-router-dom';
 const STEPS = {
   q1: {
     id: 'q1',
-    bot: '\u00a1Para darte la recomendaci\u00f3n exacta, cu\u00e9ntame: cu\u00e1l es el tipo de tu proyecto o necesidad?',
+    bot: '¡Para darte la recomendación exacta, cuéntame: cuál es el tipo de tu proyecto o necesidad?',
     allowComment: false,
     options: [
-      { label: '\ud83c\udfd7\ufe0f Obra civil o proyecto comercial',   next: 'q2_civil' },
-      { label: '\ud83c\udfed Industria manufacturera',           next: 'q2_industrial' },
-      { label: '\u26cf\ufe0f Operaci\u00f3n minera o concesi\u00f3n',      next: 'q2_mining' },
-      { label: '\ud83d\uddfa\ufe0f Proyecto ambiental / SIG',          next: 'q2_sig' },
-      { label: '\ud83c\udf93 Capacitar a mi equipo',             next: 'q2_training' },
-      { label: '\ud83d\udcac Solo tengo una consulta puntual',   next: 'q3', service: 'CONSULT' },
+      { label: '🏗️ Obra civil o proyecto comercial',   next: 'q2_civil' },
+      { label: '🏭 Industria manufacturera',           next: 'q2_industrial' },
+      { label: '⛏️ Operación minera o concesión',      next: 'q2_mining' },
+      { label: '🗺️ Proyecto ambiental / SIG',          next: 'q2_sig' },
+      { label: '🎓 Capacitar a mi equipo',             next: 'q2_training' },
+      { label: '💬 Solo tengo una consulta puntual',   next: 'q3', service: 'CONSULT' },
     ],
   },
   q2_civil: {
     id: 'q2_civil',
-    bot: 'Entendido. \u00bfEn qu\u00e9 etapa legal se encuentra tu proyecto?',
+    bot: 'Entendido. ¿En qué etapa legal se encuentra tu proyecto?',
     allowComment: true,
-    commentLabel: '\u00bfTienes alg\u00fan documento observado o rechazado? Desc\u00edbelo (opcional)',
+    commentLabel: '¿Tienes algún documento observado o rechazado? Descríbelo (opcional)',
     options: [
-      { label: 'Necesito la Categorizaci\u00f3n Ambiental (FNCA)', next: 'q3', service: 'FNCA' },
+      { label: 'Necesito la Categorización Ambiental (FNCA)', next: 'q3', service: 'FNCA' },
       { label: 'Ya tengo FNCA, necesito avanzar con la licencia', next: 'q3', service: 'FNCA_ADV' },
       { label: 'Me observaron o rechazaron un documento', next: 'q3', service: 'FNCA_OBS' },
     ],
   },
   q2_industrial: {
     id: 'q2_industrial',
-    bot: 'Bien. \u00bfCu\u00e1l es la situaci\u00f3n actual de tu industria?',
+    bot: 'Bien. ¿Cuál es la situación actual de tu industria?',
     allowComment: true,
-    commentLabel: '\u00bfConoces la categor\u00eda de tu industria (1, 2, 3 o 4)? (opcional)',
+    commentLabel: '¿Conoces la categoría de tu industria (1, 2, 3 o 4)? (opcional)',
     options: [
-      { label: 'Nunca tramit\u00e9 el RAI (Registro Ambiental Industrial)', next: 'q3', service: 'RAI' },
-      { label: 'Mi RAI est\u00e1 vencido u observado', next: 'q3', service: 'RAI_OBS' },
+      { label: 'Nunca tramité el RAI (Registro Ambiental Industrial)', next: 'q3', service: 'RAI' },
+      { label: 'Mi RAI está vencido u observado', next: 'q3', service: 'RAI_OBS' },
       { label: 'Necesito Manifiestos o monitoreos de laboratorio', next: 'q3', service: 'MA_MON' },
       { label: 'Necesito el PSST / LASP (Seguridad)', next: 'q3', service: 'PSST' },
     ],
   },
   q2_mining: {
     id: 'q2_mining',
-    bot: 'Perfecto. \u00bfQu\u00e9 necesitas para tu concesi\u00f3n o actividad minera?',
+    bot: 'Perfecto. ¿Qué necesitas para tu concesión o actividad minera?',
     allowComment: true,
-    commentLabel: 'Describe brevemente tu \u00e1rea o tipo de concesi\u00f3n (opcional)',
+    commentLabel: 'Describe brevemente tu área o tipo de concesión (opcional)',
     options: [
-      { label: 'Formulario de Prospecci\u00f3n Minera (PM)', next: 'q3', service: 'PROSP' },
-      { label: 'Plan de Evaluaci\u00f3n de Medio Ambiente (EMAP)', next: 'q3', service: 'EMAP' },
-      { label: 'Cartograf\u00eda SIG y mapas para tr\u00e1mite minero', next: 'q3', service: 'SIG_MINING' },
+      { label: 'Formulario de Prospección Minera (PM)', next: 'q3', service: 'PROSP' },
+      { label: 'Plan de Evaluación de Medio Ambiente (EMAP)', next: 'q3', service: 'EMAP' },
+      { label: 'Cartografía SIG y mapas para trámite minero', next: 'q3', service: 'SIG_MINING' },
     ],
   },
   q2_sig: {
     id: 'q2_sig',
-    bot: '\u00a1\u00c1rea de mucha demanda! \u00bfQu\u00e9 tipo de an\u00e1lisis o servicio SIG necesitas?',
+    bot: '¡Área de mucha demanda! ¿Qué tipo de análisis o servicio SIG necesitas?',
     allowComment: true,
-    commentLabel: 'Cu\u00e9ntanos brevemente el contexto de tu proyecto ambiental (opcional)',
+    commentLabel: 'Cuéntanos brevemente el contexto de tu proyecto ambiental (opcional)',
     options: [
-      { label: 'Mapas ambientales para licencia o tr\u00e1mite', next: 'q3', service: 'SIG_MAPS' },
-      { label: 'Plan de Aplicaci\u00f3n SIG completo para mi proyecto', next: 'q3', service: 'SIG_FULL' },
-      { label: 'An\u00e1lisis de deforestaci\u00f3n o cobertura forestal', next: 'q3', service: 'SIG_DEF' },
-      { label: 'Riesgo hidrol\u00f3gico o mapas de inundaci\u00f3n', next: 'q3', service: 'SIG_HYD' },
-      { label: 'Soporte cartogr\u00e1fico B2B para mi consultora', next: 'q3', service: 'SIG_B2B' },
+      { label: 'Mapas ambientales para licencia o trámite', next: 'q3', service: 'SIG_MAPS' },
+      { label: 'Plan de Aplicación SIG completo para mi proyecto', next: 'q3', service: 'SIG_FULL' },
+      { label: 'Análisis de deforestación o cobertura forestal', next: 'q3', service: 'SIG_DEF' },
+      { label: 'Riesgo hidrológico o mapas de inundación', next: 'q3', service: 'SIG_HYD' },
+      { label: 'Soporte cartográfico B2B para mi consultora', next: 'q3', service: 'SIG_B2B' },
     ],
   },
   q2_training: {
     id: 'q2_training',
-    bot: 'Excelente elecci\u00f3n. \u00bfQu\u00e9 nivel de formaci\u00f3n est\u00e1s buscando?',
+    bot: 'Excelente elección. ¿Qué nivel de formación estás buscando?',
     allowComment: false,
     options: [
-      { label: 'Curso SIG B\u00e1sico (QGIS desde cero)', next: 'q3', service: 'COURSE_SIG' },
-      { label: 'Members\u00eda Academia Premium', next: 'q3', service: 'PREMIUM' },
+      { label: 'Curso SIG Básico (QGIS desde cero)', next: 'q3', service: 'COURSE_SIG' },
+      { label: 'Membresía Academia Premium', next: 'q3', service: 'PREMIUM' },
       { label: 'Taller corporativo personalizado para mi equipo', next: 'q3', service: 'CORP' },
       { label: 'Quiero explorar toda la oferta primero', next: 'q3', service: 'BROWSE_COURSES' },
     ],
   },
   q3: {
     id: 'q3',
-    bot: '\u00a1Casi listo! \u00bfCon qu\u00e9 urgencia necesitas comenzar?',
+    bot: '¡Casi listo! ¿Con qué urgencia necesitas comenzar?',
     allowComment: true,
-    commentLabel: '\u00bfAlg\u00fan detalle adicional o contexto para nuestro equipo? (opcional)',
+    commentLabel: '¿Algún detalle adicional o contexto para nuestro equipo? (opcional)',
     options: [
-      { label: '\u26a1 Esta semana, es urgente', next: 'result', urgency: 'high' },
-      { label: '\ud83d\udcc5 Este mes', next: 'result', urgency: 'medium' },
-      { label: '\ud83d\udd0d Estoy evaluando opciones', next: 'result', urgency: 'low' },
+      { label: '⚡ Esta semana, es urgente', next: 'result', urgency: 'high' },
+      { label: '📅 Este mes', next: 'result', urgency: 'medium' },
+      { label: '🔎 Estoy evaluando opciones', next: 'result', urgency: 'low' },
     ],
   },
 };
 
 const SERVICES = {
-  FNCA:          { tag: 'Tr\u00e1mites Ambientales',    title: 'Categorizaci\u00f3n Ambiental (FNCA)',                   desc: 'El punto de partida legal de tu proyecto. Lo gestionamos con precisi\u00f3n t\u00e9cnica para que tu obra comience sin frenos administrativos.',                   price: 'Desde USD 150', route: '/quote',   cta: 'Cotizar FNCA Ahora' },
-  FNCA_ADV:      { tag: 'Avance Post-FNCA',         title: 'Instrumento de Licencia \u2014 DIA, EEIA o MA',          desc: 'Tu Categorizaci\u00f3n est\u00e1 lista. Necesitamos el instrumento correcto para completar tu Licencia Ambiental definitiva.',                                 price: 'Consultar',    route: '/quote',   cta: 'Avanzar Mi Licencia' },
-  FNCA_OBS:      { tag: 'Correcci\u00f3n Urgente',       title: 'Correcci\u00f3n y Resubmisi\u00f3n de Documentos Observados', desc: 'Documentos rechazados. Los corregimos con blindaje t\u00e9cnico-legal hasta lograr la aprobaci\u00f3n.',                                                    price: 'Eval. gratis', route: '/quote',   cta: 'Evaluar Mi Caso Gratis' },
-  RAI:           { tag: 'Regularizaci\u00f3n Industrial', title: 'Registro Ambiental Industrial (RAI)',              desc: 'Evita precintos y multas. Tramitamos tu RAI para Categor\u00edas 3 y 4 con velocidad express y garant\u00eda legal.',                                          price: 'Desde USD 200', route: '/quote',  cta: 'Obtener Mi RAI Express' },
-  RAI_OBS:       { tag: 'Renovaci\u00f3n Urgente',       title: 'Renovaci\u00f3n de RAI Vencido u Observado',             desc: 'Tu RAI tiene problemas. Lo actualizamos y blindamos tu f\u00e1brica antes de una inspecci\u00f3n sorpresa.',                                                  price: 'Eval. gratis', route: '/quote',   cta: 'Renovar Mi RAI' },
-  MA_MON:        { tag: 'Seguridad Industrial',     title: 'Manifiestos Ambientales y Monitoreos',              desc: 'Adecuaci\u00f3n para Categor\u00edas 1 y 2. Laboratorios certificados para ruido, agua, aire e iluminaci\u00f3n.',                                                price: 'Desde USD 120', route: '/quote',  cta: 'Cotizar Monitoreo' },
-  PSST:          { tag: 'Seguridad Industrial',     title: 'PSST y LASP \u2014 Seguridad e Higiene Industrial',      desc: 'Programa de Seguridad visado por Ing. SySO externo ante el Ministerio de Trabajo boliviano.',                                                      price: 'Desde USD 180', route: '/quote',  cta: 'Cotizar PSST' },
-  PROSP:         { tag: 'Miner\u00eda',                title: 'Formulario de Prospecci\u00f3n Minera (PM)',             desc: 'Carpeta de PM con cartograf\u00eda exacta para aprobaci\u00f3n ante AJAM o ABM.',                                                                             price: 'Desde USD 300', route: '/quote',  cta: 'Cotizar Prospecci\u00f3n' },
-  EMAP:          { tag: 'Miner\u00eda',                title: 'Plan EMAP \u2014 Habilitaci\u00f3n Minera',                 desc: 'EMAP dise\u00f1ado con estudios t\u00e9cnicos y cartogr\u00e1ficos para aprobaci\u00f3n express de tu concesi\u00f3n.',                                                     price: 'Desde USD 400', route: '/quote',  cta: 'Cotizar Plan EMAP' },
-  SIG_MINING:    { tag: 'SIG & Miner\u00eda',           title: 'Cartograf\u00eda SIG para Tr\u00e1mites Mineros',             desc: 'Planos, coordenadas UTM, layers vectoriales y mapas tem\u00e1ticos listos para tr\u00e1mite minero.',                                                        price: 'Desde USD 200', route: '/quote',  cta: 'Cotizar Cartograf\u00eda' },
-  SIG_MAPS:      { tag: 'SIG Ambiental',            title: 'Mapas Ambientales para Licencias',                  desc: 'Mapas tem\u00e1ticos e informes cartogr\u00e1ficos que pasan la revisi\u00f3n t\u00e9cnica de autoridades ambientales. Sin observaciones.',                            price: 'Desde USD 150', route: '/quote',  cta: 'Cotizar Mis Mapas' },
-  SIG_FULL:      { tag: 'SIG Ambiental',            title: 'Plan de Aplicaci\u00f3n SIG Completo',                   desc: 'Captura, procesamiento, an\u00e1lisis espacial y entrega de productos cartogr\u00e1ficos listos para tr\u00e1mite.',                                               price: 'Desde USD 350', route: '/quote',  cta: 'Cotizar Plan de SIG' },
-  SIG_DEF:       { tag: 'SIG Ambiental',            title: 'An\u00e1lisis de Deforestaci\u00f3n y Quemas',                desc: 'Detecci\u00f3n multitemporal de cambios de cobertura forestal. Informes para ABT y proyectos REDD+.',                                                   price: 'Desde USD 280', route: '/quote',  cta: 'Solicitar An\u00e1lisis' },
-  SIG_HYD:       { tag: 'SIG Ambiental',            title: 'Riesgo Hidrol\u00f3gico e Inundaciones',                 desc: 'Modelamiento hidr\u00e1ulico predictivo y mapas de inundaci\u00f3n para constructoras e inmobiliarias.',                                                    price: 'Desde USD 320', route: '/quote',  cta: 'Solicitar Modelamiento' },
-  SIG_B2B:       { tag: 'SIG B2B',                 title: 'Soporte Cartogr\u00e1fico B2B',                          desc: 'Tercerizaci\u00f3n de an\u00e1lisis espacial y procesamiento GIS para consultores que necesitan m\u00e1s capacidad t\u00e9cnica.',                               price: 'Por proyecto',  route: '/quote',  cta: 'Hablar sobre B2B' },
-  COURSE_SIG:    { tag: 'SERAM Academy',            title: 'Curso SIG Aplicado (QGIS)',                         desc: '20h de formaci\u00f3n pr\u00e1ctica: mapeo de cuencas, zonificaci\u00f3n y cartograf\u00eda ambiental con el Ing. Diego Barrientos.',                                  price: 'USD 150',       route: '/academy', cta: 'Ver Curso SIG' },
-  PREMIUM:       { tag: 'SERAM Academy',            title: 'Members\u00eda Academia Premium',                        desc: 'Acceso ilimitado a todos los cursos: SIG, Huella de Carbono, Auditor\u00eda Ambiental, ebooks y recursos exclusivos.',                                 price: 'USD 35 / a\u00f1o',  route: '/academy', cta: 'Activar Members\u00eda' },
-  CORP:          { tag: 'Corporativo',              title: 'Taller Corporativo de Formaci\u00f3n Ambiental',         desc: 'Programa formativo a medida: SIG aplicado, fiscalizaci\u00f3n ambiental y cumplimiento normativo boliviano.',                                           price: 'Personalizado', route: '/quote',  cta: 'Solicitar Propuesta' },
-  BROWSE_COURSES:{ tag: 'SERAM Academy',            title: 'Explora SERAM Academy',                             desc: 'Cursos gratuitos y de pago, masterclasses y ebooks de gesti\u00f3n ambiental, SIG y legislaci\u00f3n boliviana.',                                           price: 'Desde USD 0',   route: '/academy', cta: 'Ir a SERAM Academy' },
-  CONSULT:       { tag: 'Consulta Gratuita',        title: 'Consulta con un Especialista SERAM',                desc: 'Nuestro equipo est\u00e1 disponible para resolver tus dudas sin compromiso. Primera consulta completamente gratuita.',                                  price: 'Gratis',        route: '/contact', cta: 'Hablar con un Especialista' },
+  FNCA:          { tag: 'Trámites Ambientales',    title: 'Categorización Ambiental (FNCA)',                   desc: 'El punto de partida legal de tu proyecto. Lo gestionamos con precisión técnica para que tu obra comience sin frenos administrativos.',                   price: 'Desde USD 150', route: '/quote',   cta: 'Cotizar FNCA Ahora' },
+  FNCA_ADV:      { tag: 'Avance Post-FNCA',         title: 'Instrumento de Licencia — DIA, EEIA o MA',          desc: 'Tu Categorización está lista. Necesitamos el instrumento correcto para completar tu Licencia Ambiental definitiva.',                                 price: 'Consultar',    route: '/quote',   cta: 'Avanzar Mi Licencia' },
+  FNCA_OBS:      { tag: 'Corrección Urgente',       title: 'Corrección y Resubmisión de Documentos Observados', desc: 'Documentos rechazados. Los corregimos con blindaje técnico-legal hasta lograr la aprobación.',                                                    price: 'Eval. gratis', route: '/quote',   cta: 'Evaluar Mi Caso Gratis' },
+  RAI:           { tag: 'Regularización Industrial', title: 'Registro Ambiental Industrial (RAI)',              desc: 'Evita precintos y multas. Tramitamos tu RAI para Categorías 3 y 4 con velocidad express y garantía legal.',                                          price: 'Desde USD 200', route: '/quote',  cta: 'Obtener Mi RAI Express' },
+  RAI_OBS:       { tag: 'Renovación Urgente',       title: 'Renovación de RAI Vencido u Observado',             desc: 'Tu RAI tiene problemas. Lo actualizamos y blindamos tu fábrica antes de una inspección sorpresa.',                                                  price: 'Eval. gratis', route: '/quote',   cta: 'Renovar Mi RAI' },
+  MA_MON:        { tag: 'Seguridad Industrial',     title: 'Manifiestos Ambientales y Monitoreos',              desc: 'Adecuación para Categorías 1 y 2. Laboratorios certificados para ruido, agua, aire e iluminación.',                                                price: 'Desde USD 120', route: '/quote',  cta: 'Cotizar Monitoreo' },
+  PSST:          { tag: 'Seguridad Industrial',     title: 'PSST y LASP — Seguridad e Higiene Industrial',      desc: 'Programa de Seguridad visado por Ing. SySO externo ante el Ministerio de Trabajo boliviano.',                                                      price: 'Desde USD 180', route: '/quote',  cta: 'Cotizar PSST' },
+  PROSP:         { tag: 'Minería',                title: 'Formulario de Prospección Minera (PM)',             desc: 'Carpeta de PM con cartografía exacta para aprobación ante AJAM o ABM.',                                                                             price: 'Desde USD 300', route: '/quote',  cta: 'Cotizar Prospección' },
+  EMAP:          { tag: 'Minería',                title: 'Plan EMAP — Habilitación Minera',                 desc: 'EMAP diseñado con estudios técnicos y cartográficos para aprobación express de tu concesión.',                                                     price: 'Desde USD 400', route: '/quote',  cta: 'Cotizar Plan EMAP' },
+  SIG_MINING:    { tag: 'SIG & Minería',           title: 'Cartografía SIG para Trámites Mineros',             desc: 'Planos, coordenadas UTM, layers vectoriales y mapas temáticos listos para trámite minero.',                                                        price: 'Desde USD 200', route: '/quote',  cta: 'Cotizar Cartografía' },
+  SIG_MAPS:      { tag: 'SIG Ambiental',            title: 'Mapas Ambientales para Licencias',                  desc: 'Mapas temáticos e informes cartográficos que pasan la revisión técnica de autoridades ambientales. Sin observaciones.',                            price: 'Desde USD 150', route: '/quote',  cta: 'Cotizar Mis Mapas' },
+  SIG_FULL:      { tag: 'SIG Ambiental',            title: 'Plan de Aplicación SIG Completo',                   desc: 'Captura, procesamiento, análisis espacial y entrega de productos cartográficos listos para trámite.',                                               price: 'Desde USD 350', route: '/quote',  cta: 'Cotizar Plan de SIG' },
+  SIG_DEF:       { tag: 'SIG Ambiental',            title: 'Análisis de Deforestación y Quemas',                desc: 'Detección multitemporal de cambios de cobertura forestal. Informes para ABT y proyectos REDD+.',                                                   price: 'Desde USD 280', route: '/quote',  cta: 'Solicitar Análisis' },
+  SIG_HYD:       { tag: 'SIG Ambiental',            title: 'Riesgo Hidrológico e Inundaciones',                 desc: 'Modelamiento hidráulico predictivo y mapas de inundación para constructoras e inmobiliarias.',                                                    price: 'Desde USD 320', route: '/quote',  cta: 'Solicitar Modelamiento' },
+  SIG_B2B:       { tag: 'SIG B2B',                 title: 'Soporte Cartográfico B2B',                          desc: 'Tercerización de análisis espacial y procesamiento GIS para consultores que necesitan más capacidad técnica.',                               price: 'Por proyecto',  route: '/quote',  cta: 'Hablar sobre B2B' },
+  COURSE_SIG:    { tag: 'SERAM Academy',            title: 'Curso SIG Aplicado (QGIS)',                         desc: '20h de formación práctica: mapeo de cuencas, zonificación y cartografía ambiental con el Ing. Diego Barrientos.',                                  price: 'USD 150',       route: '/academy', cta: 'Ver Curso SIG' },
+  PREMIUM:       { tag: 'SERAM Academy',            title: 'Membresía Academia Premium',                        desc: 'Acceso ilimitado a todos los cursos: SIG, Huella de Carbono, Auditoría Ambiental, ebooks y recursos exclusivos.',                                 price: 'USD 35 / año',  route: '/academy', cta: 'Activar Membresía' },
+  CORP:          { tag: 'Corporativo',              title: 'Taller Corporativo de Formación Ambiental',         desc: 'Programa formativo a medida: SIG aplicado, fiscalización ambiental y cumplimiento normativo boliviano.',                                           price: 'Personalizado', route: '/quote',  cta: 'Solicitar Propuesta' },
+  BROWSE_COURSES:{ tag: 'SERAM Academy',            title: 'Explora SERAM Academy',                             desc: 'Cursos gratuitos y de pago, masterclasses y ebooks de gestión ambiental, SIG y legislación boliviana.',                                           price: 'Desde USD 0',   route: '/academy', cta: 'Ir a SERAM Academy' },
+  CONSULT:       { tag: 'Consulta Gratuita',        title: 'Consulta con un Especialista SERAM',                desc: 'Nuestro equipo está disponible para resolver tus dudas sin compromiso. Primera consulta completamente gratuita.',                                  price: 'Gratis',        route: '/contact', cta: 'Hablar con un Especialista' },
 };
 
 function BotAvatar() {
@@ -206,10 +206,8 @@ export default function ChatbotFAB() {
   const resolvedService = serviceId ? SERVICES[serviceId] : null;
 
   const quickActions = [
-    { icon: <Zap className="w-4 h-4 text-[#00e03c]" />, bg: 'bg-gradient-to-r from-[#00e03c]/12 to-[#00e03c]/5', border: 'border-[#00e03c]/25 hover:border-[#00e03c]/55', iconBg: 'bg-[#00e03c]/20 shadow-[0_0_12px_rgba(0,224,60,0.2)]', title: 'Diagn\u00f3stico Digital', sub: 'Encuentra tu soluci\u00f3n en 60 segundos', arrow: <ChevronRight className="w-4 h-4 text-[#00e03c]/60 group-hover:text-[#00e03c] transition-colors flex-shrink-0" />, action: startDiagnosis },
+    { icon: <Zap className="w-4 h-4 text-[#00e03c]" />, bg: 'bg-gradient-to-r from-[#00e03c]/12 to-[#00e03c]/5', border: 'border-[#00e03c]/25 hover:border-[#00e03c]/55', iconBg: 'bg-[#00e03c]/20 shadow-[0_0_12px_rgba(0,224,60,0.2)]', title: 'Diagnóstico Digital', sub: 'Encuentra tu solución en 60 segundos', arrow: <ChevronRight className="w-4 h-4 text-[#00e03c]/60 group-hover:text-[#00e03c] transition-colors flex-shrink-0" />, action: startDiagnosis },
     { icon: <Phone className="w-4 h-4 text-slate-300" />, bg: 'bg-white/[0.04]', border: 'border-white/10 hover:border-white/20 hover:bg-white/[0.07]', iconBg: 'bg-white/10', title: 'Hablar con Especialista', sub: 'WhatsApp, email o formulario', arrow: <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-slate-300 transition-colors flex-shrink-0" />, action: () => setView('contact') },
-    { icon: <Briefcase className="w-4 h-4 text-slate-300" />, bg: 'bg-white/[0.04]', border: 'border-white/10 hover:border-white/20 hover:bg-white/[0.07]', iconBg: 'bg-white/10', title: 'Ver Todos los Servicios', sub: 'FNCA, RAI, EMAP, SIG y m\u00e1s', arrow: <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300 transition-colors flex-shrink-0" />, action: () => { setIsOpen(false); navigate('/services'); } },
-    { icon: <BookOpen className="w-4 h-4 text-slate-300" />, bg: 'bg-white/[0.04]', border: 'border-white/10 hover:border-white/20 hover:bg-white/[0.07]', iconBg: 'bg-white/10', title: 'Cursos SIG & Academia', sub: 'QGIS, legislaci\u00f3n, huella de carbono', arrow: <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300 transition-colors flex-shrink-0" />, action: () => { setIsOpen(false); navigate('/academy'); } },
   ];
 
   return (
@@ -270,7 +268,6 @@ export default function ChatbotFAB() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[11px] font-black text-white uppercase tracking-wider font-tech leading-none">Asistente SERAM</p>
-                  <p className="text-[9px] text-[#00e03c] font-bold uppercase tracking-widest mt-0.5">\u25cf En l\u00ednea \u00b7 Respuesta inmediata</p>
                 </div>
                 <div className="flex items-center gap-1">
                   {view !== 'welcome' && (
@@ -288,8 +285,8 @@ export default function ChatbotFAB() {
 
                 {view === 'welcome' && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="space-y-3">
-                    <BotBubble text={<span>Bienvenido a <strong className="text-white">SERAM</strong> \ud83c\udf3f<br/>Soy tu asistente de consultor\u00eda ambiental. Puedo ayudarte a encontrar el <strong className="text-[#00e03c]">servicio exacto</strong> para tu proyecto o conectarte con nuestro equipo al instante.</span>} />
-                    <p className="text-[9px] text-slate-600 uppercase tracking-widest font-tech px-1 pt-1">\u00bfQu\u00e9 deseas hacer hoy?</p>
+                    <BotBubble text={<span>Bienvenido a <strong className="text-white">SERAM</strong> 🌿<br/>Soy tu asistente de consultoría ambiental. Puedo ayudarte a encontrar el <strong className="text-[#00e03c]">servicio exacto</strong> para tu proyecto o conectarte con nuestro equipo al instante.</span>} />
+                    <p className="text-[9px] text-slate-600 uppercase tracking-widest font-tech px-1 pt-1">¿Qué deseas hacer hoy?</p>
                     {quickActions.map((item, i) => (
                       <motion.button key={i} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={item.action}
                         className={`group w-full flex items-center gap-3 p-3.5 rounded-2xl ${item.bg} border ${item.border} transition-all duration-300 cursor-none text-left`}>
@@ -301,7 +298,6 @@ export default function ChatbotFAB() {
                         {item.arrow}
                       </motion.button>
                     ))}
-                    <p className="text-[9px] text-slate-700 text-center pt-2 pb-1 font-tech tracking-wider">SERAM \u00b7 Consultor\u00eda Ambiental de \u00c9lite \u00b7 Bolivia</p>
                   </motion.div>
                 )}
 
@@ -329,7 +325,7 @@ export default function ChatbotFAB() {
                                           <CornerDownLeft className="w-3 h-3 inline-block mr-1 opacity-50" />
                                           {msg.commentLabel || 'Comentario adicional (opcional)'}
                                         </label>
-                                        <textarea value={comment} onChange={e => setComment(e.target.value)} rows={2} placeholder="Escribe aqu\u00ed (opcional)..."
+                                        <textarea value={comment} onChange={e => setComment(e.target.value)} rows={2} placeholder="Escribe aquí (opcional)..."
                                           className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2.5 text-[11px] text-slate-300 placeholder-slate-700 resize-none outline-none focus:border-[#00e03c]/30 transition-colors duration-200 font-sans leading-relaxed" />
                                       </motion.div>
                                     )}
@@ -348,13 +344,13 @@ export default function ChatbotFAB() {
 
                 {view === 'result' && resolvedService && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} className="space-y-3">
-                    <BotBube text="\u00a1Excelente! Bas\u00e1ndome en tu diagn\u00f3stico, aqu\u00ed est\u00e1 la soluci\u00f3n ideal para tu caso:" />
+                    <BotBubble text="¡Excelente! Basándome en tu diagnóstico, aquí está la solución ideal para tu caso:" />
                     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }}
                       className="rounded-2xl overflow-hidden border border-[#00e03c]/30 bg-gradient-to-br from-[#00e03c]/10 via-[#00e03c]/5 to-transparent">
                       <div className="p-4 space-y-2.5">
                         <div className="flex items-start justify-between gap-2">
                           <span className="text-[9px] uppercase tracking-widest font-extrabold text-[#00e03c]/80 font-tech">{resolvedService.tag}</span>
-                          {urgency === 'high' && <span className="text-[8px] bg-amber-500/20 border border-amber-500/40 text-amber-400 px-2 py-0.5 rounded-lg font-bold uppercase tracking-wider flex-shrink-0">\u26a1 Urgente</span>}
+                          {urgency === 'high' && <span className="text-[8px] bg-amber-500/20 border border-amber-500/40 text-amber-400 px-2 py-0.5 rounded-lg font-bold uppercase tracking-wider flex-shrink-0">⚡ Urgente</span>}
                         </div>
                         <h4 className="text-[13px] font-black text-white leading-snug">{resolvedService.title}</h4>
                         <p className="text-[11px] text-slate-300 leading-relaxed">{resolvedService.desc}</p>
@@ -367,19 +363,19 @@ export default function ChatbotFAB() {
                         className="w-full py-3 bg-[#00e03c] text-black font-black text-[11px] uppercase tracking-widest hover:bg-white transition-colors duration-300 cursor-none">{resolvedService.cta}</button>
                     </motion.div>
                     <div className="flex gap-2 pt-1">
-                      <button onClick={handleReset} className="flex-1 text-[10px] font-bold text-slate-400 hover:text-white border border-white/10 hover:border-white/20 rounded-xl py-2.5 transition-all duration-200 cursor-none">Nuevo diagn\u00f3stico</button>
-                      <button onClick={() => setView('contact')} className="flex-1 text-[10px] font-bold text-[#00e03c] hover:text-white border border-[#00e03c]/25 hover:border-[#00e03c]/50 rounded-xl py-2.5 transition-all duration-200 cursor-none">Hablar con humano</button>
+                      <button onClick={handleReset} className="flex-1 text-[10px] font-bold text-slate-400 hover:text-white border border-white/10 hover:border-white/20 rounded-xl py-2.5 transition-all duration-200 cursor-none">Nuevo diagnóstico</button>
+                      <button onClick={() => setView('contact')} className="flex-1 text-[10px] font-bold text-[#00e03c] hover:text-white border border-[#00e03c]/25 hover:border-[#00e03c]/50 rounded-xl py-2.5 transition-all duration-200 cursor-none">Hablar con especialista</button>
                     </div>
                   </motion.div>
                 )}
 
                 {view === 'contact' && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35 }} className="space-y-3">
-                    <BotBubble text="Nuestro equipo de especialistas est\u00e1 listo para atenderte. Elige la v\u00eda que prefieras:" />
+                    <BotBubble text="Nuestro equipo de especialistas está listo para atenderte. Elige la vía que prefieras:" />
                     <a href="https://wa.me/59179999999?text=Hola%20SERAM%2C%20me%20interesa%20conocer%20sus%20servicios." target="_blank" rel="noopener noreferrer"
                       className="group w-full flex items-center gap-3 p-3.5 rounded-2xl bg-[#25D366]/10 border border-[#25D366]/25 hover:border-[#25D366]/55 hover:bg-[#25D366]/15 transition-all duration-300 cursor-none">
                       <div className="w-9 h-9 rounded-xl bg-[#25D366]/20 flex items-center justify-center flex-shrink-0"><Phone className="w-4 h-4 text-[#25D366]" /></div>
-                      <div className="flex-1 min-w-0"><p className="text-[11px] font-black text-white uppercase tracking-wide leading-none mb-0.5">WhatsApp</p><p className="text-[10px] text-slate-400">+591 79 999 999 \u00b7 Respuesta inmediata</p></div>
+                      <div className="flex-1 min-w-0"><p className="text-[11px] font-black text-white uppercase tracking-wide leading-none mb-0.5">WhatsApp</p><p className="text-[10px] text-slate-400">+591 79 999 999 · Respuesta inmediata</p></div>
                       <ExternalLink className="w-3.5 h-3.5 text-[#25D366]/60 group-hover:text-[#25D366] transition-colors flex-shrink-0" />
                     </a>
                     <a href="mailto:contacto@seram.bo?subject=Consulta%20servicios%20ambientales"
@@ -390,10 +386,10 @@ export default function ChatbotFAB() {
                     </a>
                     {!contactSent ? (
                       <div className="border border-white/[0.08] rounded-2xl p-4 space-y-2.5 bg-white/[0.02]">
-                        <p className="text-[10px] font-black text-white uppercase tracking-wider leading-none">Mensaje R\u00e1pido</p>
+                        <p className="text-[10px] font-black text-white uppercase tracking-wider leading-none">Mensaje Rápido</p>
                         <input type="text" value={contactName} onChange={e => setContactName(e.target.value)} placeholder="Tu nombre" className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2.5 text-[11px] text-slate-300 placeholder-slate-700 outline-none focus:border-[#00e03c]/30 transition-colors duration-200 font-sans" />
                         <input type="text" value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="Email o WhatsApp" className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2.5 text-[11px] text-slate-300 placeholder-slate-700 outline-none focus:border-[#00e03c]/30 transition-colors duration-200 font-sans" />
-                        <textarea rows={3} value={contactMsg} onChange={e => setContactMsg(e.target.value)} placeholder="En qu\u00e9 podemos ayudarte? Cu\u00e9ntanos brevemente tu proyecto..." className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2.5 text-[11px] text-slate-300 placeholder-slate-700 resize-none outline-none focus:border-[#00e03c]/30 transition-colors duration-200 font-sans leading-relaxed" />
+                        <textarea rows={3} value={contactMsg} onChange={e => setContactMsg(e.target.value)} placeholder="En qué podemos ayudarte? Cuéntanos brevemente tu proyecto..." className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2.5 text-[11px] text-slate-300 placeholder-slate-700 resize-none outline-none focus:border-[#00e03c]/30 transition-colors duration-200 font-sans leading-relaxed" />
                         <button onClick={handleContactSend} className="w-full py-2.5 bg-[#00e03c] text-black font-black text-[11px] uppercase tracking-widest hover:bg-white transition-colors duration-300 rounded-xl cursor-none flex items-center justify-center gap-2">
                           <Send className="w-3.5 h-3.5" /> Enviar Mensaje
                         </button>
@@ -401,7 +397,7 @@ export default function ChatbotFAB() {
                     ) : (
                       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="border border-[#00e03c]/30 rounded-2xl p-4 bg-[#00e03c]/10 text-center space-y-2">
                         <CheckCircle2 className="w-8 h-8 text-[#00e03c] mx-auto" />
-                        <p className="text-[12px] font-black text-white">\u00a1Mensaje recibido!</p>
+                        <p className="text-[12px] font-black text-white">¡Mensaje recibido!</p>
                         <p className="text-[10px] text-slate-400">Redirigiendo a Contacto...</p>
                       </motion.div>
                     )}
@@ -410,11 +406,10 @@ export default function ChatbotFAB() {
 
               </div>
 
-              <div className="border-t border-white/[0.05] px-4 py-2.5 flex items-center justify-between flex-shrink-0 bg-black/20">
-                <span className="text-[8px] text-slate-700 font-tech uppercase tracking-widest">SERAM \u00b7 Bolivia \u00b7 2026</span>
-                <div className="flex items-center gap-1">
+              <div className="border-t border-white/[0.05] px-4 py-2 flex items-center justify-center flex-shrink-0 bg-black/20">
+                <div className="flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 bg-[#00e03c] rounded-full animate-pulse" />
-                  <span className="text-[8px] text-[#00e03c]/60 font-tech uppercase tracking-wider">En l\u00ednea 24/7</span>
+                  <span className="text-[8px] text-[#00e03c]/70 font-tech uppercase tracking-wider font-bold">En línea 24/7</span>
                 </div>
               </div>
             </motion.div>
