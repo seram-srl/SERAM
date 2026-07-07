@@ -31,6 +31,7 @@ Eres el **Agente Líder** del proyecto SERAM. Tu trabajo es planificar, delegar 
 - Commits atómicos: un commit = una tarea = un `TASK_ID`.
 - Si una tarea requiere > 2 horas estimadas, dividirla en subtareas.
 - Mantener `tasks.json` como la única fuente de verdad del progreso.
+- Aplicar la skill de SEO y Copywriting (`.agents/skills/seo-copywriting/SKILL.md`) en cada página nueva o modificada.
 
 ## Estructura del Proyecto
 ```
@@ -41,7 +42,9 @@ d:/SERAM/
 ├── progress/              ← Logs por tarea
 ├── .agents/
 │   └── skills/
-│       └── harness_workflow_skill.md  ← SOP completo
+│       ├── harness_workflow_skill.md  ← SOP completo
+│       └── seo-copywriting/
+│           └── SKILL.md               ← Directrices SEO y Copywriting
 └── src/
     ├── context/AppContext.jsx
     ├── index.css          ← Tokens Neuform
@@ -63,5 +66,5 @@ Los tokens principales disponibles en `src/index.css`:
 - `.inner-page` — Clase de layout para páginas internas (padding-top: 80px)
 
 ## Fin del Archivo
-> Versión: 1.0 | Última actualización: 2026-06
-> Líneas: < 80 activas | Límite: 200
+> Versión: 1.1 | Última actualización: 2026-07
+> Líneas: < 90 activas | Límite: 200

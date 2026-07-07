@@ -160,22 +160,33 @@
 .menu-trigger {
   position: relative;
   z-index: calc(var(--z-menu) + 1);  /* Siempre encima del panel */
-  width: 3rem;
-  height: 3rem;
+  width: 2.5rem; /* 40px, idéntico al chatbot */
+  height: 2.5rem; /* 40px */
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   cursor: pointer;
   pointer-events: auto;
-  background: transparent;
-  border: none;
+  background: rgba(2, 6, 23, 0.85); /* Fondo oscuro de alto contraste para máxima visibilidad */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 224, 60, 0.35); /* Borde verde característico */
+  border-radius: 14px; /* Simetría perfecta con los bordes del chatbot */
   padding: 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(0, 224, 60, 0.1);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.menu-trigger:hover {
+  border-color: rgba(0, 224, 60, 0.75);
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 224, 60, 0.25);
+  transform: scale(1.05);
 }
 
 .menu-trigger__bar {
-  width: 28px;
+  width: 18px; /* Ajustado para que encaje elegante en el círculo de 40px */
   height: 1.5px;
   background: #00e03c;
   border-radius: 2px;
@@ -186,9 +197,9 @@
     width 0.4s var(--transition-menu);
 }
 
-/* Animación X al abrir */
+/* Animación X al abrir (ajustado el translation según gap de 5px) */
 .menu-trigger.is-open .menu-trigger__bar:nth-child(1) {
-  transform: translateY(7.5px) rotate(45deg);
+  transform: translateY(6.5px) rotate(45deg);
   background: #00e03c;
 }
 .menu-trigger.is-open .menu-trigger__bar:nth-child(2) {
@@ -196,7 +207,7 @@
   width: 0;
 }
 .menu-trigger.is-open .menu-trigger__bar:nth-child(3) {
-  transform: translateY(-7.5px) rotate(-45deg);
+  transform: translateY(-6.5px) rotate(-45deg);
   background: #00e03c;
 }
 
@@ -318,6 +329,30 @@
 .animate-scrollIndicator {
   animation: scrollIndicatorDot 2.0s cubic-bezier(0.25, 1, 0.5, 1) infinite;
 }
+
+/* Mobile scroll indicator: dedo que sube (swipe up — el scroll táctil es de abajo hacia arriba) */
+@keyframes scrollIndicatorDotMobile {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  60% {
+    transform: translateY(-12px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+}
+
+.animate-scrollIndicatorMobile {
+  animation: scrollIndicatorDotMobile 2.0s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+}
+
 
 /* Vignette/degradé desde los costados hacia el centro para ambiente premium */
 .vignette-overlay-sides {

@@ -51,8 +51,25 @@
       "assigned_to": "Implementador",
       "started_at": "2026-07-03",
       "completed_at": "2026-07-03"
+    },
+    {
+      "id": "TASK-007",
+      "title": "Actualizar copywriting SIG, SEO keywords e indicadores de scroll desktop/móvil",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-07-07",
+      "completed_at": "2026-07-07"
+    },
+    {
+      "id": "TASK-008",
+      "title": "Alinear indicador de deslizar en SIG, refactorizar CTA secundario con flecha animada y reescribir ChatbotFAB v2.0",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-07-07",
+      "completed_at": "2026-07-07"
     }
   ],
   "in_progress": [],
-  "notes": "Rediseño de la tarjeta Regularización Industrial y eliminación de Express completados de manera exitosa."
+  "notes": "Tarjeta SIG y ChatbotFAB actualizados: nuevo copy orientado a conversión (Plan SIG + Curso SIG Básico), CTA secundario SIG en mayúsculas, negrita y blanco con flecha animada hacia el texto, indicador DESLIZA centrado fuera de la tarjeta, y ChatbotFAB v2 reubicado y completamente interactivo."
 }
+

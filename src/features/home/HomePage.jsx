@@ -580,28 +580,37 @@ function ServicesHorizontalSection() {
           </div>
         </motion.div>
 
-        {/* Tarjeta 4 */}
+        {/* Tarjeta 4 — SIG en la Gestión Ambiental */}
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-50px' }}
           transition={{ duration: 0.6 }}
           className="relative w-full max-w-lg mx-auto rounded-3xl overflow-hidden shadow-2xl border border-white/10" 
-          style={{ height: '530px' }}
+          style={{ height: '560px' }}
         >
-          <img src="/assets/3d-backend/gis_satellite_mapping.webp" alt="Geotecnología y Cartografía" className="absolute inset-0 w-full h-full object-cover" />
+          <img src="/assets/3d-backend/gis_satellite_mapping.webp" alt="SIG en la Gestión Ambiental — Mapas Ambientales SERAM" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/55" />
-          <div className="absolute inset-0 flex flex-col justify-end p-5">
+          <div className="absolute inset-0 flex flex-col justify-end p-5 pb-20">
             <div className="bg-black/50 backdrop-blur-md border border-white/10 p-5 rounded-2xl">
-              <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#00e03c]/90 font-tech mb-1.5 block">Ingeniería Cartográfica de Alta Precisión</span>
-              <h3 className="text-lg font-black text-white mb-2 leading-tight">Sistemas de Información Geográfica (SIG): Mapas Libres de Rechazo</h3>
+              <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#00e03c]/90 font-tech mb-1.5 block">SIG en la Gestión Ambiental — SERAM</span>
+              <h3 className="text-lg font-black text-white mb-2 leading-tight">Mapas Ambientales que Aprueban: Diseñamos tu Plan de Aplicación SIG</h3>
               <p className="text-slate-300 mb-3 text-[11px] font-light leading-relaxed">
-                Desarrollamos Sistemas de Información Geográfica (SIG), mapas ambientales e informes de levantamiento cartográfico en Bolivia con precisión geodésica quirúrgica.
+                Tu proyecto ambiental merece mapas que no sean observados. En la <strong className="text-white">consultora ambiental SERAM</strong> ejecutamos tu <strong className="text-[#00e03c]">Plan de Aplicación SIG</strong> completo. ¿Prefieres capacitar a tu equipo? Adquiere nuestro <strong className="text-white">Curso de SIG Básico</strong> y domina las herramientas desde cero.
               </p>
-              <button onClick={() => navigate('/quote')} className="w-full py-3 bg-[#00e03c] text-black font-black rounded-full text-[10px] tracking-wider uppercase hover:bg-white transition-colors duration-300 mb-3">Diseñar Planos Con Precisión Quirúrgica</button>
-              <button onClick={() => navigate('/services')} className="w-full text-center text-[10px] font-medium text-slate-300 hover:text-[#00e03c] transition-colors duration-300 block">
-                Acceder a nuestra suite completa de ingeniería y blindaje ambiental &rarr;
-              </button>
+              <button onClick={() => navigate('/quote')} className="w-full py-2.5 bg-[#00e03c] text-black font-black rounded-full text-[10px] tracking-wider uppercase hover:bg-white transition-colors duration-300 mb-2">Cotizar Mi Plan de Aplicación SIG</button>
+              <motion.button
+                onClick={() => navigate('/services')}
+                className="w-full text-center text-[9px] font-black text-white hover:text-[#00e03c] transition-colors duration-300 block py-1 leading-normal uppercase"
+              >
+                <motion.span
+                  animate={{ x: [0, 4, 0] }}
+                  transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                  className="inline-block mr-1 text-[#00e03c]"
+                  style={{ fontSize: '13px' }}
+                >→</motion.span>
+                ¿TU PROYECTO TIENE PLAZOS, MULTAS O PARALIZACIONES? CONOCE LA SOLUCIÓN EXACTA PARA CADA CASO
+              </motion.button>
             </div>
           </div>
         </motion.div>
@@ -730,22 +739,43 @@ function ServicesHorizontalSection() {
           </div>
         </div>
 
-        {/* Tarjeta 4: Geotecnología, Cartografía y Regularización de Tierras (SIG) — z-50 */}
+        {/* Tarjeta 4: SIG en la Gestión Ambiental — Mapas Ambientales SERAM — z-50 */}
         <div id="svc-card-4" style={getCardStyle(3)}>
-          <img src="/assets/3d-backend/gis_satellite_mapping.webp" alt="Geotecnología y Cartografía" className="absolute inset-0 w-full h-full object-cover" />
+          <img src="/assets/3d-backend/gis_satellite_mapping.webp" alt="SIG en la Gestión Ambiental — Mapas Ambientales SERAM" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/45" />
           <div className="card-content opacity-0 absolute inset-0 flex flex-col justify-center px-8 md:px-24">
             <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
-              <span className="card-tag text-[10px] uppercase tracking-wider font-extrabold text-[#00e03c]/90 font-tech mb-2 block">Ingeniería Cartográfica de Alta Precisión</span>
-              <h3 className="card-title text-xl md:text-2xl font-black text-white mb-3 leading-tight">Sistemas de Información Geográfica (SIG): Mapas Libres de Rechazo</h3>
-              <p className="card-desc text-slate-200 mb-6 text-sm font-light leading-relaxed">
-                No permitas que planos observados retrasen tus aprobaciones. Desarrollamos <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">Sistemas de Información Geográfica (SIG)</span>, <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">mapas ambientales</span> e informes de <span className="underline decoration-slate-400/50 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">levantamiento cartográfico</span> y <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">catastro ambiental en Bolivia</span> con precisión geodésica quirúrgica.
+              <span className="card-tag text-[10px] uppercase tracking-wider font-extrabold text-[#00e03c]/90 font-tech mb-2 block">SIG en la Gestión Ambiental — SERAM Consultora Ambiental</span>
+              <h3 className="card-title text-xl md:text-2xl font-black text-white mb-3 leading-tight">Mapas Ambientales que Aprueban: Diseñamos tu Plan de Aplicación SIG</h3>
+              <p className="card-desc text-slate-200 mb-5 text-sm font-light leading-relaxed">
+                Tu proyecto ambiental merece <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">mapas ambientales</span> que no sean observados. En la <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">consultora ambiental SERAM</span> ejecutamos tu <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-white hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">Plan de Aplicación SIG para Proyectos Ambientales</span>. ¿Prefieres formar a tu equipo? Adquiere nuestro <span className="underline decoration-slate-400/50 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">Curso de SIG Básico</span> y domina las herramientas desde cero.
               </p>
-              <button onClick={() => navigate('/quote')} className="card-btn px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Diseñar Planos Con Precisión Quirúrgica</button>
-              <div className="card-extra mt-6">
-                <button onClick={() => navigate('/services')} className="text-sm font-medium text-slate-300 hover:text-[#00e03c] transition-colors duration-300 pointer-events-auto">
-                  Acceder a nuestra suite completa de ingeniería y blindaje ambiental &rarr;
-                </button>
+              <button onClick={() => navigate('/quote')} className="card-btn px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto mb-4">Cotizar Mi Plan de Aplicación SIG</button>
+              <div className="card-extra flex flex-col gap-3">
+                <motion.button
+                  onClick={() => navigate('/services')}
+                  className="text-sm font-black text-white hover:text-[#00e03c] transition-colors duration-300 pointer-events-auto text-left leading-snug uppercase"
+                >
+                  <motion.span
+                    animate={{ x: [0, 4, 0] }}
+                    transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                    className="inline-block mr-2 text-[#00e03c]"
+                    style={{ fontSize: '18px' }}
+                  >→</motion.span>
+                  ¿TU PROYECTO TIENE PLAZOS, MULTAS O PARALIZACIONES? CONOCE LA SOLUCIÓN EXACTA PARA CADA CASO
+                </motion.button>
+              </div>
+            </div>
+            
+            {/* Indicador DESLIZA — Desktop centrado en la parte inferior (afuera de la tarjeta de cristal) */}
+            <div className="absolute bottom-6 left-0 right-0 hidden sm:flex flex-col items-center justify-center pointer-events-none z-20">
+              <div className="flex flex-col items-center gap-2 pointer-events-auto">
+                <div className="flex w-[24px] h-[40px] border-2 border-white/50 rounded-full justify-center p-1.5 shadow-[0_0_10px_rgba(255,255,255,0.1)]">
+                  <div className="w-[3px] h-[7px] bg-[#00e03c] rounded-full animate-scrollIndicator" />
+                </div>
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-tech select-none">
+                  Desliza para explorar
+                </span>
               </div>
             </div>
           </div>
