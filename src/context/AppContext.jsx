@@ -1013,8 +1013,18 @@ export function AppProvider({ children }) {
     }
   };
 
+  // --- GLOBAL CHATBOT TRIGGER ---
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const [chatbotStartStep, setChatbotStartStep] = useState(null);
+
+  const openChatbot = (stepId = null) => {
+    setChatbotStartStep(stepId);
+    setIsChatbotOpen(true);
+  };
+
   return (
     <AppContext.Provider value={{
+      isChatbotOpen, setIsChatbotOpen, chatbotStartStep, setChatbotStartStep, openChatbot,
       // Auth
       supabaseUser, setSupabaseUser,
       activeRole, setActiveRole, currentSocio, setCurrentSocio,

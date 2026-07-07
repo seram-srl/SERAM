@@ -334,6 +334,8 @@ function ServicesHorizontalSection() {
   const triggerRef = useRef(null);
   const pinRef = useRef(null);
   const navigate = useNavigate();
+  const { openChatbot } = useApp();
+
 
   const [isMobile, setIsMobile] = React.useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
   useEffect(() => {
@@ -464,7 +466,8 @@ function ServicesHorizontalSection() {
           <p className="mt-5 text-slate-300 font-light leading-relaxed text-sm select-none">
             Garantiza la <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">continuidad de tu negocio</span> con consultoría ambiental y <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 pointer-events-auto">monitoreo de alta precisión</span>. Convertimos la complejidad de las <span className="underline decoration-slate-400/50 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">licencias ambientales</span> en un proceso ágil, mitigando riesgos normativos antes de que se conviertan en <span className="underline decoration-[#4e7a5c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#68a379] transition-colors duration-300 cursor-pointer pointer-events-auto">sanciones</span>.
           </p>
-          <button onClick={() => navigate('/services')} className="mt-8 px-8 py-3.5 bg-white text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-[#00e03c] transition-colors duration-300 pointer-events-auto w-full">
+          <button onClick={() => openChatbot('q1')} className="mt-8 px-8 py-3.5 bg-white text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-[#00e03c] transition-colors duration-300 pointer-events-auto w-full">
+
             Ver Servicios y Asegurar Cumplimiento
           </button>
         </div>
@@ -492,7 +495,8 @@ function ServicesHorizontalSection() {
               <p className="text-slate-300 mb-4 text-[11px] font-light leading-relaxed select-none">
                 El Formulario de Nivel de Categorización Ambiental (FNCA) es el Instrumento de Regulación de Alcance Particular (IRAP) obligatorio por normativa boliviana. Nosotros lo gestionamos con precisión técnica para que tu obra civil o comercial empiece a generar ingresos.
               </p>
-              <button onClick={() => navigate('/quote')} className="w-full py-3 bg-[#00e03c] text-black font-black rounded-full text-[10px] tracking-wider uppercase hover:bg-white transition-colors duration-300">Categorizar Mi Proyecto y Cotizar Gratis</button>
+              <button onClick={() => openChatbot('q2_civil')} className="w-full py-3 bg-[#00e03c] text-black font-black rounded-full text-[10px] tracking-wider uppercase hover:bg-white transition-colors duration-300">Categorizar Mi Proyecto y Cotizar Gratis</button>
+
             </div>
           </div>
         </motion.div>
@@ -552,7 +556,8 @@ function ServicesHorizontalSection() {
               <p className="text-slate-300 mb-4 text-[11px] font-light leading-relaxed">
                 Protege tu fábrica de precintos y multas. Gestionamos tu Registro Ambiental Industrial (RAI) y la categorización industrial obligatoria para industrias manufactureras urbanas de categorías 3 y 4 con blindaje legal garantizado.
               </p>
-              <button onClick={() => navigate('/quote')} className="w-full py-3 bg-[#00e03c] text-black font-black rounded-full text-[10px] tracking-wider uppercase hover:bg-white transition-colors duration-300">Obtener RAI y Blindar Fábrica</button>
+              <button onClick={() => openChatbot('q2_industrial')} className="w-full py-3 bg-[#00e03c] text-black font-black rounded-full text-[10px] tracking-wider uppercase hover:bg-white transition-colors duration-300">Obtener RAI y Blindar Fábrica</button>
+
             </div>
           </div>
         </motion.div>
@@ -575,7 +580,8 @@ function ServicesHorizontalSection() {
               <p className="text-slate-300 mb-4 text-[11px] font-light leading-relaxed">
                 Evita retrasos críticos en el inicio de tus operaciones. Diseñamos soluciones cartográficas exactas y elaboramos carpetas rápidas para minería para la aprobación ágil del plan EMAP en tus concesiones mineras.
               </p>
-              <button onClick={() => navigate('/quote')} className="w-full py-3 bg-[#00e03c] text-black font-black rounded-full text-[10px] tracking-wider uppercase hover:bg-white transition-colors duration-300">Aprobar Trámite Minero y Explotar</button>
+              <button onClick={() => openChatbot('q2_mining')} className="w-full py-3 bg-[#00e03c] text-black font-black rounded-full text-[10px] tracking-wider uppercase hover:bg-white transition-colors duration-300">Aprobar Trámite Minero y Explotar</button>
+
             </div>
           </div>
         </motion.div>
@@ -598,7 +604,8 @@ function ServicesHorizontalSection() {
               <p className="text-slate-300 mb-3 text-[11px] font-light leading-relaxed">
                 Tu proyecto ambiental merece mapas que no sean observados. En la <strong className="text-white">consultora ambiental SERAM</strong> ejecutamos tu <strong className="text-[#00e03c]">Plan de Aplicación SIG</strong> completo. ¿Prefieres capacitar a tu equipo? Adquiere nuestro <strong className="text-white">Curso de SIG Básico</strong> y domina las herramientas desde cero.
               </p>
-              <button onClick={() => navigate('/quote')} className="w-full py-2.5 bg-[#00e03c] text-black font-black rounded-full text-[10px] tracking-wider uppercase hover:bg-white transition-colors duration-300 mb-2">Cotizar Mi Plan de Aplicación SIG</button>
+              <button onClick={() => openChatbot('q2_sig')} className="w-full py-2.5 bg-[#00e03c] text-black font-black rounded-full text-[10px] tracking-wider uppercase hover:bg-white transition-colors duration-300 mb-2">Cotizar Mi Plan de Aplicación SIG</button>
+
               <motion.button
                 onClick={() => navigate('/services')}
                 className="w-full text-center text-[9px] font-black text-white hover:text-[#00e03c] transition-colors duration-300 block py-1 leading-normal uppercase"
@@ -643,7 +650,8 @@ function ServicesHorizontalSection() {
             <p className="mt-5 text-slate-300 font-light leading-relaxed text-base select-none">
               Garantiza la <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">continuidad de tu negocio</span> con consultoría ambiental y <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">monitoreo de alta precisión</span>. Convertimos la complejidad de las <span className="underline decoration-slate-400/50 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">licencias ambientales</span> en un proceso ágil, mitigando riesgos normativos antes de que se conviertan en <span className="underline decoration-[#4e7a5c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#68a379] transition-colors duration-300 cursor-pointer pointer-events-auto">sanciones</span>.
             </p>
-            <button onClick={() => navigate('/services')} className="mt-8 px-8 py-3.5 bg-white text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-[#00e03c] transition-colors duration-300 pointer-events-auto">
+            <button onClick={() => openChatbot('q1')} className="mt-8 px-8 py-3.5 bg-white text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-[#00e03c] transition-colors duration-300 pointer-events-auto">
+
               Ver Servicios y Asegurar Cumplimiento
             </button>
           </div>
@@ -665,7 +673,8 @@ function ServicesHorizontalSection() {
               <p className="card-desc text-slate-200 mb-6 text-sm font-light leading-relaxed select-none">
                 El <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">Formulario de Nivel de Categorización Ambiental (FNCA)</span> es el <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">Instrumento de Regulación de Alcance Particular (IRAP)</span> obligatorio por normativa boliviana para definir el rumbo legal de tu <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">Licencia Ambiental</span>. Nosotros lo gestionamos con precisión técnica para que tu <span className="underline decoration-slate-400/50 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">obra civil o comercial</span> empiece a <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">generar ingresos</span> sin mirar atrás.
               </p>
-              <button onClick={() => navigate('/quote')} className="card-btn px-6 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-[11px] tracking-wider uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Categorizar Mi Proyecto y Cotizar Gratis</button>
+              <button onClick={() => openChatbot('q2_civil')} className="card-btn px-6 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-[11px] tracking-wider uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Categorizar Mi Proyecto y Cotizar Gratis</button>
+
             </div>
           </div>
         </div>
@@ -718,7 +727,8 @@ function ServicesHorizontalSection() {
               <p className="card-desc text-slate-200 mb-6 text-sm font-light leading-relaxed">
                 Protege tu fábrica de precintos y multas. Gestionamos tu <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">Registro Ambiental Industrial (RAI)</span> y la <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">categorización industrial</span> obligatoria para <span className="underline decoration-slate-400/50 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">industrias manufactureras</span> urbanas (Categorías 3 y 4) con velocidad express y blindaje legal garantizado.
               </p>
-              <button onClick={() => navigate('/quote')} className="card-btn px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Obtener RAI y Blindar Fábrica</button>
+              <button onClick={() => openChatbot('q2_industrial')} className="card-btn px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Obtener RAI y Blindar Fábrica</button>
+
             </div>
           </div>
         </div>
@@ -734,7 +744,8 @@ function ServicesHorizontalSection() {
               <p className="card-desc text-slate-200 mb-6 text-sm font-light leading-relaxed">
                 Evita retrasos críticos en el inicio de tus operaciones. Diseñamos <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">soluciones cartográficas</span> exactas y elaboramos <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">carpetas rápidas para minería</span> para la aprobación ágil del plan <span className="underline decoration-slate-400/50 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">EMAP</span> y trámites de <span className="underline decoration-slate-400/50 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">prospección minera</span> en tus <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">concesiones mineras</span>.
               </p>
-              <button onClick={() => navigate('/quote')} className="card-btn px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Aprobar Trámite Minero y Explotar</button>
+              <button onClick={() => openChatbot('q2_mining')} className="card-btn px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">Aprobar Trámite Minero y Explotar</button>
+
             </div>
           </div>
         </div>
@@ -750,7 +761,8 @@ function ServicesHorizontalSection() {
               <p className="card-desc text-slate-200 mb-5 text-sm font-light leading-relaxed">
                 Tu proyecto ambiental merece <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">mapas ambientales</span> que no sean observados. En la <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">consultora ambiental SERAM</span> ejecutamos tu <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-white hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">Plan de Aplicación SIG para Proyectos Ambientales</span>. ¿Prefieres formar a tu equipo? Adquiere nuestro <span className="underline decoration-slate-400/50 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">Curso de SIG Básico</span> y domina las herramientas desde cero.
               </p>
-              <button onClick={() => navigate('/quote')} className="card-btn px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto mb-4">Cotizar Mi Plan de Aplicación SIG</button>
+              <button onClick={() => openChatbot('q2_sig')} className="card-btn px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto mb-4">Cotizar Mi Plan de Aplicación SIG</button>
+
               <div className="card-extra flex flex-col gap-3">
                 <motion.button
                   onClick={() => navigate('/services')}

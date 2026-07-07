@@ -12,6 +12,8 @@ import {
   ChevronRight, Leaf, CornerDownLeft,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useApp } from '../../context/AppContext';
+
 
 const STEPS = {
   q1: {
@@ -151,7 +153,7 @@ function UserBubble({ text }) {
 }
 
 export default function ChatbotFAB() {
-  const [isOpen, setIsOpen]             = useState(false);
+  const { isChatbotOpen: isOpen, setIsChatbotOpen: setIsOpen, chatbotStartStep, setChatbotStartStep } = useApp();
   const [view, setView]                 = useState('welcome');
   const [stepId, setStepId]             = useState('q1');
   const [messages, setMessages]         = useState([]);
@@ -168,6 +170,23 @@ export default function ChatbotFAB() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(() => {
+    if (isOpen && chatbotStartStep) {
+      setView('diagnosis');
+      setMessages([]);
+      setServiceId(null);
+      setUrgency(null);
+      setComment('');
+      setStepId(chatbotStartStep);
+      const targetStep = STEPS[chatbotStartStep];
+      if (targetStep) {
+        setTimeout(() => addBotMessage(targetStep), 300);
+      }
+      setChatbotStartStep(null);
+    }
+  }, [isOpen, chatbotStartStep, setChatbotStartStep]);
+
 
   const addBotMessage = useCallback((step) => {
     setMessages(prev => [
