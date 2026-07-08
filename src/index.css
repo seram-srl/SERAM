@@ -18,8 +18,8 @@
 .cinematic-bg {
   background-color: #122a1f;
   background-image: 
-    radial-gradient(at 0% 0%, rgba(15, 87, 48, 0.75) 0px, transparent 65%),
-    radial-gradient(at 100% 0%, rgba(0, 224, 60, 0.22) 0px, transparent 55%),
+    radial-gradient(at 0% 0%, rgba(18, 108, 15, 0.75) 0px, transparent 65%),
+    radial-gradient(at 100% 0%, rgba(2, 153, 7, 0.22) 0px, transparent 55%),
     radial-gradient(at 50% 100%, rgba(28, 56, 44, 0.8) 0px, transparent 65%),
     linear-gradient(to bottom, #0e301e 0%, #152233 100%);
   position: relative;
@@ -45,28 +45,30 @@
   background:
     radial-gradient(ellipse 85% 65% at 20% -10%, rgba(20, 80, 50, 0.5) 0%, transparent 70%),
     radial-gradient(ellipse 65% 55% at 80% 20%, rgba(18, 45, 68, 0.45) 0%, transparent 65%),
-    radial-gradient(ellipse 45% 45% at 50% 100%, rgba(0, 224, 60, 0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 45% 45% at 50% 100%, rgba(2, 153, 7, 0.08) 0%, transparent 70%),
     linear-gradient(to bottom, #091c13 0%, #111a24 100%);
 }
 
-/* 3. Neuform Cards — minimal premium glassmorphism */
+/* 3. Neuform Cards — minimal premium glassmorphism (Clear & Glassmorphic) */
 .neuform-card {
-  background: rgba(255, 255, 255, 0.075);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(18, 108, 15, 0.2);
   border-radius: 1.25rem; /* 20px */
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 20px 40px rgba(0, 0, 0, 0.25);
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 20px 40px rgba(0, 0, 0, 0.15);
   transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
   position: relative;
 }
 
 .neuform-card:hover {
-  border-color: rgba(0, 224, 60, 0.35);
+  border-color: rgba(18, 108, 15, 0.5);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    0 20px 50px rgba(0, 0, 0, 0.35),
-    0 0 12px rgba(0, 224, 60, 0.15);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 20px 50px rgba(0, 0, 0, 0.2),
+    0 0 16px rgba(18, 108, 15, 0.15);
   transform: translateY(-1px);
 }
 
@@ -79,7 +81,7 @@
 }
 
 .glass-panel-dark:hover {
-  border-color: rgba(0, 224, 60, 0.3);
+  border-color: rgba(2, 153, 7, 0.3);
 }
 
 /* Reflective thin border */
@@ -101,7 +103,7 @@
   font-weight: 800;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #00e03c;
+  color: #029907;
 }
 
 /* 6. Neuform divider — hairline */
@@ -129,33 +131,33 @@
 }
 
 .neuform-badge-accent {
-  border-color: rgba(0, 224, 60, 0.3);
-  background: rgba(0, 224, 60, 0.08);
-  color: #00e03c;
+  border-color: rgba(2, 153, 7, 0.3);
+  background: rgba(2, 153, 7, 0.08);
+  color: #029907;
 }
 
-/* 8. Neuform CTA Button — primary off-white style */
+/* 8. Neuform CTA Button — primary solid dark green style */
 .neuform-btn-primary {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   border-radius: 0.875rem;
-  background: rgba(240, 245, 255, 0.92);
-  border: 1px solid rgba(200, 210, 230, 0.7);
-  color: #0a0a14;
+  background: #126c0f;
+  border: 1px solid rgba(18, 108, 15, 0.5);
+  color: #ffffff;
   font-size: 0.6875rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  transition: background 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: background 200ms ease, border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .neuform-btn-primary:hover {
-  background: rgba(255, 255, 255, 1);
-  border-color: rgba(220, 230, 250, 0.9);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  background: #029907;
+  border-color: rgba(2, 153, 7, 0.7);
+  box-shadow: 0 8px 24px rgba(2, 153, 7, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
 }
 
@@ -166,9 +168,9 @@
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   border-radius: 0.875rem;
-  background: rgba(0, 224, 60, 0.12);
-  border: 1px solid rgba(0, 224, 60, 0.35);
-  color: #00e03c;
+  background: rgba(2, 153, 7, 0.12);
+  border: 1px solid rgba(2, 153, 7, 0.35);
+  color: #029907;
   font-size: 0.6875rem;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -177,8 +179,8 @@
 }
 
 .neuform-btn-accent:hover {
-  background: rgba(0, 224, 60, 0.2);
-  border-color: rgba(0, 224, 60, 0.55);
+  background: rgba(2, 153, 7, 0.2);
+  border-color: rgba(2, 153, 7, 0.55);
   transform: translateY(-1px);
 }
 

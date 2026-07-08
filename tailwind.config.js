@@ -12,9 +12,9 @@ export default {
       },
       colors: {
         seram: {
-          green: '#009E28',
-          leaf: '#00E03C',
-          dark: '#007F1A',
+          green: '#029907',
+          leaf: '#029907',
+          dark: '#126c0f',
         }
       },
       animation: {
