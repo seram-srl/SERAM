@@ -102,46 +102,15 @@ export default function Navbar({ isOpen, onToggle }) {
           </button>
         </Magnetic>
 
-        {/* LOGO DE MARCA CON SENSOR SECRETO DE SOCIOS (Oculto en portada de Home) */}
-        <Magnetic>
-          <div
-            className={`flex items-center gap-1.5 cursor-none select-none transition-all duration-700 ease-out ${
-              location.pathname === '/'
-                ? 'opacity-0 pointer-events-none -translate-x-6'
-                : 'opacity-100 pointer-events-auto translate-x-0'
-            }`}
-            style={logoContainerStyle}
-            onClick={() => {
-              navigate('/');
-              handleLogoSecretClick();
-            }}
-          >
-            <div className="relative w-10 h-10 shrink-0 flex items-center justify-center">
-              <img
-                src="/assets/brand/ícono_logo.png"
-                alt="Logo SERAM"
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <div className="flex flex-col leading-none">
-              <div className="flex items-baseline">
-                <span className="text-xl font-black text-white tracking-tight" style={logoTextShadow}>SER</span>
-                <span className="text-xl font-black text-[#00e03c] tracking-tight" style={logoTextShadow}>A</span>
-                <span className="text-xl font-black text-white tracking-tight" style={logoTextShadow}>M</span>
-              </div>
-            </div>
-          </div>
-        </Magnetic>
-
-        {/* CARRITO CONDICIONAL AL LADO DEL LOGO */}
+        {/* CARRITO CONDICIONAL AL LADO DEL TRIGGER HAMBURGUERSA */}
         {cartTotal > 0 && (
           <Magnetic>
             <button
               onClick={() => setShowCart(!showCart)}
-              className="p-3 rounded-full bg-slate-950/80 border border-white/10 hover:border-[#00e03c] text-slate-400 hover:text-[#00e03c] transition-all cursor-none pointer-events-auto relative animate-fadeIn"
+              className="p-3 rounded-full bg-slate-950/80 border border-white/10 hover:border-[#029907] text-slate-400 hover:text-[#029907] transition-all cursor-none pointer-events-auto relative animate-fadeIn"
             >
               <ShoppingCart className="w-4 h-4" />
-              <span className="absolute -top-1 -right-1 bg-[#00e03c] text-slate-950 text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center animate-bounce">
+              <span className="absolute -top-1 -right-1 bg-[#029907] text-slate-950 text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center animate-bounce">
                 {cartTotal}
               </span>
             </button>
@@ -149,36 +118,38 @@ export default function Navbar({ isOpen, onToggle }) {
         )}
       </div>
 
-      {/* LOGO DE MARCA CENTRADO EN EL HEADER (Aparece en Home al hacer scroll y desaparecer el del Hero) */}
-      {location.pathname === '/' && (
-        <div
-          className={`fixed top-6 left-1/2 -translate-x-1/2 z-[109] pointer-events-auto select-none transition-all duration-700 ease-out flex items-center gap-1.5 cursor-pointer ${
-            scrollY >= window.innerHeight * 0.65
-              ? 'opacity-100 translate-y-0 scale-100'
-              : 'opacity-0 -translate-y-4 scale-90 pointer-events-none'
-          }`}
-          style={logoContainerStyle}
-          onClick={() => {
+      {/* LOGO DE MARCA CENTRADO EN EL HEADER (Fijo al centro en páginas internas; en Home aparece al hacer scroll) */}
+      <div
+        className={`fixed top-6 left-1/2 -translate-x-1/2 z-[109] pointer-events-auto select-none transition-all duration-700 ease-out flex items-center gap-1.5 cursor-pointer ${
+          location.pathname !== '/' || scrollY >= window.innerHeight * 0.65
+            ? 'opacity-100 translate-y-0 scale-100'
+            : 'opacity-0 -translate-y-4 scale-90 pointer-events-none'
+        }`}
+        style={logoContainerStyle}
+        onClick={() => {
+          if (location.pathname === '/') {
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            handleLogoSecretClick();
-          }}
-        >
-          <div className="relative w-9 h-9 shrink-0 flex items-center justify-center">
-            <img
-              src="/assets/brand/ícono_logo.png"
-              alt="Logo SERAM"
-              className="w-full h-full object-contain"
-            />
-          </div>
-          <div className="flex flex-col leading-none">
-            <div className="flex items-baseline">
-              <span className="text-lg font-black text-white tracking-tight" style={logoTextShadow}>SER</span>
-              <span className="text-lg font-black text-[#00e03c] tracking-tight" style={logoTextShadow}>A</span>
-              <span className="text-lg font-black text-white tracking-tight" style={logoTextShadow}>M</span>
-            </div>
+          } else {
+            navigate('/');
+          }
+          handleLogoSecretClick();
+        }}
+      >
+        <div className="relative w-9 h-9 shrink-0 flex items-center justify-center">
+          <img
+            src="/assets/brand/ícono_logo.png"
+            alt="Logo SERAM"
+            className="w-full h-full object-contain"
+          />
+        </div>
+        <div className="flex flex-col leading-none">
+          <div className="flex items-baseline">
+            <span className="text-lg font-black text-white tracking-tight" style={logoTextShadow}>SER</span>
+            <span className="text-lg font-black text-[#029907] tracking-tight" style={logoTextShadow}>A</span>
+            <span className="text-lg font-black text-white tracking-tight" style={logoTextShadow}>M</span>
           </div>
         </div>
-      )}
+      </div>
 
       {/* CARRITO DRAWER GLOBAL */}
       {showCart && <CartDrawer />}

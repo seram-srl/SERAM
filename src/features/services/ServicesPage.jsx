@@ -183,7 +183,7 @@ export default function ServicesPage() {
       initial="initial"
       animate="animate"
       exit="exit"
-      className="inner-page min-h-screen relative overflow-hidden bg-[#0c1813]"
+      className="inner-page min-h-screen relative overflow-hidden bg-transparent"
     >
       {/* JSON-LD Schema */}
       <script type="application/ld+json">
