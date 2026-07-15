@@ -105,6 +105,10 @@ function InteractiveScene({ hProgressRef }) {
   const expBgRef = useRef();
   const shopBgRef = useRef();
 
+  // Refs y estado para la textura de video de Hero
+  const videoRef = useRef(null);
+  const [activeVideoTexture, setActiveVideoTexture] = React.useState(null);
+
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
@@ -130,6 +134,44 @@ function InteractiveScene({ hProgressRef }) {
       }
     });
   }, [heroBgTexture, servicesBgTexture, academyBgTexture, expBgTexture, shopBgTexture]);
+
+  useEffect(() => {
+    // Crear el video element
+    const video = document.createElement('video');
+    video.muted = true;
+    video.loop = false; // No se auto-repite, lo controla el scroll
+    video.playsInline = true;
+    video.autoplay = false; // Desactivado autoplay para control manual por scroll
+
+    // Determinar la resolución del video adaptativa para mobile/desktop
+    const isMobile = window.innerWidth < 768;
+    const videoSrc = isMobile ? '/assets/3d-backend/bg_home_mobile.mp4' : '/assets/3d-backend/bg_home.mp4';
+    video.src = videoSrc;
+    videoRef.current = video;
+
+    // Crear la textura de video de Three.js
+    const videoTexture = new THREE.VideoTexture(video);
+    videoTexture.colorSpace = THREE.SRGBColorSpace;
+    videoTexture.minFilter = THREE.LinearFilter;
+    videoTexture.magFilter = THREE.LinearFilter;
+    videoTexture.generateMipmaps = false;
+
+    // Activar la textura del video cuando el framework pueda reproducirlo
+    const handleCanPlay = () => {
+      setActiveVideoTexture(videoTexture);
+    };
+
+    video.addEventListener('canplaythrough', handleCanPlay);
+    video.load();
+
+    return () => {
+      video.removeEventListener('canplaythrough', handleCanPlay);
+      video.pause();
+      videoTexture.dispose();
+      setActiveVideoTexture(null);
+      videoRef.current = null;
+    };
+  }, []);
 
   useFrame((state) => {
     // ── PROGRESO COMBINADO ────────────────────────────────────────────────────
@@ -203,19 +245,25 @@ function InteractiveScene({ hProgressRef }) {
     planesList.forEach(({ ref, index }) => {
       if (!ref.current) return;
 
-      const zCurr = -baseDepth - index * spacing + flightOffset;
-
-      // Calcular opacidad según profundidad local
+      let zCurr = -baseDepth - index * spacing + flightOffset;
       let opacity = 0;
-      if (zCurr >= -20.0 && zCurr < -8.0) {
-        // Fade in al aproximarse
-        opacity = (zCurr - (-20.0)) / 12.0;
-      } else if (zCurr >= -8.0 && zCurr < -3.0) {
-        // Opaque en zona de enfoque
-        opacity = 1.0;
-      } else if (zCurr >= -3.0 && zCurr < 0.0) {
-        // Fade out al atravesar la cámara
-        opacity = zCurr / -3.0;
+
+      if (index === 0) {
+        // El plano de fondo del Hero queda fijo en Z para evitar acercamiento físico excesivo.
+        // Se aleja a -12.0 para dar una perspectiva más amplia y evitar el pixelado.
+        zCurr = -12.0;
+        
+        // Transición de opacidad limpia al hacer scroll hacia el siguiente panel
+        opacity = smoothP <= 0.25 ? 1.0 - (smoothP / 0.25) : 0.0;
+      } else {
+        // Calcular opacidad según profundidad local para los paneles siguientes
+        if (zCurr >= -20.0 && zCurr < -8.0) {
+          opacity = (zCurr - (-20.0)) / 12.0;
+        } else if (zCurr >= -8.0 && zCurr < -3.0) {
+          opacity = 1.0;
+        } else if (zCurr >= -3.0 && zCurr < 0.0) {
+          opacity = zCurr / -3.0;
+        }
       }
 
       if (ref.current.material) {
@@ -225,13 +273,16 @@ function InteractiveScene({ hProgressRef }) {
       // Aplicar posición Z local
       ref.current.position.z = zCurr;
 
-      // Verdadero Parallax 3D:
-      // Un worldFixedRatio de 0.85 significa que se desplaza en sentido contrario
-      // al movimiento de la cámara, creando el efecto de profundidad 3D en lugar de skybox estático.
-      // El índice más alejado (Store) se desplaza menos (worldFixedRatio menor) simulando mayor distancia.
-      const worldFixedRatio = 0.85 - index * 0.12;
-      ref.current.position.x = -state.camera.position.x * worldFixedRatio - targetX.current * 0.3 * (index + 1);
-      ref.current.position.y = -state.camera.position.y * worldFixedRatio - targetY.current * 0.3 * (index + 1);
+      if (index === 0) {
+        // El fondo del Hero se mantiene centrado con la cámara, respondiendo sutilmente al mouse
+        ref.current.position.x = -targetX.current * 0.15;
+        ref.current.position.y = -targetY.current * 0.15;
+      } else {
+        // Parallax 3D estándar para los siguientes ecosistemas
+        const worldFixedRatio = 0.85 - index * 0.12;
+        ref.current.position.x = -state.camera.position.x * worldFixedRatio - targetX.current * 0.3 * (index + 1);
+        ref.current.position.y = -state.camera.position.y * worldFixedRatio - targetY.current * 0.3 * (index + 1);
+      }
     });
 
     // 6. Intensidad de Luces Reactiva al Scroll (Brillo máximo en Servicios/Academia)
@@ -274,20 +325,41 @@ function InteractiveScene({ hProgressRef }) {
       }
       state.scene.background = bgColor;
     }
+
+    // Controlar el barrido del video de Hero por scroll (scrubbing)
+    if (videoRef.current && activeVideoTexture) {
+      if (smoothP > 0.25) {
+        if (!videoRef.current.paused) {
+          videoRef.current.pause();
+        }
+      } else {
+        // En la zona del Hero (0 a 0.25), mapeamos el progreso de scroll al tiempo del video
+        const heroProgress = Math.min(1.0, Math.max(0.0, smoothP / 0.25));
+        const duration = videoRef.current.duration || 8.0;
+        
+        // Mapeamos el progreso de scroll al tiempo del video
+        const targetTime = heroProgress * duration;
+        
+        // Solo actualizamos si hay un cambio significativo para no saturar el hilo principal
+        if (Math.abs(videoRef.current.currentTime - targetTime) > 0.01) {
+          videoRef.current.currentTime = targetTime;
+        }
+      }
+    }
   });
 
   return (
     <group ref={groupRef}>
       <ambientLight ref={ambientLightRef} intensity={0.35} />
-      <directionalLight position={[5, 10, 5]} intensity={0.8} />
+      <directionalLight position={[5, 10, 5]} intensity={0.4} />
       <pointLight ref={pointLightRef} position={[0, 0, 2]} intensity={0.8} color="#00e03c" />
 
       {/* Cartelera 3D de Fondos Paisajísticos (Billboard) */}
       <group ref={bgGroupRef}>
         {/* Fondo 1: Hero */}
         <mesh ref={heroBgRef} position={[0, 0, -0.04]}>
-          <planeGeometry args={[44, 22]} />
-          <meshBasicMaterial map={heroBgTexture} color="#aaaaaa" transparent depthWrite={false} opacity={1} dithering={true} />
+          <planeGeometry args={[52, 26]} />
+          <meshBasicMaterial map={activeVideoTexture || heroBgTexture} color="#777777" transparent depthWrite={false} opacity={1} dithering={true} />
         </mesh>
         
         {/* Fondo 2: Servicios */}
@@ -494,8 +566,6 @@ export default function EnvironmentalCanvas({ isStorytelling = false, hProgressR
         gl={{ antialias: true, alpha: false, dithering: true }}
         dpr={[1, 2]}
       >
-        <ambientLight intensity={0.5} />
-        
         <React.Suspense fallback={null}>
           {isStorytelling ? (
             <InteractiveScene hProgressRef={hProgressRef} />

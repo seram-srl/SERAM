@@ -13,21 +13,21 @@ const experiences = [
   {
     img: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=600',
     title: 'Reforestación Colectiva',
-    desc: 'Campañas corporativas para compensación de huella ambiental. Incluye medición de carbono pos-siembra y certificado oficial.',
+    desc: <>Campañas corporativas para compensación de <span className="italic">huella ambiental</span>. Incluye <span className="italic">medición de carbono</span> pos-siembra y certificado oficial.</>,
     cta: 'Postular Empresa',
     toast: 'Consulta sobre Voluntariado enviada',
   },
   {
     img: 'https://images.unsplash.com/photo-1516253593875-bd7ba052fbc5?auto=format&fit=crop&q=80&w=600',
     title: 'Biocampamento de Campo',
-    desc: 'Inmersión para estudiantes y profesionales en ecosistemas vulnerables con guía técnica de nuestros 3 socios ingenieros.',
+    desc: <>Inmersión para estudiantes y profesionales en <span className="italic">ecosistemas vulnerables</span> con guía técnica de nuestros 3 socios ingenieros.</>,
     cta: 'Ver Calendario',
     toast: 'Registro de Campamento abierto en Agosto',
   },
   {
     img: 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&q=80&w=600',
     title: 'Huertos Corporativos',
-    desc: 'Habilitación de espacios ociosos en oficinas para convertirlos en micro-reservas y huertos funcionales para colaboradores.',
+    desc: <>Habilitación de espacios ociosos en oficinas para convertirlos en <span className="italic">micro-reservas</span> y huertos funcionales para colaboradores.</>,
     cta: 'Solicitar Factibilidad',
     toast: 'Estudio de factibilidad para huerto agendado',
   },
@@ -56,7 +56,7 @@ export default function ExperiencePage() {
             <span className="text-white/40">Conservación Activa</span>
           </h1>
           <p className="text-sm text-white/40 leading-relaxed max-w-xl">
-            Creamos dinámicas corporativas y estudiantiles fuera del aula. Reclutamiento de voluntarios para reforestación, campamentos científicos de biodiversidad y diseño de huertos regenerativos.
+            Creamos dinámicas corporativas y estudiantiles fuera del aula. Reclutamiento de voluntarios para <span className="italic text-white">reforestación</span>, campamentos científicos de <span className="italic text-white">biodiversidad</span> y diseño de huertos regenerativos.
           </p>
         </div>
       </div>

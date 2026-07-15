@@ -82,6 +82,17 @@ const LessonItem = React.memo(({
 
 LessonItem.displayName = 'LessonItem';
 
+const renderFormattedText = (text) => {
+  if (!text) return '';
+  const parts = text.split(/(\*.*?\*)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <span key={index} className="italic">{part.slice(1, -1)}</span>;
+    }
+    return part;
+  });
+};
+
 export default function CoursePlayerPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -290,7 +301,7 @@ export default function CoursePlayerPage() {
           <p className="text-slate-400 text-sm max-w-md mx-auto leading-relaxed">
             Para desbloquear este programa avanzado, debes completar primero el curso troncal:
             <br />
-            <span className="text-white font-extrabold text-base mt-2 block">{prerequisiteCourse.title}</span>
+            <span className="text-white font-extrabold text-base mt-2 block">{renderFormattedText(prerequisiteCourse.title)}</span>
           </p>
           <div className="pt-4">
             <button
@@ -323,7 +334,7 @@ export default function CoursePlayerPage() {
         </button>
         <div>
           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-tech">SERAM ACADEMY · REPRODUCTOR</span>
-          <h1 className="text-xl sm:text-2xl font-black text-white">{course.title}</h1>
+          <h1 className="text-xl sm:text-2xl font-black text-white">{renderFormattedText(course.title)}</h1>
         </div>
       </div>
 

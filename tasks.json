@@ -1,9 +1,40 @@
 {
   "version": "1.0",
   "project": "SERAM",
-  "last_updated": "2026-06-26",
-  "tasks": [],
+  "last_updated": "2026-07-11",
+  "tasks": [
+    {
+      "id": "TASK-010",
+      "title": "Integración de Supabase, migración de base de datos real con esquemas SQL, políticas RLS e intranet en tiempo real (Fase 3 y 4 del plan técnico)",
+      "status": "pending",
+      "assigned_to": "Implementador"
+    }
+  ],
   "completed": [
+    {
+      "id": "TASK-012",
+      "title": "Controlar la reproducción del video de fondo del Hero mediante la posición de scroll y optimización All-Intra en WebGL",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-07-14",
+      "completed_at": "2026-07-14"
+    },
+    {
+      "id": "TASK-011",
+      "title": "Dinamizar el fondo del Hero en Home con composición HyperFrames y texturas de video adaptativas en WebGL",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-07-14",
+      "completed_at": "2026-07-14"
+    },
+    {
+      "id": "TASK-009",
+      "title": "Ajustes estéticos, visuales y de funcionamiento del frontend en base a auditoría visual (consistencia de tokens Neuform y eliminación de hacks inline)",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-07-11",
+      "completed_at": "2026-07-11"
+    },
     {
       "id": "TASK-001",
       "title": "Ajustar copywriting y SEO del panel SERAM SERVICES en Home",

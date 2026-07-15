@@ -10,6 +10,17 @@ const pageVariants = {
   exit: { opacity: 0, transition: { duration: 0.3 } },
 };
 
+const renderFormattedText = (text) => {
+  if (!text) return '';
+  const parts = text.split(/(\*.*?\*)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <span key={index} className="italic">{part.slice(1, -1)}</span>;
+    }
+    return part;
+  });
+};
+
 export default function AcademyPage() {
   const navigate = useNavigate();
   const {
@@ -70,10 +81,10 @@ export default function AcademyPage() {
               <Star className="w-3 h-3 text-amber-400 fill-current" /> DESTACADO DE LA ACADEMIA
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight uppercase font-display drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
-              {featuredCourse.title}
+              {renderFormattedText(featuredCourse.title)}
             </h1>
             <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-lg hidden sm:block">
-              {featuredCourse.desc}
+              {renderFormattedText(featuredCourse.desc)}
             </p>
             <div className="pt-2 flex items-center gap-4">
               <button
@@ -168,10 +179,10 @@ export default function AcademyPage() {
                 <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                   <div className="space-y-1">
                     <h3 className="font-extrabold text-white text-base group-hover:text-[#00e03c] transition-colors leading-snug">
-                      {course.title}
+                      {renderFormattedText(course.title)}
                     </h3>
                     <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
-                      {course.desc}
+                      {renderFormattedText(course.desc)}
                     </p>
                   </div>
 
@@ -224,7 +235,7 @@ export default function AcademyPage() {
               Suscripción Academia Premium
             </h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Únete a la membresía de élite académica de SERAM. Accede a todos los cursos de pago, talleres avanzados de SIG en QGIS, cálculo de Huella de Carbono, y descarga recursos vectoriales exclusivos de por vida por una única cuota anual.
+              Únete a la membresía de élite académica de SERAM. Accede a todos los cursos de pago, talleres avanzados de <span className="italic text-white">SIG en QGIS</span>, cálculo de <span className="italic text-white">Huella de Carbono</span>, y descarga recursos vectoriales exclusivos de por vida por una única cuota anual.
             </p>
           </div>
           <button

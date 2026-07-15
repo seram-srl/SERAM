@@ -10,6 +10,17 @@ const pageVariants = {
   exit: { opacity: 0, transition: { duration: 0.3 } },
 };
 
+const renderFormattedText = (text) => {
+  if (!text) return '';
+  const parts = text.split(/(\*.*?\*)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <span key={index} className="italic">{part.slice(1, -1)}</span>;
+    }
+    return part;
+  });
+};
+
 export default function ShopPage() {
   const navigate = useNavigate();
   const { products, hasPremiumAccess, handleAddToCart, handleAccessItem, triggerToast } = useApp();
@@ -63,10 +74,10 @@ export default function ShopPage() {
               <Shield className="w-3 h-3 text-[#00e03c]" /> ENVÍO CARBONO NEUTRO
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight uppercase font-display drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
-              {featuredProduct.name}
+              {renderFormattedText(featuredProduct.name)}
             </h1>
             <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-lg hidden sm:block">
-              {featuredProduct.desc}
+              {renderFormattedText(featuredProduct.desc)}
             </p>
             <div className="pt-2 flex items-center gap-4">
               <button
@@ -163,10 +174,10 @@ export default function ShopPage() {
                   <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
                     <div className="space-y-1">
                       <h3 className="font-extrabold text-white text-base group-hover:text-[#00e03c] transition-colors leading-snug">
-                        {product.name}
+                        {renderFormattedText(product.name)}
                       </h3>
                       <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
-                        {product.desc}
+                        {renderFormattedText(product.desc)}
                       </p>
                     </div>
 

@@ -80,6 +80,17 @@ const getServiceColors = (line) => {
   }
 };
 
+const renderFormattedText = (text) => {
+  if (!text) return '';
+  const parts = text.split(/(\*.*?\*)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <span key={index} className="italic">{part.slice(1, -1)}</span>;
+    }
+    return part;
+  });
+};
+
 function ServiceCard({ service }) {
   const navigate = useNavigate();
   const colors = getServiceColors(service.line);
@@ -88,7 +99,7 @@ function ServiceCard({ service }) {
     <motion.div
       variants={cardVariants}
       onClick={() => navigate('/quote')}
-      className={`group neuform-card p-6 flex flex-col gap-5 cursor-none pointer-events-auto overflow-hidden bg-white/40 border border-[#126c0f]/20 hover:border-[#126c0f]/60 ${colors.borderColor}`}
+      className="group neuform-card p-6 flex flex-col gap-5 cursor-none pointer-events-auto overflow-hidden bg-black/55 backdrop-blur-md border border-white/10 hover:border-[#00e03c]/30 transition-all duration-300"
       data-cursor-text="COTIZAR"
     >
       {/* Decorative gradient fill */}
@@ -96,10 +107,10 @@ function ServiceCard({ service }) {
 
       {/* Icon + Tag */}
       <div className="relative flex items-center justify-between z-10">
-        <div className="w-10 h-10 rounded-xl bg-slate-100 border border-[#126c0f]/25 flex items-center justify-center text-[#126c0f] group-hover:text-[#029907] group-hover:border-[#029907]/30 transition-all duration-300">
+        <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/20 flex items-center justify-center text-white group-hover:text-[#00e03c] group-hover:border-[#00e03c]/50 transition-all duration-300">
           {getIcon(service.icon)}
         </div>
-        <span className="neuform-badge text-[#126c0f]/70 border-[#126c0f]/20 bg-[#126c0f]/5">
+        <span className="neuform-badge text-slate-300 border-white/10 bg-white/5 group-hover:text-[#00e03c] group-hover:border-[#00e03c]/20 transition-all duration-300">
           {service.tag}
         </span>
       </div>
@@ -107,19 +118,19 @@ function ServiceCard({ service }) {
       {/* Content */}
       <div className="relative z-10 space-y-2 flex-1">
         <div className="flex flex-col gap-1">
-          <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#029907]">{service.line}</span>
-          <h3 className="font-bold text-[0.9rem] text-[#126c0f] group-hover:text-[#029907] transition-colors duration-200 leading-snug">
-            {service.title}
+          <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#00e03c]">{service.line}</span>
+          <h3 className="font-bold text-[0.9rem] text-white transition-colors duration-200 leading-snug">
+            {renderFormattedText(service.title)}
           </h3>
         </div>
-        <p className="text-xs text-slate-800 leading-relaxed font-medium transition-colors duration-300">
-          {service.desc || service.description}
+        <p className="text-xs text-slate-300 leading-relaxed font-light transition-colors duration-300">
+          {renderFormattedText(service.desc || service.description)}
         </p>
       </div>
 
       {/* CTA */}
-      <div className="relative z-10 flex items-center gap-1.5 text-[10px] font-bold text-[#126c0f] group-hover:text-[#029907] transition-colors duration-200 uppercase tracking-wider">
-        Cotizar ahora <ArrowUpRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+      <div className="relative z-10 flex items-center justify-center gap-1.5 py-2.5 bg-white text-black hover:bg-[#00e03c] active:bg-[#00e03c] rounded-full text-[10px] font-bold transition-all duration-300 uppercase tracking-wider">
+        Cotizar ahora <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 text-black" />
       </div>
     </motion.div>
   );
