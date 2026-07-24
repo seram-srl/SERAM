@@ -1,0 +1,59 @@
+/* W3C Design Tokens v1.0 Standard - SERAM Shader Workspace */
+:root {
+  --color-workspace-bg: #050505;
+  --color-workspace-glass: rgba(5, 5, 5, 0.45);
+  --color-accent-green: #00e03c;
+  --color-organic-green-rgb: 46, 89, 37; /* #2e5925 -> rgb(46, 89, 37) */
+  --border-organic-green: rgba(46, 89, 37, 0.15);
+  --border-organic-green-hover: rgba(46, 89, 37, 0.35);
+  --color-text-gradient-start: #ffffff;
+  --color-text-gradient-mid: #00e03c;
+  --color-text-gradient-end: #2e5925;
+}
+
+.workspace-viewport {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  padding: 6rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.workspace-glass-card {
+  background: var(--color-workspace-glass);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid var(--border-organic-green);
+  border-radius: 20px;
+  transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  pointer-events: auto;
+}
+
+.workspace-glass-card:hover {
+  border-color: var(--border-organic-green-hover);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 224, 60, 0.05);
+}
+
+.text-gradient-premium {
+  background: linear-gradient(135deg, var(--color-text-gradient-start) 30%, var(--color-text-gradient-mid) 70%, var(--color-text-gradient-end) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes pulse-skeleton {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.animate-pulse-skeleton {
+  animation: pulse-skeleton 2s ease-in-out infinite;
+}

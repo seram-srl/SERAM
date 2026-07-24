@@ -1,252 +1,181 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { BookOpen, BookOpenCheck, Lock, Trash2, Star, Shield, Play, Library, Award, Headphones, Bookmark } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
-
-const pageVariants = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
-  exit: { opacity: 0, transition: { duration: 0.3 } },
-};
-
-const renderFormattedText = (text) => {
-  if (!text) return '';
-  const parts = text.split(/(\*.*?\*)/g);
-  return parts.map((part, index) => {
-    if (part.startsWith('*') && part.endsWith('*')) {
-      return <span key={index} className="italic">{part.slice(1, -1)}</span>;
-    }
-    return part;
-  });
-};
+import { motion, AnimatePresence } from 'framer-motion';
+import { BookOpen, Download, Compass, Award, Star, User, Clock, ArrowRight } from 'lucide-react';
+import '../../styles/academy-cinematic.css';
 
 export default function AcademyPage() {
-  const navigate = useNavigate();
-  const {
-    courses, activeRole, hasPremiumAccess, currentSocio,
-    handleAccessItem, handleDeleteCourse, triggerToast,
-  } = useApp();
+    const navigate = useNavigate();
+    const { courses } = useApp();
+    const [activeTab, setActiveTab] = useState('gratis');
 
-  const [selectedCategory, setSelectedCategory] = useState('all');
+    const TABS = [
+        { id: 'gratis', label: 'Gratis (Lead Magnets)', desc: 'E-books, carimbos, planos y guías de mitigación normativa.' },
+        { id: 'low_ticket', label: 'Low Ticket (Base)', desc: 'Cursos fundamentales y herramientas técnicas de software GIS.' },
+        { id: 'mid_ticket', label: 'Mid Ticket (Talleres)', desc: 'Talleres prácticos y metodologías de evaluación de impacto.' },
+        { id: 'high_ticket', label: 'High Ticket (Mentoría)', desc: 'Mentorías directas 1-on-1 y consultoría de proyectos de élite.' }
+    ];
 
-  // Categorías de "Canal de Marca" estilo Disney+
-  const CATEGORIES = [
-    { id: 'all', label: 'Todo', icon: <Library className="w-4 h-4" /> },
-    { id: 'curso_gratis', label: 'Cursos Gratis', icon: <BookOpenCheck className="w-4 h-4" /> },
-    { id: 'curso_pago', label: 'Cursos Pro', icon: <Award className="w-4 h-4" /> },
-    { id: 'taller', label: 'Talleres', icon: <Shield className="w-4 h-4" /> },
-    { id: 'masterclass', label: 'Masterclasses', icon: <Play className="w-4 h-4" /> },
-    { id: 'libro', label: 'Ebooks', icon: <Bookmark className="w-4 h-4" /> },
-    { id: 'audiolibro', label: 'Audiolibros', icon: <Headphones className="w-4 h-4" /> }
-  ];
-
-  // Filtrar cursos según el canal seleccionado
-  const filteredCourses = selectedCategory === 'all' 
-    ? courses 
-    : courses.filter(c => c.type === selectedCategory);
-
-  // Curso Destacado para el Banner Superior (QGIS)
-  const featuredCourse = courses.find(c => c.id === 2) || courses[0];
-
-  const handleOpenCourse = (course) => {
-    handleAccessItem(course, 'course', () => {
-      triggerToast(`Accediendo a: ${course.title}`, 'success');
-      navigate(`/academy/course/${course.id}`);
+    // Filter courses dynamically based on tab selection
+    const filteredCourses = courses.filter(course => {
+        if (activeTab === 'gratis') return course.price === 0 || course.type === 'gratis';
+        if (activeTab === 'low_ticket') return course.price > 0 && course.price <= 50;
+        if (activeTab === 'mid_ticket') return course.price > 50 && course.price <= 200;
+        if (activeTab === 'high_ticket') return course.price > 200;
+        return false;
     });
-  };
 
-  return (
-    <motion.div
-      variants={pageVariants} initial="initial" animate="animate" exit="exit"
-      className="inner-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10"
-    >
-      {/* ── 1. DISNEY+ HERO BANNER (Curso Destacado) ── */}
-      {featuredCourse && (
-        <div className="relative w-full h-[40vh] sm:h-[50vh] rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] group border border-white/10 pointer-events-auto">
-          {/* Imagen de fondo degradada */}
-          <div className="absolute inset-0">
-            <img
-              src={featuredCourse.image}
-              alt={featuredCourse.title}
-              className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-[6s]"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/20 to-transparent" />
-          </div>
+    const getIconForCategory = (type) => {
+        switch (type) {
+            case 'gratis': return <Download className="w-4 h-4 text-[#00e03c]" />;
+            case 'low_ticket': return <BookOpen className="w-4 h-4 text-[#00e03c]" />;
+            case 'mid_ticket': return <Compass className="w-4 h-4 text-[#00e03c]" />;
+            case 'high_ticket': return <Award className="w-4 h-4 text-[#00e03c]" />;
+            default: return <BookOpen className="w-4 h-4 text-[#00e03c]" />;
+        }
+    };
 
-          {/* Información del Curso Destacado */}
-          <div className="absolute bottom-0 left-0 p-6 sm:p-10 space-y-3 max-w-2xl text-left">
-            <div className="neuform-badge-accent neuform-badge">
-              <Star className="w-3 h-3 text-amber-400 fill-current" /> DESTACADO DE LA ACADEMIA
+    const renderFormattedText = (text) => {
+        if (!text) return '';
+        const parts = text.split(/(\*.*?\*)/g);
+        return parts.map((part, index) => {
+            if (part.startsWith('*') && part.endsWith('*')) {
+                return <span key={index} className="italic text-[#00e03c] font-semibold">{part.slice(1, -1)}</span>;
+            }
+            return part;
+        });
+    };
+
+    return (
+        <main className="academy-viewport min-h-screen flex flex-col items-center justify-start py-24 px-4 md:px-8 bg-[#020202]">
+            
+            {/* Encabezado Semántico y Centrado */}
+            <header className="text-center max-w-3xl flex flex-col items-center gap-4 mb-16 pointer-events-auto">
+                <span className="text-xs font-bold tracking-widest text-[#00e03c] uppercase bg-[#2e5925]/20 px-4 py-1.5 rounded-full border border-[#00e03c]/20">
+                    SERAM ACADEMY & INFO-PRODUCTOS
+                </span>
+                <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-none uppercase font-display">
+                    Ecosistema <span className="text-gradient-premium">Educativo</span>
+                </h1>
+                <p className="text-gray-400 font-light text-sm md:text-base leading-relaxed mt-2 max-w-2xl">
+                    Capacitación de alto nivel y recursos técnicos para ingenieros, consultores y empresas en el marco de la normativa ambiental de Bolivia.
+                </p>
+            </header>
+
+            {/* Pestañas de Categoría (Figma Auto Layout - Flexbox) */}
+            <nav className="flex flex-wrap items-center justify-center gap-2 mb-12 max-w-4xl w-full pointer-events-auto">
+                {TABS.map((tab) => {
+                    const isActive = activeTab === tab.id;
+                    return (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex flex-col items-center justify-center px-5 py-3.5 rounded-xl border transition-all duration-300 flex-1 min-w-[150px] text-center ${
+                                isActive
+                                    ? 'bg-[#00e03c]/10 border-[#00e03c] text-white shadow-[0_0_15px_rgba(0,224,60,0.15)]'
+                                    : 'bg-white/[0.02] border-white/5 text-gray-500 hover:border-white/10 hover:text-gray-300'
+                            }`}
+                        >
+                            <span className="text-xs font-extrabold uppercase tracking-wider">{tab.label}</span>
+                            <span className="text-[9px] font-light opacity-80 mt-1 line-clamp-1">{tab.desc}</span>
+                        </button>
+                    );
+                })}
+            </nav>
+
+            {/* Grid de Cursos e Info-productos */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-7xl px-4 pointer-events-none">
+                <AnimatePresence mode="wait">
+                    {filteredCourses.length === 0 ? (
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            className="col-span-full academy-glass-card p-12 text-center text-gray-500 text-sm pointer-events-auto border border-white/5"
+                        >
+                            No hay recursos registrados en esta categoría actualmente.
+                        </motion.div>
+                    ) : (
+                        filteredCourses.map((course) => (
+                            <motion.article
+                                key={course.id}
+                                initial={{ opacity: 0, y: 15 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -15 }}
+                                transition={{ duration: 0.4 }}
+                                className="academy-glass-card overflow-hidden flex flex-col justify-between pointer-events-auto h-full hover:border-[#00e03c]/30"
+                            >
+                                {/* Cover Image */}
+                                <div className="relative aspect-video bg-[#050505] overflow-hidden border-b border-white/5">
+                                    <img
+                                        src={course.image}
+                                        alt={course.title}
+                                        className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                                    />
+                                    
+                                    {/* Cost/Access Tag */}
+                                    <div className="absolute top-4 right-4 flex items-center gap-2">
+                                        <span className="text-[10px] tracking-wider font-extrabold uppercase bg-black/85 border border-white/10 px-3 py-1 rounded-md text-white">
+                                            {course.price === 0 ? 'Gratuito' : `Bs. ${course.price}`}
+                                        </span>
+                                    </div>
+
+                                    {/* Type icon indicator */}
+                                    <div className="absolute bottom-4 left-4 p-2 bg-black/85 border border-white/10 rounded-lg">
+                                        {getIconForCategory(course.type)}
+                                    </div>
+                                </div>
+
+                                {/* Content Details */}
+                                <div className="p-6 flex-1 flex flex-col justify-between gap-6">
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between text-[10px] text-gray-500 font-mono">
+                                            <span className="flex items-center gap-1.5">
+                                                <User className="w-3.5 h-3.5 text-[#00e03c]/70" /> {course.instructor}
+                                            </span>
+                                            <span className="flex items-center gap-1">
+                                                <Clock className="w-3.5 h-3.5 text-[#00e03c]/70" /> {course.duration}
+                                            </span>
+                                        </div>
+
+                                        <h3 className="text-xl font-bold text-white tracking-tight leading-snug">
+                                            {renderFormattedText(course.title)}
+                                        </h3>
+                                        
+                                        <p className="text-xs text-gray-400 font-light leading-relaxed line-clamp-3">
+                                            {renderFormattedText(course.desc)}
+                                        </p>
+                                    </div>
+
+                                    {/* Footer Action */}
+                                    <div className="flex items-center justify-between pt-4 border-t border-white/5 mt-auto">
+                                        <span className="text-[10px] tracking-wider font-mono text-gray-500 uppercase">
+                                            {course.students} estudiantes
+                                        </span>
+                                        
+                                        {course.id === 2 ? (
+                                            <button 
+                                                onClick={() => navigate('/academy/workspace')}
+                                                className="flex items-center gap-1.5 px-4 py-2 bg-[#00e03c]/10 hover:bg-[#00e03c]/20 border border-[#00e03c]/35 hover:border-[#00e03c]/60 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-lg transition-all active:scale-95"
+                                            >
+                                                Ingresar <ArrowRight className="w-3 h-3 text-[#00e03c]" />
+                                            </button>
+                                        ) : (
+                                            <button 
+                                                className="flex items-center gap-1.5 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white font-extrabold text-[10px] uppercase tracking-wider rounded-lg transition-all active:scale-95"
+                                                onClick={() => alert(`Acceso a ${course.title.replace(/\*/g, '')}`)}
+                                            >
+                                                Ver Detalles
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </motion.article>
+                        ))
+                    )}
+                </AnimatePresence>
             </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight uppercase font-display drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
-              {renderFormattedText(featuredCourse.title)}
-            </h1>
-            <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-lg hidden sm:block">
-              {renderFormattedText(featuredCourse.desc)}
-            </p>
-            <div className="pt-2 flex items-center gap-4">
-              <button
-                onClick={() => handleOpenCourse(featuredCourse)}
-                className="neuform-btn-primary cursor-none"
-                data-cursor-text="REPRODUCIR"
-              >
-                <Play className="w-4 h-4 fill-current" /> Ver Contenido
-              </button>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Instructor: {featuredCourse.instructor} · {featuredCourse.duration}
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── 2. BRAND CHANNELS GRID (Categorías Estilo Disney+) ── */}
-      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-4">
-        {CATEGORIES.map((cat) => {
-          const isActive = selectedCategory === cat.id;
-          return (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`relative py-4 px-3 rounded-2xl border flex flex-col items-center justify-center gap-2 cursor-none transition-all duration-300 ${
-                isActive
-                  ? 'bg-[#00e03c]/15 border-[#00e03c] text-[#00e03c] shadow-[0_0_20px_rgba(0,224,60,0.25)] scale-105'
-                  : 'bg-white/[0.05] border-white/[0.12] hover:border-[#00e03c]/40 text-slate-300 hover:text-white hover:scale-105 hover:bg-[#00e03c]/5 hover:shadow-[0_0_15px_rgba(0,224,60,0.15)]'
-              }`}
-            >
-              <div className={`p-2.5 rounded-xl border ${isActive ? 'bg-[#00e03c]/20 border-[#00e03c]/30 text-[#00e03c]' : 'bg-white/8 border-white/20'}`}>
-                {cat.icon}
-              </div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-center">{cat.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ── 3. LISTADO DE CONTENIDOS FILTRADOS (Disney+ Row Sliders) ── */}
-      <div className="space-y-6 text-left">
-        <div className="flex justify-between items-center">
-          <h2 className="font-extrabold text-lg text-white uppercase tracking-wider flex items-center gap-2">
-            <Library className="w-4 h-4 text-[#00e03c]" /> 
-            {CATEGORIES.find(c => c.id === selectedCategory)?.label} Disponibles
-          </h2>
-          <span className="section-label">{filteredCourses.length} recursos encontrados</span>
-        </div>
-        <div className="neuform-divider mt-2 mb-6" />
-
-        {filteredCourses.length === 0 ? (
-          <div className="neuform-card p-10 text-center text-slate-500 text-xs">
-            No hay recursos disponibles en este canal actualmente.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCourses.map(course => (
-              <div
-                key={course.id}
-                onClick={() => handleOpenCourse(course)}
-                className="group relative overflow-hidden neuform-card flex flex-col h-full cursor-none pointer-events-auto"
-                data-cursor-text="INGRESAR"
-              >
-                {/* Imagen del Curso - Aspecto Video Ancho */}
-                <div className="relative aspect-video bg-slate-900 overflow-hidden">
-                  <img
-                    src={course.image}
-                    alt={course.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
-                  
-                  {/* Tipo de Recurso */}
-                  <span className="absolute top-3 left-3 neuform-badge backdrop-blur-md">
-                    {course.type.replace('_', ' ')}
-                  </span>
-
-                  {/* Icono de Play / Lock al centro */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="w-12 h-12 rounded-full bg-[#00e03c] text-slate-950 flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform duration-300">
-                      {course.isPremium && !hasPremiumAccess ? (
-                        <Lock className="w-5 h-5 fill-current" />
-                      ) : (
-                        <Play className="w-5 h-5 fill-current translate-x-0.5" />
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Detalles */}
-                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                  <div className="space-y-1">
-                    <h3 className="font-extrabold text-white text-base group-hover:text-[#00e03c] transition-colors leading-snug">
-                      {renderFormattedText(course.title)}
-                    </h3>
-                    <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
-                      {renderFormattedText(course.desc)}
-                    </p>
-                  </div>
-
-                  <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between">
-                    <span className="text-[10px] text-slate-300 font-bold uppercase tracking-wider">
-                      {course.instructor}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black text-slate-300 bg-white/5 border border-white/15 px-2 py-0.5 rounded">
-                        {course.duration}
-                      </span>
-                      {course.isPremium ? (
-                        <span className="neuform-badge text-amber-400 border-amber-400/30 bg-amber-400/10 flex items-center gap-1">
-                          <Star className="w-2.5 h-2.5 fill-current" /> Premium
-                        </span>
-                      ) : (
-                        <span className="neuform-badge neuform-badge-accent">
-                          Gratis
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Botón de Borrado para Administrador */}
-                {activeRole === 'AdminMod' && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteCourse(course.id);
-                    }}
-                    className="absolute top-3 right-3 p-2 bg-slate-950/80 hover:bg-rose-500/20 text-rose-400 border border-white/10 hover:border-rose-500/40 rounded-xl transition-all pointer-events-auto"
-                    title="Eliminar curso"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* ── 4. SUBSCRIPCIÓN PREMIUM CTA ── */}
-      {!hasPremiumAccess && (
-        <div className="neuform-card p-8 sm:p-12 overflow-hidden relative flex flex-col md:flex-row items-center justify-between gap-6 pointer-events-auto text-left">
-          <div className="space-y-2 max-w-xl">
-            <h3 className="text-2xl font-black text-white uppercase font-display tracking-tight flex items-center gap-2">
-              <Star className="w-6 h-6 text-amber-400 fill-current animate-spin-slow" />
-              Suscripción Academia Premium
-            </h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Únete a la membresía de élite académica de SERAM. Accede a todos los cursos de pago, talleres avanzados de <span className="italic text-white">SIG en QGIS</span>, cálculo de <span className="italic text-white">Huella de Carbono</span>, y descarga recursos vectoriales exclusivos de por vida por una única cuota anual.
-            </p>
-          </div>
-          <button
-            onClick={() => navigate('/shop')}
-            className="neuform-btn-primary cursor-none shrink-0 !bg-amber-400 !border-amber-300 hover:!bg-amber-300 shadow-[0_4px_15px_rgba(251,191,36,0.3)] text-slate-950"
-            data-cursor-text="PREMIUM"
-          >
-            Adquirir Membresía Premium
-          </button>
-        </div>
-      )}
-    </motion.div>
-  );
+        </main>
+    );
 }

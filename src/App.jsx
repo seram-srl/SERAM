@@ -20,6 +20,7 @@ import NotFoundPage    from './features/NotFoundPage';
 import HomePage        from './features/home/HomePage';
 import AcademyPage     from './features/academy/AcademyPage';
 import CoursePlayerPage from './features/academy/CoursePlayerPage';
+import ShaderWorkspace from './features/academy/ShaderWorkspace';
 import ServicesPage    from './features/services/ServicesPage';
 import QuotePage       from './features/services/QuotePage';
 import ExperiencePage  from './features/experience/ExperiencePage';
@@ -101,6 +102,7 @@ export default function App() {
             <Route path="/quote"      element={<QuotePage />}        />
             <Route path="/academy"    element={<AcademyPage />}      />
             <Route path="/academy/course/:id" element={<ProtectedRoute><CoursePlayerPage /></ProtectedRoute>} />
+            <Route path="/academy/workspace" element={<ProtectedRoute><ShaderWorkspace /></ProtectedRoute>} />
             <Route path="/services"   element={<ServicesPage />}     />
             <Route path="/experience" element={<ExperiencePage />}   />
             <Route path="/shop"       element={<ShopPage />}         />

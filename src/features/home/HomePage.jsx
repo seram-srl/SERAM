@@ -474,17 +474,17 @@ function ServicesHorizontalSection() {
 
         {/* Tarjeta 1 */}
         <motion.div 
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-50px' }}
           transition={{ duration: 0.6 }}
-          className="relative w-full max-w-lg mx-auto rounded-3xl overflow-hidden shadow-2xl border border-white/10" 
+          className="relative w-full max-w-lg mx-auto rounded-3xl overflow-hidden shadow-2xl border border-white/10 will-change-transform" 
           style={{ height: '480px' }}
         >
           <img src="/assets/3d-backend/licencias_fnca.png" alt="Licencias Ambientales" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/55" />
           <div className="absolute inset-0 flex flex-col justify-end p-5">
-            <div className="bg-white/15 backdrop-blur-md border border-white/10 p-5 rounded-2xl bg-black/55">
+            <div className="bg-black/80 backdrop-blur-md border border-white/10 p-5 rounded-2xl">
               <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#029907] font-tech mb-1.5 block">Regularización y Licencias Ambientales</span>
               <h3 className="text-lg font-black text-white mb-1.5 leading-tight select-none">
                 ¿Tu proyecto está listo para iniciar pero te falta la <span className="italic">Categorización Ambiental</span>?
@@ -503,11 +503,11 @@ function ServicesHorizontalSection() {
 
         {/* Tarjeta 2 */}
         <motion.div 
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-50px' }}
           transition={{ duration: 0.6 }}
-          className="relative w-full max-w-lg mx-auto rounded-3xl overflow-hidden shadow-2xl border border-white/10" 
+          className="relative w-full max-w-lg mx-auto rounded-3xl overflow-hidden shadow-2xl border border-white/10 will-change-transform" 
           style={{ height: '480px' }}
         >
           {/* Fondo estilo HUD tecnológico futurista */}
@@ -550,7 +550,7 @@ function ServicesHorizontalSection() {
           </div>
           <div className="absolute inset-0 bg-black/40" />
           <div className="absolute inset-0 flex flex-col justify-end p-5">
-            <div className="bg-white/15 backdrop-blur-md border border-white/10 p-5 rounded-2xl bg-black/55">
+            <div className="bg-black/80 backdrop-blur-md border border-white/10 p-5 rounded-2xl">
               <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#029907] font-tech mb-1.5 block">Regularización Industrial</span>
               <h3 className="text-lg font-black text-white mb-2 leading-tight"><span className="italic">Registro Ambiental Industrial</span> (RAI): Evita Clausuras y Sanciones</h3>
               <p className="text-slate-300 mb-4 text-[11px] font-light leading-relaxed">
@@ -564,17 +564,17 @@ function ServicesHorizontalSection() {
 
         {/* Tarjeta 3 */}
         <motion.div 
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-50px' }}
           transition={{ duration: 0.6 }}
-          className="relative w-full max-w-lg mx-auto rounded-3xl overflow-hidden shadow-2xl border border-white/10" 
+          className="relative w-full max-w-lg mx-auto rounded-3xl overflow-hidden shadow-2xl border border-white/10 will-change-transform" 
           style={{ height: '480px' }}
         >
           <img src="/assets/3d-backend/prospeccion_minera_es.png" alt="Prospección Minera y EMAP" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/55" />
           <div className="absolute inset-0 flex flex-col justify-end p-5">
-            <div className="bg-white/15 backdrop-blur-md border border-white/10 p-5 rounded-2xl bg-black/55">
+            <div className="bg-black/80 backdrop-blur-md border border-white/10 p-5 rounded-2xl">
               <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#029907] font-tech mb-1.5 block">Minería sin Frenos Administrativos</span>
               <h3 className="text-lg font-black text-white mb-2 leading-tight"><span className="italic">Prospección Minera</span> y EMAP: Asegura tu Licencia de Explotación</h3>
               <p className="text-slate-300 mb-4 text-[11px] font-light leading-relaxed">
@@ -588,17 +588,17 @@ function ServicesHorizontalSection() {
 
         {/* Tarjeta 4 — SIG en la Gestión Ambiental */}
         <motion.div 
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-50px' }}
           transition={{ duration: 0.6 }}
-          className="relative w-full max-w-lg mx-auto rounded-3xl overflow-hidden shadow-2xl border border-white/10" 
+          className="relative w-full max-w-lg mx-auto rounded-3xl overflow-hidden shadow-2xl border border-white/10 will-change-transform" 
           style={{ height: '560px' }}
         >
           <img src="/assets/3d-backend/gis_satellite_mapping.webp" alt="SIG en la Gestión Ambiental — Mapas Ambientales SERAM" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/55" />
           <div className="absolute inset-0 flex flex-col justify-end p-5 pb-20">
-            <div className="bg-white/15 backdrop-blur-md border border-white/10 p-5 rounded-2xl bg-black/55">
+            <div className="bg-black/80 backdrop-blur-md border border-white/10 p-5 rounded-2xl">
               <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#029907] font-tech mb-1.5 block">SIG en la Gestión Ambiental — SERAM</span>
               <h3 className="text-lg font-black text-white mb-2 leading-tight"><span className="italic">Mapas Ambientales</span> que Aprueban: Diseñamos tu Plan de Aplicación SIG</h3>
               <p className="text-slate-300 mb-3 text-[11px] font-light leading-relaxed">
@@ -662,7 +662,7 @@ function ServicesHorizontalSection() {
           <img src="/assets/3d-backend/licencias_fnca.png" alt="Licencias Ambientales" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/45" />
           <div className="card-content opacity-0 absolute inset-0 flex flex-col justify-center px-8 md:px-24">
-            <div className="bg-white/15 backdrop-blur-md border border-white/10 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl bg-black/55">
+            <div className="bg-black/80 backdrop-blur-md border border-white/10 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
               <span className="card-tag text-[11px] uppercase tracking-wider font-extrabold text-[#029907] font-tech mb-2 block">Regularización y Licencias Ambientales</span>
               <h3 className="card-title text-2xl md:text-3xl font-black text-white mb-2 leading-tight select-none">
                 ¿Tu proyecto está listo para iniciar pero te falta la <span className="italic">Categorización Ambiental</span>?
@@ -721,7 +721,7 @@ function ServicesHorizontalSection() {
           </div>
           <div className="absolute inset-0 bg-black/45" />
           <div className="card-content opacity-0 absolute inset-0 flex flex-col justify-center px-8 md:px-24">
-            <div className="bg-white/15 backdrop-blur-md border border-white/10 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl bg-black/55">
+            <div className="bg-black/80 backdrop-blur-md border border-white/10 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
               <span className="card-tag text-[10px] uppercase tracking-wider font-extrabold text-[#029907] font-tech mb-2 block">Regularización Industrial</span>
               <h3 className="card-title text-xl md:text-2xl font-black text-white mb-3 leading-tight"><span className="italic">Registro Ambiental Industrial</span> (RAI): Evita Clausuras y Sanciones</h3>
               <p className="card-desc text-slate-300 mb-6 text-sm font-light leading-relaxed">
@@ -738,7 +738,7 @@ function ServicesHorizontalSection() {
           <img src="/assets/3d-backend/prospeccion_minera_es.png" alt="Prospección Minera y EMAP" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/45" />
           <div className="card-content opacity-0 absolute inset-0 flex flex-col justify-center px-8 md:px-24">
-            <div className="bg-white/15 backdrop-blur-md border border-white/10 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl bg-black/55">
+            <div className="bg-black/80 backdrop-blur-md border border-white/10 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
               <span className="card-tag text-[10px] uppercase tracking-wider font-extrabold text-[#029907] font-tech mb-2 block">Minería sin Frenos Administrativos</span>
               <h3 className="card-title text-xl md:text-2xl font-black text-white mb-3 leading-tight"><span className="italic">Prospección Minera</span> y <span className="italic">EMAP</span>: Asegura tu Licencia de Explotación</h3>
               <p className="card-desc text-slate-300 mb-6 text-sm font-light leading-relaxed">
@@ -755,7 +755,7 @@ function ServicesHorizontalSection() {
           <img src="/assets/3d-backend/gis_satellite_mapping.webp" alt="SIG en la Gestión Ambiental — Mapas Ambientales SERAM" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/45" />
           <div className="card-content opacity-0 absolute inset-0 flex flex-col justify-center px-8 md:px-24">
-            <div className="bg-white/15 backdrop-blur-md border border-white/10 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl bg-black/55">
+            <div className="bg-black/80 backdrop-blur-md border border-white/10 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
               <span className="card-tag text-[10px] uppercase tracking-wider font-extrabold text-[#029907] font-tech mb-2 block">SIG en la Gestión Ambiental — SERAM Consultora Ambiental</span>
               <h3 className="card-title text-xl md:text-2xl font-black text-white mb-3 leading-tight"><span className="italic">Mapas Ambientales</span> que Aprueban: Diseñamos tu Plan de Aplicación SIG</h3>
               <p className="card-desc text-slate-300 mb-5 text-sm font-light leading-relaxed">
@@ -1007,7 +1007,7 @@ function StoreHorizontalSection() {
 // ─── FOOTER SECTION ───────────────────────────────────────────────────────────
 function FooterSection() {
   return (
-    <footer className="w-full bg-slate-950/40 border-t border-white/10 py-16 px-6 sm:px-12 md:px-24 select-none relative z-10">
+    <footer className="w-full bg-[#010409] border-t border-white/10 py-16 px-6 sm:px-12 md:px-24 select-none relative z-10">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 text-left">
         {/* Columna 1: Socios Fundadores */}
         <div className="space-y-4">

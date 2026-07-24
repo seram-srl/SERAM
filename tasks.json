@@ -12,6 +12,38 @@
   ],
   "completed": [
     {
+      "id": "TASK-016",
+      "title": "Corregir contraste en la sección de Servicios (cajas de cristal claras con texto claro), cambiar fondo del footer de la Home por un color sólido oscuro y optimizar la versión mobile",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-07-24",
+      "completed_at": "2026-07-24"
+    },
+    {
+      "id": "TASK-015",
+      "title": "Creación de la Vista de Lecciones Individuales (ShaderWorkspace.jsx) con editor GLSL y WebGL live compiler",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-07-16",
+      "completed_at": "2026-07-16"
+    },
+    {
+      "id": "TASK-014",
+      "title": "Aplicar Contrato de UI Cinematográfica v2.5 para SERAM ACADEMY en AcademyPage.jsx e index.css",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-07-16",
+      "completed_at": "2026-07-16"
+    },
+    {
+      "id": "TASK-013",
+      "title": "Optimización del Hero de la Home page: reproducción fluida del video de fondo en autoplay/loop, desvanecimiento de opacidad por scroll y auditoría de los 4 pilares ecológicos de SERAM",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-07-15",
+      "completed_at": "2026-07-15"
+    },
+    {
       "id": "TASK-012",
       "title": "Controlar la reproducción del video de fondo del Hero mediante la posición de scroll y optimización All-Intra en WebGL",
       "status": "completed",

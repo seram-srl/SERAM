@@ -139,9 +139,9 @@ function InteractiveScene({ hProgressRef }) {
     // Crear el video element
     const video = document.createElement('video');
     video.muted = true;
-    video.loop = false; // No se auto-repite, lo controla el scroll
+    video.loop = false; // Desactivado bucle continuo para control manual por scroll
     video.playsInline = true;
-    video.autoplay = false; // Desactivado autoplay para control manual por scroll
+    video.autoplay = false; 
 
     // Determinar la resolución del video adaptativa para mobile/desktop
     const isMobile = window.innerWidth < 768;
@@ -156,9 +156,15 @@ function InteractiveScene({ hProgressRef }) {
     videoTexture.magFilter = THREE.LinearFilter;
     videoTexture.generateMipmaps = false;
 
-    // Activar la textura del video cuando el framework pueda reproducirlo
+    // Activar la textura del video cuando esté listo para reproducirse
     const handleCanPlay = () => {
-      setActiveVideoTexture(videoTexture);
+      if (video.readyState >= 2) {
+        setActiveVideoTexture(videoTexture);
+      } else {
+        video.addEventListener('loadeddata', () => {
+          setActiveVideoTexture(videoTexture);
+        }, { once: true });
+      }
     };
 
     video.addEventListener('canplaythrough', handleCanPlay);
@@ -326,23 +332,38 @@ function InteractiveScene({ hProgressRef }) {
       state.scene.background = bgColor;
     }
 
-    // Controlar el barrido del video de Hero por scroll (scrubbing)
+    // Controlar el video de Hero según la velocidad del scroll para evitar tirones
     if (videoRef.current && activeVideoTexture) {
       if (smoothP > 0.25) {
         if (!videoRef.current.paused) {
           videoRef.current.pause();
         }
       } else {
-        // En la zona del Hero (0 a 0.25), mapeamos el progreso de scroll al tiempo del video
-        const heroProgress = Math.min(1.0, Math.max(0.0, smoothP / 0.25));
-        const duration = videoRef.current.duration || 8.0;
+        // Diferencia de scroll en este frame
+        const diff = p - currentScroll.current;
+        const absDiff = Math.abs(diff);
         
-        // Mapeamos el progreso de scroll al tiempo del video
-        const targetTime = heroProgress * duration;
-        
-        // Solo actualizamos si hay un cambio significativo para no saturar el hilo principal
-        if (Math.abs(videoRef.current.currentTime - targetTime) > 0.01) {
-          videoRef.current.currentTime = targetTime;
+        if (absDiff > 0.0002) {
+          if (diff > 0) {
+            // El usuario baja: reproducimos el video de forma continua y fluida
+            if (videoRef.current.paused) {
+              videoRef.current.play().catch(() => {});
+            }
+            // Velocidad de reproducción adaptativa proporcional al scroll
+            videoRef.current.playbackRate = Math.min(2.2, Math.max(0.5, absDiff * 140));
+          } else {
+            // El usuario sube: retrocedemos el video de forma manual
+            if (!videoRef.current.paused) {
+              videoRef.current.pause();
+            }
+            const step = absDiff * 7.5;
+            videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - step);
+          }
+        } else {
+          // El scroll está detenido: pausamos el video de inmediato
+          if (!videoRef.current.paused) {
+            videoRef.current.pause();
+          }
         }
       }
     }
@@ -359,7 +380,7 @@ function InteractiveScene({ hProgressRef }) {
         {/* Fondo 1: Hero */}
         <mesh ref={heroBgRef} position={[0, 0, -0.04]}>
           <planeGeometry args={[52, 26]} />
-          <meshBasicMaterial map={activeVideoTexture || heroBgTexture} color="#777777" transparent depthWrite={false} opacity={1} dithering={true} />
+          <meshBasicMaterial map={activeVideoTexture || heroBgTexture} color="#888888" transparent depthWrite={false} opacity={1} dithering={true} />
         </mesh>
         
         {/* Fondo 2: Servicios */}

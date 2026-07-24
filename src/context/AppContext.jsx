@@ -15,6 +15,7 @@ export function AppProvider({ children }) {
     { email: 'barrientoso2401@gmail.com', role: 'AdminMod', name: 'Ing. Diego Barrientos', isPremiumApproved: true },
     { email: 'fernandoaraujo1912@gmail.com', role: 'AdminMod', name: 'Ing. Fernando Araujo', isPremiumApproved: true },
     { email: 'sebastiansbs51@gmail.com', role: 'AdminMod', name: 'Ing. Fabricio Orosco', isPremiumApproved: true },
+    { email: 'freddyfarrachol@gmail.com', role: 'AdminMod', name: 'Ing. Freddy Farrachol', isPremiumApproved: true },
   ]);
 
   // --- SECRET PARTNER PORTAL ---
@@ -38,13 +39,10 @@ export function AppProvider({ children }) {
 
   // --- COURSES ---
   const [courses, setCourses] = useState([
-    { id: 1, title: 'Introducción a la *Fiscalización Ambiental*', instructor: 'Ing. Fernando Araujo', students: 124, status: 'Activo', isPremium: false, type: 'curso_gratis', image: 'https://images.unsplash.com/photo-1500485035595-cbe6f645feb1?auto=format&fit=crop&q=80&w=600', duration: '6 horas', desc: 'Aprende las nociones fundamentales de fiscalización bajo la normativa de *medio ambiente* boliviana.' },
-    { id: 2, title: 'SIG Aplicado al *Ordenamiento Territorial* (QGIS)', instructor: 'Ing. Diego Barrientos', students: 85, status: 'Activo', isPremium: true, type: 'curso_pago', price: 150, image: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=600', duration: '20 horas', desc: 'Dominio de sistemas de información geográfica aplicados al *mapeo de cuencas* y zonificación.', prerequisiteId: 1 },
-    { id: 3, title: 'Taller Práctico: *Lombricultura* e *Hidro-Compostaje*', instructor: 'Ing. Fabricio Orosco', students: 42, status: 'Activo', isPremium: false, type: 'taller', image: 'https://images.unsplash.com/photo-1592417817098-8f3d6eb19675?auto=format&fit=crop&q=80&w=600', duration: '4 horas', desc: 'Instalación paso a paso de *composteras orgánicas* domésticas e industriales.' },
-    { id: 4, title: 'Masterclass: Cálculo de *Huella de Carbono* Corporativa', instructor: 'Ing. Fabricio Orosco', students: 60, status: 'Activo', isPremium: true, type: 'masterclass', price: 90, image: 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&q=80&w=600', duration: '3 horas', desc: 'Metodologías de cuantificación bajo directrices de protocolo de *gases de efecto invernadero*.', prerequisiteId: 1 },
-    { id: 5, title: 'Ebook: Guía Práctica de la Ley 1333 de *Medio Ambiente*', instructor: 'SERAM Legal', students: 210, status: 'Activo', isPremium: true, type: 'libro', price: 15, image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=600', duration: '80 páginas', desc: 'Compendio interpretado de legislación boliviana y reglamentos de *prevención y control*.' },
-    { id: 6, title: 'Audiolibro: Liderazgo y *Sostenibilidad Ecosistémica*', instructor: 'Ing. Diego Barrientos', students: 95, status: 'Activo', isPremium: false, type: 'audiolibro', image: 'https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&q=80&w=600', duration: '2.5 horas', desc: 'Perspectivas audibles sobre la integración del desarrollo económico y la *conservación ambiental*.' },
-    { id: 7, title: 'Suscripción Academia Premium (Anual)', instructor: 'SERAM Team', students: 150, status: 'Activo', isPremium: true, type: 'suscripcion', price: 35, image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=600', duration: 'Membresía anual', desc: 'Acceso ilimitado a todos los cursos de pago, masterclasses y ebooks de SERAM.' }
+    { id: 1, title: 'Ebook: Guía Práctica de la Ley 1333 de *Medio Ambiente*', instructor: 'SERAM Legal', students: 210, status: 'Activo', isPremium: false, type: 'gratis', price: 0, image: '/assets/covers/cover_ebook_ley1333.png', duration: '80 páginas', desc: 'Compendio interpretado de legislación boliviana, carimbos institucionales, mapas sectoriales y tablas normativas de mitigación.' },
+    { id: 2, title: 'Herramientas Técnicas de QGIS *Básico*', instructor: 'Ing. Diego Barrientos', students: 85, status: 'Activo', isPremium: true, type: 'low_ticket', price: 45, image: '/assets/covers/cover_qgis_basico.png', duration: '12 horas', desc: 'Dominio práctico de QGIS aplicado a delimitación de cuencas e informes técnicos bolivianos.' },
+    { id: 3, title: 'Taller: Metodología de *Fichas Ambientales* e Impacto', instructor: 'Ing. Fernando Araujo', students: 42, status: 'Activo', isPremium: true, type: 'mid_ticket', price: 120, image: '/assets/covers/cover_taller_fichas.png', duration: '25 horas', desc: 'Metodologías de categorización de obras civiles (FNCA) y adecuación bajo reglamentación boliviana.' },
+    { id: 4, title: 'Mentoría VIP: Consultoría y *Gestión de Proyectos Ambientales*', instructor: 'Ing. Fabricio Orosco', students: 12, status: 'Activo', isPremium: true, type: 'high_ticket', price: 450, image: '/assets/covers/cover_mentoria_consultoria.png', duration: '1 mes (1-on-1)', desc: 'Mentoría de élite 1-a-1 para el diseño técnico y defensa legal de licencias ambientales mineras e industriales.' }
   ]);
 
   // --- PROJECTS ---
@@ -597,33 +595,66 @@ export function AppProvider({ children }) {
     triggerToast('¡Compra procesada! Se enviará la factura a tu correo.', 'success');
   };
 
-  const handleAddCourse = async (title, instructor) => {
-    if (!title || !instructor) return;
+  const handleAddCourse = async (courseData) => {
+    if (!courseData.title || !courseData.instructor) return;
     const newCourse = { 
       id: Date.now(), 
-      title, 
-      instructor, 
+      title: courseData.title, 
+      instructor: courseData.instructor, 
       students: 0, 
-      status: 'Nuevo', 
-      isPremium: false 
+      status: 'Activo', 
+      isPremium: courseData.isPremium || false,
+      type: courseData.type || 'curso_gratis',
+      price: parseFloat(courseData.price) || 0,
+      image: courseData.image || 'https://images.unsplash.com/photo-1500485035595-cbe6f645feb1?auto=format&fit=crop&q=80&w=600',
+      duration: courseData.duration || '10 horas',
+      desc: courseData.desc || ''
     };
 
     setCourses(prev => [...prev, newCourse]);
-    triggerToast('Nuevo curso registrado en SERAM ACADEMY', 'success');
+    triggerToast('Nuevo recurso registrado en SERAM ACADEMY', 'success');
 
     try {
       const { error } = await supabase.from('courses').insert([{
-        title,
-        instructor,
+        title: newCourse.title,
+        instructor: newCourse.instructor,
         students: 0,
-        status: 'Nuevo',
-        is_premium: false
+        status: 'Activo',
+        is_premium: newCourse.isPremium,
+        type: newCourse.type,
+        price: newCourse.price,
+        image: newCourse.image,
+        duration: newCourse.duration,
+        desc: newCourse.desc
       }]);
       if (error && error.code !== 'PGRST205') {
         throw error;
       }
     } catch (err) {
       console.warn('[Supabase Sync Warning - AddCourse]:', err.message);
+    }
+  };
+
+  const handleUpdateCourse = async (id, fields) => {
+    setCourses(prev => prev.map(c => c.id === id ? { ...c, ...fields } : c));
+    triggerToast('Recurso académico actualizado', 'success');
+
+    try {
+      const { error } = await supabase.from('courses').update({
+        title: fields.title,
+        instructor: fields.instructor,
+        is_premium: fields.isPremium,
+        type: fields.type,
+        price: fields.price,
+        image: fields.image,
+        duration: fields.duration,
+        desc: fields.desc
+      }).eq('id', id);
+      if (error && error.code !== 'PGRST205') {
+        throw error;
+      }
+    } catch (err) {
+      console.warn('[Supabase Sync Warning - UpdateCourse]:', err.message);
     }
   };
 
@@ -1057,7 +1088,7 @@ export function AppProvider({ children }) {
       handleRegisterSupabase, handleLoginSupabase, handleLogoutPublic,
       toggleLessonCompleted, approveCourseExam, submitAssignment,
       handleAccessItem, handleAddToCart, handleRemoveFromCart, handleCheckout,
-      handleAddCourse, handleDeleteCourse, handleToggleCoursePremium,
+      handleAddCourse, handleUpdateCourse, handleDeleteCourse, handleToggleCoursePremium,
       handleAddProject, handleUpdateProjectProgress, handleDeleteProject,
       handleEditProject, handleConcludeProject,
       handleToggleUserPremium, handleRevokeUserAccess, handleLogoutPartner,

@@ -32,7 +32,7 @@ const SIDEBAR_MODULES = [
   { id: 'overview',    icon: <BarChart2 className="w-5 h-5" />,    label: 'Resumen General' },
   { id: 'services',   icon: <Briefcase className="w-5 h-5" />,    label: 'SERAM SERVICES' },
   { id: 'timetracker', icon: <Clock className="w-5 h-5" />,        label: 'Time Tracker' },
-  { id: 'academy',    icon: <BookOpenCheck className="w-5 h-5" />, label: 'SERAM ACADEMY' },
+  { id: 'academy',    icon: <BookOpenCheck className="w-5 h-5" />, label: 'Gestión de Info-productos y Oferta Académica' },
   { id: 'experience', icon: <Globe className="w-5 h-5" />,         label: 'SERAM EXPERIENCE' },
   { id: 'store',      icon: <ShoppingBag className="w-5 h-5" />,   label: 'SERAM STORE' },
   { id: 'users',      icon: <Users className="w-5 h-5" />,         label: 'Socios & Usuarios' },
@@ -631,37 +631,283 @@ function SpecialistManager({ specialists, handlers }) {
 // MODULE: ACADEMY
 // ─────────────────────────────────────────────────────────────────────────────
 function AcademyModule({ courses, registeredEngineers, handlers }) {
-  const { handleAddCourse, handleDeleteCourse, handleToggleCoursePremium, triggerToast } = handlers;
-  const [title, setTitle] = useState('');
-  const [instructor, setInstructor] = useState(registeredEngineers[0]?.name || '');
+  const { handleAddCourse, handleUpdateCourse, handleDeleteCourse, triggerToast } = handlers;
+  
+  // Create state
+  const [form, setForm] = useState({
+    title: '',
+    instructor: registeredEngineers[0]?.name || 'Ing. Diego Barrientos',
+    type: 'gratis',
+    price: 0,
+    duration: '10 horas',
+    desc: '',
+    image: '/assets/covers/cover_ebook_ley1333.png'
+  });
 
-  const inputCls = "w-full text-xs px-3 py-2 bg-white/[0.08] border border-white/[0.15] rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-[#00e03c] transition-all";
+  // Edit state
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    instructor: '',
+    type: 'gratis',
+    price: 0,
+    duration: '',
+    desc: '',
+    image: ''
+  });
+
+  // Preset covers based on type
+  const PRESET_COVERS = {
+    gratis: '/assets/covers/cover_ebook_ley1333.png',
+    low_ticket: '/assets/covers/cover_qgis_basico.png',
+    mid_ticket: '/assets/covers/cover_taller_fichas.png',
+    high_ticket: '/assets/covers/cover_mentoria_consultoria.png'
+  };
+
+  const handleTypeChange = (type, isEdit = false) => {
+    const cover = PRESET_COVERS[type] || PRESET_COVERS.gratis;
+    if (isEdit) {
+      setEditForm(prev => ({ ...prev, type, image: cover, price: type === 'gratis' ? 0 : prev.price }));
+    } else {
+      setForm(prev => ({ ...prev, type, image: cover, price: type === 'gratis' ? 0 : prev.price }));
+    }
+  };
+
+  const inputCls = "w-full text-xs px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-[#00e03c]/40 transition-all";
   const selectCls = "w-full text-xs px-3 py-1.5 bg-white/[0.08] border border-white/[0.15] rounded-lg text-white focus:outline-none focus:border-[#00e03c] transition-all [&>option]:bg-[#0d1622] [&>option]:text-white";
 
-  return (
-    <div className="space-y-6">
-      <GlassCard className="p-6 space-y-4">
-        <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/[0.06] pb-3">Nuevo Curso</h4>
-        <form onSubmit={(e) => { e.preventDefault(); if (!title || !instructor) return; handleAddCourse(title, instructor); setTitle(''); }} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <input required className={inputCls} placeholder="Título del Curso" value={title} onChange={e => setTitle(e.target.value)} />
-          <select required className={selectCls} value={instructor} onChange={e => setInstructor(e.target.value)}>{registeredEngineers.map(e => <option key={e.email} value={e.name}>{e.name}</option>)}</select>
-          <button type="submit" className="bg-[#00e03c] text-slate-950 rounded-xl font-black text-xs uppercase hover:bg-emerald-400 flex items-center justify-center gap-1.5 px-4 py-2 transition-colors"><Plus className="w-4 h-4" /> Agregar</button>
-        </form>
-      </GlassCard>
+  const handleCreate = (e) => {
+    e.preventDefault();
+    if (!form.title || !form.instructor) {
+      triggerToast('Título e Instructor son requeridos', 'error');
+      return;
+    }
+    handleAddCourse({
+      ...form,
+      isPremium: form.type !== 'gratis'
+    });
+    setForm({
+      title: '',
+      instructor: registeredEngineers[0]?.name || 'Ing. Diego Barrientos',
+      type: 'gratis',
+      price: 0,
+      duration: '10 horas',
+      desc: '',
+      image: '/assets/covers/cover_ebook_ley1333.png'
+    });
+  };
 
-      <div className="space-y-3">
-        {courses.map(c => (
-          <motion.div key={c.id} layout variants={fadeUp} className="flex items-center justify-between p-4 bg-white/[0.03] border border-white/[0.06] rounded-xl hover:border-white/[0.10] transition-colors">
-            <div>
-              <p className="font-extrabold text-sm text-white">{c.title}</p>
-              <p className="text-[10px] text-slate-500 mt-0.5">Docente: {c.instructor} · {c.students} estudiantes · <span className={c.status === 'Activo' ? 'text-[#00e03c]' : 'text-amber-400'}>{c.status}</span></p>
+  const handleStartEdit = (course) => {
+    setEditingId(course.id);
+    setEditForm({
+      title: course.title,
+      instructor: course.instructor,
+      type: course.type || 'gratis',
+      price: course.price || 0,
+      duration: course.duration || '10 horas',
+      desc: course.desc || '',
+      image: course.image || ''
+    });
+  };
+
+  const handleSaveEdit = (e) => {
+    e.preventDefault();
+    if (!editForm.title || !editForm.instructor) {
+      triggerToast('Título e Instructor son requeridos', 'error');
+      return;
+    }
+    handleUpdateCourse(editingId, {
+      ...editForm,
+      isPremium: editForm.type !== 'gratis'
+    });
+    setEditingId(null);
+  };
+
+  return (
+    <div className="space-y-6 text-left">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* FORMULARIO CRUD (Izquierda / 1 Columna) */}
+        <div className="lg:col-span-1 space-y-6">
+          
+          {editingId === null ? (
+            <GlassCard className="p-6 space-y-4">
+              <div className="flex items-center gap-2 border-b border-white/[0.06] pb-3">
+                <Plus className="w-4 h-4 text-[#00e03c]" />
+                <h4 className="text-xs font-black text-white uppercase tracking-wider">Añadir Recurso</h4>
+              </div>
+              <form onSubmit={handleCreate} className="space-y-3">
+                <div>
+                  <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Título de la Lección / Recurso</label>
+                  <input required className={inputCls} placeholder="Ej: QGIS Básico para Cuencas" value={form.title} onChange={e => setForm(s => ({ ...s, title: e.target.value }))} />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Categoría</label>
+                    <select className={selectCls} value={form.type} onChange={e => handleTypeChange(e.target.value)}>
+                      <option value="gratis">Gratis (Lead Magnet)</option>
+                      <option value="low_ticket">Low Ticket (Base)</option>
+                      <option value="mid_ticket">Mid Ticket (Taller)</option>
+                      <option value="high_ticket">High Ticket (VIP)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Precio (Bs.)</label>
+                    <input type="number" min={0} disabled={form.type === 'gratis'} className={inputCls} value={form.price} onChange={e => setForm(s => ({ ...s, price: +e.target.value }))} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Instructor / Mentor</label>
+                    <select className={selectCls} value={form.instructor} onChange={e => setForm(s => ({ ...s, instructor: e.target.value }))}>
+                      {registeredEngineers.map(e => <option key={e.email} value={e.name}>{e.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Duración / Páginas</label>
+                    <input className={inputCls} placeholder="Ej: 15 horas, 90 págs" value={form.duration} onChange={e => setForm(s => ({ ...s, duration: e.target.value }))} />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Descripción Corta</label>
+                  <textarea className={`${inputCls} h-20 resize-none`} placeholder="Describe brevemente el contenido..." value={form.desc} onChange={e => setForm(s => ({ ...s, desc: e.target.value }))} />
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Ruta de Portada (Assets)</label>
+                  <input className={inputCls} placeholder="Ruta de imagen" value={form.image} onChange={e => setForm(s => ({ ...s, image: e.target.value }))} />
+                </div>
+
+                <button type="submit" className="w-full bg-[#00e03c] text-slate-950 py-2.5 rounded-xl font-black text-xs uppercase hover:bg-emerald-400 flex items-center justify-center gap-1.5 transition-colors mt-2 shadow-[0_0_15px_rgba(0,224,60,0.15)]"><Plus className="w-4 h-4" /> Agregar Recurso</button>
+              </form>
+            </GlassCard>
+          ) : (
+            <GlassCard className="p-6 space-y-4 border-[#00e03c]/40">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+                <div className="flex items-center gap-2">
+                  <Edit2 className="w-4 h-4 text-amber-400" />
+                  <h4 className="text-xs font-black text-white uppercase tracking-wider">Editar Recurso</h4>
+                </div>
+                <button onClick={() => setEditingId(null)} className="p-1 rounded hover:bg-white/5 text-slate-500 hover:text-white transition-colors"><X className="w-4 h-4" /></button>
+              </div>
+              <form onSubmit={handleSaveEdit} className="space-y-3">
+                <div>
+                  <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Título de la Lección / Recurso</label>
+                  <input required className={inputCls} placeholder="Título" value={editForm.title} onChange={e => setEditForm(s => ({ ...s, title: e.target.value }))} />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Categoría</label>
+                    <select className={selectCls} value={editForm.type} onChange={e => handleTypeChange(e.target.value, true)}>
+                      <option value="gratis">Gratis (Lead Magnet)</option>
+                      <option value="low_ticket">Low Ticket (Base)</option>
+                      <option value="mid_ticket">Mid Ticket (Taller)</option>
+                      <option value="high_ticket">High Ticket (VIP)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Precio (Bs.)</label>
+                    <input type="number" min={0} disabled={editForm.type === 'gratis'} className={inputCls} value={editForm.price} onChange={e => setEditForm(s => ({ ...s, price: +e.target.value }))} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Instructor / Mentor</label>
+                    <select className={selectCls} value={editForm.instructor} onChange={e => setEditForm(s => ({ ...s, instructor: e.target.value }))}>
+                      {registeredEngineers.map(e => <option key={e.email} value={e.name}>{e.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Duración / Páginas</label>
+                    <input className={inputCls} placeholder="Duración" value={editForm.duration} onChange={e => setEditForm(s => ({ ...s, duration: e.target.value }))} />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Descripción Corta</label>
+                  <textarea className={`${inputCls} h-20 resize-none`} placeholder="Descripción" value={editForm.desc} onChange={e => setEditForm(s => ({ ...s, desc: e.target.value }))} />
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Ruta de Portada (Assets)</label>
+                  <input className={inputCls} placeholder="Ruta de imagen" value={editForm.image} onChange={e => setEditForm(s => ({ ...s, image: e.target.value }))} />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <button type="button" onClick={() => setEditingId(null)} className="w-full bg-white/5 hover:bg-white/10 text-white py-2 rounded-xl font-bold text-xs uppercase transition-colors flex items-center justify-center gap-1.5"><X className="w-3.5 h-3.5" /> Cancelar</button>
+                  <button type="submit" className="w-full bg-amber-500 text-slate-950 py-2 rounded-xl font-black text-xs uppercase hover:bg-amber-400 transition-colors flex items-center justify-center gap-1.5"><Check className="w-3.5 h-3.5" /> Guardar</button>
+                </div>
+              </form>
+            </GlassCard>
+          )}
+
+        </div>
+
+        {/* LISTADO DINÁMICO (Derecha / 2 Columnas) */}
+        <div className="lg:col-span-2 space-y-4">
+          <GlassCard className="p-6">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-3 mb-4">
+              <h4 className="text-xs font-black text-white uppercase tracking-wider">Catálogo Activo</h4>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{courses.length} Recursos</span>
             </div>
-            <div className="flex items-center gap-2">
-              <button onClick={() => handleToggleCoursePremium(c.id)} className={`text-[9px] font-black px-3 py-1.5 rounded-lg border transition-colors ${c.isPremium ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 'bg-white/[0.04] border-white/[0.08] text-slate-400'}`}>{c.isPremium ? '★ Premium' : 'Normal'}</button>
-              <button onClick={() => handleDeleteCourse(c.id)} className="p-2 bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+            
+            <div className="space-y-3">
+              {courses.map(c => (
+                <motion.div
+                  key={c.id}
+                  layout
+                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-xl hover:border-white/15 transition-all gap-4 text-left"
+                >
+                  <div className="flex items-start gap-4 flex-1">
+                    {/* Thumbnail */}
+                    <div className="w-16 h-10 rounded-lg overflow-hidden shrink-0 bg-[#050505] border border-white/5">
+                      <img src={c.image} alt={c.title} className="w-full h-full object-cover" />
+                    </div>
+                    <div>
+                      <h5 className="font-extrabold text-sm text-white">{c.title.replace(/\*/g, '')}</h5>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-500 mt-1 font-mono">
+                        <span className="text-[#00e03c] font-semibold uppercase">{c.type?.replace('_', ' ')}</span>
+                        <span>•</span>
+                        <span>Instructor: {c.instructor}</span>
+                        <span>•</span>
+                        <span>{c.duration}</span>
+                        <span>•</span>
+                        <span className="text-white font-bold">{c.price === 0 ? 'Gratuito' : `Bs. ${c.price}`}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                    <button
+                      onClick={() => handleStartEdit(c)}
+                      className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white rounded-lg transition-colors"
+                      title="Editar recurso"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm(`¿Estás seguro de que deseas eliminar permanentemente "${c.title.replace(/\*/g, '')}"?`)) {
+                          handleDeleteCourse(c.id);
+                        }
+                      }}
+                      className="p-2 bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"
+                      title="Eliminar recurso"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
             </div>
-          </motion.div>
-        ))}
+          </GlassCard>
+        </div>
+
       </div>
     </div>
   );
@@ -1132,7 +1378,7 @@ export default function PartnerDashboard() {
     activeRole, currentSocio, handleLogoutPartner,
     registeredUsers, courses, activeServices, experiences, productList,
     timeLogs, handleAddTimeLog, handleDeleteTimeLog,
-    handleAddCourse, handleDeleteCourse, handleToggleCoursePremium,
+    handleAddCourse, handleUpdateCourse, handleDeleteCourse, handleToggleCoursePremium,
     handleAddProject, handleUpdateProjectProgress, handleDeleteProject,
     handleEditProject, handleConcludeProject,
     handleToggleUserPremium, handleRevokeUserAccess,
@@ -1166,7 +1412,7 @@ export default function PartnerDashboard() {
   const registeredEngineers = registeredUsers.filter(u => u.role === 'AdminMod' || u.name.startsWith('Ing.'));
 
   const handlers = {
-    handleAddCourse, handleDeleteCourse, handleToggleCoursePremium,
+    handleAddCourse, handleUpdateCourse, handleDeleteCourse, handleToggleCoursePremium,
     handleAddProject, handleUpdateProjectProgress, handleDeleteProject,
     handleEditProject, handleConcludeProject,
     handleToggleUserPremium, handleRevokeUserAccess,
