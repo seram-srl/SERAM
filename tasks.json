@@ -12,6 +12,30 @@
   ],
   "completed": [
     {
+      "id": "TASK-021",
+      "title": "Optimización del Hero en móviles: usar fondo estático en lugar de video y corregir desaparición del logo de partículas al hacer scroll",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-07-31",
+      "completed_at": "2026-07-31"
+    },
+    {
+      "id": "TASK-018",
+      "title": "Optimizar nitidez y física del logo de partículas SERAM en móvil, adaptar Navbar a scroll zone brillante en la página de servicios e incorporar carrusel de imágenes reales de servicios en alta resolución",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-07-27",
+      "completed_at": "2026-07-27"
+    },
+    {
+      "id": "TASK-017",
+      "title": "Corregir distorsión de video en mobile con geometría adaptativa, optimizar su reproducción en bucle, mejorar legibilidad del Hero description y adaptar el catálogo de servicios a la estética clara Neuform",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-07-27",
+      "completed_at": "2026-07-27"
+    },
+    {
       "id": "TASK-016",
       "title": "Corregir contraste en la sección de Servicios (cajas de cristal claras con texto claro), cambiar fondo del footer de la Home por un color sólido oscuro y optimizar la versión mobile",
       "status": "completed",
@@ -130,6 +154,22 @@
       "assigned_to": "Implementador",
       "started_at": "2026-07-07",
       "completed_at": "2026-07-07"
+    },
+    {
+      "id": "TASK-019",
+      "title": "Rediseñar composición de HyperFrames para representar el funcionamiento de SERAM ACADEMY, renderizar y comprimir el video e integrarlo como visual principal en HomePage.jsx",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-07-28",
+      "completed_at": "2026-07-29"
+    },
+    {
+      "id": "TASK-020",
+      "title": "Rediseño completo de la sección de SERAM ACADEMY en HomePage.jsx para incorporar carrusel de tarjetas fijado (pinned) a pantalla completa con ScrollTrigger, adaptabilidad responsiva móvil y copywriting persuasivo con enfoque SEO",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-07-29",
+      "completed_at": "2026-07-29"
     }
   ],
   "in_progress": [],

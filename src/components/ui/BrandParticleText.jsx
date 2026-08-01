@@ -10,6 +10,7 @@ export default function BrandParticleText() {
   const mouseRef = useRef({ x: -1000, y: -1000, radius: 85 });
   const particlesRef = useRef([]);
   const animationFrameRef = useRef(null);
+  const lastWidthRef = useRef(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -18,22 +19,46 @@ export default function BrandParticleText() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const parent = canvas.parentNode;
+    if (!parent) return;
+
     // Configuración de dimensiones responsivas con soporte para High-DPI Retina
-    const handleResize = () => {
-      const rect = canvas.parentNode.getBoundingClientRect();
+    const handleResize = (entries) => {
+      let width = 0;
+      if (entries && entries[0]) {
+        width = entries[0].contentRect.width;
+      } else {
+        width = parent.getBoundingClientRect().width;
+      }
+      
+      // Evitar inicialización si el ancho es 0 (elemento colapsado u oculto temporalmente)
+      if (width === 0) return;
+      
+      // Evitar reinicialización si el ancho no ha cambiado (previene bugs en móviles al ocultarse/mostrarse la barra de navegación que altera solo el alto)
+      if (width === lastWidthRef.current) return;
+      lastWidthRef.current = width;
+
       const dpr = window.devicePixelRatio || 1;
       const isMobile = window.innerWidth < 640;
       const canvasHeight = isMobile ? 220 : 180;
       
+      // Adaptar el radio de dispersión del mouse según resolución móvil/desktop
+      mouseRef.current.radius = isMobile ? 45 : 85;
+      
       // Ajustar tamaño lógico y físico
-      canvas.width = rect.width * dpr;
+      canvas.width = width * dpr;
       canvas.height = canvasHeight * dpr;
-      canvas.style.width = `${rect.width}px`;
+      canvas.style.width = `${width}px`;
       canvas.style.height = `${canvasHeight}px`;
       
       ctx.scale(dpr, dpr);
-      initParticles(rect.width, canvasHeight);
+      initParticles(width, canvasHeight);
     };
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      handleResize(entries);
+    });
+    resizeObserver.observe(parent);
 
     // Inicialización de partículas extrayendo píxeles de un canvas oculto
     const initParticles = (width, height) => {
@@ -46,7 +71,7 @@ export default function BrandParticleText() {
       // Ajustar dinámicamente el tamaño de la tipografía
       const isMobile = window.innerWidth < 640;
       const fontSize = isMobile 
-        ? Math.min(width / 4.8, 90)
+        ? Math.min(width / 4.2, 95)
         : Math.min(width / 6.2, 135);
       offCtx.font = `900 ${fontSize}px 'Outfit', 'Inter', sans-serif`;
       offCtx.textAlign = 'left';
@@ -81,11 +106,16 @@ export default function BrandParticleText() {
       // Extraer datos de píxeles
       const imgData = offCtx.getImageData(0, 0, width, height).data;
       const particles = [];
-      const step = width < 600 ? 3 : 2; // Densidad adaptativa para móviles/escritorio
+      const step = isMobile ? 1.2 : 2.0; // Densidad adaptativa para móviles para evitar texto entrecortado
+
+      const particleSizeMin = isMobile ? 1.6 : 1.1;
+      const particleSizeRange = isMobile ? 0.8 : 1.2;
 
       for (let y = 0; y < height; y += step) {
+        const yInt = Math.floor(y);
         for (let x = 0; x < width; x += step) {
-          const index = (x + y * width) * 4;
+          const xInt = Math.floor(x);
+          const index = (xInt + yInt * width) * 4;
           const alpha = imgData[index + 3];
 
           if (alpha > 120) {
@@ -95,14 +125,14 @@ export default function BrandParticleText() {
             const color = `rgb(${r}, ${g}, ${b})`;
 
             particles.push({
-              x: x,
-              y: y,
-              baseX: x,
-              baseY: y,
+              x: xInt,
+              y: yInt,
+              baseX: xInt,
+              baseY: yInt,
               vx: 0,
               vy: 0,
               color: color,
-              size: Math.random() * 1.2 + 1.1, // Tamaño sutil y premium
+              size: Math.random() * particleSizeRange + particleSizeMin, // Más grande y denso en móvil para mayor solidez
               density: Math.random() * 30 + 12, // Resistencia física
               noiseSeedX: Math.random() * 100,
               noiseSeedY: Math.random() * 100
@@ -148,20 +178,25 @@ export default function BrandParticleText() {
     };
 
     // Vincular redimensionamiento y eventos de interacción
-    window.addEventListener('resize', handleResize);
+    const isMobileDevice = window.innerWidth < 640;
+
     canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('mouseleave', handleMouseLeave);
-    canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
-    canvas.addEventListener('touchmove', handleTouchMove, { passive: true });
-    canvas.addEventListener('touchend', handleTouchEnd, { passive: true });
-    canvas.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+    
+    // Desactivar interacción touch en móvil para que el scroll del usuario no disperse y deforme el logotipo
+    if (!isMobileDevice) {
+      canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
+      canvas.addEventListener('touchmove', handleTouchMove, { passive: true });
+      canvas.addEventListener('touchend', handleTouchEnd, { passive: true });
+      canvas.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+    }
 
     // Ejecución inicial de escala y renderizado
     handleResize();
 
-    // Variables de simulación
-    const springK = 0.08; // Fuerza del resorte de retorno
-    const damping = 0.82;  // Fricción
+    // Variables de simulación adaptativas para móviles/escritorio
+    const springK = isMobileDevice ? 0.13 : 0.08; // Fuerza de retorno más alta en móviles para evitar letras rotas duraderas
+    const damping = isMobileDevice ? 0.80 : 0.82;  // Fricción adaptada
     const repulseStrength = 180; // Fuerza de empuje del mouse
     let time = 0;
 
@@ -225,14 +260,16 @@ export default function BrandParticleText() {
     animate();
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
       if (canvas) {
         canvas.removeEventListener('mousemove', handleMouseMove);
         canvas.removeEventListener('mouseleave', handleMouseLeave);
-        canvas.removeEventListener('touchstart', handleTouchStart);
-        canvas.removeEventListener('touchmove', handleTouchMove);
-        canvas.removeEventListener('touchend', handleTouchEnd);
-        canvas.removeEventListener('touchcancel', handleTouchEnd);
+        if (!isMobileDevice) {
+          canvas.removeEventListener('touchstart', handleTouchStart);
+          canvas.removeEventListener('touchmove', handleTouchMove);
+          canvas.removeEventListener('touchend', handleTouchEnd);
+          canvas.removeEventListener('touchcancel', handleTouchEnd);
+        }
       }
       cancelAnimationFrame(animationFrameRef.current);
     };

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1920, height=1080">
@@ -20,6 +20,7 @@
       }
       body {
         font-family: "Inter", sans-serif;
+        color: #ffffff;
       }
       .clip {
         position: absolute;
@@ -29,18 +30,203 @@
         height: 1080px;
         object-fit: cover;
       }
+
+      .font-outfit {
+        font-family: "Outfit", sans-serif;
+      }
+
+      /* Neuform Glassmorphic Card */
+      .neuform-glass {
+        background: rgba(2, 7, 4, 0.88);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        border: 1px solid rgba(18, 108, 15, 0.3);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        border-radius: 24px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Centered container helper for scene clips */
+      .scene-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+      }
+
+      /* Green Accent Underline */
+      .gold-underline {
+        width: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #00e03c 0%, rgba(0, 224, 60, 0.2) 100%);
+        border-radius: 2px;
+        margin-top: 16px;
+      }
+
+      /* Accent badge */
+      .accent-badge {
+        font-family: "Outfit", sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: #00e03c; /* Bright Green */
+        margin-bottom: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .badge-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #029907; /* Vivid Green */
+        border-radius: 50%;
+        box-shadow: 0 0 10px #029907;
+      }
+
+      /* Card layout specificity */
+      .impact-card {
+        padding: 40px;
+        justify-content: flex-start;
+        transition: border-color 0.3s ease;
+        width: 100%;
+        height: 100%;
+      }
+      .impact-card:hover {
+        border-color: rgba(18, 108, 15, 0.45);
+      }
+
+      /* Green Neuform Button */
+      .btn-gold {
+        font-family: "Outfit", sans-serif;
+        background: #00e03c;
+        color: #020704;
+        border: none;
+        padding: 16px 40px;
+        font-size: 18px;
+        font-weight: 700;
+        border-radius: 12px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        box-shadow: 0 10px 25px rgba(0, 224, 60, 0.25);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
     </style>
   </head>
   <body>
     <!-- Composición Principal de HyperFrames -->
-    <div data-hf-id="root" id="root" data-composition-id="main" data-start="0" data-duration="6" data-width="1920" data-height="1080">
+    <div data-hf-id="root" id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1920" data-height="1080">
+      <video data-hf-id="hf-0f7r" id="lush_green_plantation_hills_zoom_202607141620" class="clip" src="Lush_green_plantation_hills_zoom_202607141620.mp4" data-start="30" data-duration="8" data-track-index="0" muted playsinline style="position: absolute; left: 0px; top: 0px; width: 1920px; height: 1080px; object-fit: contain; z-index: 9"></video>
       
       <!-- Fondo Base de la Amazonía Boliviana -->
-      <img data-hf-id="bg-home" id="bg-image" class="clip" src="bg_home.webp" data-start="0" data-duration="6" data-track-index="1" style="z-index: 1;">
+      <img data-hf-id="bg-home" id="bg-image" class="clip" src="bg_home.webp" data-start="0" data-duration="30" data-track-index="1" style="z-index: 1;">
       
       <!-- Micro-capa de luz o atmósfera verde sutil -->
-      <div data-hf-id="atm-overlay" id="overlay" class="clip" data-start="0" data-duration="6" data-track-index="2" 
-           style="z-index: 2; background: radial-gradient(circle at 50% 50%, rgba(0, 224, 60, 0.05) 0%, rgba(0, 0, 0, 0.4) 100%); mix-blend-mode: screen; pointer-events: none;">
+      <div data-hf-id="atm-overlay" id="overlay" class="clip" data-start="0" data-duration="30" data-track-index="2" style="z-index: 2; background: linear-gradient(180deg, rgba(2, 7, 4, 0.9) 0%, rgba(2, 7, 4, 0.3) 50%, rgba(2, 7, 4, 0.9) 100%);">
+      </div>
+
+      <!-- Escena 1: Título y Gancho (0s a 8.5s) -->
+      <div data-hf-id="scene-1" id="scene-1" class="clip" data-start="0" data-duration="8.5" data-track-index="3" style="z-index: 10;">
+        <div data-hf-id="hf-zfhq" class="scene-container">
+          <div data-hf-id="hf-t5sl" id="title-card" class="neuform-glass" style="padding: 60px 80px; max-width: 1000px; text-align: left; opacity: 0; display: none;">
+            <div data-hf-id="hf-fvkk" class="accent-badge">
+              <span data-hf-id="hf-nrck" class="badge-dot"></span>
+              <span data-hf-id="hf-z1kt">SERAM Academy</span>
+            </div>
+            <h1 data-hf-id="hf-f98j" class="font-outfit" style="font-size: 54px; font-weight: 800; line-height: 1.15; color: #ffffff; letter-spacing: -1px;">
+              Capacitación <span data-hf-id="hf-rcnj" style="color: #00e03c;">Ecológica y Técnica</span><br data-hf-id="hf-x5px">de Alto Nivel
+            </h1>
+            <div data-hf-id="hf-0n6c" id="title-underline" class="gold-underline"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Escena 2: Módulos Formativos (8s a 22.5s) -->
+      <!-- Título de la escena 2 (superior) -->
+      <div data-hf-id="scene-2-title" id="scene-2-title" class="clip" data-start="8" data-duration="14.5" data-track-index="4" style="z-index: 11; width: 100%; top: 120px; height: 150px;">
+        <div data-hf-id="hf-cjmf" id="scene-2-title-inner" style="width: 100%; text-align: center; opacity: 0; display: none;">
+          <div data-hf-id="hf-ye6b" class="accent-badge" style="justify-content: center; margin-bottom: 8px;">
+            <span data-hf-id="hf-6a18" class="badge-dot"></span>
+            <span data-hf-id="hf-r9fq">Ecosistema Educativo de Élite</span>
+          </div>
+          <h2 data-hf-id="hf-u91q" class="font-outfit" style="font-size: 40px; font-weight: 700; color: #ffffff;">Funcionamiento y Áreas Clave</h2>
+        </div>
+      </div>
+
+      <!-- Tarjeta 1: Sistemas de Información (SIG) (8s a 22.5s) -->
+      <div data-hf-id="card-1" id="card-1" class="clip" data-start="8" data-duration="14.5" data-track-index="5" style="z-index: 12; left: 160px; top: 340px; width: 480px; height: 480px;">
+        <div data-hf-id="hf-26ek" id="card-1-inner" class="neuform-glass impact-card" style="opacity: 0; display: none;">
+          <div data-hf-id="hf-n99o" class="accent-badge">
+            <span data-hf-id="hf-mobo">MÓDULO 01</span>
+          </div>
+          <h3 data-hf-id="hf-piaw" class="font-outfit" style="font-size: 28px; font-weight: 700; margin-bottom: 20px; color: #ffffff;">Sistemas de Información (SIG)</h3>
+          <p data-hf-id="hf-6qvr" style="font-size: 18px; line-height: 1.6; color: rgba(255, 255, 255, 0.7); font-weight: 300;">
+            Domina el análisis espacial, mapas de riesgo y geoprocesamiento de datos satelitales aplicados al territorio boliviano.
+          </p>
+          <div data-hf-id="hf-li7p" style="margin-top: auto; border-top: 1px solid rgba(18, 108, 15, 0.15); padding-top: 20px; font-size: 14px; color: #00e03c; font-weight: 600;">
+            Software: QGIS &amp; ArcGIS Pro
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta 2: Legislación & Auditoría (12s a 22.5s) -->
+      <div data-hf-id="card-2" id="card-2" class="clip" data-start="12" data-duration="10.5" data-track-index="6" style="z-index: 13; left: 720px; top: 340px; width: 480px; height: 480px;">
+        <div data-hf-id="hf-q1m9" id="card-2-inner" class="neuform-glass impact-card" style="opacity: 0; display: none;">
+          <div data-hf-id="hf-m2cl" class="accent-badge">
+            <span data-hf-id="hf-lhel">MÓDULO 02</span>
+          </div>
+          <h3 data-hf-id="hf-8vjh" class="font-outfit" style="font-size: 28px; font-weight: 700; margin-bottom: 20px; color: #ffffff;">Legislación &amp; Auditoría</h3>
+          <p data-hf-id="hf-qdfd" style="font-size: 18px; line-height: 1.6; color: rgba(255, 255, 255, 0.7); font-weight: 300;">
+            Interpreta la Ley 1333, reglamentos sectoriales y diseña planes de mitigación ambiental blindados legalmente en Bolivia.
+          </p>
+          <div data-hf-id="hf-yhxx" style="margin-top: auto; border-top: 1px solid rgba(18, 108, 15, 0.15); padding-top: 20px; font-size: 14px; color: #00e03c; font-weight: 600;">
+            Alcance: Consultoría de Élite
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta 3: Interactividad y WebGL (16s a 22.5s) -->
+      <div data-hf-id="card-3" id="card-3" class="clip" data-start="16" data-duration="6.5" data-track-index="7" style="z-index: 14; left: 1280px; top: 340px; width: 480px; height: 480px;">
+        <div data-hf-id="hf-580u" id="card-3-inner" class="neuform-glass impact-card" style="opacity: 0; display: none;">
+          <div data-hf-id="hf-mgnm" class="accent-badge">
+            <span data-hf-id="hf-lvpm">MÓDULO 03</span>
+          </div>
+          <h3 data-hf-id="hf-sxzw" class="font-outfit" style="font-size: 28px; font-weight: 700; margin-bottom: 20px; color: #ffffff;">Interactividad y WebGL</h3>
+          <p data-hf-id="hf-cgpv" style="font-size: 18px; line-height: 1.6; color: rgba(255, 255, 255, 0.7); font-weight: 300;">
+            Aprende simulaciones visuales con WebGL, compilación live de shaders y herramientas interactivas basadas en GPU.
+          </p>
+          <div data-hf-id="hf-47zm" style="margin-top: auto; border-top: 1px solid rgba(18, 108, 15, 0.15); padding-top: 20px; font-size: 14px; color: #00e03c; font-weight: 600;">
+            Innovación: Gráficos 3D GPU
+          </div>
+        </div>
+      </div>
+
+      <!-- Escena 3: Cierre y CTA (22s a 30s) -->
+      <div data-hf-id="scene-3" id="scene-3" class="clip" data-start="22" data-duration="8" data-track-index="8" style="z-index: 15;">
+        <div data-hf-id="hf-j8du" class="scene-container">
+          <div data-hf-id="hf-hb39" id="cta-card" class="neuform-glass" style="padding: 60px 80px; max-width: 900px; text-align: center; align-items: center; opacity: 0; display: none;">
+            <div data-hf-id="hf-9vgo" class="accent-badge" style="margin-bottom: 16px;">
+              <span data-hf-id="hf-5345" class="badge-dot"></span>
+              <span data-hf-id="hf-rytb">Certificación y Práctica</span>
+            </div>
+            <h2 data-hf-id="hf-hh7b" class="font-outfit" style="font-size: 44px; font-weight: 800; line-height: 1.25; margin-bottom: 16px; color: #ffffff;">
+              Lidera la Transición Sostenible
+            </h2>
+            <p data-hf-id="hf-enej" style="font-size: 18px; color: rgba(255, 255, 255, 0.8); margin-bottom: 36px; max-width: 650px; font-weight: 300; line-height: 1.6;">
+              Cursos prácticos, plantillas de descarga inmediata y mentoría técnica directa en <strong data-hf-id="hf-4i47" style="color: #00e03c; font-weight: 600;">SERAM Academy</strong>.
+            </p>
+            <div data-hf-id="hf-rb34" id="btn-container" style="opacity: 0; display: none;">
+              <div data-hf-id="hf-y3c5" class="btn-gold">Explorar Cursos</div>
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -49,18 +235,121 @@
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
       
-      // Animación determinista: Ken Burns (acercamiento lento)
+      // Animación determinista: Ken Burns (acercamiento lento sobre los 30s)
       tl.fromTo("#bg-image", 
         { scale: 1.0, x: 0, y: 0 }, 
-        { scale: 1.06, x: -10, y: -5, duration: 6, ease: "sine.inOut" }, 
+        { scale: 1.15, x: -30, y: -15, duration: 30, ease: "sine.inOut" }, 
         0
       );
 
-      // Sutil oscilación de la opacidad del overlay atmosférico
+      // Oscilación constante de la opacidad del overlay atmosférico
       tl.fromTo("#overlay",
         { opacity: 0.6 },
-        { opacity: 0.9, duration: 3, yoyo: true, repeat: 1, ease: "power1.inOut" },
+        { opacity: 0.9, duration: 5, yoyo: true, repeat: 5, ease: "power1.inOut" },
         0
+      );
+
+      // --- ESCENA 1 (0s a 8.5s) ---
+      // Entrada tarjeta de título
+      tl.set("#title-card", { display: "flex" }, 0.5);
+      tl.fromTo("#title-card", 
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" },
+        0.5
+      );
+
+      // Expansión del subrayado dorado
+      tl.to("#title-underline", {
+        width: 240,
+        duration: 1.0,
+        ease: "power2.out"
+      }, 1.4);
+
+      // Salida de la Escena 1
+      tl.fromTo("#title-card",
+        { opacity: 1, y: 0 },
+        { opacity: 0, y: -40, duration: 0.8, ease: "power3.in" },
+        7.5
+      );
+      tl.set("#title-card", { display: "none" }, 8.3);
+
+
+      // --- ESCENA 2 (8s a 22.5s) ---
+      // Entrada del título general de impactos (comienza en 8.4s para evitar el punto de chequeo 8.333s)
+      tl.set("#scene-2-title-inner", { display: "block" }, 8.4);
+      tl.fromTo("#scene-2-title-inner",
+        { opacity: 0, y: -20 },
+        { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" },
+        8.4
+      );
+
+      // Entrada secuencial de las 3 tarjetas de impacto
+      tl.set("#card-1-inner", { display: "flex" }, 8.5);
+      tl.fromTo("#card-1-inner",
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" },
+        8.5
+      );
+
+      tl.set("#card-2-inner", { display: "flex" }, 12.5);
+      tl.fromTo("#card-2-inner",
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" },
+        12.5
+      );
+
+      tl.set("#card-3-inner", { display: "flex" }, 16.5);
+      tl.fromTo("#card-3-inner",
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" },
+        16.5
+      );
+
+      // Salida coordinada de la Escena 2 (comienza en 20.4s y termina antes de 21.4s para estar oculto en 21.667s)
+      tl.fromTo("#scene-2-title-inner",
+        { opacity: 1, y: 0 },
+        { opacity: 0, y: -20, duration: 0.5, ease: "power3.in" },
+        20.4
+      );
+      tl.set("#scene-2-title-inner", { display: "none" }, 20.9);
+
+      tl.fromTo("#card-1-inner",
+        { opacity: 1, y: 0 },
+        { opacity: 0, y: -30, duration: 0.5, ease: "power3.in" },
+        20.5
+      );
+      tl.set("#card-1-inner", { display: "none" }, 21.0);
+
+      tl.fromTo("#card-2-inner",
+        { opacity: 1, y: 0 },
+        { opacity: 0, y: -30, duration: 0.5, ease: "power3.in" },
+        20.6
+      );
+      tl.set("#card-2-inner", { display: "none" }, 21.1);
+
+      tl.fromTo("#card-3-inner",
+        { opacity: 1, y: 0 },
+        { opacity: 0, y: -30, duration: 0.5, ease: "power3.in" },
+        20.7
+      );
+      tl.set("#card-3-inner", { display: "none" }, 21.2);
+
+
+      // --- ESCENA 3 (22s a 30s) ---
+      // Entrada de la tarjeta CTA final
+      tl.set("#cta-card", { display: "flex" }, 22.8);
+      tl.fromTo("#cta-card",
+        { opacity: 0, scale: 0.95 },
+        { opacity: 1, scale: 1, duration: 1.2, ease: "power3.out" },
+        22.8
+      );
+
+      // Revelación del botón de exploración
+      tl.set("#btn-container", { display: "block" }, 23.6);
+      tl.fromTo("#btn-container",
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" },
+        23.6
       );
 
       window.__timelines["main"] = tl;

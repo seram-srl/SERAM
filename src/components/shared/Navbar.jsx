@@ -33,15 +33,26 @@ export default function Navbar({ isOpen, onToggle }) {
   // Detectar zona de scroll y posición vertical para adaptar contraste y logos interactivos
   useEffect(() => {
     const handleScroll = () => {
-      setScrollY(window.scrollY);
+      const sy = window.scrollY;
+      setScrollY(sy);
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
-      // Zona 30%-70% = fondos potencialmente brillantes
-      setScrollZone(progress > 0.28 && progress < 0.72 ? 'bright' : 'dark');
+      const progress = maxScroll > 0 ? sy / maxScroll : 0;
+      
+      if (location.pathname === '/') {
+        // En Home: zona 30%-70% = fondos potencialmente brillantes
+        setScrollZone(progress > 0.28 && progress < 0.72 ? 'bright' : 'dark');
+      } else if (location.pathname === '/services') {
+        // En Servicios: a partir de 250px es zona brillante por los fondos claros
+        setScrollZone(sy > 250 ? 'bright' : 'dark');
+      } else {
+        // Por defecto
+        setScrollZone(progress > 0.28 && progress < 0.72 ? 'bright' : 'dark');
+      }
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [location.pathname]);
 
   const handleLogoSecretClick = () => {
     const now = Date.now();

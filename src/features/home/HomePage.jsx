@@ -8,7 +8,7 @@ import React, { useEffect, useRef } from 'react';
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  BookOpen, Briefcase, Award, ChevronRight, ShoppingCart, Instagram, Youtube,
+  BookOpen, Briefcase, Award, ChevronRight, ShoppingCart, Instagram, Facebook, Linkedin,
 } from 'lucide-react';
 import { useApp, AppContext } from '../../context/AppContext';
 import EnvironmentalCanvas from '../../components/ui/EnvironmentalCanvas';
@@ -55,6 +55,24 @@ const TikTokIcon = ({ className }) => (
     <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.17-2.89-.74-3.94-1.78-.22-.22-.41-.47-.58-.73v6.52c0 2.22-.73 4.56-2.5 5.97-1.81 1.44-4.5 1.76-6.79 1.03-2.76-.88-4.71-3.66-4.58-6.57.12-3.13 2.76-5.87 5.92-5.83.69-.01 1.38.12 2.03.38v3.96c-.63-.22-1.32-.28-1.98-.17-1.39.22-2.51 1.48-2.61 2.89-.14 1.8 1.49 3.4 3.28 3.19 1.25-.15 2.19-1.21 2.21-2.47V.02z"/>
   </svg>
 );
+
+const SOCIAL_LINKS = [
+  {
+    label: 'Instagram',
+    href: 'https://www.instagram.com/seram.world/',
+    Icon: Instagram,
+  },
+  {
+    label: 'Facebook',
+    href: 'https://www.facebook.com/seramconsultora',
+    Icon: Facebook,
+  },
+  {
+    label: 'LinkedIn',
+    href: 'https://www.linkedin.com/company/consultoraseram',
+    Icon: Linkedin,
+  },
+];
 
 // ─── DATOS DE PILARES ─────────────────────────────────────────────────────────
 const PILLARS = [
@@ -466,8 +484,7 @@ function ServicesHorizontalSection() {
           <p className="mt-5 text-slate-300 font-light leading-relaxed text-sm select-none">
             Garantiza la <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">continuidad de tu negocio</span> con consultoría ambiental y <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 pointer-events-auto">monitoreo de alta precisión</span>. Convertimos la complejidad de las <span className="underline decoration-slate-400/50 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">licencias ambientales</span> en un proceso ágil, mitigando riesgos normativos antes de que se conviertan en <span className="underline decoration-[#4e7a5c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#68a379] transition-colors duration-300 cursor-pointer pointer-events-auto">sanciones</span>.
           </p>
-          <button onClick={() => openChatbot('q1')} className="mt-8 px-8 py-3.5 bg-white text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-[#00e03c] transition-colors duration-300 pointer-events-auto w-full">
-
+          <button onClick={() => openChatbot('q1')} className="neuform-btn-primary pointer-events-auto w-full justify-center mt-8">
             Ver Servicios y Asegurar Cumplimiento
           </button>
         </div>
@@ -495,7 +512,7 @@ function ServicesHorizontalSection() {
               <p className="text-slate-300 mb-4 text-[11px] font-light leading-relaxed select-none">
                 El Formulario de Nivel de <span className="italic font-semibold text-white">Categorización Ambiental</span> (FNCA) es el Instrumento de Regulación de Alcance Particular (IRAP) obligatorio por normativa boliviana. Nosotros lo gestionamos con precisión técnica para que tu obra civil o comercial empiece a generar ingresos.
               </p>
-              <button onClick={() => openChatbot('q2_civil')} className="w-full py-3 bg-white text-black font-black rounded-full text-[10px] tracking-wider uppercase hover:bg-[#00e03c] hover:text-black active:bg-[#00e03c] active:text-black transition-all duration-300">Categorizar Mi Proyecto y Cotizar Gratis</button>
+              <button onClick={() => openChatbot('q2_civil')} className="neuform-btn-primary pointer-events-auto w-full justify-center py-3 text-[10px]">Categorizar Mi Proyecto y Cotizar Gratis</button>
 
             </div>
           </div>
@@ -556,7 +573,7 @@ function ServicesHorizontalSection() {
               <p className="text-slate-300 mb-4 text-[11px] font-light leading-relaxed">
                 Protege tu fábrica de precintos y multas. Gestionamos tu <span className="italic font-semibold text-white">Registro Ambiental Industrial</span> (RAI) y la categorización industrial obligatoria para industrias manufactureras urbanas de categorías 3 y 4 con blindaje legal garantizado.
               </p>
-              <button onClick={() => openChatbot('q2_industrial')} className="w-full py-3 bg-white text-black font-black rounded-full text-[10px] tracking-wider uppercase hover:bg-[#00e03c] hover:text-black active:bg-[#00e03c] active:text-black transition-all duration-300">Obtener RAI y Blindar Fábrica</button>
+              <button onClick={() => openChatbot('q2_industrial')} className="neuform-btn-primary pointer-events-auto w-full justify-center py-3 text-[10px]">Obtener RAI y Blindar Fábrica</button>
 
             </div>
           </div>
@@ -580,7 +597,7 @@ function ServicesHorizontalSection() {
               <p className="text-slate-300 mb-4 text-[11px] font-light leading-relaxed">
                 Evita retrasos críticos en el inicio de tus operaciones. Diseñamos soluciones cartográficas exactas y elaboramos <span className="font-semibold text-white">carpetas rápidas para minería</span> para la aprobación ágil del plan <span className="italic">EMAP</span> en tus concesiones mineras.
               </p>
-              <button onClick={() => openChatbot('q2_mining')} className="w-full py-3 bg-white text-black font-black rounded-full text-[10px] tracking-wider uppercase hover:bg-[#00e03c] hover:text-black active:bg-[#00e03c] active:text-black transition-all duration-300">Aprobar Trámite Minero y Explotar</button>
+              <button onClick={() => openChatbot('q2_mining')} className="neuform-btn-primary pointer-events-auto w-full justify-center py-3 text-[10px]">Aprobar Trámite Minero y Explotar</button>
 
             </div>
           </div>
@@ -604,7 +621,7 @@ function ServicesHorizontalSection() {
               <p className="text-slate-300 mb-3 text-[11px] font-light leading-relaxed">
                 Tu <span className="italic text-white">proyecto ambiental</span> merece mapas que no sean observados. En la <span className="italic font-semibold text-white">consultora ambiental</span> SERAM ejecutamos tu <span className="text-[#00e03c] font-semibold"><span className="italic">Plan de Aplicación SIG</span></span> completo. ¿Prefieres capacitar a tu equipo? Adquiere nuestro <span className="text-slate-100 font-semibold">Curso de SIG Básico</span> y domina las herramientas desde cero.
               </p>
-              <button onClick={() => openChatbot('q2_sig')} className="w-full py-2.5 bg-white text-black font-black rounded-full text-[10px] tracking-wider uppercase hover:bg-[#00e03c] hover:text-black active:bg-[#00e03c] active:text-black transition-all duration-300 mb-2">Cotizar Mi Plan de Aplicación SIG</button>
+              <button onClick={() => openChatbot('q2_sig')} className="neuform-btn-primary pointer-events-auto w-full justify-center py-2.5 text-[10px] mb-2">Cotizar Mi Plan de Aplicación SIG</button>
 
               <motion.button
                 onClick={() => navigate('/services')}
@@ -650,8 +667,7 @@ function ServicesHorizontalSection() {
             <p className="mt-5 text-slate-300 font-light leading-relaxed text-base select-none">
               Garantiza la <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">continuidad de tu negocio</span> con consultoría ambiental y <span className="underline decoration-[#00e03c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">monitoreo de alta precisión</span>. Convertimos la complejidad de las <span className="underline decoration-slate-400/50 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">licencias ambientales</span> en un proceso ágil, mitigando riesgos normativos antes de que se conviertan en <span className="underline decoration-[#4e7a5c]/60 decoration-2 underline-offset-2 font-medium text-slate-100 hover:text-[#68a379] transition-colors duration-300 cursor-pointer pointer-events-auto">sanciones</span>.
             </p>
-            <button onClick={() => openChatbot('q1')} className="mt-8 px-8 py-3.5 bg-white text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-[#00e03c] transition-colors duration-300 pointer-events-auto">
-
+            <button onClick={() => openChatbot('q1')} className="neuform-btn-primary pointer-events-auto mt-8">
               Ver Servicios y Asegurar Cumplimiento
             </button>
           </div>
@@ -673,7 +689,7 @@ function ServicesHorizontalSection() {
               <p className="card-desc text-slate-300 mb-6 text-sm font-light leading-relaxed select-none">
                 El <span className="underline decoration-[#00e03c]/40 decoration-2 underline-offset-4 font-semibold text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">Formulario de Nivel de <span className="italic">Categorización Ambiental</span> (FNCA)</span> es el <span className="font-semibold text-slate-100">Instrumento de Regulación de Alcance Particular (IRAP)</span> obligatorio por normativa boliviana para definir el rumbo legal de tu <span className="underline decoration-[#00e03c]/40 decoration-2 underline-offset-4 font-semibold text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto"><span className="italic">Licencia Ambiental</span></span>. Nosotros lo gestionamos con precisión técnica para que tu <span className="font-semibold text-slate-100">obra civil o comercial</span> empiece a generar ingresos sin mirar atrás.
               </p>
-              <button onClick={() => openChatbot('q2_civil')} className="card-btn px-6 py-3.5 bg-white text-black font-black rounded-full text-[11px] tracking-wider uppercase hover:bg-[#00e03c] hover:text-black active:bg-[#00e03c] active:text-black transition-all duration-300 pointer-events-auto">Categorizar Mi Proyecto y Cotizar Gratis</button>
+              <button onClick={() => openChatbot('q2_civil')} className="neuform-btn-primary pointer-events-auto px-6 py-3.5 text-[11px]">Categorizar Mi Proyecto y Cotizar Gratis</button>
 
             </div>
           </div>
@@ -727,7 +743,7 @@ function ServicesHorizontalSection() {
               <p className="card-desc text-slate-300 mb-6 text-sm font-light leading-relaxed">
                 Protege tu fábrica de precintos y multas. Gestionamos tu <span className="underline decoration-[#00e03c]/40 decoration-2 underline-offset-4 font-semibold text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto"><span className="italic">Registro Ambiental Industrial</span> (RAI)</span> y la <span className="font-semibold text-slate-100 italic">categorización industrial</span> obligatoria para <span className="font-semibold text-slate-100">industrias manufactureras</span> urbanas (Categorías 3 y 4) con velocidad express y blindaje legal garantizado.
               </p>
-              <button onClick={() => openChatbot('q2_industrial')} className="card-btn px-8 py-3.5 bg-white text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-[#00e03c] hover:text-black active:bg-[#00e03c] active:text-black transition-all duration-300 pointer-events-auto">Obtener RAI y Blindar Fábrica</button>
+              <button onClick={() => openChatbot('q2_industrial')} className="neuform-btn-primary pointer-events-auto px-8 py-3.5">Obtener RAI y Blindar Fábrica</button>
 
             </div>
           </div>
@@ -744,7 +760,7 @@ function ServicesHorizontalSection() {
               <p className="card-desc text-slate-300 mb-6 text-sm font-light leading-relaxed">
                 Evita retrasos críticos en el inicio de tus operaciones. Diseñamos <span className="font-semibold text-slate-100">soluciones cartográficas</span> exactas y elaboramos <span className="underline decoration-[#00e03c]/40 decoration-2 underline-offset-4 font-semibold text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto italic">carpetas rápidas para minería</span> para la aprobación ágil del plan <span className="underline decoration-[#00e03c]/40 decoration-2 underline-offset-4 font-semibold text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto italic">EMAP</span> y trámites de <span className="italic">prospección minera</span> en tus concesiones mineras.
               </p>
-              <button onClick={() => openChatbot('q2_mining')} className="card-btn px-8 py-3.5 bg-white text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-[#00e03c] hover:text-black active:bg-[#00e03c] active:text-black transition-all duration-300 pointer-events-auto">Aprobar Trámite Minero y Explotar</button>
+              <button onClick={() => openChatbot('q2_mining')} className="neuform-btn-primary pointer-events-auto px-8 py-3.5">Aprobar Trámite Minero y Explotar</button>
 
             </div>
           </div>
@@ -761,7 +777,7 @@ function ServicesHorizontalSection() {
               <p className="card-desc text-slate-300 mb-5 text-sm font-light leading-relaxed">
                 Tu <span className="italic">proyecto ambiental</span> merece <span className="font-semibold text-slate-100"><span className="italic">mapas ambientales</span></span> que no sean observados. En la <span className="font-semibold text-slate-100"><span className="italic">consultora ambiental</span> SERAM</span> ejecutamos tu <span className="underline decoration-[#00e03c]/40 decoration-2 underline-offset-4 font-semibold text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">Plan de Aplicación SIG para <span className="italic">Proyectos Ambientales</span></span>. ¿Prefieres formar a tu equipo? Adquiere nuestro <span className="underline decoration-[#00e03c]/40 decoration-2 underline-offset-4 font-semibold text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">Curso de SIG Básico</span> y domina las herramientas desde cero.
               </p>
-              <button onClick={() => openChatbot('q2_sig')} className="card-btn px-8 py-3.5 bg-white text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-[#00e03c] hover:text-black active:bg-[#00e03c] active:text-black transition-all duration-300 pointer-events-auto mb-4">Cotizar Mi Plan de Aplicación SIG</button>
+              <button onClick={() => openChatbot('q2_sig')} className="neuform-btn-primary pointer-events-auto px-8 py-3.5 mb-4">Cotizar Mi Plan de Aplicación SIG</button>
 
               <div className="card-extra flex flex-col gap-3">
                 <motion.button
@@ -799,39 +815,164 @@ function ServicesHorizontalSection() {
 
 
 // ─── ACADEMY VERTICAL SECTION ─────────────────────────────────────────────────────
+// ─── ACADEMY VERTICAL SECTION ─────────────────────────────────────────────────────
 function AcademyVerticalSection() {
   const academyPillar = PILLARS[1];
   const navigate = useNavigate();
+  const triggerRef = useRef(null);
+  const pinRef = useRef(null);
+
+  useGSAP(() => {
+    const triggerEl = triggerRef.current;
+    const pinEl = pinRef.current;
+    if (!triggerEl || !pinEl) return;
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: triggerEl,
+        start: 'top top',
+        end: '+=400%',
+        scrub: 1,
+        pin: pinEl,
+        pinSpacing: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+      },
+    });
+
+    // Desplazamiento horizontal del track de cursos
+    tl.to('#academy-track', { x: '-300vw', ease: 'none', duration: 10 }, 0);
+
+    // Animaciones de entrada/salida de contenido para cada tarjeta de forma independiente
+    // Módulo 01 (SIG)
+    tl.fromTo('#academy-card-1-content', { opacity: 1, y: 0 }, { opacity: 0, y: -30, duration: 1.5 }, 1.5);
+    
+    // Módulo 02 (Legislación)
+    tl.fromTo('#academy-card-2-content', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 1.5 }, 1.5)
+      .to('#academy-card-2-content', { opacity: 0, y: -30, duration: 1.5 }, 4.5);
+      
+    // Módulo 03 (WebGL 3D)
+    tl.fromTo('#academy-card-3-content', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 1.5 }, 4.5)
+      .to('#academy-card-3-content', { opacity: 0, y: -30, duration: 1.5 }, 7.5);
+      
+    // Tarjeta CTA Final
+    tl.fromTo('#academy-card-4-content', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 1.5 }, 7.5);
+
+  }, { scope: triggerRef });
 
   return (
-    <section className="min-h-screen w-full flex items-center justify-center py-20 px-6 sm:px-12 select-none bg-transparent relative z-10">
-      <div className="max-w-6xl w-full flex flex-col md:flex-row items-center justify-between gap-12 sm:gap-16">
-        <div className="w-full md:w-1/2 flex flex-col items-start text-left space-y-6">
-          <div className="space-y-2">
-            <h2 className="text-4xl sm:text-6xl font-black text-white leading-none tracking-tighter uppercase font-display filter drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
-              {academyPillar.title}
-            </h2>
-          </div>
-          <div className="w-full p-8 sm:p-10 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl flex flex-col items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-[#00e03c]/20 text-[#00e03c] flex items-center justify-center border border-[#00e03c]/30">
-              {academyPillar.icon}
-            </div>
-            <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">{academyPillar.headline}</h3>
-            <p className="text-xs sm:text-sm leading-relaxed text-slate-300">{academyPillar.desc}</p>
-            <button
-              onClick={() => navigate(academyPillar.route)}
-              className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-white/5 hover:bg-[#00e03c]/10 border border-white/10 hover:border-[#00e03c]/40 text-white hover:text-[#00e03c] rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300"
-              data-cursor-text={academyPillar.ctaCursor}
-            >
-              {academyPillar.cta} <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+    <div ref={triggerRef} className="relative w-full z-10">
+      {/* pinRef: El contenedor que GSAP fijará en pantalla completa */}
+      <div ref={pinRef} className="relative w-full h-screen overflow-hidden bg-transparent">
+        
+        {/* Fondo Estático con Glassmorphism y Rejilla */}
+        <div className="absolute inset-0 w-full h-full z-0 pointer-events-none">
+          <img
+            src="/assets/3d-backend/bg_academy.webp"
+            alt="SERAM Academy Background"
+            className="w-full h-full object-cover"
+          />
+          {/* Capa oscura translúcida y desenfoque para óptimo contraste de texto */}
+          <div className="absolute inset-0 bg-[#070e0b]/85 backdrop-blur-[6px]" />
+          {/* Rejilla técnica Neuform */}
+          <div className="absolute inset-0 neuform-grid-bg opacity-25" />
         </div>
-        <div className="w-full md:w-1/2 flex items-center justify-center">
-          <img src={academyPillar.imageUrl} alt={academyPillar.title} className="w-full max-w-lg rounded-3xl object-cover aspect-video shadow-2xl border border-white/10" />
+
+        {/* Título Fijo Superior de la Sección (Evita solapamiento con Navbar) */}
+        <div className="absolute top-10 sm:top-14 left-0 right-0 z-20 text-center pointer-events-none px-4">
+          <div className="neuform-badge neuform-badge-accent mb-2 sm:mb-3">
+            <span className="w-1.5 h-1.5 bg-[#029907] rounded-full shadow-[0_0_8px_#029907] animate-pulse" />
+            <span>Pilar 02 // Formación Técnica</span>
+          </div>
+          <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-white uppercase tracking-tighter font-display filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.7)]">
+            SERAM ACADEMY
+          </h2>
+        </div>
+
+        {/* Track Deslizable Horizontal (Pista de Módulos) */}
+        <div id="academy-track" className="absolute top-0 left-0 h-full flex w-[400vw] will-change-transform z-10">
+          
+          {/* Slide 1: Módulo 01 — SIG */}
+          <div className="w-screen h-full flex items-center justify-center px-4 sm:px-12 md:px-24 pt-28 pb-10">
+            <div id="academy-card-1-content" className="w-full max-w-4xl neuform-card p-5 sm:p-10 md:p-12 flex flex-col md:flex-row items-center gap-6 md:gap-12 relative pointer-events-auto">
+              <div className="w-full md:w-1/2 flex flex-col text-left space-y-3 sm:space-y-4">
+                <span className="text-[10px] text-[#00e03c] font-tech font-extrabold uppercase tracking-widest">Módulo 01 // SIG Avanzado</span>
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight font-display">Mapas de Alta Precisión y Análisis Espacial con QGIS</h3>
+                <p className="text-xs sm:text-sm text-slate-300 font-light leading-relaxed">
+                  Domina la delimitación de cuencas hidrográficas, mapas de riesgo, y geoprocesamiento de datos satelitales aplicados a la normativa ambiental boliviana. Evita observaciones técnicas en tus proyectos y lidera consultorías de élite desde cero.
+                </p>
+                <div className="text-[10px] sm:text-[11px] text-[#00e03c]/85 font-bold font-tech pt-2 border-t border-white/10">
+                  HERRAMIENTAS: QGIS, ArcGIS Pro & Google Earth Engine.
+                </div>
+              </div>
+              <div className="w-full md:w-1/2 rounded-2xl overflow-hidden aspect-video border border-white/10 hidden md:block">
+                <img src="/assets/3d-backend/gis_satellite_mapping.webp" alt="SIG" className="w-full h-full object-cover" />
+              </div>
+            </div>
+          </div>
+
+          {/* Slide 2: Módulo 02 — Ley 1333 */}
+          <div className="w-screen h-full flex items-center justify-center px-4 sm:px-12 md:px-24 pt-28 pb-10">
+            <div id="academy-card-2-content" className="w-full max-w-4xl neuform-card p-5 sm:p-10 md:p-12 flex flex-col md:flex-row items-center gap-6 md:gap-12 relative pointer-events-auto">
+              <div className="w-full md:w-1/2 flex flex-col text-left space-y-3 sm:space-y-4">
+                <span className="text-[10px] text-[#00e03c] font-tech font-extrabold uppercase tracking-widest">Módulo 02 // Normativa</span>
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight font-display">Cumplimiento de la Ley 1333 y Auditorías Ambientales</h3>
+                <p className="text-xs sm:text-sm text-slate-300 font-light leading-relaxed">
+                  Interpreta reglamentos sectoriales, diseña planes de mitigación ambiental blindados legalmente y realiza auditorías de calidad bajo normativas ISO internacionales. Evita multas y paralizaciones administrativas con capacitación de nivel corporativo.
+                </p>
+                <div className="text-[10px] sm:text-[11px] text-[#00e03c]/85 font-bold font-tech pt-2 border-t border-white/10">
+                  ENFOQUE: Ley 1333, RASIM, RGG y Auditorías Ambientales.
+                </div>
+              </div>
+              <div className="w-full md:w-1/2 rounded-2xl overflow-hidden aspect-video border border-white/10 hidden md:block">
+                <img src="/assets/3d-backend/licencias_fnca.webp" alt="Legislación" className="w-full h-full object-cover" />
+              </div>
+            </div>
+          </div>
+
+          {/* Slide 3: Módulo 03 — WebGL */}
+          <div className="w-screen h-full flex items-center justify-center px-4 sm:px-12 md:px-24 pt-28 pb-10">
+            <div id="academy-card-3-content" className="w-full max-w-4xl neuform-card p-5 sm:p-10 md:p-12 flex flex-col md:flex-row items-center gap-6 md:gap-12 relative pointer-events-auto">
+              <div className="w-full md:w-1/2 flex flex-col text-left space-y-3 sm:space-y-4">
+                <span className="text-[10px] text-[#00e03c] font-tech font-extrabold uppercase tracking-widest">Módulo 03 // WebGL & Visualización</span>
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight font-display">Simulaciones 3D e Interactividad Basada en GPU</h3>
+                <p className="text-xs sm:text-sm text-slate-300 font-light leading-relaxed">
+                  Aprende a programar simulaciones visuales con WebGL, compilación en tiempo real de shaders y herramientas interactivas basadas en GPU para revolucionar la presentación y visualización científica de datos espaciales y flujos hidrológicos.
+                </p>
+                <div className="text-[10px] sm:text-[11px] text-[#00e03c]/85 font-bold font-tech pt-2 border-t border-white/10">
+                  TECNOLOGÍAS: WebGL, Three.js, React Three Fiber & GLSL.
+                </div>
+              </div>
+              <div className="w-full md:w-1/2 rounded-2xl overflow-hidden aspect-video border border-white/10 hidden md:block">
+                <img src="/assets/3d-backend/huella_carbono_iso.webp" alt="WebGL 3D" className="w-full h-full object-cover" />
+              </div>
+            </div>
+          </div>
+
+          {/* Slide 4: CTA Final (Optimizado Copywriting & SEO) */}
+          <div className="w-screen h-full flex items-center justify-center px-4 sm:px-12 md:px-24 pt-28 pb-10">
+            <div id="academy-card-4-content" className="w-full max-w-4xl neuform-card p-6 sm:p-8 md:p-12 flex flex-col items-center text-center space-y-4 sm:space-y-6 relative pointer-events-auto">
+              <div className="neuform-badge neuform-badge-accent">¡Comienza Tu Capacitación de Élite!</div>
+              <h3 className="text-2xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight font-display max-w-3xl">
+                Lidera la Transición Sostenible con <span className="text-[#00e03c] underline decoration-[#00e03c]/30 decoration-2 underline-offset-4">SERAM Academy</span>
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-light leading-relaxed">
+                Acelera tu crecimiento profesional en el sector ecológico de Bolivia. Adquiere habilidades técnicas de alta demanda para diseñar proyectos libres de sanciones normativas, respaldado por consultores ambientales expertos y certificados con validez curricular internacional.
+              </p>
+              <div className="pt-3 flex flex-col sm:flex-row gap-4 items-center justify-center w-full">
+                <button 
+                  onClick={() => navigate(academyPillar.route)}
+                  className="px-8 py-4 bg-[#00e03c] hover:bg-[#00ff4c] text-[#020704] font-black uppercase text-xs tracking-wider rounded-xl shadow-[0_0_20px_rgba(0,224,60,0.35)] hover:shadow-[0_0_30px_rgba(0,224,60,0.6)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-300"
+                >
+                  {academyPillar.cta} <ChevronRight className="w-4 h-4 inline-block ml-1" />
+                </button>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -1027,33 +1168,19 @@ function FooterSection() {
         <div className="space-y-4">
           <p className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Conéctate con nosotros</p>
           <div className="flex items-center gap-4 pt-1">
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-11 h-11 rounded-xl bg-white/5 border border-white/10 hover:border-[#00e03c] text-slate-400 hover:text-[#00e03c] flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md pointer-events-auto"
-              data-cursor-text="INSTAGRAM"
-            >
-              <Instagram className="w-5 h-5" />
-            </a>
-            <a
-              href="https://tiktok.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-11 h-11 rounded-xl bg-white/5 border border-white/10 hover:border-[#00e03c] text-slate-400 hover:text-[#00e03c] flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md pointer-events-auto"
-              data-cursor-text="TIKTOK"
-            >
-              <TikTokIcon className="w-5 h-5" />
-            </a>
-            <a
-              href="https://youtube.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-11 h-11 rounded-xl bg-white/5 border border-white/10 hover:border-[#00e03c] text-slate-400 hover:text-[#00e03c] flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md pointer-events-auto"
-              data-cursor-text="YOUTUBE"
-            >
-              <Youtube className="w-5 h-5" />
-            </a>
+            {SOCIAL_LINKS.map(({ label, href, Icon }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`SERAM en ${label}`}
+                className="w-11 h-11 rounded-xl bg-white/5 border border-white/10 hover:border-[#00e03c] text-slate-400 hover:text-[#00e03c] flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md pointer-events-auto"
+                data-cursor-text={label.toUpperCase()}
+              >
+                <Icon className="w-5 h-5" />
+              </a>
+            ))}
           </div>
           <p className="text-[10px] text-slate-500 leading-relaxed font-tech">
             Innovación tecnológica y compromiso socio-ambiental de élite.

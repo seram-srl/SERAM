@@ -10,7 +10,7 @@ import EcosystemNucleus from './EcosystemNucleus';
 const landscapeBg    = '/assets/3d-backend/bg_home.webp';     // Amazonía boliviana (Fondo Premium)
 const fondo2doPanel  = '/assets/3d-backend/panel2-service-background.webp';    // Río / GIS
 const panel2ServiceBg= '/assets/3d-backend/panel2-service-background.webp';    // Servicios alt
-const academyBg      = '/assets/3d-backend/bg_academy.webp'; // Bosque nublado
+const academyBg      = '/assets/3d-backend/bg_home.webp'; // Amazonía boliviana (Fondo Premium)
 const expBg          = '/assets/3d-backend/bg_experience.webp';  // Salar de Uyuni
 const shopBg         = '/assets/3d-backend/bg_store_ecomarket.webp';   // Jardín botánico
 
@@ -108,6 +108,17 @@ function InteractiveScene({ hProgressRef }) {
   // Refs y estado para la textura de video de Hero
   const videoRef = useRef(null);
   const [activeVideoTexture, setActiveVideoTexture] = React.useState(null);
+  const [isMobile, setIsMobile] = React.useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -136,16 +147,20 @@ function InteractiveScene({ hProgressRef }) {
   }, [heroBgTexture, servicesBgTexture, academyBgTexture, expBgTexture, shopBgTexture]);
 
   useEffect(() => {
+    if (isMobile) {
+      setActiveVideoTexture(null);
+      return;
+    }
+
     // Crear el video element
     const video = document.createElement('video');
     video.muted = true;
-    video.loop = false; // Desactivado bucle continuo para control manual por scroll
+    video.loop = false; // El scroll controla el tiempo en desktop
     video.playsInline = true;
-    video.autoplay = false; 
+    video.autoplay = false;
 
-    // Determinar la resolución del video adaptativa para mobile/desktop
-    const isMobile = window.innerWidth < 768;
-    const videoSrc = isMobile ? '/assets/3d-backend/bg_home_mobile.mp4' : '/assets/3d-backend/bg_home.mp4';
+    // Determinar la resolución del video adaptativa para desktop
+    const videoSrc = '/assets/3d-backend/bg_home.mp4';
     video.src = videoSrc;
     videoRef.current = video;
 
@@ -177,7 +192,7 @@ function InteractiveScene({ hProgressRef }) {
       setActiveVideoTexture(null);
       videoRef.current = null;
     };
-  }, []);
+  }, [isMobile]);
 
   useFrame((state) => {
     // ── PROGRESO COMBINADO ────────────────────────────────────────────────────
@@ -334,35 +349,49 @@ function InteractiveScene({ hProgressRef }) {
 
     // Controlar el video de Hero según la velocidad del scroll para evitar tirones
     if (videoRef.current && activeVideoTexture) {
-      if (smoothP > 0.25) {
-        if (!videoRef.current.paused) {
-          videoRef.current.pause();
+      if (isMobile) {
+        // En móviles: reproducción continua simple para evitar congelamiento de hardware
+        if (smoothP > 0.25) {
+          if (!videoRef.current.paused) {
+            videoRef.current.pause();
+          }
+        } else {
+          if (videoRef.current.paused) {
+            videoRef.current.play().catch(() => {});
+          }
         }
       } else {
-        // Diferencia de scroll en este frame
-        const diff = p - currentScroll.current;
-        const absDiff = Math.abs(diff);
-        
-        if (absDiff > 0.0002) {
-          if (diff > 0) {
-            // El usuario baja: reproducimos el video de forma continua y fluida
-            if (videoRef.current.paused) {
-              videoRef.current.play().catch(() => {});
+        // En desktop: control premium interactivo por scroll
+        if (smoothP > 0.25) {
+          if (!videoRef.current.paused) {
+            videoRef.current.pause();
+          }
+        } else {
+          // Diferencia de scroll en este frame
+          const diff = p - currentScroll.current;
+          const absDiff = Math.abs(diff);
+          
+          if (absDiff > 0.0002) {
+            if (diff > 0) {
+              // El usuario baja: reproducimos el video de forma continua y fluida
+              if (videoRef.current.paused) {
+                videoRef.current.play().catch(() => {});
+              }
+              // Velocidad de reproducción adaptativa proporcional al scroll
+              videoRef.current.playbackRate = Math.min(2.2, Math.max(0.5, absDiff * 140));
+            } else {
+              // El usuario sube: retrocedemos el video de forma manual
+              if (!videoRef.current.paused) {
+                videoRef.current.pause();
+              }
+              const step = absDiff * 7.5;
+              videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - step);
             }
-            // Velocidad de reproducción adaptativa proporcional al scroll
-            videoRef.current.playbackRate = Math.min(2.2, Math.max(0.5, absDiff * 140));
           } else {
-            // El usuario sube: retrocedemos el video de forma manual
+            // El scroll está detenido: pausamos el video de inmediato
             if (!videoRef.current.paused) {
               videoRef.current.pause();
             }
-            const step = absDiff * 7.5;
-            videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - step);
-          }
-        } else {
-          // El scroll está detenido: pausamos el video de inmediato
-          if (!videoRef.current.paused) {
-            videoRef.current.pause();
           }
         }
       }
@@ -379,7 +408,7 @@ function InteractiveScene({ hProgressRef }) {
       <group ref={bgGroupRef}>
         {/* Fondo 1: Hero */}
         <mesh ref={heroBgRef} position={[0, 0, -0.04]}>
-          <planeGeometry args={[52, 26]} />
+          <planeGeometry args={isMobile ? [29.25, 52] : [52, 26]} />
           <meshBasicMaterial map={activeVideoTexture || heroBgTexture} color="#888888" transparent depthWrite={false} opacity={1} dithering={true} />
         </mesh>
         

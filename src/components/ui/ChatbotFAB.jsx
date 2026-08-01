@@ -125,8 +125,8 @@ const SERVICES = {
 
 function BotAvatar() {
   return (
-    <div className="w-7 h-7 rounded-xl bg-[#00e03c]/15 border border-[#00e03c]/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-      <Leaf className="w-3.5 h-3.5 text-[#00e03c]" />
+    <div className="w-8 h-8 rounded-xl bg-[#126c0f] border border-[#00e03c]/40 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-[0_0_10px_rgba(0,224,60,0.2)]">
+      <Leaf className="w-4 h-4 text-white" />
     </div>
   );
 }
@@ -135,7 +135,7 @@ function BotBubble({ text }) {
   return (
     <div className="flex gap-2.5">
       <BotAvatar />
-      <div className="bg-white/[0.06] border border-white/[0.05] rounded-2xl rounded-tl-sm p-3.5 text-[12px] text-slate-200 leading-relaxed max-w-[85%]">
+      <div className="bg-[#0f2010]/80 border border-[#1a3a1a]/60 rounded-2xl rounded-tl-sm p-3.5 text-[12px] text-white leading-relaxed max-w-[85%]">
         {text}
       </div>
     </div>
@@ -145,7 +145,7 @@ function BotBubble({ text }) {
 function UserBubble({ text }) {
   return (
     <div className="flex justify-end">
-      <div className="bg-[#00e03c]/15 border border-[#00e03c]/25 rounded-2xl rounded-tr-sm px-4 py-2.5 text-[12px] text-white max-w-[82%] font-medium">
+      <div className="bg-[#126c0f]/30 border border-[#00e03c]/30 rounded-2xl rounded-tr-sm px-4 py-2.5 text-[12px] text-white max-w-[82%] font-medium">
         {text}
       </div>
     </div>
@@ -278,12 +278,12 @@ export default function ChatbotFAB() {
             <motion.div
               initial={{ opacity: 0, y: -16, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -12, scale: 0.95 }}
               transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed top-[80px] right-3 sm:right-6 z-[113] w-[calc(100vw-1.5rem)] sm:w-[390px] max-h-[calc(100vh-6.5rem)] flex flex-col rounded-3xl bg-slate-950/96 backdrop-blur-2xl border border-[#00e03c]/15 shadow-2xl shadow-black/70 overflow-hidden"
+              className="fixed top-[80px] right-3 sm:right-6 z-[113] w-[calc(100vw-1.5rem)] sm:w-[390px] max-h-[calc(100vh-6.5rem)] flex flex-col rounded-3xl bg-[#080f08]/98 backdrop-blur-2xl border border-[#1a3a1a]/50 shadow-2xl shadow-black/80 overflow-hidden"
             >
-              <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/[0.05] bg-black/25 flex-shrink-0">
-                <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-[#00e03c]/25 to-[#00e03c]/10 border border-[#00e03c]/35 flex items-center justify-center flex-shrink-0">
-                  <Leaf className="w-4 h-4 text-[#00e03c]" />
-                  <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[#00e03c] rounded-full border-2 border-slate-950" />
+              <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[#1a3a1a]/60 bg-[#05100a]/60 flex-shrink-0">
+                <div className="relative w-9 h-9 rounded-xl bg-[#126c0f] border border-[#00e03c]/40 flex items-center justify-center flex-shrink-0 shadow-[0_0_12px_rgba(0,224,60,0.2)]">
+                  <Leaf className="w-4.5 h-4.5 text-white" style={{ width: '1.1rem', height: '1.1rem' }} />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[#00e03c] rounded-full border-2 border-[#080f08]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[11px] font-black text-white uppercase tracking-wider font-tech leading-none">Asistente SERAM</p>
@@ -335,7 +335,7 @@ export default function ChatbotFAB() {
                                     {msg.options.map((opt, oi) => (
                                       <motion.button key={oi} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.25, delay: 0.1 + oi * 0.06 }}
                                         onClick={() => handleOption(opt)}
-                                        className="w-full text-left text-[11px] px-3 py-2.5 rounded-xl bg-[#00e03c]/[0.07] border border-[#00e03c]/20 text-slate-200 hover:bg-[#00e03c]/[0.15] hover:border-[#00e03c]/45 hover:text-white transition-all duration-200 cursor-none leading-snug"
+                                        className="w-full text-left text-[11.5px] px-4 py-3 rounded-2xl bg-[#00e03c]/[0.07] border border-[#00e03c]/25 text-white hover:bg-[#00e03c]/[0.15] hover:border-[#00e03c]/45 hover:text-white transition-all duration-200 cursor-none leading-snug font-medium"
                                       >{opt.label}</motion.button>
                                     ))}
                                     {msg.allowComment && (
@@ -425,10 +425,10 @@ export default function ChatbotFAB() {
 
               </div>
 
-              <div className="border-t border-white/[0.05] px-4 py-2 flex items-center justify-center flex-shrink-0 bg-black/20">
+              <div className="border-t border-[#1a3a1a]/50 px-4 py-2.5 flex items-center justify-center flex-shrink-0 bg-[#050e07]/60">
                 <div className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 bg-[#00e03c] rounded-full animate-pulse" />
-                  <span className="text-[8px] text-[#00e03c]/70 font-tech uppercase tracking-wider font-bold">En línea 24/7</span>
+                  <div className="w-1.5 h-1.5 bg-[#00e03c] rounded-full animate-pulse shadow-[0_0_6px_rgba(0,224,60,0.8)]" />
+                  <span className="text-[8px] text-[#00e03c] font-tech uppercase tracking-widest font-bold">En línea 24/7</span>
                 </div>
               </div>
             </motion.div>

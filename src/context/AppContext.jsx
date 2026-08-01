@@ -54,22 +54,134 @@ export function AppProvider({ children }) {
 
   // --- DINAMIC SERVICES IN PUBLIC SITE ---
   const [publicServices, setPublicServices] = useState([
-    // Línea 1
-    { id: 'srv-1', title: 'FNCA', line: 'Trámites Ambientales Express', desc: 'El Formulario de Nivel de *Categorización Ambiental* (FNCA) es el Instrumento de Regulación de Alcance Particular (IRAP) obligatorio por normativa boliviana para definir el rumbo legal de tu *Licencia Ambiental*. Nosotros lo gestionamos con precisión técnica para que tu obra civil o comercial empiece a generar ingresos sin mirar atrás.', tag: 'RENCA A', icon: 'FileText' },
-    { id: 'srv-2', title: 'Registro Ambiental Industrial (RAI)', line: 'Trámites Ambientales Express', desc: 'Protege tu fábrica de precintos y multas. Gestionamos tu *Registro Ambiental Industrial* (RAI) y la *categorización industrial* obligatoria para industrias manufactureras urbanas de categorías 3 y 4 con velocidad express y blindaje legal garantizado.', tag: 'RENCA A', icon: 'Activity' },
-    { id: 'srv-3', title: 'Formulario de Prospección Minera (PM) y EMAP', line: 'Trámites Ambientales Express', desc: 'Evita retrasos críticos en el inicio de tus operaciones. Diseñamos soluciones cartográficas exactas y elaboramos carpetas rápidas para minería para la aprobación ágil del plan *EMAP* y trámites de *prospección minera* en tus concesiones mineras.', tag: 'RENCA A', icon: 'Compass' },
-    // Línea 2
-    { id: 'srv-4', title: 'PSST (Higiene y Seguridad)', line: 'Ingeniería y Seguridad Industrial', desc: 'Programa de Seguridad y Salud en el Trabajo visado por Ingeniero SySO externo habilitado ante el Min. de Trabajo.', tag: 'Brokerage', icon: 'Briefcase' },
-    { id: 'srv-5', title: 'LASP (Sustancias Peligrosas)', line: 'Ingeniería y Seguridad Industrial', desc: 'Trámite de Licencia de Actividades con Sustancias Peligrosas para manejo y almacenamiento de químicos.', tag: 'Brokerage', icon: 'Trash2' },
-    { id: 'srv-6', title: 'Manifiestos Ambientales (MA)', line: 'Ingeniería y Seguridad Industrial', desc: 'Adecuación *ambiental* para proyectos en marcha Categorías 1 y 2, firmados por peritos RENCA B/C externos.', tag: 'Brokerage', icon: 'Leaf' },
-    { id: 'srv-7', title: 'Monitoreos Físicos de Laboratorio', line: 'Ingeniería y Seguridad Industrial', desc: 'Monitoreo de ruido laboral, iluminación, calidad de agua y aire subcontratando laboratorios certificados.', tag: 'Brokerage', icon: 'Globe' },
-    // Línea 3
-    { id: 'srv-8', title: 'Análisis de Deforestación y Quemas', line: 'Servicios GIS Ambientales', desc: 'Análisis multitemporal de cobertura forestal y quemas mediante imágenes satelitales.', tag: 'SIG', icon: 'Map' },
-    { id: 'srv-9', title: 'Mapeo y Zonificación para POP', line: 'Servicios GIS Ambientales', desc: 'Diseño de mapas temáticos para Planes de Ordenamiento Predial bajo normas de la ABT.', tag: 'SIG', icon: 'Compass' },
-    { id: 'srv-10', title: 'Soporte Cartográfico B2B', line: 'Servicios GIS Ambientales', desc: 'Tercerización de análisis espacial y dibujo de planos para consultores y empresas senior.', tag: 'SIG', icon: 'FileText' },
-    { id: 'srv-11', title: 'Riesgo Hidrológico e Inundaciones', line: 'Servicios GIS Ambientales', desc: 'Modelamiento hidráulico predictivo y mapas de inundación para constructoras e inmobiliarias.', tag: 'SIG', icon: 'Activity' },
-    { id: 'srv-12', title: 'Cálculo de Huella de Carbono', line: 'Servicios GIS Ambientales', desc: 'Cuantificación corporativa de *gases de efecto invernadero* (Alcances 1, 2 y 3) bajo GHG Protocol.', tag: 'Sostenibilidad', icon: 'Leaf' },
-    { id: 'srv-13', title: 'Sostenibilidad de Exportación', line: 'Servicios GIS Ambientales', desc: 'Análisis de *ciclo de vida* (ACV) y *descarbonización* para cumplir *barreras verdes* internacionales.', tag: 'Sostenibilidad', icon: 'Globe' },
+    {
+      id: 'srv-notion-1',
+      title: 'Formulario de Nivel de Categorización Ambiental (FNCA)',
+      line: 'Trámites Ambientales Express',
+      desc: 'Instrumento de Regulación de Alcance Particular (IRAP) obligatorio por normativa boliviana para definir el rumbo legal de tu *Licencia Ambiental*. Gestionamos y aceleramos su aprobación.',
+      tag: 'FNCA',
+      icon: 'FileText'
+    },
+    {
+      id: 'srv-notion-2',
+      title: 'Registro Ambiental Industrial (RAI)',
+      line: 'Trámites Ambientales Express',
+      desc: 'Protege tu fábrica de precintos y multas. Gestionamos tu *Registro Ambiental Industrial* (RAI) y la categorización industrial obligatoria con velocidad express y blindaje legal.',
+      tag: 'RAI',
+      icon: 'Activity'
+    },
+    {
+      id: 'srv-notion-3',
+      title: 'Teledetección con Drones',
+      line: 'Servicios GIS Ambientales',
+      desc: 'Monitoreo de alta precisión y mapeo aéreo mediante vehículos aéreos no tripulados. Generamos modelos digitales de elevación y ortomosaicos georreferenciados para *análisis espacial*.',
+      tag: 'SIG / Drones',
+      icon: 'Compass'
+    },
+    {
+      id: 'srv-notion-4',
+      title: 'Ruta de Ecoturismo Sostenible (RES)',
+      line: 'Servicios GIS Ambientales',
+      desc: 'Diseño y desarrollo cartográfico de rutas ecoturisticas, integrando el *análisis espacial* y la conservación de la biodiversidad local con fines educativos y de sostenibilidad.',
+      tag: 'Ecoturismo',
+      icon: 'Globe'
+    },
+    {
+      id: 'srv-notion-5',
+      title: 'Dibujo de Planos y Mapas Ambientales',
+      line: 'Servicios GIS Ambientales',
+      desc: 'Servicios profesionales de *cartografía* y dibujo de planos temáticos, perfiles topográficos y georreferenciación oficial para consultores y empresas senior.',
+      tag: 'Cartografía',
+      icon: 'Map'
+    },
+    {
+      id: 'srv-notion-6',
+      title: 'Asesoramiento Técnico-Legal Especializado',
+      line: 'Trámites Ambientales Express',
+      desc: 'Consultoría de alto nivel y defensa técnica-legal en procesos de fiscalización, inspecciones y cumplimiento normativo de la *Ley 1333* ante autoridades competentes.',
+      tag: 'Legal',
+      icon: 'Shield'
+    },
+    {
+      id: 'srv-notion-7',
+      title: 'Programa de Educación Ambiental',
+      line: 'Servicios GIS Ambientales',
+      desc: 'Apoyo técnico para industrias, empresas y comunidades. Capacitación al personal, talleres presenciales de *Economía Circular* y asesoría en emprendimientos verdes.',
+      tag: 'Capacitación',
+      icon: 'BookOpen'
+    },
+    {
+      id: 'srv-notion-8',
+      title: 'Diseño de Puntos Ecológicos (DPE)',
+      line: 'Ingeniería y Seguridad Industrial',
+      desc: 'Diseño técnico de estaciones de reciclaje, señalización oficial, distribución de contenedores y elaboración de manuales de uso y planes de ejecución.',
+      tag: 'Gestión',
+      icon: 'Leaf'
+    },
+    {
+      id: 'srv-notion-9',
+      title: 'Cursos Online de Capacitación',
+      line: 'Servicios GIS Ambientales',
+      desc: 'Cursos técnicos prácticos en modalidad virtual sobre *legislación ambiental boliviana*, manejo de herramientas GIS y consultoría ambiental aplicada.',
+      tag: 'Educación',
+      icon: 'BookOpen'
+    },
+    {
+      id: 'srv-notion-10',
+      title: 'Bonos de Carbono y Compensación',
+      line: 'Servicios GIS Ambientales',
+      desc: 'Asesoramiento técnico en proyectos de captura de carbono, cuantificación y certificación de créditos para el mercado de compensación voluntaria.',
+      tag: 'Carbono',
+      icon: 'Leaf'
+    },
+    {
+      id: 'srv-notion-11',
+      title: 'Formulario Minero EMAP',
+      line: 'Trámites Ambientales Express',
+      desc: 'Elaboración del Formulario *EMAP* para la regularización de actividades mineras con impactos ambientales conocidos no significativos, cumpliendo plazos y normas oficiales.',
+      tag: 'EMAP',
+      icon: 'Compass'
+    },
+    {
+      id: 'srv-notion-12',
+      title: 'Informe Técnico Hidrocarburos (IT)',
+      line: 'Trámites Ambientales Express',
+      desc: 'Gestión de informes técnicos requeridos para autorizaciones de movimientos menores y adecuaciones en instalaciones del sector de hidrocarburos.',
+      tag: 'IT / Hidrocarburos',
+      icon: 'Activity'
+    },
+    {
+      id: 'srv-notion-13',
+      title: 'Formulario de Solicitud FSPAE',
+      line: 'Trámites Ambientales Express',
+      desc: 'Elaboración y tramitación del Formulario *FSPAE* ante la Autoridad Ambiental Competente para actividades específicas autorizadas en Bolivia.',
+      tag: 'FSPAE',
+      icon: 'FileText'
+    },
+    {
+      id: 'srv-notion-14',
+      title: 'Formulario de Prospección Minera (PM)',
+      line: 'Trámites Ambientales Express',
+      desc: 'Diseñamos soluciones cartográficas exactas y elaboramos carpetas rápidas para la aprobación ágil de trámites de *prospección minera* en tus concesiones mineras.',
+      tag: 'PM / Minería',
+      icon: 'Compass'
+    },
+    {
+      id: 'srv-notion-15',
+      title: 'Formulario de Categorización Común (FNCAC)',
+      line: 'Trámites Ambientales Express',
+      desc: 'Elaboración de formularios de categorización común para proyectos de desarrollo rural y municipal de beneficio comunitario en Bolivia.',
+      tag: 'FNCAC',
+      icon: 'FileText'
+    },
+    {
+      id: 'srv-notion-16',
+      title: 'Diseño de Planes de Gestión Ambiental',
+      line: 'Ingeniería y Seguridad Industrial',
+      desc: 'Diseño técnico e implementación de planes de gestión de residuos, control de emisiones y auditorías de cumplimiento normativo industrial.',
+      tag: 'Gestión',
+      icon: 'Leaf'
+    }
   ]);
 
   const handleAddPublicService = (service) => {

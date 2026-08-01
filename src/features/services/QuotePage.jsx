@@ -339,7 +339,7 @@ export default function QuotePage() {
         }
       ` }} />
 
-      <div id="printable-quote-report" className="neuform-card p-6 sm:p-10 overflow-hidden relative shadow-[0_20px_50px_rgba(0,0,0,0.55)]">
+      <div id="printable-quote-report" className="relative overflow-hidden rounded-3xl bg-[#080f08]/85 backdrop-blur-2xl border border-[#00e03c]/20 shadow-2xl shadow-black/80 p-6 sm:p-10">
         
         {/* Decorative elements (Hidden in Print) */}
         <div className="absolute right-0 top-0 opacity-[0.03] pointer-events-none no-print">
@@ -349,13 +349,13 @@ export default function QuotePage() {
         {/* Progress Bar (Hidden in Print) */}
         {!isSuccess && (
           <div className="mb-8 space-y-2 text-left no-print">
-            <div className="flex justify-between items-center text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+            <div className="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider" style={{ color: 'rgba(0,224,60,0.5)' }}>
               <span>Diagnóstico Digital</span>
               <span>Paso {step + 1} de {totalSteps}</span>
             </div>
-            <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+            <div className="w-full h-1 bg-[#0f2010] rounded-full overflow-hidden">
               <motion.div 
-                className="h-full bg-gradient-to-r from-[#00e03c]/40 to-[#00e03c]" 
+                className="h-full bg-gradient-to-r from-[#00e03c]/50 to-[#00e03c]" 
                 animate={{ width: `${progressPercent}%` }}
                 transition={{ duration: 0.3 }}
               />
@@ -585,34 +585,34 @@ export default function QuotePage() {
                 </p>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {QUESTIONS[step].options.map((option) => {
                   const isSelected = answers[QUESTIONS[step].id] === option.id;
                   return (
                     <button
                       key={option.id}
                       onClick={() => handleSelectOption(option.id)}
-                      className={`w-full text-left p-4 rounded-xl border flex items-center justify-between transition-all duration-300 cursor-none ${
+                      className={`w-full text-left px-4 py-3.5 rounded-2xl border flex items-center justify-between transition-all duration-200 cursor-none ${
                         isSelected 
-                          ? 'bg-[#00e03c]/10 border-[#00e03c] text-[#00e03c] shadow-[0_0_15px_rgba(0,224,60,0.15)]'
-                          : 'bg-white/[0.02] border-white/10 hover:border-[#00e03c]/30 text-slate-300 hover:bg-white/[0.04]'
+                          ? 'bg-[#00e03c]/15 border-[#00e03c]/60 shadow-[0_0_15px_rgba(0,224,60,0.15)] text-[#00e03c]'
+                          : 'bg-[#00e03c]/[0.05] border-[#00e03c]/20 text-slate-300 hover:bg-[#00e03c]/[0.12] hover:border-[#00e03c]/40 hover:text-white'
                       }`}
                       data-cursor-text="SELECCIONAR"
                     >
                       <div className="flex items-center gap-4">
-                        <div className={`p-2.5 rounded-lg border transition-colors ${
+                        <div className={`p-2.5 rounded-xl transition-all ${
                           isSelected 
-                            ? 'bg-[#00e03c]/20 border-[#00e03c]/40 text-[#00e03c]'
-                            : 'bg-white/5 border-white/10 text-slate-400'
+                            ? 'bg-[#00e03c]/25 border border-[#00e03c]/45 text-white'
+                            : 'bg-white/5 border border-white/10 text-slate-400'
                         }`}>
                           {option.icon}
                         </div>
                         <div>
                           <div className="font-extrabold text-sm text-white">{option.label}</div>
-                          <div className="text-[11px] text-slate-500 font-medium">{option.desc}</div>
+                          <div className="text-[11px] font-medium" style={{ color: 'rgba(156,175,156,0.7)' }}>{option.desc}</div>
                         </div>
                       </div>
-                      <ChevronRight className={`w-4 h-4 transition-transform ${isSelected ? 'translate-x-1 text-[#00e03c]' : 'text-slate-600'}`} />
+                      <ChevronRight className={`w-4 h-4 transition-transform flex-shrink-0 ${isSelected ? 'translate-x-1 text-[#00e03c]' : 'text-[#00e03c]/50'}`} />
                     </button>
                   );
                 })}
