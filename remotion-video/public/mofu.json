@@ -1,0 +1,221 @@
+[
+  {
+    "text": "¿Cómo levantar puntos GPS precisos en zonas",
+    "fromMs": 500,
+    "toMs": 3500,
+    "tokens": [
+      { "text": "¿Cómo ", "fromMs": 500, "toMs": 800 },
+      { "text": "levantar ", "fromMs": 800, "toMs": 1300 },
+      { "text": "puntos ", "fromMs": 1300, "toMs": 1700 },
+      { "text": "GPS ", "fromMs": 1700, "toMs": 2200 },
+      { "text": "precisos ", "fromMs": 2200, "toMs": 2900 },
+      { "text": "en ", "fromMs": 2900, "toMs": 3100 },
+      { "text": "zonas ", "fromMs": 3100, "toMs": 3500 }
+    ]
+  },
+  {
+    "text": "sin cobertura ni señal directa de satélite?",
+    "fromMs": 3600,
+    "toMs": 6800,
+    "tokens": [
+      { "text": "sin ", "fromMs": 3600, "toMs": 3900 },
+      { "text": "cobertura ", "fromMs": 3900, "toMs": 4600 },
+      { "text": "ni ", "fromMs": 4600, "toMs": 4800 },
+      { "text": "señal ", "fromMs": 4800, "toMs": 5300 },
+      { "text": "directa ", "fromMs": 5300, "toMs": 5800 },
+      { "text": "de ", "fromMs": 5800, "toMs": 6000 },
+      { "text": "satélite? ", "fromMs": 6000, "toMs": 6800 }
+    ]
+  },
+  {
+    "text": "En nuestra expedición técnica al Valle de las Agujas",
+    "fromMs": 7100,
+    "toMs": 10500,
+    "tokens": [
+      { "text": "En ", "fromMs": 7100, "toMs": 7300 },
+      { "text": "nuestra ", "fromMs": 7300, "toMs": 7800 },
+      { "text": "expedición ", "fromMs": 7800, "toMs": 8500 },
+      { "text": "técnica ", "fromMs": 8500, "toMs": 9000 },
+      { "text": "al ", "fromMs": 9000, "toMs": 9200 },
+      { "text": "Valle ", "fromMs": 9200, "toMs": 9600 },
+      { "text": "de ", "fromMs": 9600, "toMs": 9800 },
+      { "text": "las ", "fromMs": 9800, "toMs": 10000 },
+      { "text": "Agujas ", "fromMs": 10000, "toMs": 10500 }
+    ]
+  },
+  {
+    "text": "aplicamos tres pasos clave.",
+    "fromMs": 10600,
+    "toMs": 12800,
+    "tokens": [
+      { "text": "aplicamos ", "fromMs": 10600, "toMs": 11300 },
+      { "text": "tres ", "fromMs": 11300, "toMs": 11700 },
+      { "text": "pasos ", "fromMs": 11700, "toMs": 12200 },
+      { "text": "clave. ", "fromMs": 12200, "toMs": 12800 }
+    ]
+  },
+  {
+    "text": "Primero: programamos el receptor",
+    "fromMs": 13000,
+    "toMs": 15500,
+    "tokens": [
+      { "text": "Primero: ", "fromMs": 13000, "toMs": 13700 },
+      { "text": "programamos ", "fromMs": 13700, "toMs": 14600 },
+      { "text": "el ", "fromMs": 14600, "toMs": 14800 },
+      { "text": "receptor ", "fromMs": 14800, "toMs": 15500 }
+    ]
+  },
+  {
+    "text": "en modo GNSS multi-constelación",
+    "fromMs": 15600,
+    "toMs": 18500,
+    "tokens": [
+      { "text": "en ", "fromMs": 15600, "toMs": 15800 },
+      { "text": "modo ", "fromMs": 15800, "toMs": 16200 },
+      { "text": "GNSS ", "fromMs": 16200, "toMs": 16900 },
+      { "text": "multi-constelación ", "fromMs": 16900, "toMs": 18500 }
+    ]
+  },
+  {
+    "text": "para captar satélites GPS, Glonass",
+    "fromMs": 18600,
+    "toMs": 21500,
+    "tokens": [
+      { "text": "para ", "fromMs": 18600, "toMs": 18900 },
+      { "text": "captar ", "fromMs": 18900, "toMs": 19400 },
+      { "text": "satélites ", "fromMs": 19400, "toMs": 20100 },
+      { "text": "GPS, ", "fromMs": 20100, "toMs": 20800 },
+      { "text": "Glonass ", "fromMs": 20800, "toMs": 21500 }
+    ]
+  },
+  {
+    "text": "y Galileo simultáneamente.",
+    "fromMs": 21600,
+    "toMs": 23800,
+    "tokens": [
+      { "text": "y ", "fromMs": 21600, "toMs": 21800 },
+      { "text": "Galileo ", "fromMs": 21800, "toMs": 22600 },
+      { "text": "simultáneamente. ", "fromMs": 22600, "toMs": 23800 }
+    ]
+  },
+  {
+    "text": "Segundo: utilizamos un software GIS offline",
+    "fromMs": 24100,
+    "toMs": 27500,
+    "tokens": [
+      { "text": "Segundo: ", "fromMs": 24100, "toMs": 24800 },
+      { "text": "utilizamos ", "fromMs": 24800, "toMs": 25500 },
+      { "text": "un ", "fromMs": 25500, "toMs": 25700 },
+      { "text": "software ", "fromMs": 25700, "toMs": 26300 },
+      { "text": "GIS ", "fromMs": 26300, "toMs": 26800 },
+      { "text": "offline ", "fromMs": 26800, "toMs": 27500 }
+    ]
+  },
+  {
+    "text": "con mapas ráster previamente cargados.",
+    "fromMs": 27600,
+    "toMs": 30800,
+    "tokens": [
+      { "text": "con ", "fromMs": 27600, "toMs": 27800 },
+      { "text": "mapas ", "fromMs": 27800, "toMs": 28300 },
+      { "text": "ráster ", "fromMs": 28300, "toMs": 29000 },
+      { "text": "previamente ", "fromMs": 29000, "toMs": 29900 },
+      { "text": "cargados. ", "fromMs": 29900, "toMs": 30800 }
+    ]
+  },
+  {
+    "text": "Y tercero: tomamos las lecturas",
+    "fromMs": 31100,
+    "toMs": 33500,
+    "tokens": [
+      { "text": "Y ", "fromMs": 31100, "toMs": 31300 },
+      { "text": "tercero: ", "fromMs": 31300, "toMs": 31900 },
+      { "text": "tomamos ", "fromMs": 31900, "toMs": 32500 },
+      { "text": "las ", "fromMs": 32500, "toMs": 32700 },
+      { "text": "lecturas ", "fromMs": 32700, "toMs": 33500 }
+    ]
+  },
+  {
+    "text": "en las crestas elevadas o 'tiñipatas'",
+    "fromMs": 33600,
+    "toMs": 36800,
+    "tokens": [
+      { "text": "en ", "fromMs": 33600, "toMs": 33800 },
+      { "text": "las ", "fromMs": 33800, "toMs": 34000 },
+      { "text": "crestas ", "fromMs": 34000, "toMs": 34600 },
+      { "text": "elevadas ", "fromMs": 34600, "toMs": 35300 },
+      { "text": "o ", "fromMs": 35300, "toMs": 35500 },
+      { "text": "'tiñipatas' ", "fromMs": 35500, "toMs": 36800 }
+    ]
+  },
+  {
+    "text": "para evitar la atenuación de señal.",
+    "fromMs": 36900,
+    "toMs": 39500,
+    "tokens": [
+      { "text": "para ", "fromMs": 36900, "toMs": 37200 },
+      { "text": "evitar ", "fromMs": 37200, "toMs": 37800 },
+      { "text": "la ", "fromMs": 37800, "toMs": 38000 },
+      { "text": "atenuación ", "fromMs": 38000, "toMs": 38800 },
+      { "text": "de ", "fromMs": 38800, "toMs": 39000 },
+      { "text": "señal. ", "fromMs": 39000, "toMs": 39500 }
+    ]
+  },
+  {
+    "text": "Si quieres ver el mapa de elevación",
+    "fromMs": 39800,
+    "toMs": 42200,
+    "tokens": [
+      { "text": "Si ", "fromMs": 39800, "toMs": 40100 },
+      { "text": "quieres ", "fromMs": 40100, "toMs": 40600 },
+      { "text": "ver ", "fromMs": 40600, "toMs": 40900 },
+      { "text": "el ", "fromMs": 40900, "toMs": 41100 },
+      { "text": "mapa ", "fromMs": 41100, "toMs": 41500 },
+      { "text": "de ", "fromMs": 41500, "toMs": 41700 },
+      { "text": "elevación ", "fromMs": 41700, "toMs": 42200 }
+    ]
+  },
+  {
+    "text": "y los datos crudos que tomamos en la última salida,",
+    "fromMs": 42300,
+    "toMs": 45800,
+    "tokens": [
+      { "text": "y ", "fromMs": 42300, "toMs": 42500 },
+      { "text": "los ", "fromMs": 42500, "toMs": 42700 },
+      { "text": "datos ", "fromMs": 42700, "toMs": 43200 },
+      { "text": "crudos ", "fromMs": 43200, "toMs": 43800 },
+      { "text": "que ", "fromMs": 43800, "toMs": 44000 },
+      { "text": "tomamos ", "fromMs": 44000, "toMs": 44600 },
+      { "text": "en ", "fromMs": 44600, "toMs": 44800 },
+      { "text": "la ", "fromMs": 44800, "toMs": 45000 },
+      { "text": "última ", "fromMs": 45000, "toMs": 45400 },
+      { "text": "salida, ", "fromMs": 45400, "toMs": 45800 }
+    ]
+  },
+  {
+    "text": "únete a nuestro grupo de especialistas",
+    "fromMs": 45900,
+    "toMs": 48500,
+    "tokens": [
+      { "text": "únete ", "fromMs": 45900, "toMs": 46400 },
+      { "text": "a ", "fromMs": 46400, "toMs": 46600 },
+      { "text": "nuestro ", "fromMs": 46600, "toMs": 47000 },
+      { "text": "grupo ", "fromMs": 47000, "toMs": 47500 },
+      { "text": "de ", "fromMs": 47500, "toMs": 47700 },
+      { "text": "especialistas ", "fromMs": 47700, "toMs": 48500 }
+    ]
+  },
+  {
+    "text": "con el enlace de nuestro perfil.",
+    "fromMs": 48600,
+    "toMs": 51000,
+    "tokens": [
+      { "text": "con ", "fromMs": 48600, "toMs": 48900 },
+      { "text": "el ", "fromMs": 48900, "toMs": 49100 },
+      { "text": "enlace ", "fromMs": 49100, "toMs": 49600 },
+      { "text": "de ", "fromMs": 49600, "toMs": 49800 },
+      { "text": "nuestro ", "fromMs": 49800, "toMs": 50300 },
+      { "text": "perfil. ", "fromMs": 50300, "toMs": 51000 }
+    ]
+  }
+]

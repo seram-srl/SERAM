@@ -1,0 +1,187 @@
+[
+  {
+    "text": "¿Sabías que dentro de este laberinto de arcilla",
+    "fromMs": 500,
+    "toMs": 3500,
+    "tokens": [
+      { "text": "¿Sabías ", "fromMs": 500, "toMs": 900 },
+      { "text": "que ", "fromMs": 900, "toMs": 1100 },
+      { "text": "dentro ", "fromMs": 1100, "toMs": 1500 },
+      { "text": "de ", "fromMs": 1500, "toMs": 1700 },
+      { "text": "este ", "fromMs": 1700, "toMs": 2000 },
+      { "text": "laberinto ", "fromMs": 2000, "toMs": 2600 },
+      { "text": "de ", "fromMs": 2600, "toMs": 2800 },
+      { "text": "arcilla ", "fromMs": 2800, "toMs": 3500 }
+    ]
+  },
+  {
+    "text": "en La Paz tu receptor GPS",
+    "fromMs": 3600,
+    "toMs": 6200,
+    "tokens": [
+      { "text": "en ", "fromMs": 3600, "toMs": 3900 },
+      { "text": "La ", "fromMs": 3900, "toMs": 4200 },
+      { "text": "Paz ", "fromMs": 4200, "toMs": 4600 },
+      { "text": "tu ", "fromMs": 4600, "toMs": 4800 },
+      { "text": "receptor ", "fromMs": 4800, "toMs": 5400 },
+      { "text": "GPS ", "fromMs": 5400, "toMs": 6200 }
+    ]
+  },
+  {
+    "text": "puede darte un error de hasta 20 metros?",
+    "fromMs": 6300,
+    "toMs": 9500,
+    "tokens": [
+      { "text": "puede ", "fromMs": 6300, "toMs": 6700 },
+      { "text": "darte ", "fromMs": 6700, "toMs": 7100 },
+      { "text": "un ", "fromMs": 7100, "toMs": 7300 },
+      { "text": "error ", "fromMs": 7300, "toMs": 7800 },
+      { "text": "de ", "fromMs": 7800, "toMs": 8000 },
+      { "text": "hasta ", "fromMs": 8000, "toMs": 8400 },
+      { "text": "20 ", "fromMs": 8400, "toMs": 8800 },
+      { "text": "metros? ", "fromMs": 8800, "toMs": 9500 }
+    ]
+  },
+  {
+    "text": "Este es el Valle de las Agujas,",
+    "fromMs": 9800,
+    "toMs": 12500,
+    "tokens": [
+      { "text": "Este ", "fromMs": 9800, "toMs": 10200 },
+      { "text": "es ", "fromMs": 10200, "toMs": 10400 },
+      { "text": "el ", "fromMs": 10400, "toMs": 10600 },
+      { "text": "Valle ", "fromMs": 10600, "toMs": 11100 },
+      { "text": "de ", "fromMs": 11100, "toMs": 11300 },
+      { "text": "las ", "fromMs": 11300, "toMs": 11600 },
+      { "text": "Agujas, ", "fromMs": 11600, "toMs": 12500 }
+    ]
+  },
+  {
+    "text": "un bosque petrificado esculpido en el Pleistoceno.",
+    "fromMs": 12600,
+    "toMs": 16500,
+    "tokens": [
+      { "text": "un ", "fromMs": 12600, "toMs": 12800 },
+      { "text": "bosque ", "fromMs": 12800, "toMs": 13400 },
+      { "text": "petrificado ", "fromMs": 13400, "toMs": 14500 },
+      { "text": "esculpido ", "fromMs": 14500, "toMs": 15300 },
+      { "text": "en ", "fromMs": 15300, "toMs": 15500 },
+      { "text": "el ", "fromMs": 15500, "toMs": 15700 },
+      { "text": "Pleistoceno. ", "fromMs": 15700, "toMs": 16500 }
+    ]
+  },
+  {
+    "text": "La profundidad de sus cañadones",
+    "fromMs": 16800,
+    "toMs": 19500,
+    "tokens": [
+      { "text": "La ", "fromMs": 16800, "toMs": 17100 },
+      { "text": "profundidad ", "fromMs": 17100, "toMs": 17900 },
+      { "text": "de ", "fromMs": 17900, "toMs": 18100 },
+      { "text": "sus ", "fromMs": 18100, "toMs": 18400 },
+      { "text": "cañadones ", "fromMs": 18400, "toMs": 19500 }
+    ]
+  },
+  {
+    "text": "genera un fenómeno llamado 'multipath':",
+    "fromMs": 19600,
+    "toMs": 22800,
+    "tokens": [
+      { "text": "genera ", "fromMs": 19600, "toMs": 20200 },
+      { "text": "un ", "fromMs": 20200, "toMs": 20400 },
+      { "text": "fenómeno ", "fromMs": 20400, "toMs": 21000 },
+      { "text": "llamado ", "fromMs": 21000, "toMs": 21600 },
+      { "text": "'multipath': ", "fromMs": 21600, "toMs": 22800 }
+    ]
+  },
+  {
+    "text": "las ondas de los satélites rebotan",
+    "fromMs": 23000,
+    "toMs": 25800,
+    "tokens": [
+      { "text": "las ", "fromMs": 23000, "toMs": 23300 },
+      { "text": "ondas ", "fromMs": 23300, "toMs": 23800 },
+      { "text": "de ", "fromMs": 23800, "toMs": 24000 },
+      { "text": "los ", "fromMs": 24000, "toMs": 24200 },
+      { "text": "satélites ", "fromMs": 24200, "toMs": 25000 },
+      { "text": "rebotan ", "fromMs": 25000, "toMs": 25800 }
+    ]
+  },
+  {
+    "text": "en las paredes de barro antes de llegar.",
+    "fromMs": 25900,
+    "toMs": 29000,
+    "tokens": [
+      { "text": "en ", "fromMs": 25900, "toMs": 26100 },
+      { "text": "las ", "fromMs": 26100, "toMs": 26300 },
+      { "text": "paredes ", "fromMs": 26300, "toMs": 27000 },
+      { "text": "de ", "fromMs": 27000, "toMs": 27200 },
+      { "text": "barro ", "fromMs": 27200, "toMs": 27800 },
+      { "text": "antes ", "fromMs": 27800, "toMs": 28300 },
+      { "text": "de ", "fromMs": 28300, "toMs": 28500 },
+      { "text": "llegar. ", "fromMs": 28500, "toMs": 29000 }
+    ]
+  },
+  {
+    "text": "Si eres ingeniero, ambientólogo",
+    "fromMs": 29300,
+    "toMs": 32000,
+    "tokens": [
+      { "text": "Si ", "fromMs": 29300, "toMs": 29600 },
+      { "text": "eres ", "fromMs": 29600, "toMs": 30000 },
+      { "text": "ingeniero, ", "fromMs": 30000, "toMs": 31000 },
+      { "text": "ambientólogo ", "fromMs": 31000, "toMs": 32000 }
+    ]
+  },
+  {
+    "text": "o apasionado de la cartografía,",
+    "fromMs": 32100,
+    "toMs": 35000,
+    "tokens": [
+      { "text": "o ", "fromMs": 32100, "toMs": 32300 },
+      { "text": "apasionado ", "fromMs": 32300, "toMs": 33200 },
+      { "text": "de ", "fromMs": 33200, "toMs": 33400 },
+      { "text": "la ", "fromMs": 33400, "toMs": 33700 },
+      { "text": "cartografía, ", "fromMs": 33700, "toMs": 35000 }
+    ]
+  },
+  {
+    "text": "esto te interesa.",
+    "fromMs": 35200,
+    "toMs": 36800,
+    "tokens": [
+      { "text": "esto ", "fromMs": 35200, "toMs": 35800 },
+      { "text": "te ", "fromMs": 35800, "toMs": 36100 },
+      { "text": "interesa. ", "fromMs": 36100, "toMs": 36800 }
+    ]
+  },
+  {
+    "text": "Comenta la palabra 'RUTA' y te enviamos",
+    "fromMs": 37000,
+    "toMs": 40200,
+    "tokens": [
+      { "text": "Comenta ", "fromMs": 37000, "toMs": 37700 },
+      { "text": "la ", "fromMs": 37700, "toMs": 37900 },
+      { "text": "palabra ", "fromMs": 37900, "toMs": 38400 },
+      { "text": "'RUTA' ", "fromMs": 38400, "toMs": 39200 },
+      { "text": "y ", "fromMs": 39200, "toMs": 39400 },
+      { "text": "te ", "fromMs": 39400, "toMs": 39600 },
+      { "text": "enviamos ", "fromMs": 39600, "toMs": 40200 }
+    ]
+  },
+  {
+    "text": "la guía técnica de navegación de esta zona.",
+    "fromMs": 40300,
+    "toMs": 43500,
+    "tokens": [
+      { "text": "la ", "fromMs": 40300, "toMs": 40500 },
+      { "text": "guía ", "fromMs": 40500, "toMs": 40900 },
+      { "text": "técnica ", "fromMs": 40900, "toMs": 41500 },
+      { "text": "de ", "fromMs": 41500, "toMs": 41700 },
+      { "text": "navegación ", "fromMs": 41700, "toMs": 42500 },
+      { "text": "de ", "fromMs": 42500, "toMs": 42700 },
+      { "text": "esta ", "fromMs": 42700, "toMs": 43000 },
+      { "text": "zona. ", "fromMs": 43000, "toMs": 43500 }
+    ]
+  }
+]

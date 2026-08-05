@@ -1,0 +1,174 @@
+[
+  {
+    "text": "La teoría de aula es genial, pero la geología",
+    "fromMs": 500,
+    "toMs": 3500,
+    "tokens": [
+      { "text": "La ", "fromMs": 500, "toMs": 700 },
+      { "text": "teoría ", "fromMs": 700, "toMs": 1200 },
+      { "text": "de ", "fromMs": 1200, "toMs": 1400 },
+      { "text": "aula ", "fromMs": 1400, "toMs": 1900 },
+      { "text": "es ", "fromMs": 1900, "toMs": 2100 },
+      { "text": "genial, ", "fromMs": 2100, "toMs": 2700 },
+      { "text": "pero ", "fromMs": 2700, "toMs": 3000 },
+      { "text": "la ", "fromMs": 3000, "toMs": 3200 },
+      { "text": "geología ", "fromMs": 3200, "toMs": 3500 }
+    ]
+  },
+  {
+    "text": "y la cartografía se aprenden pisando el barro.",
+    "fromMs": 3600,
+    "toMs": 6800,
+    "tokens": [
+      { "text": "y ", "fromMs": 3600, "toMs": 3800 },
+      { "text": "la ", "fromMs": 3800, "toMs": 4000 },
+      { "text": "cartografía ", "fromMs": 4000, "toMs": 4800 },
+      { "text": "se ", "fromMs": 4800, "toMs": 5000 },
+      { "text": "aprenden ", "fromMs": 5000, "toMs": 5600 },
+      { "text": "pisando ", "fromMs": 5600, "toMs": 6200 },
+      { "text": "el ", "fromMs": 6200, "toMs": 6400 },
+      { "text": "barro. ", "fromMs": 6400, "toMs": 6800 }
+    ]
+  },
+  {
+    "text": "Este fin de semana volvemos al Valle de las Agujas",
+    "fromMs": 7100,
+    "toMs": 10500,
+    "tokens": [
+      { "text": "Este ", "fromMs": 7100, "toMs": 7500 },
+      { "text": "fin ", "fromMs": 7500, "toMs": 7800 },
+      { "text": "de ", "fromMs": 7800, "toMs": 8000 },
+      { "text": "semana ", "fromMs": 8000, "toMs": 8500 },
+      { "text": "volvemos ", "fromMs": 8500, "toMs": 9100 },
+      { "text": "al ", "fromMs": 9100, "toMs": 9300 },
+      { "text": "Valle ", "fromMs": 9300, "toMs": 9700 },
+      { "text": "de ", "fromMs": 9700, "toMs": 9900 },
+      { "text": "las ", "fromMs": 9900, "toMs": 10100 },
+      { "text": "Agujas ", "fromMs": 10100, "toMs": 10500 }
+    ]
+  },
+  {
+    "text": "en una expedición técnica diseñada para estudiantes",
+    "fromMs": 10600,
+    "toMs": 14200,
+    "tokens": [
+      { "text": "en ", "fromMs": 10600, "toMs": 10800 },
+      { "text": "una ", "fromMs": 10800, "toMs": 11100 },
+      { "text": "expedición ", "fromMs": 11100, "toMs": 11800 },
+      { "text": "técnica ", "fromMs": 11800, "toMs": 12400 },
+      { "text": "diseñada ", "fromMs": 12400, "toMs": 13100 },
+      { "text": "para ", "fromMs": 13100, "toMs": 13400 },
+      { "text": "estudiantes ", "fromMs": 13400, "toMs": 14200 }
+    ]
+  },
+  {
+    "text": "y profesionales del medio ambiente.",
+    "fromMs": 14300,
+    "toMs": 17000,
+    "tokens": [
+      { "text": "y ", "fromMs": 14300, "toMs": 14500 },
+      { "text": "profesionales ", "fromMs": 14500, "toMs": 15400 },
+      { "text": "del ", "fromMs": 15400, "toMs": 15600 },
+      { "text": "medio ", "fromMs": 15600, "toMs": 16200 },
+      { "text": "ambiente. ", "fromMs": 16200, "toMs": 17000 }
+    ]
+  },
+  {
+    "text": "Vamos a mapear senderos erosionados,",
+    "fromMs": 17300,
+    "toMs": 20200,
+    "tokens": [
+      { "text": "Vamos ", "fromMs": 17300, "toMs": 17700 },
+      { "text": "a ", "fromMs": 17700, "toMs": 17900 },
+      { "text": "mapear ", "fromMs": 17900, "toMs": 18500 },
+      { "text": "senderos ", "fromMs": 18500, "toMs": 19200 },
+      { "text": "erosionados, ", "fromMs": 19200, "toMs": 20200 }
+    ]
+  },
+  {
+    "text": "buscar restos de quenuales petrificados",
+    "fromMs": 20300,
+    "toMs": 23600,
+    "tokens": [
+      { "text": "buscar ", "fromMs": 20300, "toMs": 20800 },
+      { "text": "restos ", "fromMs": 20800, "toMs": 21300 },
+      { "text": "de ", "fromMs": 21300, "toMs": 21500 },
+      { "text": "quenuales ", "fromMs": 21500, "toMs": 22400 },
+      { "text": "petrificados ", "fromMs": 22400, "toMs": 23600 }
+    ]
+  },
+  {
+    "text": "y hacer pruebas de georreferenciación en vivo.",
+    "fromMs": 23700,
+    "toMs": 27200,
+    "tokens": [
+      { "text": "y ", "fromMs": 23700, "toMs": 23900 },
+      { "text": "hacer ", "fromMs": 23900, "toMs": 24300 },
+      { "text": "pruebas ", "fromMs": 24300, "toMs": 24900 },
+      { "text": "de ", "fromMs": 24900, "toMs": 25100 },
+      { "text": "georreferenciación ", "fromMs": 25100, "toMs": 26500 },
+      { "text": "en ", "fromMs": 26500, "toMs": 26700 },
+      { "text": "vivo. ", "fromMs": 26700, "toMs": 27200 }
+    ]
+  },
+  {
+    "text": "Únete a un grupo de personas con tus mismos intereses",
+    "fromMs": 27500,
+    "toMs": 31200,
+    "tokens": [
+      { "text": "Únete ", "fromMs": 27500, "toMs": 28000 },
+      { "text": "a ", "fromMs": 28000, "toMs": 28200 },
+      { "text": "un ", "fromMs": 28200, "toMs": 28400 },
+      { "text": "grupo ", "fromMs": 28400, "toMs": 28900 },
+      { "text": "de ", "fromMs": 28900, "toMs": 29100 },
+      { "text": "personas ", "fromMs": 29100, "toMs": 29700 },
+      { "text": "con ", "fromMs": 29700, "toMs": 29900 },
+      { "text": "tus ", "fromMs": 29900, "toMs": 30100 },
+      { "text": "mismos ", "fromMs": 30100, "toMs": 30600 },
+      { "text": "intereses ", "fromMs": 30600, "toMs": 31200 }
+    ]
+  },
+  {
+    "text": "y expande tu red de contactos.",
+    "fromMs": 31300,
+    "toMs": 33800,
+    "tokens": [
+      { "text": "y ", "fromMs": 31300, "toMs": 31500 },
+      { "text": "expande ", "fromMs": 31500, "toMs": 32100 },
+      { "text": "tu ", "fromMs": 32100, "toMs": 32300 },
+      { "text": "red ", "fromMs": 32300, "toMs": 32600 },
+      { "text": "de ", "fromMs": 32600, "toMs": 32800 },
+      { "text": "contactos. ", "fromMs": 32800, "toMs": 33800 }
+    ]
+  },
+  {
+    "text": "Haz clic abajo para asegurar tu lugar",
+    "fromMs": 34100,
+    "toMs": 36800,
+    "tokens": [
+      { "text": "Haz ", "fromMs": 34100, "toMs": 34400 },
+      { "text": "clic ", "fromMs": 34400, "toMs": 34800 },
+      { "text": "abajo ", "fromMs": 34800, "toMs": 35300 },
+      { "text": "para ", "fromMs": 35300, "toMs": 35600 },
+      { "text": "asegurar ", "fromMs": 35600, "toMs": 36200 },
+      { "text": "tu ", "fromMs": 36200, "toMs": 36400 },
+      { "text": "lugar ", "fromMs": 36400, "toMs": 36800 }
+    ]
+  },
+  {
+    "text": "en la salida técnica. ¡Te esperamos en el campo!",
+    "fromMs": 36900,
+    "toMs": 40000,
+    "tokens": [
+      { "text": "en ", "fromMs": 36900, "toMs": 37100 },
+      { "text": "la ", "fromMs": 37100, "toMs": 37300 },
+      { "text": "salida ", "fromMs": 37300, "toMs": 37900 },
+      { "text": "técnica. ", "fromMs": 37900, "toMs": 38600 },
+      { "text": "¡Te ", "fromMs": 38600, "toMs": 38900 },
+      { "text": "esperamos ", "fromMs": 38900, "toMs": 39500 },
+      { "text": "en ", "fromMs": 39500, "toMs": 39700 },
+      { "text": "el ", "fromMs": 39700, "toMs": 39900 },
+      { "text": "campo! ", "fromMs": 39900, "toMs": 40000 }
+    ]
+  }
+]

@@ -12,6 +12,14 @@
   ],
   "completed": [
     {
+      "id": "TASK-022",
+      "title": "Configurar y estructurar Remotion para generación automática de videos de la expedición Valle de las Agujas (TOFU, MOFU, BOFU)",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-08-05",
+      "completed_at": "2026-08-05"
+    },
+    {
       "id": "TASK-021",
       "title": "Optimización del Hero en móviles: usar fondo estático en lugar de video y corregir desaparición del logo de partículas al hacer scroll",
       "status": "completed",
