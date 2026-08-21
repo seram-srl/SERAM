@@ -62,6 +62,13 @@ const fragmentShader = `
     // Desvanecimiento suave en los bordes para el efecto glow
     float alpha = 1.0 - dist;
 
+    // Desvanecer la hoja 3D rápidamente al salir del HERO (uProgress > 0.02)
+    // Desaparece por completo antes de llegar al segundo panel (uProgress >= 0.12)
+    float heroFade = smoothstep(0.12, 0.02, vMorphProgress);
+    if (heroFade <= 0.001) {
+      discard;
+    }
+
     // Acento Verde Esmeralda oficial (#00e03c)
     vec3 emerald = vec3(0.0, 0.88, 0.235);
     // Tono de luciérnaga (amarillo-verde polen)
@@ -73,8 +80,8 @@ const fragmentShader = `
     // Mezclar con color blanco en el centro para dar intensidad al brillo
     color = mix(vec3(1.0), color, dist * 0.8);
 
-    // Ajustar opacidad total en base a distancia
-    float finalAlpha = alpha * 0.85 * clamp(1.2 - (vDepth / 12.0), 0.1, 1.0);
+    // Ajustar opacidad total en base a distancia y multiplicador de desvanecimiento de Hero
+    float finalAlpha = alpha * 0.85 * clamp(1.2 - (vDepth / 12.0), 0.1, 1.0) * heroFade;
 
     gl_FragColor = vec4(color, finalAlpha);
   }

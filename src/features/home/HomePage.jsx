@@ -107,15 +107,15 @@ const PILLARS = [
   {
     id: 'experience',
     title: 'SERAM EXPERIENCE',
-    sub: 'Pilar 03 // Vivencial',
+    sub: 'Pilar 03 // Conservación y ESG',
     imageUrl: '/assets/3d-backend/bg_experience.webp',
-    cursorText: 'VIVIR',
+    cursorText: 'EXPERIENCIAS',
     icon: <Award className="w-6 h-6" />,
-    headline: 'RESTAURACIÓN ECOLÓGICA ACTIVA',
-    desc: 'Conectamos personas y corporaciones con la conservación terrestre. Únete a voluntariados en el Valle de Zongo, expediciones científicas y talleres de huertos urbanos diseñados por biólogos expertos.',
-    cta: 'Conocer Experiencias',
+    headline: '¿Tu empresa necesita compensar su huella ambiental o buscas experiencia técnica real en campo?',
+    desc: 'Supera el greenwashing con impacto ecológico verificable. Diseñamos programas corporativos de reforestación con cálculo de carbono ISO 14064, biocampamentos científicos de inmersión en ecosistemas vulnerables y huertos regenerativos guiados por ingenieros ambientales en Bolivia.',
+    cta: 'Compensar Huella y Ver Experiencias',
     route: '/experience',
-    ctaCursor: 'VIVIR',
+    ctaCursor: 'EXPERIENCIAS',
     variant: 'light',
   },
   {
@@ -396,11 +396,13 @@ function ServicesHorizontalSection() {
         trigger: triggerEl,
         start: 'top top',
         end: '+=700%', // Desacelera la velocidad física del scroll
-        scrub: 1,
+        scrub: 0.5,
         pin: pinEl,
         pinSpacing: true,
         anticipatePin: 1,
         invalidateOnRefresh: true,
+        preventOverlaps: true,
+        fastScrollEnd: true,
       },
     });
 
@@ -821,143 +823,169 @@ function AcademyVerticalSection() {
   const navigate = useNavigate();
   const triggerRef = useRef(null);
   const pinRef = useRef(null);
+  const videoRef = useRef(null);
 
   useGSAP(() => {
     const triggerEl = triggerRef.current;
     const pinEl = pinRef.current;
+    const videoEl = videoRef.current;
     if (!triggerEl || !pinEl) return;
 
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: triggerEl,
         start: 'top top',
-        end: '+=400%',
-        scrub: 1,
+        end: '+=350%',
+        scrub: 0.5,
         pin: pinEl,
         pinSpacing: true,
         anticipatePin: 1,
         invalidateOnRefresh: true,
+        preventOverlaps: true,
+        fastScrollEnd: true,
+        onUpdate: (self) => {
+          if (videoEl) {
+            // Acelerar dinámicamente la velocidad de reproducción del video según el scroll del usuario
+            const velocity = Math.abs(self.getVelocity());
+            const targetSpeed = 1.0 + Math.min(velocity / 400, 1.5); // Rango de velocidad: 1.0x a 2.5x
+            // Evitar llamadas de actualización continuas e innecesarias para optimizar rendimiento de renderizado y decodificación
+            if (Math.abs(videoEl.playbackRate - targetSpeed) > 0.15) {
+              videoEl.playbackRate = targetSpeed;
+            }
+          }
+        },
       },
     });
 
-    // Desplazamiento horizontal del track de cursos
-    tl.to('#academy-track', { x: '-300vw', ease: 'none', duration: 10 }, 0);
+    // 1. Desplazamiento vertical de las escenas
+    tl.to('#academy-track', { y: '-200vh', ease: 'none', duration: 10 }, 0);
 
-    // Animaciones de entrada/salida de contenido para cada tarjeta de forma independiente
-    // Módulo 01 (SIG)
-    tl.fromTo('#academy-card-1-content', { opacity: 1, y: 0 }, { opacity: 0, y: -30, duration: 1.5 }, 1.5);
-    
-    // Módulo 02 (Legislación)
-    tl.fromTo('#academy-card-2-content', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 1.5 }, 1.5)
-      .to('#academy-card-2-content', { opacity: 0, y: -30, duration: 1.5 }, 4.5);
-      
-    // Módulo 03 (WebGL 3D)
-    tl.fromTo('#academy-card-3-content', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 1.5 }, 4.5)
-      .to('#academy-card-3-content', { opacity: 0, y: -30, duration: 1.5 }, 7.5);
-      
-    // Tarjeta CTA Final
-    tl.fromTo('#academy-card-4-content', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 1.5 }, 7.5);
+    // 2. Animaciones de la Escena 1 (Aparece y mantiene el foco)
+    tl.fromTo('#academy-card-1-content', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1.8, ease: 'power2.out' }, 0);
+    tl.fromTo('#academy-underline-s1', { width: '0%' }, { width: '100%', duration: 1.8, ease: 'power2.out' }, 0.2);
+    tl.to('#academy-card-1-content', { opacity: 0, y: -40, duration: 1.5 }, 2.0);
+
+    // 3. Animaciones de la Escena 2 (Módulos)
+    tl.fromTo('#academy-scene-2-header', { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 1.2 }, 2.5);
+    tl.fromTo('.academy-module-card', 
+      { opacity: 0, y: 40 },
+      { opacity: 1, y: 0, stagger: 0.6, duration: 1.8, ease: 'power3.out' }, 
+      2.8
+    );
+    tl.to('#academy-scene-2-content', { opacity: 0, y: -40, duration: 1.5 }, 6.2);
+
+    // 4. Animaciones de la Escena 3 (CTA Final)
+    tl.fromTo('#academy-card-3-content', { opacity: 0, scale: 0.95, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: 1.8, ease: 'power3.out' }, 6.8);
 
   }, { scope: triggerRef });
 
   return (
     <div ref={triggerRef} className="relative w-full z-10">
-      {/* pinRef: El contenedor que GSAP fijará en pantalla completa */}
       <div ref={pinRef} className="relative w-full h-screen overflow-hidden bg-transparent">
         
-        {/* Fondo Estático con Glassmorphism y Rejilla */}
+        {/* Fondo de Video y Capas de Atenuación */}
         <div className="absolute inset-0 w-full h-full z-0 pointer-events-none">
-          <img
-            src="/assets/3d-backend/bg_academy.webp"
-            alt="SERAM Academy Background"
+          <video
+            ref={videoRef}
+            src="/assets/3d-backend/bg_home_mobile.mp4"
             className="w-full h-full object-cover"
+            muted
+            loop
+            playsInline
+            autoPlay
           />
-          {/* Capa oscura translúcida y desenfoque para óptimo contraste de texto */}
-          <div className="absolute inset-0 bg-[#070e0b]/85 backdrop-blur-[6px]" />
+          {/* Capa difuminada en degradé para atenuar el fondo y dar óptimo contraste de texto */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#070e0b]/90 via-[#070e0b]/65 to-[#070e0b]/90 backdrop-blur-[5px]" />
           {/* Rejilla técnica Neuform */}
-          <div className="absolute inset-0 neuform-grid-bg opacity-25" />
+          <div className="absolute inset-0 neuform-grid-bg opacity-15" />
         </div>
 
-        {/* Título Fijo Superior de la Sección (Evita solapamiento con Navbar) */}
-        <div className="absolute top-10 sm:top-14 left-0 right-0 z-20 text-center pointer-events-none px-4">
-          <div className="neuform-badge neuform-badge-accent mb-2 sm:mb-3">
-            <span className="w-1.5 h-1.5 bg-[#029907] rounded-full shadow-[0_0_8px_#029907] animate-pulse" />
-            <span>Pilar 02 // Formación Técnica</span>
-          </div>
-          <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-white uppercase tracking-tighter font-display filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.7)]">
-            SERAM ACADEMY
-          </h2>
-        </div>
-
-        {/* Track Deslizable Horizontal (Pista de Módulos) */}
-        <div id="academy-track" className="absolute top-0 left-0 h-full flex w-[400vw] will-change-transform z-10">
+        {/* Track Deslizable Vertical (Pista de 3 Escenas) */}
+        <div id="academy-track" className="absolute top-0 left-0 w-full flex flex-col h-[300vh] will-change-transform z-10">
           
-          {/* Slide 1: Módulo 01 — SIG */}
-          <div className="w-screen h-full flex items-center justify-center px-4 sm:px-12 md:px-24 pt-28 pb-10">
-            <div id="academy-card-1-content" className="w-full max-w-4xl neuform-card p-5 sm:p-10 md:p-12 flex flex-col md:flex-row items-center gap-6 md:gap-12 relative pointer-events-auto">
-              <div className="w-full md:w-1/2 flex flex-col text-left space-y-3 sm:space-y-4">
-                <span className="text-[10px] text-[#00e03c] font-tech font-extrabold uppercase tracking-widest">Módulo 01 // SIG Avanzado</span>
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight font-display">Mapas de Alta Precisión y Análisis Espacial con QGIS</h3>
-                <p className="text-xs sm:text-sm text-slate-300 font-light leading-relaxed">
-                  Domina la delimitación de cuencas hidrográficas, mapas de riesgo, y geoprocesamiento de datos satelitales aplicados a la normativa ambiental boliviana. Evita observaciones técnicas en tus proyectos y lidera consultorías de élite desde cero.
-                </p>
-                <div className="text-[10px] sm:text-[11px] text-[#00e03c]/85 font-bold font-tech pt-2 border-t border-white/10">
-                  HERRAMIENTAS: QGIS, ArcGIS Pro & Google Earth Engine.
-                </div>
+          {/* ─── ESCENA 1: Presentación y Título de Impacto ─── */}
+          <div className="w-full h-screen flex items-center justify-center px-4 sm:px-12 md:px-24 pt-16 pb-10">
+            <div id="academy-card-1-content" className="w-full max-w-4xl neuform-card p-8 sm:p-12 md:p-14 flex flex-col items-center text-center space-y-5 relative pointer-events-auto opacity-0">
+              <div className="neuform-badge neuform-badge-accent mb-2">
+                <span className="w-1.5 h-1.5 bg-[#029907] rounded-full shadow-[0_0_8px_#029907] animate-pulse" />
+                <span>SERAM Academy</span>
               </div>
-              <div className="w-full md:w-1/2 rounded-2xl overflow-hidden aspect-video border border-white/10 hidden md:block">
-                <img src="/assets/3d-backend/gis_satellite_mapping.webp" alt="SIG" className="w-full h-full object-cover" />
+              <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-white uppercase tracking-tighter font-display">
+                Capacitación <span className="text-[#00e03c]">Ecológica y Técnica</span><br />de Alto Nivel
+              </h2>
+              <div id="academy-underline-s1" className="h-[3px] bg-gradient-to-r from-[#00e03c] to-transparent rounded-full w-0 mt-4 shadow-[0_0_8px_#00e03c]" />
+            </div>
+          </div>
+
+          {/* ─── ESCENA 2: Ecosistema Formativo (3 Tarjetas) ─── */}
+          <div className="w-full h-screen flex items-center justify-center px-4 sm:px-12 md:px-20 pt-20 pb-10">
+            <div id="academy-scene-2-content" className="w-full max-w-6xl flex flex-col items-center justify-center space-y-10 relative pointer-events-auto">
+              {/* Título de la escena */}
+              <div id="academy-scene-2-header" className="text-center">
+                <div className="neuform-badge neuform-badge-accent mb-2 justify-center">
+                  <span className="w-1.5 h-1.5 bg-[#029907] rounded-full shadow-[0_0_8px_#029907] animate-pulse" />
+                  <span>Ecosistema Educativo de Élite</span>
+                </div>
+                <h3 className="text-2xl sm:text-4xl md:text-5xl font-black text-white uppercase tracking-tighter font-display">
+                  Funcionamiento y Áreas Clave
+                </h3>
+              </div>
+
+              {/* Contenedor horizontal de módulos */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 w-full">
+                
+                {/* Tarjeta Módulo 01 */}
+                <div className="academy-module-card neuform-card p-6 flex flex-col text-left space-y-4 hover:border-[#00e03c]/25 transition-all duration-300">
+                  <span className="text-[10px] text-[#00e03c] font-tech font-extrabold uppercase tracking-widest">Módulo 01</span>
+                  <h4 className="text-lg sm:text-xl font-black text-white font-display">Sistemas de Información (SIG)</h4>
+                  <p className="text-xs sm:text-sm text-slate-300 font-light leading-relaxed">
+                    Domina el análisis espacial, mapas de riesgo y geoprocesamiento de datos satelitales aplicados al territorio boliviano.
+                  </p>
+                  <div className="text-[10px] text-[#00e03c]/85 font-bold font-tech pt-3 mt-auto border-t border-white/5">
+                    SOFTWARE: QGIS & ArcGIS Pro
+                  </div>
+                </div>
+
+                {/* Tarjeta Módulo 02 */}
+                <div className="academy-module-card neuform-card p-6 flex flex-col text-left space-y-4 hover:border-[#00e03c]/25 transition-all duration-300">
+                  <span className="text-[10px] text-[#00e03c] font-tech font-extrabold uppercase tracking-widest">Módulo 02</span>
+                  <h4 className="text-lg sm:text-xl font-black text-white font-display">Legislación & Auditoría</h4>
+                  <p className="text-xs sm:text-sm text-slate-300 font-light leading-relaxed">
+                    Interpreta la Ley 1333, reglamentos sectoriales y diseña planes de mitigación ambiental blindados legalmente en Bolivia.
+                  </p>
+                  <div className="text-[10px] text-[#00e03c]/85 font-bold font-tech pt-3 mt-auto border-t border-white/5">
+                    ALCANCE: Consultoría de Élite
+                  </div>
+                </div>
+
+                {/* Tarjeta Módulo 03 */}
+                <div className="academy-module-card neuform-card p-6 flex flex-col text-left space-y-4 hover:border-[#00e03c]/25 transition-all duration-300">
+                  <span className="text-[10px] text-[#00e03c] font-tech font-extrabold uppercase tracking-widest">Módulo 03</span>
+                  <h4 className="text-lg sm:text-xl font-black text-white font-display">Interactividad y WebGL</h4>
+                  <p className="text-xs sm:text-sm text-slate-300 font-light leading-relaxed">
+                    Aprende simulaciones visuales con WebGL, compilación en tiempo real de shaders y herramientas interactivas basadas en GPU.
+                  </p>
+                  <div className="text-[10px] text-[#00e03c]/85 font-bold font-tech pt-3 mt-auto border-t border-white/5">
+                    INNOVACIÓN: Gráficos 3D GPU
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
 
-          {/* Slide 2: Módulo 02 — Ley 1333 */}
-          <div className="w-screen h-full flex items-center justify-center px-4 sm:px-12 md:px-24 pt-28 pb-10">
-            <div id="academy-card-2-content" className="w-full max-w-4xl neuform-card p-5 sm:p-10 md:p-12 flex flex-col md:flex-row items-center gap-6 md:gap-12 relative pointer-events-auto">
-              <div className="w-full md:w-1/2 flex flex-col text-left space-y-3 sm:space-y-4">
-                <span className="text-[10px] text-[#00e03c] font-tech font-extrabold uppercase tracking-widest">Módulo 02 // Normativa</span>
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight font-display">Cumplimiento de la Ley 1333 y Auditorías Ambientales</h3>
-                <p className="text-xs sm:text-sm text-slate-300 font-light leading-relaxed">
-                  Interpreta reglamentos sectoriales, diseña planes de mitigación ambiental blindados legalmente y realiza auditorías de calidad bajo normativas ISO internacionales. Evita multas y paralizaciones administrativas con capacitación de nivel corporativo.
-                </p>
-                <div className="text-[10px] sm:text-[11px] text-[#00e03c]/85 font-bold font-tech pt-2 border-t border-white/10">
-                  ENFOQUE: Ley 1333, RASIM, RGG y Auditorías Ambientales.
-                </div>
+          {/* ─── ESCENA 3: Llamada a la Acción Final (CTA) ─── */}
+          <div className="w-full h-screen flex items-center justify-center px-4 sm:px-12 md:px-24 pt-16 pb-10">
+            <div id="academy-card-3-content" className="w-full max-w-4xl neuform-card p-8 sm:p-12 md:p-14 flex flex-col items-center text-center space-y-6 relative pointer-events-auto">
+              <div className="neuform-badge neuform-badge-accent mb-2">
+                <span className="w-1.5 h-1.5 bg-[#029907] rounded-full shadow-[0_0_8px_#029907] animate-pulse" />
+                <span>Certificación y Práctica</span>
               </div>
-              <div className="w-full md:w-1/2 rounded-2xl overflow-hidden aspect-video border border-white/10 hidden md:block">
-                <img src="/assets/3d-backend/licencias_fnca.webp" alt="Legislación" className="w-full h-full object-cover" />
-              </div>
-            </div>
-          </div>
-
-          {/* Slide 3: Módulo 03 — WebGL */}
-          <div className="w-screen h-full flex items-center justify-center px-4 sm:px-12 md:px-24 pt-28 pb-10">
-            <div id="academy-card-3-content" className="w-full max-w-4xl neuform-card p-5 sm:p-10 md:p-12 flex flex-col md:flex-row items-center gap-6 md:gap-12 relative pointer-events-auto">
-              <div className="w-full md:w-1/2 flex flex-col text-left space-y-3 sm:space-y-4">
-                <span className="text-[10px] text-[#00e03c] font-tech font-extrabold uppercase tracking-widest">Módulo 03 // WebGL & Visualización</span>
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight font-display">Simulaciones 3D e Interactividad Basada en GPU</h3>
-                <p className="text-xs sm:text-sm text-slate-300 font-light leading-relaxed">
-                  Aprende a programar simulaciones visuales con WebGL, compilación en tiempo real de shaders y herramientas interactivas basadas en GPU para revolucionar la presentación y visualización científica de datos espaciales y flujos hidrológicos.
-                </p>
-                <div className="text-[10px] sm:text-[11px] text-[#00e03c]/85 font-bold font-tech pt-2 border-t border-white/10">
-                  TECNOLOGÍAS: WebGL, Three.js, React Three Fiber & GLSL.
-                </div>
-              </div>
-              <div className="w-full md:w-1/2 rounded-2xl overflow-hidden aspect-video border border-white/10 hidden md:block">
-                <img src="/assets/3d-backend/huella_carbono_iso.webp" alt="WebGL 3D" className="w-full h-full object-cover" />
-              </div>
-            </div>
-          </div>
-
-          {/* Slide 4: CTA Final (Optimizado Copywriting & SEO) */}
-          <div className="w-screen h-full flex items-center justify-center px-4 sm:px-12 md:px-24 pt-28 pb-10">
-            <div id="academy-card-4-content" className="w-full max-w-4xl neuform-card p-6 sm:p-8 md:p-12 flex flex-col items-center text-center space-y-4 sm:space-y-6 relative pointer-events-auto">
-              <div className="neuform-badge neuform-badge-accent">¡Comienza Tu Capacitación de Élite!</div>
-              <h3 className="text-2xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight font-display max-w-3xl">
-                Lidera la Transición Sostenible con <span className="text-[#00e03c] underline decoration-[#00e03c]/30 decoration-2 underline-offset-4">SERAM Academy</span>
-              </h3>
+              <h2 className="text-3xl sm:text-5xl font-black text-white leading-tight tracking-tight font-display max-w-3xl">
+                Lidera la Transición Sostenible
+              </h2>
               <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-light leading-relaxed">
-                Acelera tu crecimiento profesional en el sector ecológico de Bolivia. Adquiere habilidades técnicas de alta demanda para diseñar proyectos libres de sanciones normativas, respaldado por consultores ambientales expertos y certificados con validez curricular internacional.
+                Cursos prácticos, plantillas de descarga inmediata y mentoría técnica directa en <strong className="text-[#00e03c] font-bold">SERAM Academy</strong>.
               </p>
               <div className="pt-3 flex flex-col sm:flex-row gap-4 items-center justify-center w-full">
                 <button 
@@ -980,33 +1008,94 @@ function AcademyVerticalSection() {
 function ExperienceVerticalSection() {
   const experiencePillar = PILLARS[2];
   const navigate = useNavigate();
+  const [isPlaying, setIsPlaying] = React.useState(true);
 
   return (
-    <section className="min-h-screen w-full flex items-center justify-center py-20 px-6 sm:px-12 select-none bg-transparent relative z-10">
-      <div className="max-w-6xl w-full flex flex-col md:flex-row-reverse items-center justify-between gap-12 sm:gap-16">
-        <div className="w-full md:w-1/2 flex flex-col items-start text-left space-y-6">
-          <div className="space-y-2">
-            <h2 className="text-4xl sm:text-6xl font-black text-white leading-none tracking-tighter uppercase font-display filter drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
-              {experiencePillar.title}
-            </h2>
-          </div>
-          <div className="w-full p-8 sm:p-10 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl flex flex-col items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-[#00e03c]/20 text-[#00e03c] flex items-center justify-center border border-[#00e03c]/30">
-              {experiencePillar.icon}
+    <section className="min-h-screen w-full flex items-center justify-center py-20 px-4 sm:px-10 md:px-16 select-none bg-transparent relative z-10">
+      {/* Contenedor en bloque aislado para Experience con fondo oscuro de vidrio que no interfiere con el canvas 3D global */}
+      <div className="max-w-6xl w-full p-6 sm:p-10 md:p-12 rounded-3xl bg-[#060d08]/85 backdrop-blur-2xl border border-[#1a3a1a]/60 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative overflow-hidden">
+        {/* Sutil halo ambiental localizado */}
+        <div className="absolute top-0 right-0 w-80 h-80 bg-[#00e03c]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-[#029907]/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col md:flex-row-reverse items-center justify-between gap-8 md:gap-12">
+          {/* Lado texto e información */}
+          <div className="w-full md:w-1/2 flex flex-col items-start text-left space-y-5">
+            <div className="space-y-2">
+              <div className="neuform-badge neuform-badge-accent mb-2">
+                <span className="w-1.5 h-1.5 bg-[#00e03c] rounded-full animate-pulse shadow-[0_0_6px_#00e03c]" />
+                <span>{experiencePillar.sub}</span>
+              </div>
+              <h2 className="text-3xl sm:text-5xl font-black text-white leading-none tracking-tighter uppercase font-display">
+                {experiencePillar.title}
+              </h2>
             </div>
-            <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">{experiencePillar.headline}</h3>
-            <p className="text-xs sm:text-sm leading-relaxed text-slate-300">{experiencePillar.desc}</p>
-            <button
-              onClick={() => navigate(experiencePillar.route)}
-              className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-[#00e03c]/15 hover:bg-[#00e03c]/25 border border-[#00e03c]/45 text-[#00e03c] rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300"
-              data-cursor-text={experiencePillar.ctaCursor}
-            >
-              {experiencePillar.cta} <ChevronRight className="w-4 h-4" />
-            </button>
+
+            <div className="w-full p-6 sm:p-8 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col items-start gap-4 shadow-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#00e03c]/20 text-[#00e03c] flex items-center justify-center border border-[#00e03c]/30 shadow-[0_0_10px_rgba(0,224,60,0.2)]">
+                  {experiencePillar.icon}
+                </div>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-black text-white leading-tight">{experiencePillar.headline}</h3>
+                  <span className="text-[10px] font-mono text-[#00e03c]">VIDEOS CINEMÁTICOS & EXPEDICIONES</span>
+                </div>
+              </div>
+
+              <p className="text-xs sm:text-sm leading-relaxed text-slate-200 font-light">
+                {experiencePillar.desc}
+              </p>
+
+              <div className="pt-2 flex flex-wrap gap-3 w-full">
+                <button
+                  onClick={() => navigate(experiencePillar.route)}
+                  className="neuform-btn-accent !py-3 !px-6 cursor-none text-xs flex-1 justify-center"
+                  data-cursor-text={experiencePillar.ctaCursor}
+                >
+                  {experiencePillar.cta} <ChevronRight className="w-4 h-4 ml-1" />
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="w-full md:w-1/2 flex items-center justify-center">
-          <img src={experiencePillar.imageUrl} alt={experiencePillar.title} className="w-full max-w-lg rounded-3xl object-cover aspect-video shadow-2xl border border-white/10" />
+
+          {/* Lado Video Preview / Visual con soporte para Higgsfield Video */}
+          <div className="w-full md:w-1/2 flex items-center justify-center">
+            <div className="relative w-full max-w-lg rounded-2xl overflow-hidden aspect-video bg-slate-950 border border-white/10 shadow-2xl group">
+              <video
+                src="/assets/videos/cambio_climatico_bolivia.mp4"
+                poster={experiencePillar.imageUrl}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90 group-hover:opacity-100"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 pointer-events-none" />
+              
+              {/* Badge Overlay */}
+              <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/80 backdrop-blur-md border border-[#00e03c]/30 text-[9px] font-tech font-bold text-white uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 bg-[#00e03c] rounded-full animate-pulse shadow-[0_0_6px_#00e03c]" />
+                HIGGSFIELD AI · VIDEO PREVIEW
+              </div>
+
+              {/* Botón de reproducción interactivo hacia la página de experiencias */}
+              <button
+                onClick={() => navigate('/experience')}
+                className="absolute inset-0 flex items-center justify-center bg-black/25 hover:bg-black/45 transition-all cursor-none"
+                data-cursor-text="EXPLORAR"
+                title="Ver todas las experiencias con video"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-[#00e03c] text-black flex items-center justify-center shadow-[0_0_20px_rgba(0,224,60,0.6)] group-hover:scale-110 group-hover:bg-white transition-all duration-300">
+                  <ChevronRight className="w-6 h-6" />
+                </div>
+              </button>
+
+              <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-[10px] font-mono text-slate-300">
+                <span>📍 Valle de Zongo & Cordillera Real</span>
+                <span className="text-[#00e03c] font-bold">4K RESOLUTION</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -1032,11 +1121,13 @@ function StoreHorizontalSection() {
         trigger: triggerEl,
         start: 'top top',
         end: '+=400%',
-        scrub: 1,
+        scrub: 0.5,
         pin: pinEl,
         pinSpacing: true,
         anticipatePin: 1,
         invalidateOnRefresh: true,
+        preventOverlaps: true,
+        fastScrollEnd: true,
       },
     });
 

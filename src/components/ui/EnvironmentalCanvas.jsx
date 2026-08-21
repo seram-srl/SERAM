@@ -194,6 +194,8 @@ function InteractiveScene({ hProgressRef }) {
     };
   }, [isMobile]);
 
+  const activeProgressRef = useRef(0);
+
   useFrame((state) => {
     // ── PROGRESO COMBINADO ────────────────────────────────────────────────────
     // Si el carrusel horizontal está activo (hProgressRef disponible y > 0),
@@ -209,6 +211,7 @@ function InteractiveScene({ hProgressRef }) {
     // 1. Suavizado LERP del scroll
     currentScroll.current += (p - currentScroll.current) * 0.1;
     const smoothP = currentScroll.current;
+    activeProgressRef.current = smoothP;
 
     // 2. Trayectoria Orbital B-Roll
     const baseRadius = 5.2;
@@ -439,8 +442,8 @@ function InteractiveScene({ hProgressRef }) {
 
       </group>
 
-      {/* Renderizar el Núcleo Ecosistémico de Partículas */}
-      <EcosystemNucleus scrollRef={scrollProgressRef} />
+      {/* Renderizar el Núcleo Ecosistémico de Partículas (solo visible en Hero) */}
+      <EcosystemNucleus scrollRef={activeProgressRef} />
     </group>
   );
 }
