@@ -58,10 +58,17 @@ Write-Host "[4/5] Verificando variables de entorno..." -ForegroundColor Cyan
 
 if (Test-Path ".env") {
     log_pass ".env encontrado"
-    $envContent = Get-Content ".env" -Raw
+    $envLines = Get-Content ".env"
     foreach ($var in @("VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY")) {
-        if ($envContent -match "^$var=") { log_pass "Variable definida: $var" }
-        else                             { log_warn "Variable no encontrada: $var" }
+        $found = $false
+        foreach ($line in $envLines) {
+            if ($line -like "$var=*") {
+                $found = $true
+                break
+            }
+        }
+        if ($found) { log_pass "Variable definida: $var" }
+        else        { log_warn "Variable no encontrada: $var" }
     }
 } else {
     log_warn ".env no encontrado"

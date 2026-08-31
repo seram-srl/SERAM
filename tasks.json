@@ -1,16 +1,65 @@
 {
   "version": "1.0",
   "project": "SERAM",
-  "last_updated": "2026-07-11",
-  "tasks": [
+  "last_updated": "2026-08-11",
+  "tasks": [],
+  "completed": [
+    {
+      "id": "TASK-028",
+      "title": "Cambiar el desplazamiento del apartado ACADEMY de sentido horizontal a sentido vertical al hacer scroll",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-08-11",
+      "completed_at": "2026-08-11"
+    },
+    {
+      "id": "TASK-027",
+      "title": "Corregir salto de scroll de Servicios a Academy en HomePage.jsx y optimizar rendimiento de video",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-08-10",
+      "completed_at": "2026-08-10"
+    },
     {
       "id": "TASK-010",
       "title": "Integración de Supabase, migración de base de datos real con esquemas SQL, políticas RLS e intranet en tiempo real (Fase 3 y 4 del plan técnico)",
-      "status": "pending",
-      "assigned_to": "Implementador"
-    }
-  ],
-  "completed": [
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-08-07",
+      "completed_at": "2026-08-07"
+    },
+    {
+      "id": "TASK-026",
+      "title": "Agregar regla de estilo de filtro-seram a estilo_seram.json en 00_REGLAS_Y_GUIONES",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-08-07",
+      "completed_at": "2026-08-07"
+    },
+    {
+      "id": "TASK-025",
+      "title": "Restructurar carpetas de trabajo de campo: mover Valle de las Agujas (crudo) y crear Otra_Expedicion_Crudo dentro de 01_TRABAJO_DE_CAMPO",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-08-07",
+      "completed_at": "2026-08-07"
+    },
+    {
+      "id": "TASK-024",
+      "title": "Crear estructura de directorios 02_PRODUCCION_AUDIOVISUAL para la campaña HikeYoga Agujas",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-08-07",
+      "completed_at": "2026-08-07"
+    },
+    {
+      "id": "TASK-023",
+      "title": "Crear archivo de texto manual de marca con especificaciones de colores, tipografía, subtítulos y ritmo de edición en la carpeta SERAM",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-08-07",
+      "completed_at": "2026-08-07"
+    },
     {
       "id": "TASK-022",
       "title": "Configurar y estructurar Remotion para generación automática de videos de la expedición Valle de las Agujas (TOFU, MOFU, BOFU)",

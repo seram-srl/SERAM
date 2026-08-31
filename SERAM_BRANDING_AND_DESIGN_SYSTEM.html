@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Branding & Design System — SERAM Consultora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800;900&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  @page {
+    size: A4;
+    margin: 12mm 12mm 15mm 12mm;
+  }
+  * {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #010409;
+    color: #f8fafc;
+    margin: 0;
+    padding: 0;
+    font-size: 10.5pt;
+    line-height: 1.5;
+  }
+
+  /* COVER HEADER */
+  .header-banner {
+    background: linear-gradient(135deg, #0c1813 0%, #152233 50%, #010409 100%);
+    border: 1px solid rgba(0, 224, 60, 0.4);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  }
+  .brand-badge {
+    display: inline-block;
+    background: rgba(0, 224, 60, 0.12);
+    border: 1px solid #00e03c;
+    color: #00e03c;
+    font-family: 'Outfit', sans-serif;
+    font-size: 8.5pt;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 26pt;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 8px 0;
+    line-height: 1.2;
+  }
+  .subtitle {
+    font-size: 11pt;
+    color: rgba(255, 255, 255, 0.75);
+    margin: 0;
+  }
+  .meta-bar {
+    margin-top: 18px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    display: flex;
+    justify-content: space-between;
+    font-size: 8.5pt;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  /* SECTIONS */
+  .section-card {
+    background: rgba(12, 24, 19, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    page-break-inside: avoid;
+  }
+  
+  .section-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 16pt;
+    font-weight: 800;
+    color: #00e03c;
+    border-bottom: 1px solid rgba(0, 224, 60, 0.2);
+    padding-bottom: 8px;
+    margin-top: 0;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .block-box {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .block-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 10pt;
+    font-weight: 700;
+    color: #c9a84c;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+
+  /* COLOR SWATCHES */
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .color-swatch {
+    border-radius: 10px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 80px;
+  }
+  .swatch-name {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 9pt;
+    color: #ffffff;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  }
+  .swatch-hex {
+    font-family: monospace;
+    font-size: 8.5pt;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(0,0,0,0.4);
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    align-self: flex-start;
+  }
+
+  /* TYPOGRAPHY DEMO */
+  .typo-demo {
+    margin-top: 12px;
+    padding: 14px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .font-outfit {
+    font-family: 'Outfit', sans-serif;
+    font-size: 16pt;
+    font-weight: 800;
+    color: #ffffff;
+  }
+  .font-inter {
+    font-family: 'Inter', sans-serif;
+    font-size: 10pt;
+    color: #cbd5e1;
+  }
+  .font-merriweather {
+    font-family: 'Merriweather', serif;
+    font-size: 9.5pt;
+    font-style: italic;
+    color: #c9a84c;
+  }
+
+  /* NEUFORM COMPONENTS PREVIEW */
+  .component-preview {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin-top: 12px;
+  }
+  .btn-primary-demo {
+    background: rgba(0, 224, 60, 0.1);
+    border: 1px solid rgba(0, 224, 60, 0.5);
+    color: #ffffff;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 8.5pt;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 8px 18px;
+    border-radius: 30px;
+  }
+  .badge-demo {
+    background: rgba(0, 224, 60, 0.12);
+    border: 1px solid #00e03c;
+    color: #00e03c;
+    font-size: 7.5pt;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+  }
+
+  /* CARTOGRAPHY TABLE */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-size: 9pt;
+  }
+  th {
+    background: rgba(0, 224, 60, 0.1);
+    color: #00e03c;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 2px solid rgba(0, 224, 60, 0.3);
+  }
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: #cbd5e1;
+  }
+
+  .page-break {
+    page-break-after: always;
+  }
+
+  .footer {
+    text-align: center;
+    font-size: 8pt;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 24px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+</style>
+</head>
+<body>
+
+  <!-- COVER HEADER -->
+  <div class="header-banner">
+    <span class="brand-badge">SERAM CONSULTORA AMBIENTAL & GEOTECNOLÓGICA</span>
+    <h1>ESTRUCTURA DE MARCA & DESIGN SYSTEM</h1>
+    <div class="subtitle">Manual de Estilo Visual Neuform System, Identidad de Marca y Guía de Aplicación para Socios</div>
+    <div class="meta-bar">
+      <span><strong>Documento:</strong> Manual Oficial de Marca v2.0</span>
+      <span><strong>Destinatarios:</strong> Socios Directores, Equipo Técnico & Marketing</span>
+      <span><strong>Fecha:</strong> Agosto 2026</span>
+    </div>
+  </div>
+
+  <!-- SECTION 1: BRAND CORE -->
+  <div class="section-card">
+    <div class="section-title">🌱 1. Identidad Estratégica de Marca (Brand Core)</div>
+    <div class="grid-2">
+      <div class="block-box">
+        <div class="block-title">Misión Institucional</div>
+        <p style="margin: 0; font-size: 9.5pt; color: #cbd5e1;">
+          Proveer soluciones integrales de consultoría ambiental, ingeniería de información geográfica (SIG/GIS), auditorías y capacitación de vanguardia, fusionando precisión científica, rigor normativo y tecnología digital inmersiva para el desarrollo sostenible.
+        </p>
+      </div>
+
+      <div class="block-box">
+        <div class="block-title">Visión Estratégica</div>
+        <p style="margin: 0; font-size: 9.5pt; color: #cbd5e1;">
+          Ser la consultora ambiental y geotecnológica de referencia regional, reconocida por transformar la gestión ambiental tradicional en una experiencia digital transparente, cinemática y de alto impacto mediante inteligencia espacial y WebGIS.
+        </p>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top: 12px;">
+      <div class="block-box">
+        <div class="block-title">Valores Fundamentales</div>
+        <ul style="margin: 0; padding-left: 16px; font-size: 9pt; color: #cbd5e1;">
+          <li><strong>Rigor Científico y Normativo:</strong> Cumplimiento estricto OGC e ISO/TC 211.</li>
+          <li><strong>Innovación Tecnológica:</strong> WebGIS, drones, modelos 3D y automatizaciones.</li>
+          <li><strong>Sostenibilidad Regenerativa:</strong> Equilibrio ambiental y socioeconómico.</li>
+          <li><strong>Transparencia Operativa:</strong> Datos vivos e informes interactivos.</li>
+        </ul>
+      </div>
+
+      <div class="block-box">
+        <div class="block-title">Personalidad y Tono de Voz</div>
+        <p style="margin: 0 0 6px 0; font-size: 9pt; color: #cbd5e1;">
+          <strong>Arquetipos:</strong> El Sabio Tecnológico + El Explorador Ambiental.
+        </p>
+        <p style="margin: 0; font-size: 9pt; color: #cbd5e1;">
+          <strong>Tono:</strong> Sofisticado, altamente técnico pero moderno e inmersivo.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-break"></div>
+
+  <!-- SECTION 2: NEUFORM DESIGN SYSTEM -->
+  <div class="section-card">
+    <div class="section-title">🎨 2. Design System & Estilo Visual (Neuform System)</div>
+    
+    <div style="font-size: 9.5pt; font-weight: 700; color: #ffffff; margin-bottom: 8px;">Paleta de Colores Oficial (HEX / HSL)</div>
+    <div class="color-grid">
+      <div class="color-swatch" style="background: #010409; border-color: rgba(255,255,255,0.3);">
+        <span class="swatch-name">Fondo Primario Slate</span>
+        <span class="swatch-hex">#010409 | HSL(224,71%,4%)</span>
+      </div>
+      <div class="color-swatch" style="background: #0c1813; border-color: rgba(0,224,60,0.3);">
+        <span class="swatch-name">Canvas Esmeralda Neuform</span>
+        <span class="swatch-hex">#0c1813 | HSL(150,80%,4%)</span>
+      </div>
+      <div class="color-swatch" style="background: #00e03c; color: #000;">
+        <span class="swatch-name" style="color: #000; text-shadow: none;">Verde SERAM Electrónico</span>
+        <span class="swatch-hex" style="background: rgba(0,0,0,0.7); color: #fff;">#00e03c | HSL(142,100%,44%)</span>
+      </div>
+      <div class="color-swatch" style="background: #029907;">
+        <span class="swatch-name">Verde Botánico</span>
+        <span class="swatch-hex">#029907 | HSL(122,97%,30%)</span>
+      </div>
+      <div class="color-swatch" style="background: #c9a84c; color: #000;">
+        <span class="swatch-name" style="color: #000; text-shadow: none;">Oro Técnico SERAM</span>
+        <span class="swatch-hex" style="background: rgba(0,0,0,0.7); color: #fff;">#c9a84c | HSL(44,53%,54%)</span>
+      </div>
+      <div class="color-swatch" style="background: #C05621;">
+        <span class="swatch-name">Naranja Cobre Alerta</span>
+        <span class="swatch-hex">#C05621 | HSL(21,71%,45%)</span>
+      </div>
+    </div>
+
+    <!-- TYPOGRAPHY -->
+    <div style="font-size: 9.5pt; font-weight: 700; color: #ffffff; margin-top: 16px; margin-bottom: 4px;">Sistema Tipográfico</div>
+    <div class="typo-demo">
+      <div class="font-outfit">Outfit Bold — Titulares & Encabezados H1/H2</div>
+      <div class="font-inter">Inter Regular — Cuerpo de texto principal, interfaces UI y tablas atributivas de mapas.</div>
+      <div class="font-merriweather">Merriweather Serif — Textos legales de Estudios de Impacto Ambiental y Certificados.</div>
+    </div>
+
+    <!-- UI COMPONENTS -->
+    <div style="font-size: 9.5pt; font-weight: 700; color: #ffffff; margin-top: 16px; margin-bottom: 4px;">Componentes UI Neuform Glassmorphic</div>
+    <div class="component-preview">
+      <div class="btn-primary-demo">Boton Neuform Primary</div>
+      <div class="badge-demo">Badge Estado Activo</div>
+      <div style="font-size: 8.5pt; color: rgba(255,255,255,0.6);">
+        <em>Efecto Glassmorphism: backdrop-filter blur(20px) + borde 1px solid rgba(0,224,60,0.2)</em>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: CARTOGRAPHIC STANDARDS -->
+  <div class="section-card">
+    <div class="section-title">🗺️ 3. Estándares Cartográficos para Mapas y SIG</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Capa Vectorial / Elemento</th>
+          <th>Código Color HEX</th>
+          <th>Estilo de Línea / Relleno</th>
+          <th>Uso Cartográfico</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Cobertura Vegetal / Bosque</strong></td>
+          <td><code>#029907</code> / <code>#00e03c</code></td>
+          <td>Relleno translúcido (40%) + borde continuo</td>
+          <td>Áreas protegidas, servidumbres ecológicas</td>
+        </tr>
+        <tr>
+          <td><strong>Cuerpos de Agua / Cuencas</strong></td>
+          <td><code>#00b4d8</code></td>
+          <td>Relleno azul cian + borde sólido</td>
+          <td>Ríos, lagunas, drenajes hidrológicos</td>
+        </tr>
+        <tr>
+          <td><strong>Mancha Urbana / Catastro</strong></td>
+          <td><code>#8d99ae</code></td>
+          <td>Línea delgada neutra (0.5pt)</td>
+          <td>Manzaneos, predios, distritos urbanos</td>
+        </tr>
+        <tr>
+          <td><strong>Áreas de Riesgo / Vulnerabilidad</strong></td>
+          <td><code>#C05621</code> / <code>#e63946</code></td>
+          <td>Tramado inclinado rojo/naranja</td>
+          <td>Zonas de inundación o deslave geotécnico</td>
+        </tr>
+        <tr>
+          <td><strong>Líneas de Servidumbre / Vías</strong></td>
+          <td><code>#F6E05E</code></td>
+          <td>Línea discontinua técnica (1.5pt)</td>
+          <td>Líneas eléctricas, carreteras, ductos</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION 4: GUIDELINES FOR PARTNERS -->
+  <div class="section-card">
+    <div class="section-title">👔 4. Guía de Aplicación para los Socios Directores</div>
+    <div class="grid-2">
+      <div class="block-box">
+        <div class="block-title">Informes Técnicos & PDFs</div>
+        <ul style="margin: 0; padding-left: 16px; font-size: 8.5pt; color: #cbd5e1;">
+          <li>Carátula oficial en <code>Outfit Bold</code> sobre fondo oscuro o blanco estructurado.</li>
+          <li>Grilla UTM/Geográfica WGS-84 obligatoria en todo mapa impreso.</li>
+          <li>Sello de aprobación técnico en Oro <code>#c9a84c</code> con firmas digitales.</li>
+        </ul>
+      </div>
+
+      <div class="block-box">
+        <div class="block-title">Presentaciones Comerciales B2B</div>
+        <ul style="margin: 0; padding-left: 16px; font-size: 8.5pt; color: #cbd5e1;">
+          <li>Formato 16:9 con paleta cinemática.</li>
+          <li>Enfoque directo según el Buyer Persona (Carlos, Roberto o Fernando).</li>
+          <li>Demostración en vivo del visor WebGIS interactivo (Wow Factor).</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    SERAM Consultora Ambiental y Geotecnológica © 2026 — Manual Oficial de Marca & Design System Neuform
+  </div>
+
+</body>
+</html>

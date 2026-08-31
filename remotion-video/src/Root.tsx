@@ -4,6 +4,8 @@ import {
   CaptionedVideo,
   calculateCaptionedVideoMetadata,
   captionedVideoSchema,
+  Video1TOFU,
+  calculateVideo1TOFUMetadata,
 } from "./CaptionedVideo";
 
 // Each <Composition> is an entry in the sidebar!
@@ -13,14 +15,10 @@ export const RemotionRoot: React.FC = () => {
     <>
       <Composition
         id="ValleDeLasAgujas-TOFU"
-        component={CaptionedVideo}
-        calculateMetadata={calculateCaptionedVideoMetadata}
-        schema={captionedVideoSchema}
+        component={Video1TOFU}
+        calculateMetadata={calculateVideo1TOFUMetadata}
         width={1080}
         height={1920}
-        defaultProps={{
-          src: staticFile("tofu.mp4"),
-        }}
       />
       <Composition
         id="ValleDeLasAgujas-MOFU"

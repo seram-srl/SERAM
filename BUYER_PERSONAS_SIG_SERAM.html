@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Buyer Personas SIG — SERAM Consultora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  @page {
+    size: A4;
+    margin: 12mm 12mm 15mm 12mm;
+  }
+  * {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #010409;
+    color: #f8fafc;
+    margin: 0;
+    padding: 0;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  /* COVER HEADER */
+  .header-banner {
+    background: linear-gradient(135deg, #091c13 0%, #122a1f 50%, #010409 100%);
+    border: 1px solid rgba(0, 224, 60, 0.3);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    position: relative;
+  }
+  .brand-badge {
+    display: inline-block;
+    background: rgba(0, 224, 60, 0.12);
+    border: 1px solid #00e03c;
+    color: #00e03c;
+    font-family: 'Outfit', sans-serif;
+    font-size: 8pt;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 24pt;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 8px 0;
+    line-height: 1.2;
+  }
+  .subtitle {
+    font-size: 11pt;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+  }
+  .meta-bar {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    font-size: 8.5pt;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  /* PERSONA CARD */
+  .persona-card {
+    background: rgba(12, 24, 19, 0.95);
+    border: 1px solid rgba(0, 224, 60, 0.2);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    page-break-inside: avoid;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .persona-card.card-accent-gold {
+    border-color: rgba(201, 168, 76, 0.4);
+  }
+  .persona-card.card-accent-copper {
+    border-color: rgba(192, 86, 33, 0.4);
+  }
+
+  .persona-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+  }
+  .persona-name {
+    font-family: 'Outfit', sans-serif;
+    font-size: 18pt;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 4px 0;
+  }
+  .persona-role {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #00e03c;
+  }
+  .card-accent-gold .persona-role { color: #c9a84c; }
+  .card-accent-copper .persona-role { color: #ff8c42; }
+
+  .persona-tag {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 8.5pt;
+    color: rgba(255, 255, 255, 0.8);
+    text-align: right;
+  }
+
+  .quote-box {
+    background: rgba(0, 224, 60, 0.05);
+    border-left: 3px solid #00e03c;
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    font-size: 10pt;
+    font-style: italic;
+    color: #e2e8f0;
+    margin-bottom: 16px;
+  }
+  .card-accent-gold .quote-box {
+    background: rgba(201, 168, 76, 0.05);
+    border-left-color: #c9a84c;
+  }
+  .card-accent-copper .quote-box {
+    background: rgba(192, 86, 33, 0.05);
+    border-left-color: #ff8c42;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .info-block {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .info-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 9.5pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #00e03c;
+    margin-bottom: 8px;
+  }
+  .card-accent-gold .info-title { color: #c9a84c; }
+  .card-accent-copper .info-title { color: #ff8c42; }
+
+  ul {
+    margin: 0;
+    padding-left: 18px;
+  }
+  li {
+    margin-bottom: 6px;
+    font-size: 9.5pt;
+    color: #cbd5e1;
+  }
+
+  .value-prop {
+    background: linear-gradient(90deg, rgba(0, 224, 60, 0.1) 0%, rgba(12, 24, 19, 0.5) 100%);
+    border: 1px solid rgba(0, 224, 60, 0.3);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-top: 12px;
+  }
+  .card-accent-gold .value-prop {
+    background: linear-gradient(90deg, rgba(201, 168, 76, 0.1) 0%, rgba(12, 24, 19, 0.5) 100%);
+    border-color: rgba(201, 168, 76, 0.3);
+  }
+  .card-accent-copper .value-prop {
+    background: linear-gradient(90deg, rgba(192, 86, 33, 0.1) 0%, rgba(12, 24, 19, 0.5) 100%);
+    border-color: rgba(192, 86, 33, 0.3);
+  }
+
+  .value-prop-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 9pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #ffffff;
+    margin-bottom: 4px;
+  }
+
+  /* COMPARATIVE TABLE */
+  .table-section {
+    background: rgba(12, 24, 19, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 24px;
+    page-break-inside: avoid;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-size: 9pt;
+  }
+  th {
+    background: rgba(0, 224, 60, 0.1);
+    color: #00e03c;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    text-align: left;
+    padding: 10px;
+    border-bottom: 2px solid rgba(0, 224, 60, 0.3);
+  }
+  td {
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: #cbd5e1;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .page-break {
+    page-break-after: always;
+  }
+
+  .footer {
+    text-align: center;
+    font-size: 8pt;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 24px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+</style>
+</head>
+<body>
+
+  <!-- COVER HEADER -->
+  <div class="header-banner">
+    <span class="brand-badge">SERAM CONSULTORA AMBIENTAL & GEOTECNOLÓGICA</span>
+    <h1>PERFILES DE BUYER PERSONA — SERVICIOS SIG / GIS</h1>
+    <div class="subtitle">Estrategia Comercial, Trabajo de Campo, Proyectos y Captación B2B / B2G</div>
+    <div class="meta-bar">
+      <span><strong>Documento:</strong> Manual de Clientes SIG</span>
+      <span><strong>Área:</strong> Comercial & Proyectos</span>
+      <span><strong>Fecha:</strong> Agosto 2026</span>
+    </div>
+  </div>
+
+  <!-- BUYER PERSONA 1 -->
+  <div class="persona-card">
+    <div class="persona-header">
+      <div>
+        <div class="persona-name">1. Ing. Carlos Mendoza</div>
+        <div class="persona-role">Gerente de Proyectos de Infraestructura, Minería y Energía</div>
+      </div>
+      <div class="persona-tag">
+        <strong>Sector:</strong> Empresa Privada<br>
+        <strong>Edad:</strong> 44 años | <strong>Ubicación:</strong> Sta. Cruz / Campo
+      </div>
+    </div>
+
+    <div class="quote-box">
+      "Necesito datos espaciales precisos con drones y satélite para evitar retrasos en licencias ambientales y avance de obra."
+    </div>
+
+    <div class="grid-2">
+      <div class="info-block">
+        <div class="info-title">📋 Tareas Diarias con SIG</div>
+        <ul>
+          <li>Supervisión de trazados de servidumbre, vías de acceso y movimiento de tierras.</li>
+          <li>Control de avance físico mediante ortofotomapas y modelos digitales de terreno (MDT/MDS).</li>
+          <li>Verificación de superposición predial y concesiones mineras o forestales.</li>
+          <li>Presentación de reportes de avance espacial a fiscalizadores ambientales.</li>
+        </ul>
+      </div>
+
+      <div class="info-block">
+        <div class="info-title">⚠️ Dolores y Frustraciones (Pains)</div>
+        <ul>
+          <li><strong>Planos topográficos imprecisos:</strong> Provocan errores costosos en volúmenes de tierra.</li>
+          <li><strong>Demoras en Licencias Ambientales:</strong> Falta de mapas temáticos normativos.</li>
+          <li><strong>Entregables estáticos:</strong> Proveedores tradicionales que entregan solo PDFs planos.</li>
+          <li><strong>Falta de línea base previa:</strong> Vulnerabilidad ante falsas denuncias de contaminación.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="info-block">
+        <div class="info-title">🎯 Objetivos y Deseos (Gains)</div>
+        <ul>
+          <li>Fotogrametría RTK y LIDAR con precisión centimétrica entregada en tiempo récord.</li>
+          <li>Visor WebGIS privado interactivo para consultar datos en campo desde tablet/laptop.</li>
+          <li>Expediente SIG para Ficha Ambiental aprobado a la primera sin observaciones.</li>
+        </ul>
+      </div>
+
+      <div class="info-block">
+        <div class="info-title">💬 Mensaje de Venta & Canales</div>
+        <ul>
+          <li><strong>Mensaje Clave:</strong> <em>"Transformamos tus datos de campo en un visor WebGIS en tiempo real. Cero observaciones en tu Licencia Ambiental."</em></li>
+          <li><strong>Canal Preferido:</strong> Demo presencial en laptop, LinkedIn B2B, correo institucional.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="value-prop">
+      <div class="value-prop-title">💡 Propuesta de Valor SERAM para Carlos</div>
+      Levantamiento con Drones RTK/LIDAR + Integración en la plataforma <strong>SERAM Services (WebGIS en Supabase)</strong> + Auditoría de Línea Base Satelital (Sentinel/Planet) para blindaje legal.
+    </div>
+  </div>
+
+  <div class="page-break"></div>
+
+  <!-- BUYER PERSONA 2 -->
+  <div class="persona-card card-accent-gold">
+    <div class="persona-header">
+      <div>
+        <div class="persona-name">2. Arq. Roberto Arce</div>
+        <div class="persona-role">Director de Planificación Urbana, Catastro y Medio Ambiente</div>
+      </div>
+      <div class="persona-tag">
+        <strong>Sector:</strong> Gobierno Municipal / Público<br>
+        <strong>Edad:</strong> 48 años | <strong>Ubicación:</strong> Municipio Capital
+      </div>
+    </div>
+
+    <div class="quote-box">
+      "Necesitamos modernizar el catastro y la zonificación de riesgos del municipio con una Geodatabase unificada."
+    </div>
+
+    <div class="grid-2">
+      <div class="info-block">
+        <div class="info-title">📋 Tareas Diarias con SIG</div>
+        <ul>
+          <li>Actualización de la mancha urbana, distritación y regularización predial.</li>
+          <li>Identificación de zonas vulnerables a inundaciones, riadas y deslizamientos.</li>
+          <li>Gestión del Catastro Urbano/Rural para fiscalización e impuestos prediales.</li>
+          <li>Aprobación de Planes de Uso de Suelo (PLUS) y licencias de construcción.</li>
+        </ul>
+      </div>
+
+      <div class="info-block">
+        <div class="info-title">⚠️ Dolores y Frustraciones (Pains)</div>
+        <ul>
+          <li><strong>Información geográfica dispersa:</strong> Archivos shapefile o planos CAD obsoletos en USBs.</li>
+          <li><strong>Falta de personal especializado:</strong> Escasos técnicos en GIS internamente.</li>
+          <li><strong>Desastres naturales recurrentes:</strong> Sin mapas oficiales de riesgo multicriterio (AHP/GIS).</li>
+          <li><strong>Conflictos limítrofes:</strong> Disputas vecinales por falta de cartografía georreferenciada.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="info-block">
+        <div class="info-title">🎯 Objetivos y Deseos (Gains)</div>
+        <ul>
+          <li>Implementar un Sistema de Información Geográfica Municipal (SIG-MUN) en la nube.</li>
+          <li>Disponer de Estudios de Vulnerabilidad Climática certificados para gestionar fondos externos.</li>
+          <li>Capacitar a su equipo técnico mediante programas prácticos y sostenibles.</li>
+        </ul>
+      </div>
+
+      <div class="info-block">
+        <div class="info-title">💬 Mensaje de Venta & Canales</div>
+        <ul>
+          <li><strong>Mensaje Clave:</strong> <em>"Modernice la gestión territorial de su municipio con una Geodatabase unificada y mapas de riesgo acreditados."</em></li>
+          <li><strong>Canal Preferido:</strong> Presentación formal en Alcaldía, Licitaciones, Talleres institucionales.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="value-prop">
+      <div class="value-prop-title">💡 Propuesta de Valor SERAM para Roberto</div>
+      Consultoría de Ordenamiento Territorial + Infraestructura de Datos Espaciales (IDE) Municipal + Capacitación institucional para el personal municipal mediante <strong>SERAM Academy</strong>.
+    </div>
+  </div>
+
+  <!-- BUYER PERSONA 3 -->
+  <div class="persona-card card-accent-copper">
+    <div class="persona-header">
+      <div>
+        <div class="persona-name">3. Ing. Fernando Camacho</div>
+        <div class="persona-role">Jefe de Sustentabilidad, Agro-SIG y Certificación Forestal</div>
+      </div>
+      <div class="persona-tag">
+        <strong>Sector:</strong> Agroindustria / Forestal / Carbono<br>
+        <strong>Edad:</strong> 36 años | <strong>Ubicación:</strong> Sta. Cruz / Beni
+      </div>
+    </div>
+
+    <div class="quote-box">
+      "Requiero monitoreo satelital en tiempo real para certificar producción sostenible y libre de deforestación."
+    </div>
+
+    <div class="grid-2">
+      <div class="info-block">
+        <div class="info-title">📋 Tareas Diarias con SIG</div>
+        <ul>
+          <li>Procesamiento de índices espectrales (NDVI, NDWI, EVI) para salud vegetal.</li>
+          <li>Detección temprana de focos de calor, incendios y cambio de uso de suelo.</li>
+          <li>Elaboración de mapas de aptitud mayor de la tierra y servidumbres ecológicas.</li>
+          <li>Reportes de sostenibilidad para auditores de certificación internacional (FSC, RTRS).</li>
+        </ul>
+      </div>
+
+      <div class="info-block">
+        <div class="info-title">⚠️ Dolores y Frustraciones (Pains)</div>
+        <ul>
+          <li><strong>Procesamiento satelital lento:</strong> Requiere computadoras de muy alta gama.</li>
+          <li><strong>Riesgo de perder mercados de exportación:</strong> Exigencia de cero deforestación (UE).</li>
+          <li><strong>Dificultad en cálculo de carbono:</strong> Métodos tradicionales de inventario lentos.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="info-block">
+        <div class="info-title">🎯 Objetivos y Deseos (Gains)</div>
+        <ul>
+          <li>Monitoreo satelital mensual automatizado de salud vegetal y deforestación.</li>
+          <li>Modelos de estimación de biomasa y captura de carbono combinando Dron + Satélite.</li>
+          <li>Archivos de datos espaciales directos compatibles con maquinaria agrícola (GPS/ISOBUS).</li>
+        </ul>
+      </div>
+
+      <div class="info-block">
+        <div class="info-title">💬 Mensaje de Venta & Canales</div>
+        <ul>
+          <li><strong>Mensaje Clave:</strong> <em>"Trazabilidad geográfica instantánea y monitoreo NDVI. Demuestra el cumplimiento de cero deforestación y protege tus exportaciones."</em></li>
+          <li><strong>Canal Preferido:</strong> WhatsApp Business, Demo interactiva en vivo, Eventos agrícolas.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="value-prop">
+      <div class="value-prop-title">💡 Propuesta de Valor SERAM para Fernando</div>
+      Monitoreo Teledetectado Satelital Automático (Sentinel-2/Planet) + Estimación Espacial de Carbono + Plataforma Agro-SIG de Trazabilidad Geográfica para exportadores.
+    </div>
+  </div>
+
+  <!-- COMPARATIVE TABLE -->
+  <div class="table-section">
+    <div class="info-title" style="font-size: 11pt; color: #ffffff;">📊 Matriz Comparativa de Buyer Personas SIG</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Atributo</th>
+          <th>Ing. Carlos Mendoza</th>
+          <th>Arq. Roberto Arce</th>
+          <th>Ing. Fernando Camacho</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Sector</strong></td>
+          <td>Infraestructura, Minería & Energía (Privado)</td>
+          <td>Gobierno Municipal / Departamental (Público)</td>
+          <td>Agroindustria, Forestal & Carbono (Privado)</td>
+        </tr>
+        <tr>
+          <td><strong>Servicio SIG Clave</strong></td>
+          <td>Fotogrametría RTK, LIDAR & Ficha Ambiental</td>
+          <td>Geodatabase Municipal & Mapas de Riesgo</td>
+          <td>Monitoreo Satelital NDVI & Trazabilidad UE</td>
+        </tr>
+        <tr>
+          <td><strong>Entregable Ideal</strong></td>
+          <td>Visor WebGIS 3D + Nube de Puntos CAD</td>
+          <td>IDE Municipal + Capacitación institucional</td>
+          <td>Dashboard Satelital + Exportables GPS</td>
+        </tr>
+        <tr>
+          <td><strong>Factor de Decisión</strong></td>
+          <td>Aprobación rápida & Cero retrasos de obra</td>
+          <td>Solidez institucional & Acreditación técnica</td>
+          <td>Protección de exportaciones & Cero deforestación</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    SERAM Consultora Ambiental y Geotecnológica © 2026 — Documento de Estrategia de Marca & Captación SIG
+  </div>
+
+</body>
+</html>

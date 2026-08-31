@@ -41,10 +41,33 @@ dist-ssr/
 /IRAP´s/
 /LEYES/
 /NORMATIVA AMBIENTAL/
+/01_TRABAJO_DE_CAMPO/
+/02_PRODUCCION_AUDIOVISUAL/
+/03_DOCUMENTOS/
+/04_SIG/
+/test-hyperframes/
+/tmp/
 *.docx
 *.pdf
 /abrir_inmediatamente.html
 desktop.ini
 /desktop.ini
 **/desktop.ini
+
+# Binaries and temp tools
+*.exe
+*.msi
+*.tsbuildinfo
+vite.config.js.timestamp-*
+
+# Test captures and snapshots
+screenshot_*.png
+snapshot*.txt
+computed*.txt
+tmp_test_pdf.html
+render_pdf.js
+
+# Video renders & large media
+remotion-video/public/*.mp4
+remotion-video/public/video1/
 

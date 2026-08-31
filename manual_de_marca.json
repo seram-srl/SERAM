@@ -1,0 +1,27 @@
+{
+  "marca": {
+    "nombre": "SERAM Consultora Ambiental",
+    "tipografia_principal": "Inter, sans-serif",
+    "tipografia_secundaria": "Merriweather, serif"
+  },
+  "paleta_colores": {
+    "fondo_interfaz": "#F8F9FA", 
+    "texto_principal": "#2D3748", 
+    "acento_primario": "#2F855A", 
+    "acento_secundario": "#C05621",
+    "advertencia_rechazo_oscuro": "Evitar fondos 100% negros; priorizar contrastes suaves y legibles"
+  },
+  "configuracion_subtitulos": {
+    "tamano_fuente_movil": "65px",
+    "peso_fuente": "Bold",
+    "color_texto": "#FFFFFF",
+    "color_resalte": "#F6E05E",
+    "fondo_texto": "rgba(0, 0, 0, 0.4)",
+    "estilo_animacion": "pop-in-palabra-por-palabra",
+    "posicion_pantalla": "bottom-20%"
+  },
+  "ritmo_edicion": {
+    "transicion_escenas": "fade-suave",
+    "duracion_transicion_ms": 600
+  }
+}
