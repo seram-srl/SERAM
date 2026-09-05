@@ -129,10 +129,10 @@ export default function Navbar({ isOpen, onToggle }) {
         )}
       </div>
 
-      {/* LOGO DE MARCA CENTRADO EN EL HEADER (Fijo al centro en páginas internas; en Home aparece al hacer scroll) */}
+      {/* LOGO DE MARCA CENTRADO EN EL HEADER (Fijo al centro en páginas internas; en Home aparece al hacer scroll; oculto en player de academia) */}
       <div
         className={`fixed top-6 left-1/2 -translate-x-1/2 z-[109] pointer-events-auto select-none transition-all duration-700 ease-out flex items-center gap-1.5 cursor-pointer ${
-          location.pathname !== '/' || scrollY >= window.innerHeight * 0.65
+          (location.pathname !== '/' && !location.pathname.startsWith('/academy/course')) || (location.pathname === '/' && scrollY >= window.innerHeight * 0.65)
             ? 'opacity-100 translate-y-0 scale-100'
             : 'opacity-0 -translate-y-4 scale-90 pointer-events-none'
         }`}

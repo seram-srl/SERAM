@@ -72,16 +72,17 @@
   transform: translateY(-1px);
 }
 
-/* 4. Brighter glass panel (modal/menu overlay) */
+/* 4. Glass panel dark (modal/menu overlay) — deep-tone black-emerald like Asistente SERAM */
 .glass-panel-dark {
-  background: rgba(255, 255, 255, 0.11);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(8, 15, 8, 0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(26, 58, 26, 0.7);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
 }
 
 .glass-panel-dark:hover {
-  border-color: rgba(2, 153, 7, 0.3);
+  border-color: rgba(0, 224, 60, 0.4);
 }
 
 /* Reflective thin border */

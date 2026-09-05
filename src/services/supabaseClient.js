@@ -10,8 +10,35 @@ if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KE
 }
 
 /**
- * Cliente de conexión oficial de Supabase.
- * Proporciona acceso unificado a los servicios de autenticación y base de datos (Fase 3).
+ * Fetch con timeout estricto de 3.5 segundos para evitar bloqueos por latencia
+ * o errores de DNS en el host de Supabase, permitiendo fallback inmediato.
  */
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const FETCH_TIMEOUT_MS = 3500;
+
+const resilientFetch = (url, options = {}) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, FETCH_TIMEOUT_MS);
+
+  const signal = options.signal || controller.signal;
+
+  return fetch(url, { ...options, signal })
+    .finally(() => clearTimeout(timeoutId));
+};
+
+/**
+ * Cliente de conexión oficial de Supabase.
+ * Proporciona acceso unificado a los servicios de autenticación y base de datos.
+ */
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+  global: {
+    fetch: resilientFetch,
+  },
+});
+
 export default supabase;

@@ -41,18 +41,26 @@ export default function BrandParticleText() {
       const dpr = window.devicePixelRatio || 1;
       const isMobile = window.innerWidth < 640;
       const canvasHeight = isMobile ? 220 : 180;
+      const w = Math.floor(width);
       
       // Adaptar el radio de dispersión del mouse según resolución móvil/desktop
       mouseRef.current.radius = isMobile ? 45 : 85;
       
       // Ajustar tamaño lógico y físico
-      canvas.width = width * dpr;
+      canvas.width = w * dpr;
       canvas.height = canvasHeight * dpr;
-      canvas.style.width = `${width}px`;
+      canvas.style.width = `${w}px`;
       canvas.style.height = `${canvasHeight}px`;
       
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(dpr, dpr);
-      initParticles(width, canvasHeight);
+
+      const runInit = () => initParticles(w, canvasHeight);
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(runInit);
+      } else {
+        runInit();
+      }
     };
 
     const resizeObserver = new ResizeObserver((entries) => {
@@ -60,69 +68,57 @@ export default function BrandParticleText() {
     });
     resizeObserver.observe(parent);
 
-    // Inicialización de partículas extrayendo píxeles de un canvas oculto
-    const initParticles = (width, height) => {
+    // Inicialización de partículas extrayendo píxeles de un canvas oculto con paso entero exacto
+    const initParticles = (w, h) => {
+      if (w <= 0 || h <= 0) return;
+
       const offscreen = document.createElement('canvas');
-      const offCtx = offscreen.getContext('2d');
+      const offCtx = offscreen.getContext('2d', { willReadFrequently: true });
       
-      offscreen.width = width;
-      offscreen.height = height;
+      offscreen.width = w;
+      offscreen.height = h;
       
-      // Ajustar dinámicamente el tamaño de la tipografía
       const isMobile = window.innerWidth < 640;
       const fontSize = isMobile 
-        ? Math.min(width / 4.2, 95)
-        : Math.min(width / 6.2, 135);
+        ? Math.min(w / 4.2, 95)
+        : Math.min(w / 6.2, 135);
       offCtx.font = `900 ${fontSize}px 'Outfit', 'Inter', sans-serif`;
       offCtx.textAlign = 'left';
       offCtx.textBaseline = 'middle';
       
-      // Limpiar lienzo temporal
-      offCtx.clearRect(0, 0, width, height);
+      offCtx.clearRect(0, 0, w, h);
 
-      // Dibujar texto coloreado por letras para intercepción automática de color
-      const text = 'SERAM';
-      const textWidth = offCtx.measureText(text).width;
-      const startX = (width - textWidth) / 2;
-      const centerY = height / 2;
+      const serWidth = offCtx.measureText('SER').width;
+      const aWidth = offCtx.measureText('A').width;
+      const mWidth = offCtx.measureText('M').width;
+      const totalWidth = serWidth + aWidth + mWidth;
+      const startX = (w - totalWidth) / 2;
+      const centerY = h / 2;
 
-      let currentX = startX;
-
-      // Dibujar letra por letra para capturar colores de pixel perfectos
-      // "SER" (blanco)
+      // Dibujar texto monocromático sólido para extracción precisa de máscara
       offCtx.fillStyle = '#ffffff';
       offCtx.fillText('SER', startX, centerY);
-      currentX += offCtx.measureText('SER').width;
+      offCtx.fillText('A', startX + serWidth, centerY);
+      offCtx.fillText('M', startX + serWidth + aWidth, centerY);
 
-      // "A" (verde esmeralda)
-      offCtx.fillStyle = '#00e03c';
-      offCtx.fillText('A', currentX, centerY);
-      currentX += offCtx.measureText('A').width;
-
-      // "M" (blanco)
-      offCtx.fillStyle = '#ffffff';
-      offCtx.fillText('M', currentX, centerY);
-
-      // Extraer datos de píxeles
-      const imgData = offCtx.getImageData(0, 0, width, height).data;
+      const imgData = offCtx.getImageData(0, 0, w, h).data;
       const particles = [];
-      const step = isMobile ? 1.2 : 2.0; // Densidad adaptativa para móviles para evitar texto entrecortado
+      const step = isMobile ? 1.5 : 2.0;
 
-      const particleSizeMin = isMobile ? 1.6 : 1.1;
-      const particleSizeRange = isMobile ? 0.8 : 1.2;
+      const serEndX = startX + serWidth;
+      const aEndX = serEndX + aWidth;
 
-      for (let y = 0; y < height; y += step) {
+      for (let y = 0; y < h; y += step) {
         const yInt = Math.floor(y);
-        for (let x = 0; x < width; x += step) {
+        for (let x = 0; x < w; x += step) {
           const xInt = Math.floor(x);
-          const index = (xInt + yInt * width) * 4;
+          const index = (xInt + yInt * w) * 4;
           const alpha = imgData[index + 3];
 
           if (alpha > 120) {
-            const r = imgData[index];
-            const g = imgData[index + 1];
-            const b = imgData[index + 2];
-            const color = `rgb(${r}, ${g}, ${b})`;
+            // Color puro y exacto según la letra, garantizando cero aberración o franjas
+            const isA = xInt >= serEndX && xInt < aEndX;
+            const color = isA ? '#00e03c' : '#ffffff';
 
             particles.push({
               x: xInt,
@@ -132,8 +128,8 @@ export default function BrandParticleText() {
               vx: 0,
               vy: 0,
               color: color,
-              size: Math.random() * particleSizeRange + particleSizeMin, // Más grande y denso en móvil para mayor solidez
-              density: Math.random() * 30 + 12, // Resistencia física
+              size: isMobile ? 1.6 : 1.35,
+              density: Math.random() * 25 + 15,
               noiseSeedX: Math.random() * 100,
               noiseSeedY: Math.random() * 100
             });

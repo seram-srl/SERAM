@@ -190,9 +190,7 @@ CREATE POLICY "Permitir gestión de cursos solo a socios"
         auth.jwt() ->> 'email' IN (
             'barrientoso2401@gmail.com',
             'fernandoaraujo1912@gmail.com',
-            'sebastiansbs51@gmail.com',
-            'freddyfarrachol@gmail.com',
-            'freddy@gmail.com'
+            'sebastiansbs51@gmail.com'
         )
     );
 
@@ -202,9 +200,7 @@ CREATE POLICY "Permitir acceso total a proyectos solo a socios directivos"
         auth.jwt() ->> 'email' IN (
             'barrientoso2401@gmail.com',
             'fernandoaraujo1912@gmail.com',
-            'sebastiansbs51@gmail.com',
-            'freddyfarrachol@gmail.com',
-            'freddy@gmail.com'
+            'sebastiansbs51@gmail.com'
         )
     );
 
@@ -217,9 +213,7 @@ CREATE POLICY "Permitir gestión de catálogo solo a socios"
         auth.jwt() ->> 'email' IN (
             'barrientoso2401@gmail.com',
             'fernandoaraujo1912@gmail.com',
-            'sebastiansbs51@gmail.com',
-            'freddyfarrachol@gmail.com',
-            'freddy@gmail.com'
+            'sebastiansbs51@gmail.com'
         )
     );
 
@@ -229,9 +223,7 @@ CREATE POLICY "Permitir gestión de logs de tiempo a socios"
         auth.jwt() ->> 'email' IN (
             'barrientoso2401@gmail.com',
             'fernandoaraujo1912@gmail.com',
-            'sebastiansbs51@gmail.com',
-            'freddyfarrachol@gmail.com',
-            'freddy@gmail.com'
+            'sebastiansbs51@gmail.com'
         )
     );
 
@@ -241,9 +233,7 @@ CREATE POLICY "Permitir lectura de métricas a socios directivos"
         auth.jwt() ->> 'email' IN (
             'barrientoso2401@gmail.com',
             'fernandoaraujo1912@gmail.com',
-            'sebastiansbs51@gmail.com',
-            'freddyfarrachol@gmail.com',
-            'freddy@gmail.com'
+            'sebastiansbs51@gmail.com'
         )
     );
 

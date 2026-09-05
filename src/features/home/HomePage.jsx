@@ -280,14 +280,14 @@ function HeroSection() {
     >
       <div className="text-center space-y-8 z-10 w-full max-w-4xl flex flex-col items-center justify-center">
         <div className="w-full flex flex-col items-center gap-3">
-          {/* Logo con animación de entrada y paralaje */}
+          {/* Logo con animación de entrada y efecto de partículas orgánicas interactivo */}
           <motion.div
             custom={1}
             variants={staggerChild}
             initial="initial"
             animate="animate"
             style={{ x: logoX, y: logoY }}
-            className="w-full will-change-transform flex justify-center"
+            className="w-full will-change-transform flex justify-center select-none"
           >
             <BrandParticleText />
           </motion.div>

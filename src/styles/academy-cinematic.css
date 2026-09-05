@@ -32,3 +32,81 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
+
+/* --- CREHANA THEMED STYLES FOR SERAM ACADEMY --- */
+
+/* Scrollbar estilizado para la barra lateral Crehana */
+.crehana-scrollbar::-webkit-scrollbar {
+    width: 5px;
+}
+.crehana-scrollbar::-webkit-scrollbar-track {
+    background: rgba(2, 6, 2, 0.6);
+}
+.crehana-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 224, 60, 0.25);
+    border-radius: 9999px;
+}
+.crehana-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 224, 60, 0.6);
+}
+
+/* Conectores de línea de tiempo vertical para lecciones */
+.crehana-timeline-track {
+    position: absolute;
+    left: 17px;
+    top: 24px;
+    bottom: 24px;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.08);
+    pointer-events: none;
+}
+
+/* Indicador de badge REPRODUCIENDO */
+.badge-reproduciendo {
+    font-size: 8.5px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: #00e03c;
+    background: rgba(0, 224, 60, 0.12);
+    border: 1px solid rgba(0, 224, 60, 0.3);
+    padding: 2px 7px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    animation: crehana-glow-pulse 2s infinite ease-in-out;
+}
+
+@keyframes crehana-glow-pulse {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(0, 224, 60, 0.2);
+        opacity: 0.95;
+    }
+    50% {
+        box-shadow: 0 0 14px rgba(0, 224, 60, 0.45);
+        opacity: 1;
+    }
+}
+
+/* Scrubber personalizado para el video */
+.crehana-range-scrubber {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    transition: height 0.2s;
+}
+.crehana-range-scrubber:hover {
+    height: 6px;
+}
+.crehana-range-scrubber::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #00e03c;
+    box-shadow: 0 0 10px #00e03c;
+    cursor: pointer;
+}

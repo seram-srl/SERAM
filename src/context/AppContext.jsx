@@ -6,8 +6,27 @@ export const AppContext = createContext(null);
 export function AppProvider({ children }) {
   // --- AUTH & ROLES ---
   const [supabaseUser, setSupabaseUser] = useState(null);
-  const [activeRole, setActiveRole] = useState('AccessLimit');
-  const [currentSocio, setCurrentSocio] = useState(null);
+  const [activeRole, setActiveRole] = useState(() => {
+    try {
+      return localStorage.getItem('seram_partner_role') || 'AccessLimit';
+    } catch (_) {
+      return 'AccessLimit';
+    }
+  });
+  const [currentSocio, setCurrentSocio] = useState(() => {
+    try {
+      const saved = localStorage.getItem('seram_current_socio');
+      const parsed = saved ? JSON.parse(saved) : null;
+      const validEmails = ['barrientoso2401@gmail.com', 'fernandoaraujo1912@gmail.com', 'sebastiansbs51@gmail.com'];
+      if (parsed && (!parsed.email || !validEmails.includes(parsed.email.toLowerCase()))) {
+        localStorage.removeItem('seram_current_socio');
+        return null;
+      }
+      return parsed;
+    } catch (_) {
+      return null;
+    }
+  });
   const [isRegistered, setIsRegistered] = useState(false);
   const [currentUserEmail, setCurrentUserEmail] = useState('');
   const [registerEmail, setRegisterEmail] = useState('');
@@ -15,8 +34,20 @@ export function AppProvider({ children }) {
     { email: 'barrientoso2401@gmail.com', role: 'AdminMod', name: 'Ing. Diego Barrientos', isPremiumApproved: true },
     { email: 'fernandoaraujo1912@gmail.com', role: 'AdminMod', name: 'Ing. Fernando Araujo', isPremiumApproved: true },
     { email: 'sebastiansbs51@gmail.com', role: 'AdminMod', name: 'Ing. Fabricio Orosco', isPremiumApproved: true },
-    { email: 'freddyfarrachol@gmail.com', role: 'AdminMod', name: 'Ing. Freddy Farrachol', isPremiumApproved: true },
   ]);
+
+  // Persistir sesión de socio en localStorage
+  useEffect(() => {
+    try {
+      if (activeRole === 'AdminMod' && currentSocio) {
+        localStorage.setItem('seram_partner_role', 'AdminMod');
+        localStorage.setItem('seram_current_socio', JSON.stringify(currentSocio));
+      } else if (activeRole !== 'AdminMod') {
+        localStorage.removeItem('seram_partner_role');
+        localStorage.removeItem('seram_current_socio');
+      }
+    } catch (_) {}
+  }, [activeRole, currentSocio]);
 
   // --- SECRET PARTNER PORTAL ---
   const [logoClicks, setLogoClicks] = useState(0);
@@ -312,22 +343,20 @@ export function AppProvider({ children }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // --- LOAD DATA FROM SUPABASE WITH RESILIENT FALLBACK ---
+  // --- LOAD DATA FROM SUPABASE CONCURRENTLY WITH INSTANT RESILIENT FALLBACK ---
   useEffect(() => {
     async function loadDataFromSupabase() {
       try {
-        // Fetch courses
-        const { data: coursesData, error: coursesError } = await supabase
-          .from('courses')
-          .select('*');
-        if (coursesError) {
-          if (coursesError.code === 'PGRST205') {
-            console.warn('[Supabase AppContext Load]: La tabla "courses" no existe. Usando datos mock locales.');
-          } else {
-            throw coursesError;
-          }
-        } else if (coursesData && coursesData.length > 0) {
-          const mappedCourses = coursesData.map(c => ({
+        const [coursesRes, projectsRes, productsRes, logsRes] = await Promise.allSettled([
+          supabase.from('courses').select('*'),
+          supabase.from('projects').select('*'),
+          supabase.from('products').select('*'),
+          supabase.from('time_logs').select('*')
+        ]);
+
+        // 1. Courses
+        if (coursesRes.status === 'fulfilled' && !coursesRes.value.error && coursesRes.value.data?.length > 0) {
+          const mappedCourses = coursesRes.value.data.map(c => ({
             id: c.id,
             title: c.title,
             instructor: c.instructor,
@@ -338,18 +367,9 @@ export function AppProvider({ children }) {
           setCourses(mappedCourses);
         }
 
-        // Fetch projects
-        const { data: projectsData, error: projectsError } = await supabase
-          .from('projects')
-          .select('*');
-        if (projectsError) {
-          if (projectsError.code === 'PGRST205') {
-            console.warn('[Supabase AppContext Load]: La tabla "projects" no existe. Usando datos mock locales.');
-          } else {
-            throw projectsError;
-          }
-        } else if (projectsData && projectsData.length > 0) {
-          const mappedProjects = projectsData.map(p => ({
+        // 2. Projects
+        if (projectsRes.status === 'fulfilled' && !projectsRes.value.error && projectsRes.value.data?.length > 0) {
+          const mappedProjects = projectsRes.value.data.map(p => ({
             id: p.id,
             client: p.client || p.title,
             type: p.type || p.title,
@@ -362,18 +382,9 @@ export function AppProvider({ children }) {
           setActiveServices(mappedProjects);
         }
 
-        // Fetch products
-        const { data: productsData, error: productsError } = await supabase
-          .from('products')
-          .select('*');
-        if (productsError) {
-          if (productsError.code === 'PGRST205') {
-            console.warn('[Supabase AppContext Load]: La tabla "products" no existe. Usando datos mock locales.');
-          } else {
-            throw productsError;
-          }
-        } else if (productsData && productsData.length > 0) {
-          const mappedProducts = productsData.map(p => ({
+        // 3. Products
+        if (productsRes.status === 'fulfilled' && !productsRes.value.error && productsRes.value.data?.length > 0) {
+          const mappedProducts = productsRes.value.data.map(p => ({
             id: p.id,
             name: p.name,
             price: p.price,
@@ -387,33 +398,22 @@ export function AppProvider({ children }) {
           setProductList(mappedProducts);
         }
 
-        // Fetch time logs
-        const { data: logsData, error: logsError } = await supabase
-          .from('time_logs')
-          .select('*');
-        if (logsError) {
-          if (logsError.code === 'PGRST205') {
-            console.warn('[Supabase AppContext Load]: La tabla "time_logs" no existe. Usando datos mock locales.');
-          } else {
-            throw logsError;
-          }
-        } else if (logsData && logsData.length > 0) {
-          const mappedLogs = logsData.map(l => {
-            return {
-              id: l.id,
-              partner_id: l.partner_id,
-              partner_name: l.partner_name || 'Socio',
-              project_id: l.project_id,
-              project_title: l.project_title || 'Proyecto',
-              hours: parseFloat(l.hours),
-              description: l.description,
-              logged_at: l.logged_at
-            };
-          });
+        // 4. Time Logs
+        if (logsRes.status === 'fulfilled' && !logsRes.value.error && logsRes.value.data?.length > 0) {
+          const mappedLogs = logsRes.value.data.map(l => ({
+            id: l.id,
+            partner_id: l.partner_id,
+            partner_name: l.partner_name || 'Socio',
+            project_id: l.project_id,
+            project_title: l.project_title || 'Proyecto',
+            hours: parseFloat(l.hours),
+            description: l.description,
+            logged_at: l.logged_at
+          }));
           setTimeLogs(mappedLogs);
         }
       } catch (err) {
-        console.warn('[Supabase AppContext Load Error]: Fallo al cargar datos. Usando fallbacks locales.', err.message);
+        console.warn('[Supabase AppContext Pull Warning]: Red/DNS no disponible. Usando catálogo local mock.', err.message);
       }
     }
     loadDataFromSupabase();
@@ -432,18 +432,26 @@ export function AppProvider({ children }) {
   };
 
   // --- HANDLERS ---
-  const handlePartnerLogin = (e) => {
-    e.preventDefault();
-    if (secretPassword === 'seram2026') {
+  const handlePartnerLogin = (e, customPassword = null, customIndex = null) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const pwd = (customPassword !== null ? customPassword : secretPassword || '').trim().toLowerCase();
+    const idx = customIndex !== null ? customIndex : selectedPartnerIndex;
+    
+    if (pwd === 'seram2026' || pwd === 'socio2026') {
       const partnersList = registeredUsers.filter(u => u.role === 'AdminMod');
-      const partner = partnersList[selectedPartnerIndex];
+      const partner = partnersList[idx] || partnersList[0];
       if (partner) {
         setActiveRole('AdminMod');
         setCurrentSocio(partner);
         setShowSecretModal(false);
+        setShowSecretPortal(false);
         setSecretPassword('');
-        triggerToast(`¡Bienvenido, ${partner.name}! Redirigiendo al Dashboard.`, 'success');
-        return { success: true };
+        try {
+          localStorage.setItem('seram_partner_role', 'AdminMod');
+          localStorage.setItem('seram_current_socio', JSON.stringify(partner));
+        } catch (_) {}
+        triggerToast(`¡Bienvenido, ${partner.name}! Acceso al Dashboard Directivo.`, 'success');
+        return { success: true, partner };
       }
     } else {
       triggerToast('Contraseña incorrecta. Acceso denegado.', 'error');
@@ -957,6 +965,10 @@ export function AppProvider({ children }) {
   const handleLogoutPartner = () => {
     setActiveRole('AccessLimit');
     setCurrentSocio(null);
+    try {
+      localStorage.removeItem('seram_partner_role');
+      localStorage.removeItem('seram_current_socio');
+    } catch (_) {}
     triggerToast('Sesión de Socio cerrada', 'info');
   };
 

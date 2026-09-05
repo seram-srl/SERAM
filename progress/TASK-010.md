@@ -23,7 +23,6 @@ Se creó el archivo de migración relacional [20260807124000_unified_schema.sql]
     - `barrientoso2401@gmail.com`
     - `fernandoaraujo1912@gmail.com`
     - `sebastiansbs51@gmail.com`
-    - `freddyfarrachol@gmail.com` / `freddy@gmail.com`
 - **Datos Semilla (Seed Data):**
   - Carga automática de los datos mock del negocio para inicializar el proyecto en Supabase con los proyectos activos, catálogo de cursos, tienda y KPIs reales de finanzas.
 

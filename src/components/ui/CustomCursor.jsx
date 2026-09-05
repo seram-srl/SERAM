@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 import './cinematic-ui.css';
 
 export default function CustomCursor() {
+  const location = useLocation();
   const [isVisible, setIsVisible] = useState(false);
   const [cursorText, setCursorText] = useState('');
   const [isHovered, setIsHovered] = useState(false);
@@ -17,6 +19,13 @@ export default function CustomCursor() {
   const cursorX = useSpring(mouseX, springConfig);
   const cursorY = useSpring(mouseY, springConfig);
 
+  // Limpiar estado de cursor en cualquier navegación
+  useEffect(() => {
+    setCursorText('');
+    setIsHovered(false);
+    setIsClickable(false);
+  }, [location.pathname]);
+
   // Escuchar eventos táctiles vs mouse
   useEffect(() => {
     // Solo mostrar el cursor si es un dispositivo apuntador fino (mouse)
@@ -30,6 +39,14 @@ export default function CustomCursor() {
     const handleMouseMove = (e) => {
       mouseX.set(e.clientX);
       mouseY.set(e.clientY);
+
+      // Si el elemento bajo el cursor ya no existe o cambió, limpiar el estado
+      const target = e.target ? e.target.closest('[data-cursor-text], a, button, [role="button"], .cursor-hover-premium') : null;
+      if (!target) {
+        setCursorText('');
+        setIsHovered(false);
+        setIsClickable(false);
+      }
     };
 
     const handleMouseOver = (e) => {
@@ -54,14 +71,29 @@ export default function CustomCursor() {
       }
     };
 
+    const handleClick = () => {
+      // Al hacer click, el elemento puede desmontarse; asegurar reseteo si no hay hover activo
+      setTimeout(() => {
+        const elem = document.elementFromPoint(mouseX.get(), mouseY.get());
+        const target = elem ? elem.closest('[data-cursor-text], a, button, [role="button"], .cursor-hover-premium') : null;
+        if (!target) {
+          setCursorText('');
+          setIsHovered(false);
+          setIsClickable(false);
+        }
+      }, 100);
+    };
+
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseover', handleMouseOver);
     window.addEventListener('mouseout', handleMouseOut);
+    window.addEventListener('click', handleClick);
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseover', handleMouseOver);
       window.removeEventListener('mouseout', handleMouseOut);
+      window.removeEventListener('click', handleClick);
     };
   }, [mouseX, mouseY]);
 

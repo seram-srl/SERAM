@@ -101,7 +101,7 @@ export default function App() {
             <Route path="/register"   element={<RegisterPage />}     />
             <Route path="/quote"      element={<QuotePage />}        />
             <Route path="/academy"    element={<AcademyPage />}      />
-            <Route path="/academy/course/:id" element={<ProtectedRoute><CoursePlayerPage /></ProtectedRoute>} />
+            <Route path="/academy/course/:id" element={<CoursePlayerPage />} />
             <Route path="/academy/workspace" element={<ProtectedRoute><ShaderWorkspace /></ProtectedRoute>} />
             <Route path="/services"   element={<ServicesPage />}     />
             <Route path="/experience" element={<ExperiencePage />}   />

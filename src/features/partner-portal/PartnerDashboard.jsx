@@ -1,15 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import {
   Shield, DollarSign, BookOpenCheck, Briefcase, Leaf,
   Plus, Trash2, Loader2, Edit2, Check, X, Calendar,
   Clock, Award, TrendingUp, BarChart2, ShoppingBag,
   Globe, Users, ChevronLeft, ChevronRight, Settings,
-  MapPin, UserCheck, Package, Star, AlertCircle,
+  MapPin, UserCheck, Package, Star, AlertCircle, Lock,
+  Wallet, Target, Layers, ArrowUpRight, ArrowDownRight, Percent,
+  PieChart as LucidePie, Activity, CreditCard
 } from 'lucide-react';
 import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis,
+  AreaChart, Area, BarChart, Bar, LineChart, Line,
+  PieChart, Pie, Cell, RadarChart, Radar, PolarGrid,
+  PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis,
   CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 import { useApp } from '../../context/AppContext';
@@ -85,38 +89,34 @@ const GlassCard = ({ children, className = '' }) => (
 // ─────────────────────────────────────────────────────────────────────────────
 function OverviewModule({ kpis, metrics }) {
   return (
-    <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-8">
-      {/* KPI Cards */}
+    <div className="space-y-8">
+      {/* KPI Cards — Visibles Permanentemente al 100% */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {kpis.map((kpi, i) => (
-          <motion.div
+        {kpis.map((kpi) => (
+          <div
             key={kpi.label}
-            variants={fadeUp}
-            whileHover={{ y: -3 }}
-            className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-5 flex items-center justify-between transition-all cursor-default hover:border-[#00e03c]/20"
+            className="bg-white/[0.04] border border-white/[0.08] hover:border-[#00e03c]/35 rounded-2xl p-5 flex items-center justify-between transition-all duration-300 cursor-default hover:-translate-y-1 hover:shadow-lg hover:shadow-black/40 opacity-100 visible relative z-10"
           >
             <div className="space-y-1">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{kpi.label}</span>
-              <h3 className="text-2xl font-black text-white">{kpi.value}</h3>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{kpi.label}</span>
+              <h3 className="text-2xl font-black text-white tracking-tight">{kpi.value}</h3>
               <p className="text-[10px] text-[#00e03c] font-bold flex items-center gap-1">
                 <TrendingUp className="w-3 h-3" /> {kpi.trend}
               </p>
             </div>
-            <motion.div
-              initial={{ scale: 0.6, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1, transition: { delay: 0.1 + i * 0.08, type: 'spring' } }}
-              className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${kpi.color}`}
+            <div
+              className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${kpi.color} shadow-sm`}
             >
               {kpi.icon}
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         ))}
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Area Chart */}
-        <motion.div variants={fadeUp}>
+        <div className="opacity-100 visible">
           <GlassCard className="p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
               <div>
@@ -143,10 +143,10 @@ function OverviewModule({ kpis, metrics }) {
               </AreaChart>
             </ResponsiveContainer>
           </GlassCard>
-        </motion.div>
+        </div>
 
         {/* Bar Chart */}
-        <motion.div variants={fadeUp}>
+        <div className="opacity-100 visible">
           <GlassCard className="p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
               <div>
@@ -167,11 +167,11 @@ function OverviewModule({ kpis, metrics }) {
               </BarChart>
             </ResponsiveContainer>
           </GlassCard>
-        </motion.div>
+        </div>
       </div>
 
       {/* ── RECOMENDACIONES ESTRATEGICAS ── */}
-      <motion.div variants={fadeUp}>
+      <div className="opacity-100 visible">
         <GlassCard className="p-6 space-y-4 border-[#00e03c]/20">
           <div className="flex items-center gap-2 border-b border-white/[0.06] pb-3">
             <TrendingUp className="w-4 h-4 text-[#00e03c]" />
@@ -204,8 +204,8 @@ function OverviewModule({ kpis, metrics }) {
             </div>
           </div>
         </GlassCard>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }
 
@@ -1088,27 +1088,530 @@ function UsersModule({ registeredUsers, handlers }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MODULE: FINANCES
+// MODULE: FINANCES (Executive Cockpit Financial Suite)
 // ─────────────────────────────────────────────────────────────────────────────
 function FinancesModule() {
-  const metrics = [
-    { label: 'VAN (Valor Actual Neto)', value: 'Bs. 124,500', note: 'Tasa Descuento: 12% | Contratos Activos', color: 'text-[#00e03c]' },
-    { label: 'TIR (Tasa Interna Retorno)', value: '28.6%', note: 'Portafolio B2B Consultoría', color: 'text-slate-300' },
-    { label: 'EBITDA', value: 'Bs. 8,697', note: 'Margen Operativo: 35%', color: 'text-[#00e03c]' },
-    { label: 'Punto de Equilibrio', value: 'Bs. 12,400', note: 'Equiv. mensual a Costos Fijos', color: 'text-slate-300' },
-    { label: 'Ingresos Totales', value: 'Bs. 24,850', note: '↑ +12.4% este mes', color: 'text-[#00e03c]' },
-    { label: 'Costos Operativos', value: 'Bs. 16,153', note: 'Incluye sueldos y operaciones', color: 'text-rose-400' },
+  const [activeTab, setActiveTab] = useState('Dashboard');
+  const [selectedYear, setSelectedYear] = useState('2026');
+  const [inflowFilter, setInflowFilter] = useState('Inflow');
+
+  // Datos de Flujo de Caja Mensual (12 Meses)
+  const cashflowMonthly = [
+    { month: 'Ene', Inflow: 14.5, Outflow: 9.2, Net: 5.3 },
+    { month: 'Feb', Inflow: 16.8, Outflow: 10.5, Net: 6.3 },
+    { month: 'Mar', Inflow: 19.2, Outflow: 11.4, Net: 7.8 },
+    { month: 'Abr', Inflow: 21.5, Outflow: 13.2, Net: 8.3 },
+    { month: 'May', Inflow: 23.1, Outflow: 14.8, Net: 8.3 },
+    { month: 'Jun', Inflow: 24.85, Outflow: 16.15, Net: 8.7, isPeak: true },
+    { month: 'Jul', Inflow: 26.4, Outflow: 16.5, Net: 9.9 },
+    { month: 'Ago', Inflow: 28.0, Outflow: 17.2, Net: 10.8 },
+    { month: 'Sep', Inflow: 27.5, Outflow: 17.0, Net: 10.5 },
+    { month: 'Oct', Inflow: 29.8, Outflow: 18.1, Net: 11.7 },
+    { month: 'Nov', Inflow: 31.2, Outflow: 18.9, Net: 12.3 },
+    { month: 'Dic', Inflow: 34.5, Outflow: 20.1, Net: 14.4 },
   ];
+
+  // Mini Sparkline para el Balance (VAN)
+  const vanSparkline = [
+    { m: 'Ene', val: 78 },
+    { m: 'Feb', val: 86 },
+    { m: 'Mar', val: 95 },
+    { m: 'Abr', val: 106 },
+    { m: 'May', val: 115 },
+    { m: 'Jun', val: 124.5 },
+  ];
+
+  // Radar de Estructura Multidimensional
+  const radarStructure = [
+    { subject: 'Inflow', value: 95 },
+    { subject: 'Planning', value: 85 },
+    { subject: 'Saving', value: 72 },
+    { subject: 'Online Consult', value: 88 },
+    { subject: 'Research', value: 65 },
+  ];
+
+  // Desglose EBITDA & Estructura de Costos
+  const ebitdaBreakdown = [
+    { name: 'Consultores & Planillas', value: 7268, percent: 45, color: '#00e03c' },
+    { name: 'Costos Fijos & Lab', value: 4845, percent: 30, color: '#00b4d8' },
+    { name: 'Impuestos (SIETE 5%)', value: 2422, percent: 15, color: '#7b2cbf' },
+    { name: 'Margen EBITDA', value: 1618, percent: 10, color: '#38bdf8' },
+  ];
+
+  // Comparativa de Costos vs Break-Even vs Ingresos
+  const breakEvenTimeline = [
+    { month: 'Ene', Ingresos: 14500, Costos: 9200, Equilibrio: 12400 },
+    { month: 'Feb', Ingresos: 16800, Costos: 10500, Equilibrio: 12400 },
+    { month: 'Mar', Ingresos: 19200, Costos: 11400, Equilibrio: 12400 },
+    { month: 'Abr', Ingresos: 21500, Costos: 13200, Equilibrio: 12400 },
+    { month: 'May', Ingresos: 23100, Costos: 14800, Equilibrio: 12400 },
+    { month: 'Jun', Ingresos: 24850, Costos: 16153, Equilibrio: 12400 },
+  ];
+
+  // Planes Anuales
+  const annualPlans = [
+    { year: '2024', Projected: 120, Actual: 114 },
+    { year: '2025', Projected: 180, Actual: 195 },
+    { year: '2026', Projected: 280, Actual: 298 },
+  ];
+
   return (
-    <motion.div variants={stagger} initial="initial" animate="animate" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-      {metrics.map(m => (
-        <motion.div key={m.label} variants={fadeUp} whileHover={{ y: -3 }} className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 space-y-2 cursor-default hover:border-[#00e03c]/15 transition-all">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">{m.label}</span>
-          <h3 className={`text-2xl font-black ${m.color}`}>{m.value}</h3>
-          <p className="text-[10px] text-slate-600 font-bold">{m.note}</p>
-        </motion.div>
-      ))}
-    </motion.div>
+    <div className="space-y-6 select-none opacity-100 visible">
+      
+      {/* ── TOP HEADER / FILTER BAR ── */}
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-[#081018]/90 border border-cyan-500/20 rounded-2xl px-6 py-4 backdrop-blur-xl shadow-xl">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center text-cyan-400">
+            <Activity className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-black text-white tracking-tight flex items-center gap-2">
+              Personal & Corporate Finance <span className="text-[10px] text-[#00e03c] font-bold bg-[#00e03c]/10 border border-[#00e03c]/20 px-2 py-0.5 rounded-full uppercase tracking-wider">SERAM PRO</span>
+            </h2>
+            <p className="text-xs text-slate-400 font-medium">Cockpit Financiero de Retorno, Flujo de Caja y Métricas Ejecutivas</p>
+          </div>
+        </div>
+
+        {/* Action Pills */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center p-1 bg-white/[0.04] border border-white/[0.08] rounded-xl">
+            {['Dashboard', 'Structure', 'Costs', 'Budget'].map(t => (
+              <button
+                key={t}
+                onClick={() => setActiveTab(t)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  activeTab === t
+                    ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20 font-black'
+                    : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center p-1 bg-white/[0.04] border border-white/[0.08] rounded-xl">
+            {['2024', '2025', '2026'].map(y => (
+              <button
+                key={y}
+                onClick={() => setSelectedYear(y)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  selectedYear === y
+                    ? 'bg-[#00e03c] text-slate-950 font-black'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                {y}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── SECCIÓN SUPERIOR: 3 COLUMNAS ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        {/* COL 1: BALANCE & VAN CARD (3.5 cols) */}
+        <div className="lg:col-span-4 bg-[#081018]/90 border border-cyan-500/20 rounded-3xl p-6 flex flex-col justify-between backdrop-blur-xl shadow-2xl space-y-6">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Balance Total · VAN</span>
+              <span className="w-8 h-8 rounded-full bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center text-cyan-400 text-xs font-bold">
+                <Wallet className="w-4 h-4" />
+              </span>
+            </div>
+            
+            <div>
+              <h3 className="text-3xl font-black text-white tracking-tight">Bs. 124,500</h3>
+              <p className="text-[11px] text-[#00e03c] font-bold flex items-center gap-1 mt-0.5">
+                <ArrowUpRight className="w-3.5 h-3.5" /> Valor Actual Neto (Tasa 12%)
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between pt-2 text-xs border-t border-white/[0.06]">
+              <div>
+                <span className="text-[10px] text-slate-400 block font-bold uppercase">Total Inflow</span>
+                <span className="text-lg font-black text-white">Bs. 24,850</span>
+              </div>
+              <div className="text-right">
+                <span className="text-[10px] text-slate-400 block font-bold uppercase">Budget Load</span>
+                <span className="text-xs font-black text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 rounded-full">
+                  41%
+                </span>
+              </div>
+            </div>
+
+            {/* Sparkline */}
+            <div className="h-20 w-full pt-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={vanSparkline}>
+                  <defs>
+                    <linearGradient id="vanGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#00e03c" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#00e03c" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <Area type="monotone" dataKey="val" stroke="#00e03c" strokeWidth={2.5} fill="url(#vanGrad)" dot={false} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Metas / Goals */}
+          <div className="space-y-3 pt-3 border-t border-white/[0.06]">
+            <div className="flex items-center justify-between text-xs font-bold">
+              <span className="text-slate-300">Goals: Bs. 124.5k / 150k</span>
+              <span className="text-[#00e03c] font-black">83%</span>
+            </div>
+
+            <div className="space-y-2 text-xs">
+              <div>
+                <div className="flex justify-between text-[10px] text-slate-400 mb-1">
+                  <span>Consultoría B2B (EsIA / RAI)</span>
+                  <span className="text-white font-bold">Bs. 9,850 (85%)</span>
+                </div>
+                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-cyan-400 rounded-full" style={{ width: '85%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-[10px] text-slate-400 mb-1">
+                  <span>SERAM Academy & Cursos</span>
+                  <span className="text-white font-bold">Bs. 11,500 (92%)</span>
+                </div>
+                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#00e03c] rounded-full" style={{ width: '92%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-[10px] text-slate-400 mb-1">
+                  <span>Store & Experiencias</span>
+                  <span className="text-white font-bold">Bs. 3,500 (70%)</span>
+                </div>
+                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-purple-500 rounded-full" style={{ width: '70%' }} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* COL 2: INFLOW BAR CHART (5 cols) */}
+        <div className="lg:col-span-5 bg-[#081018]/90 border border-cyan-500/20 rounded-3xl p-6 backdrop-blur-xl shadow-2xl flex flex-col justify-between space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Inflow & Cashflow Projections</span>
+              <h4 className="text-xl font-black text-white tracking-tight">Bs. 24,850 <span className="text-xs text-[#00e03c] font-bold">↑ +12.4%</span></h4>
+            </div>
+
+            <div className="flex items-center p-1 bg-white/[0.04] border border-white/[0.08] rounded-xl text-[11px]">
+              {['Crédito', 'Débito', 'Inflow'].map(f => (
+                <button
+                  key={f}
+                  onClick={() => setInflowFilter(f)}
+                  className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                    inflowFilter === f ? 'bg-cyan-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={cashflowMonthly} margin={{ top: 15, right: 10, left: -15, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} tickFormatter={v => `Bs.${v}k`} />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null;
+                    return (
+                      <div className="bg-[#0b131b]/95 border border-cyan-500/30 rounded-xl px-4 py-2.5 text-xs shadow-2xl backdrop-blur-md">
+                        <p className="font-bold text-slate-300 uppercase tracking-widest mb-1">{label}</p>
+                        <p className="font-black text-[#00e03c]">Inflow: Bs. {(payload[0].value * 1000).toLocaleString()}</p>
+                      </div>
+                    );
+                  }}
+                />
+                <Bar
+                  dataKey="Inflow"
+                  radius={[6, 6, 0, 0]}
+                  shape={(props) => {
+                    const { fill, x, y, width, height, payload } = props;
+                    const isJun = payload.month === 'Jun';
+                    return (
+                      <rect
+                        x={x}
+                        y={y}
+                        width={width}
+                        height={height}
+                        rx={6}
+                        fill={isJun ? '#00e03c' : '#00b4d8'}
+                        fillOpacity={isJun ? 1 : 0.65}
+                        stroke={isJun ? '#00e03c' : 'none'}
+                        className="transition-all hover:opacity-100"
+                      />
+                    );
+                  }}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-white/[0.06]">
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#00b4d8]" /> Promedio Q1: Bs. 16.8k</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#00e03c]" /> Actual Q2: Bs. 24.8k (Pico)</span>
+          </div>
+        </div>
+
+        {/* COL 3: RADAR STRUCTURE (3 cols) */}
+        <div className="lg:col-span-3 bg-[#081018]/90 border border-cyan-500/20 rounded-3xl p-6 backdrop-blur-xl shadow-2xl flex flex-col justify-between space-y-4">
+          <div className="border-b border-white/[0.06] pb-3">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Structure Performance</span>
+            <h4 className="text-base font-extrabold text-white">Análisis Multidimensional</h4>
+          </div>
+
+          <div className="h-60 w-full flex items-center justify-center">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarStructure}>
+                <PolarGrid stroke="rgba(255,255,255,0.08)" />
+                <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 9, fontWeight: 700 }} />
+                <Radar name="SERAM" dataKey="value" stroke="#00e03c" fill="#00e03c" fillOpacity={0.35} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="text-center">
+            <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono">Eficiencia Global: 85.2%</span>
+          </div>
+        </div>
+
+      </div>
+
+      {/* ── SECCIÓN MEDIA: DONUTS & DESGLOSES (EBITDA & TIR) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        {/* DONUT 1: EBITDA & COSTOS (7 cols) */}
+        <div className="lg:col-span-7 bg-[#081018]/90 border border-cyan-500/20 rounded-3xl p-6 backdrop-blur-xl shadow-2xl flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">EBITDA & Margen Operativo</span>
+              <h4 className="text-lg font-black text-white">Distribución de Egresos y Utilidad Operativa</h4>
+            </div>
+            <span className="text-xs font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-3 py-1 rounded-full">
+              35% Margen
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-center">
+            {/* Donut Chart */}
+            <div className="sm:col-span-5 h-52 relative flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={ebitdaBreakdown}
+                    innerRadius={55}
+                    outerRadius={80}
+                    paddingAngle={4}
+                    dataKey="value"
+                  >
+                    {ebitdaBreakdown.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} stroke="#081018" strokeWidth={2} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute flex flex-col items-center justify-center pointer-events-none text-center">
+                <span className="text-xs font-bold text-slate-400">EBITDA</span>
+                <span className="text-lg font-black text-white">Bs. 8,697</span>
+              </div>
+            </div>
+
+            {/* List breakdown */}
+            <div className="sm:col-span-7 space-y-3">
+              {ebitdaBreakdown.map(item => (
+                <div key={item.name} className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span className="flex items-center gap-2 text-slate-300 font-medium">
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                      {item.name}
+                    </span>
+                    <span className="text-white font-bold font-mono">Bs. {item.value.toLocaleString()} ({item.percent}%)</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${item.percent}%`, backgroundColor: item.color }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* DONUT 2: TIR & RENTABILIDAD B2B (5 cols) */}
+        <div className="lg:col-span-5 bg-[#081018]/90 border border-cyan-500/20 rounded-3xl p-6 backdrop-blur-xl shadow-2xl flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">TIR (Tasa Interna de Retorno)</span>
+              <h4 className="text-lg font-black text-white">Rentabilidad del Portafolio B2B</h4>
+            </div>
+            <span className="text-xs font-black text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-3 py-1 rounded-full">
+              TIR: 28.6%
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+            {/* Donut Chart */}
+            <div className="sm:col-span-5 h-48 relative flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Retorno TIR', value: 28.6, color: '#00e03c' },
+                      { name: 'Tasa Oportunidad', value: 12.0, color: '#00b4d8' },
+                      { name: 'Reserva', value: 59.4, color: '#1e293b' },
+                    ]}
+                    innerRadius={50}
+                    outerRadius={72}
+                    paddingAngle={3}
+                    dataKey="value"
+                  >
+                    <Cell fill="#00e03c" stroke="#081018" />
+                    <Cell fill="#00b4d8" stroke="#081018" />
+                    <Cell fill="#1e293b" stroke="#081018" />
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute flex flex-col items-center justify-center pointer-events-none text-center">
+                <span className="text-2xl font-black text-[#00e03c]">28.6%</span>
+                <span className="text-[9px] font-bold text-slate-400 uppercase">Rentabilidad</span>
+              </div>
+            </div>
+
+            {/* KPIs Rápidos */}
+            <div className="sm:col-span-7 space-y-2.5 text-xs">
+              <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-between">
+                <span className="text-slate-400">Payback (Recuperación):</span>
+                <span className="text-white font-bold font-mono">4.2 Meses</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-between">
+                <span className="text-slate-400">Índice Beneficio/Costo:</span>
+                <span className="text-[#00e03c] font-bold font-mono">1.68x</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-between">
+                <span className="text-slate-400">Ratio de Solvencia:</span>
+                <span className="text-cyan-400 font-bold font-mono">2.1x</span>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-[11px] text-slate-400 leading-relaxed border-t border-white/[0.06] pt-2">
+            El rendimiento supera con holgura la tasa de corte bancaria y de oportunidad de mercado (12%), garantizando autosuficiencia de capital para proyectos mineros e industriales.
+          </p>
+        </div>
+
+      </div>
+
+      {/* ── SECCIÓN INFERIOR: BREAK-EVEN & ANNUAL PLANS ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        {/* BREAK-EVEN COMPARISON (8 cols) */}
+        <div className="lg:col-span-8 bg-[#081018]/90 border border-cyan-500/20 rounded-3xl p-6 backdrop-blur-xl shadow-2xl flex flex-col justify-between space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Punto de Equilibrio (Break-Even) vs Ingresos</span>
+              <h4 className="text-lg font-black text-white">Evolución de Ingresos vs Costos Operativos</h4>
+            </div>
+
+            <div className="flex items-center gap-2 text-[10px] font-bold">
+              <span className="px-2.5 py-1 rounded-full bg-[#00e03c]/10 text-[#00e03c] border border-[#00e03c]/20">Ingresos (Bs. 24.8k)</span>
+              <span className="px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">Costos (Bs. 16.1k)</span>
+              <span className="px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Punto Equilibrio (Bs. 12.4k)</span>
+            </div>
+          </div>
+
+          <div className="h-60 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={breakEvenTimeline} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="ingresosGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#00e03c" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#00e03c" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="costosGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} tickFormatter={v => `Bs.${v/1000}k`} />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null;
+                    return (
+                      <div className="bg-[#0b131b]/95 border border-cyan-500/30 rounded-xl px-4 py-3 text-xs shadow-2xl backdrop-blur-md space-y-1">
+                        <p className="font-bold text-slate-300 uppercase tracking-widest">{label}</p>
+                        {payload.map(p => (
+                          <p key={p.name} className="font-bold" style={{ color: p.color }}>
+                            {p.name}: Bs. {p.value.toLocaleString()}
+                          </p>
+                        ))}
+                      </div>
+                    );
+                  }}
+                />
+                <Area type="monotone" dataKey="Ingresos" stroke="#00e03c" strokeWidth={2.5} fill="url(#ingresosGrad)" />
+                <Area type="monotone" dataKey="Costos" stroke="#f43f5e" strokeWidth={2} fill="url(#costosGrad)" />
+                <Line type="monotone" dataKey="Equilibrio" stroke="#38bdf8" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* ANNUAL PLANS (4 cols) */}
+        <div className="lg:col-span-4 bg-[#081018]/90 border border-cyan-500/20 rounded-3xl p-6 backdrop-blur-xl shadow-2xl flex flex-col justify-between space-y-4">
+          <div className="border-b border-white/[0.06] pb-3">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Annual Plans</span>
+            <h4 className="text-lg font-black text-white">Meta vs Ejecutado Real</h4>
+          </div>
+
+          <div className="h-60 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={annualPlans} margin={{ top: 15, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                <XAxis dataKey="year" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} tickFormatter={v => `Bs.${v}k`} />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null;
+                    return (
+                      <div className="bg-[#0b131b]/95 border border-cyan-500/30 rounded-xl px-4 py-2.5 text-xs shadow-2xl backdrop-blur-md">
+                        <p className="font-bold text-slate-300 uppercase tracking-widest mb-1">Año {label}</p>
+                        <p className="text-cyan-400 font-bold">Proyectado: Bs. {payload[0]?.value * 1000}</p>
+                        <p className="text-[#00e03c] font-black">Real: Bs. {payload[1]?.value * 1000}</p>
+                      </div>
+                    );
+                  }}
+                />
+                <Bar dataKey="Projected" fill="#00b4d8" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Actual" fill="#00e03c" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-center">
+            <span className="text-xs font-extrabold text-cyan-300">Cumplimiento Presupuestario: 106.4%</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
   );
 }
 
@@ -1370,12 +1873,124 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers })
   );
 }
 
+// ── INLINE PARTNER LOGIN COMPONENT ─────────────────────────────────────────
+function InlinePartnerLogin({ registeredEngineers, onLogin }) {
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const [pwd, setPwd] = useState('');
+  const [loadingAuth, setLoadingAuth] = useState(false);
+  const navigate = useNavigate();
+
+  const handleAuthSubmit = (e) => {
+    e.preventDefault();
+    setLoadingAuth(true);
+    setTimeout(() => {
+      onLogin(e, pwd, selectedIdx);
+      setLoadingAuth(false);
+    }, 350);
+  };
+
+  return (
+    <div className="min-h-screen neuform-bg flex items-center justify-center p-4 relative z-10">
+      {/* Glows */}
+      <div className="absolute top-1/4 left-1/4 w-80 h-80 rounded-full bg-emerald-500/10 blur-[130px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-[#00e03c]/10 blur-[140px] pointer-events-none" />
+
+      <div className="bg-[#080f08]/98 backdrop-blur-2xl border border-[#1a3a1a]/70 rounded-3xl w-full max-w-md p-8 sm:p-10 shadow-2xl shadow-black/95 relative animate-fadeIn">
+        <div className="text-center mb-6 space-y-3">
+          <div className="flex items-center justify-center mb-2">
+            <div className="bg-[#00e03c]/15 border border-[#00e03c]/40 p-4 rounded-2xl shadow-[0_0_20px_rgba(0,224,60,0.15)] animate-pulse">
+              <Shield className="w-8 h-8 text-[#00e03c]" />
+            </div>
+          </div>
+          <h2 className="text-xl font-black text-white uppercase tracking-tight font-tech">Portal de Socios Directivos</h2>
+          <p className="text-xs text-slate-300 leading-relaxed font-medium">
+            Identifícate para acceder al panel de control integral, proyectos, Time Tracker y finanzas de SERAM S.R.L.
+          </p>
+        </div>
+
+        <form onSubmit={handleAuthSubmit} className="space-y-5">
+          <div className="space-y-2">
+            <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">
+              Selecciona tu Perfil de Socio
+            </label>
+            <div className="grid grid-cols-1 gap-2">
+              {registeredEngineers.map((user, idx) => (
+                <button
+                  key={user.email}
+                  type="button"
+                  onClick={() => setSelectedIdx(idx)}
+                  className={`p-3 rounded-xl border text-left transition-all duration-200 flex items-center gap-3 ${
+                    selectedIdx === idx
+                      ? 'border-[#00e03c] bg-[#00e03c]/15 text-white shadow-md shadow-emerald-950/40'
+                      : 'border-[#1a3a1a] bg-[#05100a]/70 text-slate-300 hover:border-[#00e03c]/40 hover:text-white'
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
+                    selectedIdx === idx ? 'bg-[#00e03c] text-slate-950 font-black' : 'bg-white/[0.08] text-slate-300'
+                  }`}>
+                    {user.name?.replace('Ing. ', '').slice(0, 2).toUpperCase() || 'SO'}
+                  </div>
+                  <div className="truncate">
+                    <p className="text-xs font-bold text-white truncate">{user.name}</p>
+                    <p className="text-[10px] text-emerald-400 font-mono truncate mt-0.5">{user.email}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">
+              Clave Maestra / Firma Directiva
+            </label>
+            <input
+              type="password"
+              required
+              value={pwd}
+              onChange={(e) => setPwd(e.target.value)}
+              placeholder="••••••••"
+              autoFocus
+              className="w-full bg-[#05100a]/80 border border-[#1a3a1a] text-white text-sm px-4 py-3 rounded-xl focus:outline-none focus:border-[#00e03c] transition-colors placeholder:text-slate-600 focus:ring-1 focus:ring-[#00e03c]/40 font-mono"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loadingAuth}
+            className="w-full bg-[#00e03c] text-slate-950 py-3 rounded-xl font-black uppercase tracking-wider text-xs hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+          >
+            {loadingAuth ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" /> Verificando...
+              </>
+            ) : (
+              <>
+                <Lock className="w-4 h-4" /> Desbloquear Dashboard
+              </>
+            )}
+          </button>
+
+          <div className="text-center pt-2">
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              className="text-xs text-slate-500 hover:text-slate-300 transition-colors underline"
+            >
+              ← Volver al Inicio Público
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // MAIN COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
 export default function PartnerDashboard() {
   const {
-    activeRole, currentSocio, handleLogoutPartner,
+    activeRole, currentSocio, handleLogoutPartner, handlePartnerLogin,
     registeredUsers, courses, activeServices, experiences, productList,
     timeLogs, handleAddTimeLog, handleDeleteTimeLog,
     handleAddCourse, handleUpdateCourse, handleDeleteCourse, handleToggleCoursePremium,
@@ -1394,22 +2009,41 @@ export default function PartnerDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState(null);
+  const mainRef = React.useRef(null);
+
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [activeModule]);
 
   useEffect(() => {
     let mounted = true;
     async function fetchMetrics() {
       try {
-        const { data, error } = await supabase.from('company_metrics').select('*').limit(1);
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500));
+        const fetchPromise = supabase.from('company_metrics').select('*').limit(1);
+        const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
         if (!error && data?.length > 0 && mounted) setMetrics(data[0]);
-      } catch (_) {}
-      finally { setTimeout(() => { if (mounted) setLoading(false); }, 600); }
+      } catch (_) {
+        // Fallback inmediato a métricas locales
+      } finally {
+        if (mounted) setLoading(false);
+      }
     }
     if (activeRole === 'AdminMod') fetchMetrics();
     else setLoading(false);
     return () => { mounted = false; };
   }, [activeRole]);
 
-  const registeredEngineers = registeredUsers.filter(u => u.role === 'AdminMod' || u.name.startsWith('Ing.'));
+  const registeredEngineers = (registeredUsers || []).filter(u => u.role === 'AdminMod' || u.name?.startsWith('Ing.'));
+  const safeEngineers = registeredEngineers.length > 0 ? registeredEngineers : [
+    { email: 'barrientoso2401@gmail.com', role: 'AdminMod', name: 'Ing. Diego Barrientos', isPremiumApproved: true },
+    { email: 'fernandoaraujo1912@gmail.com', role: 'AdminMod', name: 'Ing. Fernando Araujo', isPremiumApproved: true },
+    { email: 'sebastiansbs51@gmail.com', role: 'AdminMod', name: 'Ing. Fabricio Orosco', isPremiumApproved: true },
+  ];
+
+  const activeSocio = currentSocio || safeEngineers[0] || { name: 'Socio Directivo', email: 'socio@seram.com' };
 
   const handlers = {
     handleAddCourse, handleUpdateCourse, handleDeleteCourse, handleToggleCoursePremium,
@@ -1427,7 +2061,7 @@ export default function PartnerDashboard() {
   const kpis = [
     { label: 'Ingresos Totales', value: metrics?.total_revenue ? `Bs. ${metrics.total_revenue.toLocaleString()}` : 'Bs. 24,850', unit: '', trend: metrics?.revenue_trend || '↑ +12.4% este mes', icon: <DollarSign className="w-5 h-5" />, color: 'bg-[#00e03c]/10 text-[#00e03c] border border-[#00e03c]/20' },
     { label: 'Alumnos Directos', value: metrics?.total_students ? metrics.total_students.toString() : '143', unit: '', trend: '↑ +18 desde abril', icon: <BookOpenCheck className="w-5 h-5" />, color: 'bg-blue-500/10 text-blue-400 border border-blue-500/20' },
-    { label: 'Proyectos Activos', value: activeServices.filter(p => p.progress < 100).length.toString(), unit: '', trend: `${activeServices.filter(p => p.progress === 100).length} Completados`, icon: <Briefcase className="w-5 h-5" />, color: 'bg-purple-500/10 text-purple-400 border border-purple-500/20' },
+    { label: 'Proyectos Activos', value: (activeServices || []).filter(p => (p.progress || 0) < 100).length.toString(), unit: '', trend: `${(activeServices || []).filter(p => (p.progress || 0) === 100).length} Completados`, icon: <Briefcase className="w-5 h-5" />, color: 'bg-purple-500/10 text-purple-400 border border-purple-500/20' },
     { label: 'CO₂ Compensado', value: metrics?.co2_compensated ? metrics.co2_compensated.toLocaleString() : '1,240', unit: 'Tons', trend: 'Meta: 1,500T anuales', icon: <Leaf className="w-5 h-5" />, color: 'bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/30' },
   ];
 
@@ -1444,10 +2078,12 @@ export default function PartnerDashboard() {
     );
   }
 
-  if (activeRole !== 'AdminMod') return <Navigate to="/" replace />;
+  if (activeRole !== 'AdminMod') {
+    return <InlinePartnerLogin registeredEngineers={safeEngineers} onLogin={handlePartnerLogin} />;
+  }
 
   return (
-    <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit" className="min-h-screen neuform-bg text-slate-100 flex relative z-10">
+    <div className="min-h-screen neuform-bg text-slate-100 flex relative z-10">
 
       {/* ── SIDEBAR ───────────────────────────────────────────────────── */}
       <motion.aside
@@ -1475,7 +2111,7 @@ export default function PartnerDashboard() {
           {sidebarOpen && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="px-4 py-3 border-b border-white/[0.06]">
               <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Conectado como</p>
-              <p className="text-xs font-extrabold text-[#00e03c] mt-0.5 truncate">{currentSocio?.name}</p>
+              <p className="text-xs font-extrabold text-[#00e03c] mt-0.5 truncate">{activeSocio?.name}</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -1514,8 +2150,8 @@ export default function PartnerDashboard() {
       </motion.aside>
 
       {/* ── MAIN CONTENT ─────────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="px-6 py-8 max-w-7xl mx-auto space-y-8">
+      <main ref={mainRef} className="flex-1 overflow-y-auto">
+        <div className="px-6 py-8 pt-20 max-w-7xl mx-auto space-y-8">
 
           {/* Page Header */}
           <div className="flex items-center justify-between">
@@ -1524,7 +2160,7 @@ export default function PartnerDashboard() {
                 {SIDEBAR_MODULES.find(m => m.id === activeModule)?.label}
               </h1>
               <p className="text-xs text-slate-500 mt-1 font-medium">
-                Panel Directivo SERAM · Bienvenido, <span className="text-[#00e03c] font-bold">{currentSocio?.name}</span>
+                Panel Directivo SERAM · Bienvenido, <span className="text-[#00e03c] font-bold">{activeSocio?.name}</span>
               </p>
             </div>
             <span className="text-[9px] font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-3 py-1.5 rounded-full uppercase tracking-widest flex items-center gap-1.5">
@@ -1532,21 +2168,19 @@ export default function PartnerDashboard() {
             </span>
           </div>
 
-          {/* Module Content */}
-          <AnimatePresence mode="wait">
-            <motion.div key={activeModule} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }}>
-              {activeModule === 'overview'    && <OverviewModule kpis={kpis} metrics={metrics} />}
-              {activeModule === 'services'    && <ServicesModule activeServices={activeServices} registeredEngineers={registeredEngineers} handlers={handlers} publicServices={publicServices} specialists={specialists} />}
-              {activeModule === 'timetracker' && <TimeTrackerModule timeLogs={timeLogs || []} activeServices={activeServices} currentSocio={currentSocio} handlers={handlers} />}
-              {activeModule === 'academy'     && <AcademyModule courses={courses} registeredEngineers={registeredEngineers} handlers={handlers} />}
-              {activeModule === 'experience'  && <ExperienceModule experiences={experiences} handlers={handlers} />}
-              {activeModule === 'store'       && <StoreModule productList={productList || []} handlers={handlers} />}
-              {activeModule === 'users'       && <UsersModule registeredUsers={registeredUsers} handlers={handlers} />}
-              {activeModule === 'finances'    && <FinancesModule />}
-            </motion.div>
-          </AnimatePresence>
+          {/* Module Content — Permanente al 100% sin desvanecimiento */}
+          <div key={activeModule} className="opacity-100 visible space-y-8">
+            {activeModule === 'overview'    && <OverviewModule kpis={kpis} metrics={metrics} />}
+            {activeModule === 'services'    && <ServicesModule activeServices={activeServices || []} registeredEngineers={safeEngineers} handlers={handlers} publicServices={publicServices || []} specialists={specialists || []} />}
+            {activeModule === 'timetracker' && <TimeTrackerModule timeLogs={timeLogs || []} activeServices={activeServices || []} currentSocio={activeSocio} handlers={handlers} />}
+            {activeModule === 'academy'     && <AcademyModule courses={courses || []} registeredEngineers={safeEngineers} handlers={handlers} />}
+            {activeModule === 'experience'  && <ExperienceModule experiences={experiences || []} handlers={handlers} />}
+            {activeModule === 'store'       && <StoreModule productList={productList || []} handlers={handlers} />}
+            {activeModule === 'users'       && <UsersModule registeredUsers={registeredUsers || []} handlers={handlers} />}
+            {activeModule === 'finances'    && <FinancesModule />}
+          </div>
         </div>
       </main>
-    </motion.div>
+    </div>
   );
 }
