@@ -1,9 +1,17 @@
 {
   "version": "1.0",
   "project": "SERAM",
-  "last_updated": "2026-08-11",
+  "last_updated": "2026-09-22",
   "tasks": [],
   "completed": [
+    {
+      "id": "TASK-029",
+      "title": "Actualizar carimbo institucional SERAM en ArcGIS Pro y exportar plano de la expedición Valle de las Agujas a PDF",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-09-22",
+      "completed_at": "2026-09-22"
+    },
     {
       "id": "TASK-028",
       "title": "Cambiar el desplazamiento del apartado ACADEMY de sentido horizontal a sentido vertical al hacer scroll",
@@ -230,6 +238,6 @@
     }
   ],
   "in_progress": [],
-  "notes": "Tarjeta SIG y ChatbotFAB actualizados: nuevo copy orientado a conversión (Plan SIG + Curso SIG Básico), CTA secundario SIG en mayúsculas, negrita y blanco con flecha animada hacia el texto, indicador DESLIZA centrado fuera de la tarjeta, y ChatbotFAB v2 reubicado y completamente interactivo."
+  "notes": "Actualización cartográfica del Valle de las Agujas: carimbo institucional SERAM, macro localización de La Paz y exportación final a PDF completada."
 }
 
