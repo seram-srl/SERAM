@@ -1,9 +1,26 @@
 {
   "version": "1.0",
   "project": "SERAM",
-  "last_updated": "2026-09-22",
+  "last_updated": "2026-09-28",
   "tasks": [],
+  "in_progress": [
+    {
+      "id": "TASK-031",
+      "title": "Implementar módulo de Propuestas Técnicas Municipales y Líneas Base Socioambientales lideradas por Ing. Diego Barrientos en Dashboard de SERAM",
+      "status": "in_progress",
+      "assigned_to": "Implementador",
+      "started_at": "2026-09-28"
+    }
+  ],
   "completed": [
+    {
+      "id": "TASK-030",
+      "title": "Corregir saltos y solapamiento entre secciones Services, Academy y Experience en HomePage mediante arquitectura en bloques aislados",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-09-28",
+      "completed_at": "2026-09-28"
+    },
     {
       "id": "TASK-029",
       "title": "Actualizar carimbo institucional SERAM en ArcGIS Pro y exportar plano de la expedición Valle de las Agujas a PDF",
@@ -237,7 +254,6 @@
       "completed_at": "2026-07-29"
     }
   ],
-  "in_progress": [],
   "notes": "Actualización cartográfica del Valle de las Agujas: carimbo institucional SERAM, macro localización de La Paz y exportación final a PDF completada."
 }
 

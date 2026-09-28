@@ -399,10 +399,7 @@ function ServicesHorizontalSection() {
         scrub: 0.5,
         pin: pinEl,
         pinSpacing: true,
-        anticipatePin: 1,
         invalidateOnRefresh: true,
-        preventOverlaps: true,
-        fastScrollEnd: true,
       },
     });
 
@@ -839,21 +836,7 @@ function AcademyVerticalSection() {
         scrub: 0.5,
         pin: pinEl,
         pinSpacing: true,
-        anticipatePin: 1,
         invalidateOnRefresh: true,
-        preventOverlaps: true,
-        fastScrollEnd: true,
-        onUpdate: (self) => {
-          if (videoEl) {
-            // Acelerar dinámicamente la velocidad de reproducción del video según el scroll del usuario
-            const velocity = Math.abs(self.getVelocity());
-            const targetSpeed = 1.0 + Math.min(velocity / 400, 1.5); // Rango de velocidad: 1.0x a 2.5x
-            // Evitar llamadas de actualización continuas e innecesarias para optimizar rendimiento de renderizado y decodificación
-            if (Math.abs(videoEl.playbackRate - targetSpeed) > 0.15) {
-              videoEl.playbackRate = targetSpeed;
-            }
-          }
-        },
       },
     });
 
@@ -881,7 +864,7 @@ function AcademyVerticalSection() {
 
   return (
     <div ref={triggerRef} className="relative w-full z-10">
-      <div ref={pinRef} className="relative w-full h-screen overflow-hidden bg-transparent">
+      <div ref={pinRef} className="relative w-full h-screen overflow-hidden bg-[#070e0b]">
         
         {/* Fondo de Video y Capas de Atenuación */}
         <div className="absolute inset-0 w-full h-full z-0 pointer-events-none">
@@ -1124,10 +1107,7 @@ function StoreHorizontalSection() {
         scrub: 0.5,
         pin: pinEl,
         pinSpacing: true,
-        anticipatePin: 1,
         invalidateOnRefresh: true,
-        preventOverlaps: true,
-        fastScrollEnd: true,
       },
     });
 
@@ -1307,6 +1287,15 @@ export default function HomePage() {
   // Ref compartido con EnvironmentalCanvas — el canvas lee este valor en su propio
   // scroll listener interno (InteractiveScene), así evitamos listeners duplicados.
   const hProgressRef = useRef(0);
+
+  // Sincronización y refresco de ScrollTrigger para asegurar que todos los bloques
+  // calculen sus offsets con precisión tras el montaje completo del DOM
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 150);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="relative w-full min-h-screen neuform-bg text-slate-100 overflow-x-clip">
