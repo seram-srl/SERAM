@@ -76,11 +76,223 @@ export function AppProvider({ children }) {
     { id: 4, title: 'Mentoría VIP: Consultoría y *Gestión de Proyectos Ambientales*', instructor: 'Ing. Fabricio Orosco', students: 12, status: 'Activo', isPremium: true, type: 'high_ticket', price: 450, image: '/assets/covers/cover_mentoria_consultoria.png', duration: '1 mes (1-on-1)', desc: 'Mentoría de élite 1-a-1 para el diseño técnico y defensa legal de licencias ambientales mineras e industriales.' }
   ]);
 
-  // --- PROJECTS ---
+  // --- PROJECTS (Incluye Proyectos B2B y Propuestas Técnicas Municipales) ---
   const [activeServices, setActiveServices] = useState([
-    { id: 101, client: 'Minera Los Andes', type: 'Estudio de Impacto Ambiental (EsIA)', progress: 85, lead: 'Ing. Diego Barrientos', startDate: '2026-01-15', endDate: '2026-08-30', involved: ['Ing. Fabricio Orosco'], budget: 25000, labCosts: 3000, subcontractorCosts: 4000, taxRegime: 'Régimen General' },
-    { id: 102, client: 'EcoIndustrial S.A.', type: 'Auditoría de Gestión de Residuos', progress: 40, lead: 'Ing. Fabricio Orosco', startDate: '2026-03-01', endDate: '2026-12-15', involved: ['Ing. Fernando Araujo'], budget: 15000, labCosts: 1000, subcontractorCosts: 2000, taxRegime: 'Régimen General' },
-    { id: 103, client: 'Municipio Metropolitano', type: 'Plan de Ordenamiento Territorial', progress: 100, lead: 'Ing. Fernando Araujo', startDate: '2025-10-01', endDate: '2026-05-30', involved: ['Ing. Diego Barrientos'], budget: 35000, labCosts: 5000, subcontractorCosts: 6000, taxRegime: 'Régimen General' },
+    { id: 101, client: 'Minera Los Andes', type: 'Estudio de Impacto Ambiental (EsIA)', progress: 85, lead: 'Ing. Diego Barrientos', startDate: '2026-01-15', endDate: '2026-08-30', involved: ['Ing. Fabricio Orosco'], budget: 25000, labCosts: 3000, subcontractorCosts: 4000, taxRegime: 'Régimen General', tag: 'B2B Privado', isProposal: false },
+    { id: 102, client: 'EcoIndustrial S.A.', type: 'Auditoría de Gestión de Residuos', progress: 40, lead: 'Ing. Fabricio Orosco', startDate: '2026-03-01', endDate: '2026-12-15', involved: ['Ing. Fernando Araujo'], budget: 15000, labCosts: 1000, subcontractorCosts: 2000, taxRegime: 'Régimen General', tag: 'B2B Privado', isProposal: false },
+    { id: 103, client: 'Municipio Metropolitano', type: 'Plan de Ordenamiento Territorial', progress: 100, lead: 'Ing. Fernando Araujo', startDate: '2025-10-01', endDate: '2026-05-30', involved: ['Ing. Diego Barrientos'], budget: 35000, labCosts: 5000, subcontractorCosts: 6000, taxRegime: 'Régimen General', tag: 'Público', isProposal: false },
+    {
+      id: 104,
+      client: 'G.A.M. Guanay / Mapiri / Palos Blancos',
+      type: 'Línea Base: Monitoreo Hidrogeoquímico de Mercurio (Hg) y Fuentes de Agua por Minería Aurífera',
+      progress: 25,
+      lead: 'Ing. Diego Barrientos',
+      startDate: '2026-06-01',
+      endDate: '2026-09-30',
+      involved: ['Ing. Diego Barrientos', 'Ing. Fabricio Orosco'],
+      budget: 85000,
+      labCosts: 18000,
+      subcontractorCosts: 12000,
+      taxRegime: 'Régimen General',
+      isProposal: true,
+      tag: 'Propuesta',
+      proposalId: 'prop-mun-01'
+    },
+    {
+      id: 105,
+      client: 'G.A.M. Caranavi / Alto Beni / Palos Blancos',
+      type: 'EDTP: Diseño y Optimización de Redes de Riego Tecnificado Comunitario',
+      progress: 20,
+      lead: 'Ing. Diego Barrientos',
+      startDate: '2026-06-15',
+      endDate: '2026-09-15',
+      involved: ['Ing. Diego Barrientos', 'Ing. Fernando Araujo'],
+      budget: 68000,
+      labCosts: 8000,
+      subcontractorCosts: 10000,
+      taxRegime: 'Régimen SIETE (5%)',
+      isProposal: true,
+      tag: 'Propuesta',
+      proposalId: 'prop-mun-02'
+    },
+    {
+      id: 106,
+      client: 'G.A.M. Alto Beni / San Buenaventura',
+      type: 'Plan de Manejo Integrado de Microcuencas (PMIC) y Zonas de Recarga Hídrica',
+      progress: 15,
+      lead: 'Ing. Diego Barrientos',
+      startDate: '2026-07-01',
+      endDate: '2026-10-31',
+      involved: ['Ing. Diego Barrientos', 'Ing. Fabricio Orosco'],
+      budget: 95000,
+      labCosts: 12000,
+      subcontractorCosts: 15000,
+      taxRegime: 'Régimen General',
+      isProposal: true,
+      tag: 'Propuesta',
+      proposalId: 'prop-mun-03'
+    },
+    {
+      id: 107,
+      client: 'G.A.M. Palos Blancos / Ixiamas',
+      type: 'Monitoreo Agroambiental Satelital y Teledetección Multiespectral de Parcelas',
+      progress: 30,
+      lead: 'Ing. Diego Barrientos',
+      startDate: '2026-06-20',
+      endDate: '2026-09-10',
+      involved: ['Ing. Diego Barrientos'],
+      budget: 52000,
+      labCosts: 4000,
+      subcontractorCosts: 6000,
+      taxRegime: 'Régimen SIETE (5%)',
+      isProposal: true,
+      tag: 'Propuesta',
+      proposalId: 'prop-mun-04'
+    }
+  ]);
+
+  // --- MUNICIPAL PROPOSALS (Líneas Base & Proyectos para Concejales Municipales) ---
+  const [municipalProposals, setMunicipalProposals] = useState([
+    {
+      id: 'prop-mun-01',
+      title: 'Línea Base y Monitoreo Hidrogeoquímico de Contaminación por Mercurio (Hg) en Fuentes de Agua y Cuencas Auríferas',
+      shortTitle: 'Monitoreo de Mercurio & Minería Aurífera',
+      axis: 'mercurio',
+      axisLabel: 'Mercurio & Minería Aurífera',
+      targetMunicipalities: ['Guanay', 'Mapiri', 'Palos Blancos', 'Teoponte'],
+      lead: 'Ing. Diego Barrientos',
+      leadRole: 'Especialista SIG & Monitoreo Ambiental - SERAM',
+      problem: 'Dispersión crítica de mercurio metálico y metilmercurio derivado de la explotación de oro aluvial en los ríos Kaka, Mapiri y afluentes del Río Beni. Afectación directa a tomas de agua potable comunales, pueblos indígenas ribereños (Tsimane, Mosetén, Leco) y bioacumulación en especies ictiológicas de consumo diario.',
+      legalFramework: [
+        'Ley 1333 de Medio Ambiente (Reglamento en Materia de Contaminación Hídrica - RMCH)',
+        'Convenio de Minamata sobre el Mercurio (Ratificado mediante Ley 759)',
+        'Ley 535 de Minería y Metalurgia (Atribuciones de Fiscalización y Resguardo Ambiental Municipal)',
+        'Decreto Supremo 4959 (Control y Registro Único de Importación y Uso de Mercurio en Bolivia)'
+      ],
+      methodology: 'Establecimiento de red georreferenciada de estaciones de muestreo en puntos críticos (cabeceras, frentes de dragado y tomas comunales de agua). Medición multiparamétrica in-situ (pH, conductividad eléctrica, turbidez, oxígeno disuelto). Ensayos de laboratorio acreditado para cuantificación de mercurio total en agua superficial y sedimentos de lecho mediante Espectrometría de Absorción Atómica (AAS con Generador de Hidruros / Vapor Frío). Modelación geoespacial de plumas de dispersión y vulnerabilidad de tomas en ArcGIS Pro.',
+      deliverables: [
+        'Informe Técnico de Línea Base Hidrogeoquímica con validez pericial ante el Concejo Municipal',
+        'Geodatabase y Mapa de Isolíneas de Concentración de Hg y Zonas de Alto Riesgo a escala 1:25.000',
+        'Protocolo Municipal de Alerta Temprana y Guía de Fiscalización para Inspecciones In-Situ',
+        'Anteproyecto de Ordenanza / Ley Municipal de Protección de Fuentes de Agua y Servidumbres Ecológicas'
+      ],
+      budget: 68000,
+      currency: 'Bs.',
+      duration: '90 días calendario',
+      status: 'Propuesta en Formulación',
+      priority: 'Alta Prioridad',
+      phases: [
+        { name: 'Fase 1: Diagnóstico Cartográfico y Red de Muestreo', duration: '20 días' },
+        { name: 'Fase 2: Campaña de Campo y Toma de Muestras (AAS)', duration: '25 días' },
+        { name: 'Fase 3: Análisis de Laboratorio y Modelación SIG', duration: '25 días' },
+        { name: 'Fase 4: Formulación Normativa y Presentación a Concejo', duration: '20 días' }
+      ]
+    },
+    {
+      id: 'prop-mun-02',
+      title: 'Estudio de Diseño Técnico de Preinversión (EDTP) para Sistemas de Riego Tecnificado y Resiliencia Comunitaria',
+      shortTitle: 'Sistemas de Riego Tecnificado',
+      axis: 'riego',
+      axisLabel: 'Riego Tecnificado & Seguridad Hídrica',
+      targetMunicipalities: ['Palos Blancos', 'Caranavi', 'Alto Beni'],
+      lead: 'Ing. Diego Barrientos',
+      leadRole: 'Especialista en Hidráulica & Recursos Hídricos - SERAM',
+      problem: 'Pérdidas recurrentes de hasta el 55% en cosechas de cítricos, cacao y café por sequías estacionales prolongadas. Ineficiencia crítica de los sistemas tradicionales por gravedad o inundación (<30% de eficiencia), sumado a crecientes conflictos comunales por distribución de caudales de vertientes durante el estiaje.',
+      legalFramework: [
+        'Ley 2878 de Promoción y Apoyo al Sector Riego para la Producción Agropecuaria y Forestal',
+        'Guía de Elaboración de Proyectos de Riego Tecnificado del MMAyA (PRONAR / SENARI)',
+        'Ley 071 de Derechos de la Madre Tierra (Protección del Ciclo del Agua)',
+        'Ley 482 de Gobiernos Autónomos Municipales (Competencias Exclusivas en Micro Riego)'
+      ],
+      methodology: 'Aforos hidrométricos continuos en época de estiaje y balance oferta-demanda hídrica según requerimiento hídrico de cultivos (FAO CROPWAT). Relevamiento topográfico con estación total y drones fotogramétricos (Modelos Digitales de Terreno con curvas a 1 m). Modelación y dimensionamiento hidráulico en EPANET de obras de toma tirolesa, desarenadores, desripiadores, tanques de almacenamiento y red de distribución presurizada para aspersión y microgoteo. Talleres de fortalecimiento institucional para la Asociación de Regantes Comunal.',
+      deliverables: [
+        'Carpeta técnica completa a nivel EDTP lista para licitación y postulación a fondos VIPFE / FNDR / FPS',
+        'Planos constructivos de ingeniería de detalle georreferenciados (AutoCAD / Civil 3D)',
+        'Memoria de cálculo hidráulico, presupuesto general, cómputos métricos y análisis de precios unitarios (APUs)',
+        'Reglamento Interno y Estatuto Comunitario de Operación, Mantenimiento y Turnos de Distribución'
+      ],
+      budget: 85000,
+      currency: 'Bs.',
+      duration: '120 días calendario',
+      status: 'Propuesta en Formulación',
+      priority: 'Alta Prioridad',
+      phases: [
+        { name: 'Fase 1: Topografía Dron, Aforos y Censo de Usuarios', duration: '30 días' },
+        { name: 'Fase 2: Diseño Hidráulico y Agronómico en EPANET', duration: '35 días' },
+        { name: 'Fase 3: Cómputos Métricos, Presupuestos y Pliegos', duration: '30 días' },
+        { name: 'Fase 4: Validación Comunal y Aprobación en Concejo', duration: '25 días' }
+      ]
+    },
+    {
+      id: 'prop-mun-03',
+      title: 'Plan de Manejo Integrado de Cuencas (PMIC) y Ordenamiento Territorial para Protección de Cabeceras Hídricas',
+      shortTitle: 'Manejo Integrado de Cuencas (PMIC)',
+      axis: 'cuencas',
+      axisLabel: 'Manejo de Cuencas & Ordenamiento',
+      targetMunicipalities: ['Mancomunidad de Municipios del Norte de La Paz', 'Caranavi', 'Guanay', 'Palos Blancos'],
+      lead: 'Ing. Diego Barrientos',
+      leadRole: 'Especialista SIG & Planificación de Cuencas - SERAM',
+      problem: 'Acelerada deforestación de laderas y cabeceras de cuenca por chaqueos y apertura desordenada de caminos, ocasionando severa erosión laminar, deslizamientos masa en temporada de lluvias, turbidez extrema en captaciones e inundaciones que destruyen plataformas viales y puentes municipales.',
+      legalFramework: [
+        'Ley 1333 de Medio Ambiente (Título IV de los Recursos Hídricos y Protección de Suelos)',
+        'Plan Nacional de Cuencas (PNC - Viceministerio de Recursos Hídricos y Riego)',
+        'Ley 300 Marco de la Madre Tierra y Desarrollo Integral para Vivir Bien',
+        'Decreto Supremo 24782 (Reglamento General de Áreas Protegidas y Servidumbres Ecológicas)'
+      ],
+      methodology: 'Delimitación hidrográfica automática con Modelos Digitales de Elevación ALOS PALSAR (12.5 m) y Copernicus DEM (30 m). Caracterización geomorfológica, hidroclimatológica y de capacidad de uso mayor de la tierra en ArcGIS Pro / QGIS. Modelación de pérdida de suelo mediante la Ecuación Universal de Pérdida de Suelo Revisada (RUSLE). Talleres de diagnóstico socioambiental participativo con centrales agrarias y comunidades de cuenca alta, media y baja. Delimitación de fajas de protección y servidumbres ecológicas ribereñas.',
+      deliverables: [
+        'Documento Oficial del PMIC estructurado para su promulgación mediante Ley Municipal Autonómica',
+        'Geodatabase ArcGIS con Zonificación Ambiental, Aptitud de Suelos y Mapa de Riesgos Hidrológicos',
+        'Cartera priorizada de proyectos de inversión (zanjas de infiltración, bioingeniería y reforestación de riberas)',
+        'Acta de conformación y reglamento de funcionamiento del Comité de Gestión de Cuenca Intercomunal'
+      ],
+      budget: 95000,
+      currency: 'Bs.',
+      duration: '150 días calendario',
+      status: 'Propuesta en Formulación',
+      priority: 'Media-Alta',
+      phases: [
+        { name: 'Fase 1: Diagnóstico Físico-Biológico y Morfometría SIG', duration: '35 días' },
+        { name: 'Fase 2: Diagnóstico Socioeconómico y Talleres Comunales', duration: '40 días' },
+        { name: 'Fase 3: Zonificación Hidroambiental y Cartera de Proyectos', duration: '45 días' },
+        { name: 'Fase 4: Redacción de Ley Municipal y Defensa en Concejo', duration: '30 días' }
+      ]
+    },
+    {
+      id: 'prop-mun-04',
+      title: 'Auditoría Territorial y Teledetección Multitemporal de Lotes Agrícolas, Estrés Hídrico y Frontera Forestal',
+      shortTitle: 'Teledetección & Catastro Agrícola',
+      axis: 'teledeteccion',
+      axisLabel: 'Teledetección & Monitoreo Agrícola',
+      targetMunicipalities: ['Palos Blancos', 'Alto Beni', 'Caranavi'],
+      lead: 'Ing. Diego Barrientos',
+      leadRole: 'Especialista en Teledetección y Sensores Remotos - SERAM',
+      problem: 'Inexistencia de un catastro rural georreferenciado y actualizado a nivel municipal. Dificultad para fiscalizar desmontes no autorizados, descontrol en el avance sobre reservas forestales y ausencia de monitoreo preventivo de estrés hídrico, sanidad vegetal y pérdidas de rendimiento en parcelas agrícolas comunales.',
+      legalFramework: [
+        'Ley 1700 Forestal (Disposiciones sobre Desmontes, Quemas y Tierras de Protección)',
+        'Ley 1333 de Medio Ambiente (Control y Fiscalización Ambiental)',
+        'Ley 482 de Gobiernos Autónomos Municipales (Uso de Suelo Rural y Ordenamiento Catastral)',
+        'Normativas y Directrices Técnicas de la Autoridad de Fiscalización y Control Social de Bosques y Tierra (ABT)'
+      ],
+      methodology: 'Descarga y preprocesamiento radiométrico/atmosférico de constelaciones satelitales ópticas (Sentinel-2 MSI y Landsat 8/9). Análisis de series de tiempo para estimación de índices biofísicos: NDVI (vigor fotosintético), NDWI (contenido de agua en hoja), SAVI (ajuste por suelo descubierto) y NDMI (estrés hídrico). Aplicación de clasificadores de aprendizaje automático (Random Forest) para mapeo multitemporal de cambio de uso y cobertura (LULC 2020-2026). Relevamiento aéreo con drones en sectores piloto para georreferenciación de linderos a resolución centimétrica.',
+      deliverables: [
+        'Visor SIG Web Municipal interactivo con capas de parcelas, estado de cultivos y alertas de chaqueo',
+        'Atlas temático municipal de aptitud de uso del suelo, estrés hídrico y vigor agrícola (PDF y Geodatabase)',
+        'Informe multitemporal de detección de quemas, deforestación y avance de frontera agrícola 2020-2026',
+        'Base de datos georreferenciada de predios agrícolas para fortalecimiento del catastro y recaudación municipal'
+      ],
+      budget: 52000,
+      currency: 'Bs.',
+      duration: '60 días calendario',
+      status: 'Propuesta en Formulación',
+      priority: 'Alta Prioridad',
+      phases: [
+        { name: 'Fase 1: Adquisición Satelital y Calibración Radiométrica', duration: '15 días' },
+        { name: 'Fase 2: Procesamiento de Índices (NDVI, NDWI) y LULC', duration: '20 días' },
+        { name: 'Fase 3: Validación de Campo y Vuelos de Dron', duration: '15 días' },
+        { name: 'Fase 4: Montaje del Visor SIG y Entrega a Concejales', duration: '10 días' }
+      ]
+    }
   ]);
 
   // --- DINAMIC SERVICES IN PUBLIC SITE ---
@@ -255,11 +467,83 @@ export function AppProvider({ children }) {
     { id: 203, name: 'Taller de Lombricultura Urbana', date: '2026-07-20', location: 'La Paz, Bolivia', capacity: 25, enrolled: 25, price: 80, type: 'Taller', status: 'Lleno' },
   ]);
 
-  // --- TIME LOGS (intranet tracker) ---
+  // --- TIME LOGS (intranet tracker de trabajo realizado) ---
   const [timeLogs, setTimeLogs] = useState([
-    { id: 1, partner_id: 'barrientoso2401@gmail.com', partner_name: 'Ing. Diego Barrientos', project_id: 101, project_title: 'Minera Los Andes', hours: 4.5, description: 'Revisión y corrección del EsIA - Minera Los Andes', logged_at: '2026-06-23T14:30:00Z' },
-    { id: 2, partner_id: 'fernandoaraujo1912@gmail.com', partner_name: 'Ing. Fernando Araujo', project_id: 102, project_title: 'EcoIndustrial S.A.', hours: 6.0, description: 'Auditoría in-situ y muestreo de suelos', logged_at: '2026-06-24T09:00:00Z' },
+    { id: 1, partner_id: 'barrientoso2401@gmail.com', partner_name: 'Ing. Diego Barrientos', project_id: 104, project_title: 'G.A.M. Guanay / Mapiri (Mercurio)', hours: 5.5, description: 'Estructuración de línea base hidrogeoquímica para Concejo Municipal, protocolo de muestreo de mercurio y marco Ley 1333 / Minamata.', logged_at: '2026-09-28T16:20:00Z' },
+    { id: 2, partner_id: 'barrientoso2401@gmail.com', partner_name: 'Ing. Diego Barrientos', project_id: 105, project_title: 'G.A.M. Caranavi / Alto Beni (Riego)', hours: 4.0, description: 'Dimensionamiento preliminar de red de riego tecnificado y balance hídrico con CROPWAT para concejales.', logged_at: '2026-09-28T14:10:00Z' },
+    { id: 3, partner_id: 'barrientoso2401@gmail.com', partner_name: 'Ing. Diego Barrientos', project_id: 101, project_title: 'Minera Los Andes', hours: 4.5, description: 'Revisión y corrección del EsIA - Minera Los Andes', logged_at: '2026-09-27T14:30:00Z' },
+    { id: 4, partner_id: 'fernandoaraujo1912@gmail.com', partner_name: 'Ing. Fernando Araujo', project_id: 103, project_title: 'Municipio Metropolitano', hours: 6.0, description: 'Revisión técnica de cartografía y ordenamiento territorial municipal', logged_at: '2026-09-28T11:15:00Z' },
+    { id: 5, partner_id: 'sebastiansbs51@gmail.com', partner_name: 'Ing. Fabricio Orosco', project_id: 102, project_title: 'EcoIndustrial S.A.', hours: 5.0, description: 'Auditoría in-situ, muestreo de suelos y verificación de almacenamiento de residuos', logged_at: '2026-09-28T09:40:00Z' },
   ]);
+
+  // --- REAL-TIME PARTNERS PRESENCE & SESSION TRACKING ---
+  const [partnerPresences, setPartnerPresences] = useState(() => {
+    try {
+      const saved = localStorage.getItem('seram_partners_presence');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone/i.test(navigator.userAgent);
+    return {
+      'barrientoso2401@gmail.com': {
+        name: 'Ing. Diego Barrientos',
+        role: 'Socio Fundador · Especialista SIG & Hidráulica',
+        isOnline: true,
+        lastLogin: new Date().toISOString(),
+        sessionStart: Date.now() - 34 * 60 * 1000,
+        device: isMobile ? 'Dispositivo Móvil (Android)' : 'Escritorio (Web)',
+        location: 'La Paz, Bolivia',
+        activeTask: 'Formulación y Presentación de Propuestas Socioambientales para Concejales Municipales'
+      },
+      'fernandoaraujo1912@gmail.com': {
+        name: 'Ing. Fernando Araujo',
+        role: 'Socio Fundador · Especialista Ambiental & Legal',
+        isOnline: false,
+        lastLogin: new Date(Date.now() - 48 * 60 * 1000).toISOString(),
+        sessionStart: null,
+        device: 'Escritorio (Web)',
+        location: 'Santa Cruz, Bolivia',
+        activeTask: 'Plan de Ordenamiento Territorial y Trámites RMCH'
+      },
+      'sebastiansbs51@gmail.com': {
+        name: 'Ing. Fabricio Orosco',
+        role: 'Socio Fundador · Especialista Residuos & Auditoría',
+        isOnline: false,
+        lastLogin: new Date(Date.now() - 125 * 60 * 1000).toISOString(),
+        sessionStart: null,
+        device: 'Dispositivo Móvil',
+        location: 'La Paz, Bolivia',
+        activeTask: 'Auditoría de Gestión de Residuos EcoIndustrial S.A.'
+      }
+    };
+  });
+
+  // Mantener actualizado el estado del socio en sesión activa
+  useEffect(() => {
+    if (activeRole === 'AdminMod') {
+      const email = currentSocio?.email || 'barrientoso2401@gmail.com';
+      const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone/i.test(navigator.userAgent);
+      setPartnerPresences(prev => {
+        const entry = prev[email] || {};
+        const updated = {
+          ...prev,
+          [email]: {
+            ...entry,
+            name: currentSocio?.name || entry.name || 'Socio Directivo',
+            role: entry.role || 'Socio Fundador Directivo',
+            isOnline: true,
+            lastLogin: entry.lastLogin || new Date().toISOString(),
+            sessionStart: entry.sessionStart || Date.now(),
+            device: isMobile ? 'Dispositivo Móvil (Android)' : 'Escritorio (Web)',
+            location: entry.location || 'Bolivia'
+          }
+        };
+        try {
+          localStorage.setItem('seram_partners_presence', JSON.stringify(updated));
+        } catch (_) {}
+        return updated;
+      });
+    }
+  }, [activeRole, currentSocio]);
 
   // --- PRODUCTS (mutable) ---
   const [productList, setProductList] = useState([
@@ -1136,6 +1420,26 @@ export function AppProvider({ children }) {
     };
 
     setTimeLogs(prev => [newLog, ...prev]);
+    // Actualizar actividad reciente en la presencia del socio
+    setPartnerPresences(prev => {
+      const entry = prev[partnerId] || {};
+      const updated = {
+        ...prev,
+        [partnerId]: {
+          ...entry,
+          lastWork: {
+            project: proj.client || proj.title || 'Proyecto',
+            hours: parseFloat(hours),
+            description,
+            loggedAt: newLog.logged_at
+          }
+        }
+      };
+      try {
+        localStorage.setItem('seram_partners_presence', JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
     triggerToast('Horas registradas exitosamente', 'success');
 
     try {
@@ -1168,6 +1472,63 @@ export function AppProvider({ children }) {
     }
   };
 
+  // --- MUNICIPAL PROPOSALS HANDLERS ---
+  const handleAddMunicipalProposal = (newProposal) => {
+    const newId = `prop-mun-${Date.now()}`;
+    const proposal = {
+      id: newId,
+      lead: newProposal.lead || 'Ing. Diego Barrientos',
+      leadRole: newProposal.leadRole || 'Especialista SIG & Consultoría Ambiental - SERAM',
+      currency: 'Bs.',
+      status: newProposal.status || 'Propuesta en Formulación',
+      priority: newProposal.priority || 'Alta Prioridad',
+      phases: newProposal.phases || [],
+      ...newProposal
+    };
+    setMunicipalProposals(prev => [proposal, ...prev]);
+
+    // Vincular directamente como proyecto en el Monitor de Proyectos con etiqueta Propuesta
+    setActiveServices(prev => [
+      ...prev,
+      {
+        id: Date.now(),
+        client: (proposal.targetMunicipalities || []).join(' / ') || 'Gobierno Autónomo Municipal',
+        type: proposal.title || proposal.shortTitle || 'Propuesta Técnica Municipal',
+        progress: 15,
+        lead: proposal.lead || 'Ing. Diego Barrientos',
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        involved: [proposal.lead || 'Ing. Diego Barrientos'],
+        budget: parseFloat(proposal.budget) || 50000,
+        labCosts: Math.round((parseFloat(proposal.budget) || 50000) * 0.15),
+        subcontractorCosts: Math.round((parseFloat(proposal.budget) || 50000) * 0.15),
+        taxRegime: 'Régimen General',
+        isProposal: true,
+        tag: 'Propuesta',
+        proposalId: newId
+      }
+    ]);
+
+    triggerToast('Propuesta municipal registrada y agregada a Proyectos', 'success');
+  };
+
+  const handleEditMunicipalProposal = (id, updatedFields) => {
+    setMunicipalProposals(prev => prev.map(p => p.id === id ? { ...p, ...updatedFields } : p));
+    setActiveServices(prev => prev.map(p => p.proposalId === id ? {
+      ...p,
+      client: updatedFields.targetMunicipalities ? updatedFields.targetMunicipalities.join(' / ') : p.client,
+      type: updatedFields.title || updatedFields.shortTitle || p.type,
+      budget: updatedFields.budget ? parseFloat(updatedFields.budget) : p.budget
+    } : p));
+    triggerToast('Propuesta municipal actualizada', 'success');
+  };
+
+  const handleDeleteMunicipalProposal = (id) => {
+    setMunicipalProposals(prev => prev.filter(p => p.id !== id));
+    setActiveServices(prev => prev.filter(p => p.proposalId !== id));
+    triggerToast('Propuesta municipal eliminada', 'info');
+  };
+
   // --- GLOBAL CHATBOT TRIGGER ---
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const [chatbotStartStep, setChatbotStartStep] = useState(null);
@@ -1196,8 +1557,10 @@ export function AppProvider({ children }) {
       cart, showCart, setShowCart,
       // Data
       products: productList, productList, courses, setCourses, activeServices, setActiveServices,
+      municipalProposals, setMunicipalProposals,
       experiences, setExperiences,
       timeLogs, setTimeLogs,
+      partnerPresences, setPartnerPresences,
       publicServices, setPublicServices, specialists, setSpecialists,
       // Academy progress
       completedLessons, courseExamsApproved, courseAssignments,
@@ -1215,6 +1578,7 @@ export function AppProvider({ children }) {
       handleAddCourse, handleUpdateCourse, handleDeleteCourse, handleToggleCoursePremium,
       handleAddProject, handleUpdateProjectProgress, handleDeleteProject,
       handleEditProject, handleConcludeProject,
+      handleAddMunicipalProposal, handleEditMunicipalProposal, handleDeleteMunicipalProposal,
       handleToggleUserPremium, handleRevokeUserAccess, handleLogoutPartner,
       // Experience handlers
       handleAddExperience, handleEditExperience, handleDeleteExperience, handleEnrollExperience,

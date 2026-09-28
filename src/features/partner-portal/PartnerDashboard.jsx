@@ -8,7 +8,8 @@ import {
   Globe, Users, ChevronLeft, ChevronRight, Settings,
   MapPin, UserCheck, Package, Star, AlertCircle, Lock,
   Wallet, Target, Layers, ArrowUpRight, ArrowDownRight, Percent,
-  PieChart as LucidePie, Activity, CreditCard
+  PieChart as LucidePie, Activity, CreditCard, Building2,
+  FileText, Smartphone, Laptop, Radio, Wifi
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
@@ -18,6 +19,8 @@ import {
 } from 'recharts';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../services/supabaseClient';
+import MunicipalProposalsView, { MunicipalProposalModal } from './MunicipalProposalsView';
+import VirtualOfficeView from './VirtualOfficeView';
 
 // ── ANIMATION VARIANTS ─────────────────────────────────────────────────────
 const pageVariants = {
@@ -34,6 +37,7 @@ const stagger = { animate: { transition: { staggerChildren: 0.07 } } };
 // ── SIDEBAR CONFIG ─────────────────────────────────────────────────────────
 const SIDEBAR_MODULES = [
   { id: 'overview',    icon: <BarChart2 className="w-5 h-5" />,    label: 'Resumen General' },
+  { id: 'office',      icon: <Building2 className="w-5 h-5" />,    label: 'Oficina Virtual · Metaverso' },
   { id: 'services',   icon: <Briefcase className="w-5 h-5" />,    label: 'SERAM SERVICES' },
   { id: 'timetracker', icon: <Clock className="w-5 h-5" />,        label: 'Time Tracker' },
   { id: 'academy',    icon: <BookOpenCheck className="w-5 h-5" />, label: 'Gestión de Info-productos y Oferta Académica' },
@@ -87,11 +91,11 @@ const GlassCard = ({ children, className = '' }) => (
 // ─────────────────────────────────────────────────────────────────────────────
 // MODULE: OVERVIEW
 // ─────────────────────────────────────────────────────────────────────────────
-function OverviewModule({ kpis, metrics }) {
+function OverviewModule({ kpis, metrics, partnerPresences, timeLogs, onNavigate, activeServices, currentSocio }) {
   return (
     <div className="space-y-8">
       {/* KPI Cards — Visibles Permanentemente al 100% */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         {kpis.map((kpi) => (
           <div
             key={kpi.label}
@@ -112,6 +116,145 @@ function OverviewModule({ kpis, metrics }) {
           </div>
         ))}
       </div>
+
+      {/* ── VENTANA PRINCIPAL DE LA OFICINA VIRTUAL / METAVERSO SERAM ── */}
+      <div className="space-y-3">
+        <VirtualOfficeView
+          activeServices={activeServices || []}
+          timeLogs={timeLogs || []}
+          partnerPresences={partnerPresences || []}
+          currentSocio={currentSocio}
+          onNavigateModule={onNavigate}
+        />
+      </div>
+
+      {/* ── EQUIPO DIRECTIVO: CONEXIÓN Y TRABAJO EN TIEMPO REAL ── */}
+      <GlassCard className="p-5 sm:p-6 space-y-4 border-emerald-500/20">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/[0.06] pb-3 gap-2">
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00e03c] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-[#00e03c]"></span>
+            </span>
+            <div>
+              <h3 className="font-extrabold text-white text-sm tracking-tight flex items-center gap-2">
+                Conexión y Trabajo en Tiempo Real del Equipo de Socios
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                Seguimiento de sesión activa, dispositivos y últimas actividades técnicas realizadas
+              </p>
+            </div>
+          </div>
+          <span className="text-[9px] font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1.5 self-start sm:self-auto">
+            <Radio className="w-3 h-3 text-[#00e03c] animate-pulse" /> Intranet en Vivo
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {Object.entries(partnerPresences || {}).map(([email, p]) => {
+            const partnerLogs = (timeLogs || []).filter(l => l.partner_id === email || l.partner_name === p.name);
+            const totalHours = partnerLogs.reduce((acc, curr) => acc + (curr.hours || 0), 0);
+            const latestLog = partnerLogs[0] || (p.lastWork ? {
+              project_title: p.lastWork.project,
+              description: p.lastWork.description,
+              hours: p.lastWork.hours,
+              logged_at: p.lastWork.loggedAt
+            } : null);
+
+            const initials = p.name ? p.name.replace('Ing. ', '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'SO';
+            const isOnline = p.isOnline;
+
+            return (
+              <div
+                key={email}
+                className={`bg-white/[0.02] border rounded-2xl p-4 space-y-3 transition-all ${
+                  isOnline
+                    ? 'border-[#00e03c]/35 shadow-lg shadow-[#00e03c]/5'
+                    : 'border-white/[0.06] hover:border-white/[0.12]'
+                }`}
+              >
+                {/* Header socio */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className={`relative w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs shrink-0 ${
+                      isOnline
+                        ? 'bg-[#00e03c]/15 text-[#00e03c] border border-[#00e03c]/30 ring-2 ring-[#00e03c]/20'
+                        : 'bg-white/[0.05] text-slate-400 border border-white/[0.10]'
+                    }`}>
+                      {initials}
+                      {isOnline && (
+                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#00e03c] rounded-full border-2 border-[#0c131f] animate-pulse" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-extrabold text-white text-xs leading-tight">{p.name}</p>
+                      <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">{p.role}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Connection Status & Device */}
+                <div className="space-y-1.5 pt-1 border-t border-white/[0.04]">
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="text-slate-400">Estado de Conexión:</span>
+                    {isOnline ? (
+                      <span className="inline-flex items-center gap-1 font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-2 py-0.5 rounded-full text-[9px]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#00e03c] animate-ping" /> En línea ahora
+                      </span>
+                    ) : (
+                      <span className="text-slate-400 font-semibold bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.06] text-[9px]">
+                        {new Date(p.lastLogin).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-slate-400">
+                    <span>Dispositivo:</span>
+                    <span className="text-slate-200 font-semibold flex items-center gap-1">
+                      {p.device?.includes('Móvil') ? <Smartphone className="w-3 h-3 text-[#00e03c]" /> : <Laptop className="w-3 h-3 text-blue-400" />}
+                      {p.device || 'Escritorio'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="text-slate-400">Horas Acumuladas:</span>
+                    <span className="font-black text-[#00e03c] bg-[#00e03c]/10 px-2 py-0.5 rounded-full border border-[#00e03c]/20">
+                      {totalHours.toFixed(1)} hrs
+                    </span>
+                  </div>
+                </div>
+
+                {/* Trabajo Realizado Reciente */}
+                <div className="bg-black/30 border border-white/[0.06] rounded-xl p-3 space-y-1.5">
+                  <div className="flex items-center justify-between text-[9px] text-slate-400 uppercase font-black">
+                    <span className="flex items-center gap-1 text-amber-300">
+                      <Clock className="w-2.5 h-2.5" /> Trabajo Reciente
+                    </span>
+                    {latestLog?.hours && (
+                      <span className="font-mono text-[9px] text-[#00e03c]">
+                        +{latestLog.hours}h
+                      </span>
+                    )}
+                  </div>
+                  {latestLog ? (
+                    <div>
+                      <p className="font-bold text-white text-[11px] leading-tight line-clamp-1">
+                        {latestLog.project_title || 'Proyecto'}
+                      </p>
+                      <p className="text-[10px] text-slate-300 mt-1 line-clamp-2 leading-relaxed">
+                        {latestLog.description}
+                      </p>
+                      <span className="text-[8px] text-slate-500 font-mono block mt-1">
+                        {new Date(latestLog.logged_at).toLocaleDateString([], { day: '2-digit', month: 'short' })} · {new Date(latestLog.logged_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="text-[10px] text-slate-500 italic">Sin registros de trabajo recientes.</p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </GlassCard>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -212,13 +355,15 @@ function OverviewModule({ kpis, metrics }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // MODULE: SERVICES
 // ─────────────────────────────────────────────────────────────────────────────
-function ServicesModule({ activeServices, registeredEngineers, handlers, publicServices, specialists }) {
+function ServicesModule({ activeServices, registeredEngineers, handlers, publicServices, specialists, municipalProposals = [] }) {
   const { handleAddProject, handleUpdateProjectProgress, handleDeleteProject,
           handleEditProject, handleConcludeProject, triggerToast,
           handleAddPublicService, handleEditPublicService, handleDeletePublicService,
           handleAddSpecialist, handleEditSpecialist, handleDeleteSpecialist } = handlers;
 
-  const [subModule, setSubModule] = useState('projects'); // 'projects', 'catalog', 'specialists'
+  const [subModule, setSubModule] = useState('projects'); // 'projects', 'municipal', 'catalog', 'specialists'
+  const [projectFilter, setProjectFilter] = useState('all'); // 'all', 'active', 'proposals'
+  const [selectedProposalForModal, setSelectedProposalForModal] = useState(null);
 
   const [newProjClient, setNewProjClient] = useState('');
   const [newProjType, setNewProjType] = useState('');
@@ -234,6 +379,13 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
 
   const [editingId, setEditingId] = useState(null);
   const [editState, setEditState] = useState({});
+
+  const displayedServices = activeServices.filter(p => {
+    const isProp = p.isProposal || p.tag === 'Propuesta';
+    if (projectFilter === 'proposals') return isProp;
+    if (projectFilter === 'active') return !isProp;
+    return true;
+  });
 
   const startEdit = (p) => {
     setEditingId(p.id);
@@ -265,12 +417,22 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
   return (
     <div className="space-y-6">
       {/* Sub tabs navigation */}
-      <div className="flex border-b border-white/[0.06] mb-4">
+      <div className="flex flex-wrap border-b border-white/[0.06] mb-4 gap-1">
         <button
           onClick={() => setSubModule('projects')}
           className={`px-4 py-2 text-xs font-bold transition-all ${subModule === 'projects' ? 'text-[#00e03c] border-b-2 border-[#00e03c]' : 'text-slate-400 hover:text-white'}`}
         >
           Monitor de Proyectos
+        </button>
+        <button
+          onClick={() => setSubModule('municipal')}
+          className={`px-4 py-2 text-xs font-bold transition-all flex items-center gap-1.5 ${subModule === 'municipal' ? 'text-[#00e03c] border-b-2 border-[#00e03c]' : 'text-slate-400 hover:text-white'}`}
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          Propuestas Concejales & Municipios
+          <span className="text-[10px] bg-[#00e03c]/20 text-[#00e03c] px-1.5 py-0.5 rounded-full font-black ml-1">
+            {(municipalProposals || []).length}
+          </span>
         </button>
         <button
           onClick={() => setSubModule('catalog')}
@@ -287,12 +449,59 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
       </div>
 
       {subModule === 'projects' && (
-        <div className="space-y-8">
+        <div className="space-y-6">
+          {/* Quick Filter Tabs for Proyectos vs Propuestas */}
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-white/[0.02] border border-white/[0.06] p-3 rounded-2xl">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                onClick={() => setProjectFilter('all')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  projectFilter === 'all'
+                    ? 'bg-[#00e03c] text-slate-950 font-black shadow-md shadow-[#00e03c]/20'
+                    : 'bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06]'
+                }`}
+              >
+                Todos ({activeServices.length})
+              </button>
+              <button
+                onClick={() => setProjectFilter('active')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  projectFilter === 'active'
+                    ? 'bg-blue-500 text-white font-black shadow-md shadow-blue-500/20'
+                    : 'bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06]'
+                }`}
+              >
+                Proyectos B2B ({activeServices.filter(p => !p.isProposal && p.tag !== 'Propuesta').length})
+              </button>
+              <button
+                onClick={() => setProjectFilter('proposals')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  projectFilter === 'proposals'
+                    ? 'bg-amber-400 text-slate-950 font-black shadow-md shadow-amber-400/20'
+                    : 'bg-amber-400/10 text-amber-300 hover:bg-amber-400/20 border border-amber-400/30'
+                }`}
+              >
+                <FileText className="w-3.5 h-3.5" />
+                Propuestas ({activeServices.filter(p => p.isProposal || p.tag === 'Propuesta').length})
+              </button>
+            </div>
+
+            <div className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
+              <Shield className="w-3.5 h-3.5 text-[#00e03c]" />
+              <span>Propuestas asignadas a: <strong className="text-white font-bold">Ing. Diego Barrientos</strong></span>
+            </div>
+          </div>
+
           {/* Time Progress Table */}
           <GlassCard className="p-6 space-y-4">
-            <div className="flex items-center gap-2 border-b border-white/[0.06] pb-3">
-              <Clock className="w-4 h-4 text-blue-400" />
-              <h3 className="font-extrabold text-white text-sm">Monitor Financiero y Avance de Proyectos</h3>
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-blue-400" />
+                <h3 className="font-extrabold text-white text-sm">Monitor Financiero y Avance de Proyectos</h3>
+              </div>
+              <span className="text-[10px] text-slate-400 font-mono">
+                {displayedServices.length} registros visualizados
+              </span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
@@ -304,19 +513,47 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.04]">
-                  {activeServices.map((p) => {
+                  {displayedServices.map((p) => {
+                    const isProp = p.isProposal || p.tag === 'Propuesta';
                     const tp = calculateTimeProgress(p.startDate, p.endDate);
                     const done = p.progress >= 100;
-                    const late = !done && p.progress < tp;
-                    const badge = done ? 'bg-slate-700 text-slate-300' : late ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse' : 'bg-[#00e03c]/10 text-[#00e03c] border border-[#00e03c]/20';
-                    const status = done ? 'Concluido' : late ? 'Retrasado' : 'Al Día';
+                    const late = !done && !isProp && p.progress < tp;
+                    const badge = isProp
+                      ? 'bg-amber-400/15 text-amber-300 border border-amber-400/30'
+                      : done
+                        ? 'bg-slate-700 text-slate-300'
+                        : late
+                          ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse'
+                          : 'bg-[#00e03c]/10 text-[#00e03c] border border-[#00e03c]/20';
+                    const status = isProp ? 'Propuesta Activa' : done ? 'Concluido' : late ? 'Retrasado' : 'Al Día';
                     return (
                       <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
                         <td className="p-3">
-                          <p className="font-extrabold text-white">{p.client}</p>
-                          <p className="text-[10px] text-slate-500">{p.type}</p>
+                          <div className="flex items-center gap-1.5 mb-1">
+                            {isProp ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-400/15 border border-amber-400/30 text-amber-300">
+                                <FileText className="w-2.5 h-2.5" /> Propuesta
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-blue-500/10 border border-blue-500/20 text-blue-400">
+                                <Briefcase className="w-2.5 h-2.5" /> {p.tag || 'Proyecto B2B'}
+                              </span>
+                            )}
+                          </div>
+                          <p className="font-extrabold text-white text-xs leading-snug">{p.client}</p>
+                          <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-2">{p.type}</p>
                         </td>
-                        <td className="p-3 text-slate-300 font-medium">{p.lead}</td>
+                        <td className="p-3">
+                          <p className="text-white font-black text-xs flex items-center gap-1">
+                            {isProp && <span className="w-1.5 h-1.5 rounded-full bg-[#00e03c] animate-pulse" />}
+                            {p.lead}
+                          </p>
+                          {isProp && (
+                            <span className="text-[9px] text-[#00e03c] font-semibold uppercase tracking-wider block mt-0.5">
+                              Proponente Técnico
+                            </span>
+                          )}
+                        </td>
                         <td className="p-3">
                           {(() => {
                             const { taxes, UN, margin } = calculateFinancials(p);
@@ -352,7 +589,32 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
                         </td>
                         <td className="p-3"><span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase ${badge}`}>{status}</span></td>
                         <td className="p-3">
-                          <div className="flex gap-1">
+                          <div className="flex gap-1 items-center flex-wrap">
+                            {isProp && (
+                              <button
+                                onClick={() => {
+                                  const matched = municipalProposals.find(mp => mp.id === p.proposalId) || {
+                                    title: p.type,
+                                    axis: 'mercurio',
+                                    targetMunicipalities: [p.client],
+                                    lead: p.lead || 'Ing. Diego Barrientos',
+                                    leadRole: 'Especialista SIG & Consultoría Ambiental - SERAM',
+                                    problem: 'Diagnóstico técnico socioambiental formulado para su presentación formal ante el Concejo Municipal.',
+                                    legalFramework: ['Ley 1333 de Medio Ambiente (RMCH)', 'Convenio de Minamata', 'Ley 535 de Minería'],
+                                    methodology: 'Monitoreo pericial mediante muestreo multiparamétrico in-situ y ensayos de laboratorio acreditado.',
+                                    deliverables: ['Informe Pericial para Concejo Municipal', 'Cartografía y Geodatabase SIG 1:25.000', 'Anteproyecto de Ley Municipal'],
+                                    budget: p.budget,
+                                    duration: '90 días'
+                                  };
+                                  setSelectedProposalForModal(matched);
+                                }}
+                                className="px-2.5 py-1.5 bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/40 text-amber-300 rounded-lg text-[10px] font-black flex items-center gap-1 transition-all"
+                                title="Ver Ficha Técnica para Concejos"
+                              >
+                                <FileText className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Ficha</span>
+                              </button>
+                            )}
                             <button onClick={() => startEdit(p)} className="p-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
                             {!done && <button onClick={() => handleConcludeProject(p.id)} className="p-1.5 bg-[#00e03c]/10 border border-[#00e03c]/20 text-[#00e03c] hover:bg-[#00e03c]/20 rounded-lg transition-colors text-[9px] font-black px-2">✓</button>}
                             {!done && <button onClick={() => { handleUpdateProjectProgress(p.id); triggerToast(`${p.client} +10%`, 'success'); }} className="p-1.5 bg-white/[0.04] border border-white/[0.08] text-slate-300 hover:bg-white/[0.08] rounded-lg transition-colors text-[9px] font-black px-2">+10%</button>}
@@ -429,6 +691,14 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
         </div>
       )}
 
+      {subModule === 'municipal' && (
+        <MunicipalProposalsView
+          proposals={municipalProposals}
+          handlers={handlers}
+          registeredEngineers={registeredEngineers}
+        />
+      )}
+
       {subModule === 'catalog' && (
         <CatalogManager publicServices={publicServices} handlers={{ handleAddPublicService, handleEditPublicService, handleDeletePublicService }} />
       )}
@@ -436,6 +706,16 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
       {subModule === 'specialists' && (
         <SpecialistManager specialists={specialists} handlers={{ handleAddSpecialist, handleEditSpecialist, handleDeleteSpecialist }} />
       )}
+
+      {/* Modal Ficha Técnica Directo desde Monitor de Proyectos */}
+      <AnimatePresence>
+        {selectedProposalForModal && (
+          <MunicipalProposalModal
+            proposal={selectedProposalForModal}
+            onClose={() => setSelectedProposalForModal(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -1043,7 +1323,7 @@ function StoreModule({ productList, handlers }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // MODULE: USERS
 // ─────────────────────────────────────────────────────────────────────────────
-function UsersModule({ registeredUsers, handlers }) {
+function UsersModule({ registeredUsers, handlers, partnerPresences }) {
   const { handleToggleUserPremium, handleRevokeUserAccess, triggerToast } = handlers;
   return (
     <GlassCard className="p-6 space-y-4">
@@ -1066,7 +1346,23 @@ function UsersModule({ registeredUsers, handlers }) {
                 <tr key={u.email} className="hover:bg-white/[0.02] transition-colors">
                   <td className="p-3 flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-[10px] shrink-0 ${isAdmin ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-[#00e03c]/10 text-[#00e03c] border border-[#00e03c]/20'}`}>{initials || 'U'}</div>
-                    <div><p className="font-extrabold text-white">{u.name}</p><p className="text-[9px] text-slate-500 uppercase tracking-widest">{isAdmin ? 'Socio Fundador' : 'Cliente'}</p></div>
+                    <div>
+                      <p className="font-extrabold text-white">{u.name}</p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <p className="text-[9px] text-slate-500 uppercase tracking-widest">{isAdmin ? 'Socio Fundador' : 'Cliente'}</p>
+                        {isAdmin && (
+                          partnerPresences?.[u.email]?.isOnline ? (
+                            <span className="inline-flex items-center gap-1 text-[8px] font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-1.5 py-0.5 rounded-full">
+                              <span className="w-1 h-1 rounded-full bg-[#00e03c] animate-ping" /> En línea
+                            </span>
+                          ) : (
+                            <span className="text-[8px] text-slate-400 bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/[0.06]">
+                              Últ. conexión: {partnerPresences?.[u.email]?.lastLogin ? new Date(partnerPresences[u.email].lastLogin).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Hoy'}
+                            </span>
+                          )
+                        )}
+                      </div>
+                    </div>
                   </td>
                   <td className="p-3 text-slate-400 font-mono">{u.email}</td>
                   <td className="p-3"><span className={`px-2 py-1 rounded-full text-[9px] font-bold border ${isAdmin ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-[#00e03c]/10 border-[#00e03c]/20 text-[#00e03c]'}`}>{u.role}</span></td>
@@ -1734,9 +2030,12 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers })
                 value={selectedProjectId}
                 onChange={e => setSelectedProjectId(e.target.value)}
               >
-                <option value="" disabled>Selecciona un proyecto</option>
+                <option value="" disabled>Selecciona un proyecto o propuesta</option>
                 {activeServices.map(p => (
-                  <option key={p.id} value={p.id}>{p.client} — {p.type.slice(0, 30)}...</option>
+                  <option key={p.id} value={p.id}>
+                    {p.isProposal || p.tag === 'Propuesta' ? '📋 [PROPUESTA] ' : '💼 '}
+                    {p.client} — {p.type.slice(0, 32)}...
+                  </option>
                 ))}
               </select>
             </div>
@@ -1992,7 +2291,9 @@ export default function PartnerDashboard() {
   const {
     activeRole, currentSocio, handleLogoutPartner, handlePartnerLogin,
     registeredUsers, courses, activeServices, experiences, productList,
+    municipalProposals, handleAddMunicipalProposal, handleEditMunicipalProposal, handleDeleteMunicipalProposal,
     timeLogs, handleAddTimeLog, handleDeleteTimeLog,
+    partnerPresences,
     handleAddCourse, handleUpdateCourse, handleDeleteCourse, handleToggleCoursePremium,
     handleAddProject, handleUpdateProjectProgress, handleDeleteProject,
     handleEditProject, handleConcludeProject,
@@ -2049,6 +2350,7 @@ export default function PartnerDashboard() {
     handleAddCourse, handleUpdateCourse, handleDeleteCourse, handleToggleCoursePremium,
     handleAddProject, handleUpdateProjectProgress, handleDeleteProject,
     handleEditProject, handleConcludeProject,
+    handleAddMunicipalProposal, handleEditMunicipalProposal, handleDeleteMunicipalProposal,
     handleToggleUserPremium, handleRevokeUserAccess,
     handleAddExperience, handleEditExperience, handleDeleteExperience, handleEnrollExperience,
     handleAddProduct, handleEditProduct, handleDeleteProduct, handleToggleProductPremium,
@@ -2062,6 +2364,7 @@ export default function PartnerDashboard() {
     { label: 'Ingresos Totales', value: metrics?.total_revenue ? `Bs. ${metrics.total_revenue.toLocaleString()}` : 'Bs. 24,850', unit: '', trend: metrics?.revenue_trend || '↑ +12.4% este mes', icon: <DollarSign className="w-5 h-5" />, color: 'bg-[#00e03c]/10 text-[#00e03c] border border-[#00e03c]/20' },
     { label: 'Alumnos Directos', value: metrics?.total_students ? metrics.total_students.toString() : '143', unit: '', trend: '↑ +18 desde abril', icon: <BookOpenCheck className="w-5 h-5" />, color: 'bg-blue-500/10 text-blue-400 border border-blue-500/20' },
     { label: 'Proyectos Activos', value: (activeServices || []).filter(p => (p.progress || 0) < 100).length.toString(), unit: '', trend: `${(activeServices || []).filter(p => (p.progress || 0) === 100).length} Completados`, icon: <Briefcase className="w-5 h-5" />, color: 'bg-purple-500/10 text-purple-400 border border-purple-500/20' },
+    { label: 'Propuestas Municipales', value: (municipalProposals || []).length.toString(), unit: 'Líneas Base', trend: 'Líder: Ing. Diego Barrientos', icon: <Building2 className="w-5 h-5" />, color: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' },
     { label: 'CO₂ Compensado', value: metrics?.co2_compensated ? metrics.co2_compensated.toLocaleString() : '1,240', unit: 'Tons', trend: 'Meta: 1,500T anuales', icon: <Leaf className="w-5 h-5" />, color: 'bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/30' },
   ];
 
@@ -2154,7 +2457,7 @@ export default function PartnerDashboard() {
         <div className="px-6 py-8 pt-20 max-w-7xl mx-auto space-y-8">
 
           {/* Page Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h1 className="text-2xl font-black text-white tracking-tight">
                 {SIDEBAR_MODULES.find(m => m.id === activeModule)?.label}
@@ -2163,20 +2466,28 @@ export default function PartnerDashboard() {
                 Panel Directivo SERAM · Bienvenido, <span className="text-[#00e03c] font-bold">{activeSocio?.name}</span>
               </p>
             </div>
-            <span className="text-[9px] font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-3 py-1.5 rounded-full uppercase tracking-widest flex items-center gap-1.5">
-              <Shield className="w-3 h-3 animate-pulse" /> Socio Directivo
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[9px] font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-3 py-1.5 rounded-full uppercase tracking-widest flex items-center gap-1.5 shadow-sm shadow-[#00e03c]/5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#00e03c] animate-ping" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#00e03c]" />
+                En Línea · Tiempo Real
+              </span>
+              <span className="text-[9px] font-black text-amber-400 bg-amber-400/10 border border-amber-400/20 px-3 py-1.5 rounded-full uppercase tracking-widest flex items-center gap-1.5">
+                <Shield className="w-3 h-3" /> Socio Directivo
+              </span>
+            </div>
           </div>
 
           {/* Module Content — Permanente al 100% sin desvanecimiento */}
           <div key={activeModule} className="opacity-100 visible space-y-8">
-            {activeModule === 'overview'    && <OverviewModule kpis={kpis} metrics={metrics} />}
-            {activeModule === 'services'    && <ServicesModule activeServices={activeServices || []} registeredEngineers={safeEngineers} handlers={handlers} publicServices={publicServices || []} specialists={specialists || []} />}
+            {activeModule === 'overview'    && <OverviewModule kpis={kpis} metrics={metrics} partnerPresences={partnerPresences} timeLogs={timeLogs || []} onNavigate={setActiveModule} activeServices={activeServices || []} currentSocio={activeSocio} />}
+            {activeModule === 'office'      && <VirtualOfficeView activeServices={activeServices || []} timeLogs={timeLogs || []} partnerPresences={partnerPresences || []} currentSocio={activeSocio} onNavigateModule={setActiveModule} />}
+            {activeModule === 'services'    && <ServicesModule activeServices={activeServices || []} registeredEngineers={safeEngineers} handlers={handlers} publicServices={publicServices || []} specialists={specialists || []} municipalProposals={municipalProposals || []} />}
             {activeModule === 'timetracker' && <TimeTrackerModule timeLogs={timeLogs || []} activeServices={activeServices || []} currentSocio={activeSocio} handlers={handlers} />}
             {activeModule === 'academy'     && <AcademyModule courses={courses || []} registeredEngineers={safeEngineers} handlers={handlers} />}
             {activeModule === 'experience'  && <ExperienceModule experiences={experiences || []} handlers={handlers} />}
             {activeModule === 'store'       && <StoreModule productList={productList || []} handlers={handlers} />}
-            {activeModule === 'users'       && <UsersModule registeredUsers={registeredUsers || []} handlers={handlers} />}
+            {activeModule === 'users'       && <UsersModule registeredUsers={registeredUsers || []} handlers={handlers} partnerPresences={partnerPresences} />}
             {activeModule === 'finances'    && <FinancesModule />}
           </div>
         </div>

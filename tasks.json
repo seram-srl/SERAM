@@ -3,16 +3,32 @@
   "project": "SERAM",
   "last_updated": "2026-09-28",
   "tasks": [],
-  "in_progress": [
+  "in_progress": [],
+  "completed": [
+    {
+      "id": "TASK-033",
+      "title": "Implementar Oficina Virtual / Metaverso SERAM en Dashboard con distribución de pisos isométrica 2.5D, avatares de socios y bots, sistema meritocrático de ganancias por horas y meta diaria de 4.5h optimizado para mobile y pantalla completa",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-09-28",
+      "completed_at": "2026-09-28"
+    },
+    {
+      "id": "TASK-032",
+      "title": "Integrar propuestas técnicas como proyectos etiquetados 'Propuesta' liderados por Ing. Diego Barrientos en Monitor de Proyectos y conectar sistema en tiempo real de inicio de sesión, presencia y trabajo realizado por cada socio",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-09-28",
+      "completed_at": "2026-09-28"
+    },
     {
       "id": "TASK-031",
       "title": "Implementar módulo de Propuestas Técnicas Municipales y Líneas Base Socioambientales lideradas por Ing. Diego Barrientos en Dashboard de SERAM",
-      "status": "in_progress",
+      "status": "completed",
       "assigned_to": "Implementador",
-      "started_at": "2026-09-28"
-    }
-  ],
-  "completed": [
+      "started_at": "2026-09-28",
+      "completed_at": "2026-09-28"
+    },
     {
       "id": "TASK-030",
       "title": "Corregir saltos y solapamiento entre secciones Services, Academy y Experience en HomePage mediante arquitectura en bloques aislados",
