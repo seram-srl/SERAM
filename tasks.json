@@ -6,6 +6,14 @@
   "in_progress": [],
   "completed": [
     {
+      "id": "TASK-034",
+      "title": "Rediseñar Oficina Virtual de SERAM con estética ilustrada/pixel-art top-down acogedora fiel a la imagen de referencia, transformando cada segmento de la web (Services, Academy, Experience, Store, Dirección/Socios) en una habitación interactiva navegable",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-09-28",
+      "completed_at": "2026-09-28"
+    },
+    {
       "id": "TASK-033",
       "title": "Implementar Oficina Virtual / Metaverso SERAM en Dashboard con distribución de pisos isométrica 2.5D, avatares de socios y bots, sistema meritocrático de ganancias por horas y meta diaria de 4.5h optimizado para mobile y pantalla completa",
       "status": "completed",
