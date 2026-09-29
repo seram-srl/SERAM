@@ -49,6 +49,7 @@ dist-ssr/
 /tmp/
 *.docx
 *.pdf
+!src/public/assets/documents/*.pdf
 /abrir_inmediatamente.html
 desktop.ini
 /desktop.ini

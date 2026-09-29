@@ -68,88 +68,68 @@ export function AppProvider({ children }) {
 
 
 
-  // --- COURSES ---
-  const [courses, setCourses] = useState([
-    { id: 1, title: 'Ebook: Guía Práctica de la Ley 1333 de *Medio Ambiente*', instructor: 'SERAM Legal', students: 210, status: 'Activo', isPremium: false, type: 'gratis', price: 0, image: '/assets/covers/cover_ebook_ley1333.png', duration: '80 páginas', desc: 'Compendio interpretado de legislación boliviana, carimbos institucionales, mapas sectoriales y tablas normativas de mitigación.' },
-    { id: 2, title: 'Herramientas Técnicas de QGIS *Básico*', instructor: 'Ing. Diego Barrientos', students: 85, status: 'Activo', isPremium: true, type: 'low_ticket', price: 45, image: '/assets/covers/cover_qgis_basico.png', duration: '12 horas', desc: 'Dominio práctico de QGIS aplicado a delimitación de cuencas e informes técnicos bolivianos.' },
-    { id: 3, title: 'Taller: Metodología de *Fichas Ambientales* e Impacto', instructor: 'Ing. Fernando Araujo', students: 42, status: 'Activo', isPremium: true, type: 'mid_ticket', price: 120, image: '/assets/covers/cover_taller_fichas.png', duration: '25 horas', desc: 'Metodologías de categorización de obras civiles (FNCA) y adecuación bajo reglamentación boliviana.' },
-    { id: 4, title: 'Mentoría VIP: Consultoría y *Gestión de Proyectos Ambientales*', instructor: 'Ing. Fabricio Orosco', students: 12, status: 'Activo', isPremium: true, type: 'high_ticket', price: 450, image: '/assets/covers/cover_mentoria_consultoria.png', duration: '1 mes (1-on-1)', desc: 'Mentoría de élite 1-a-1 para el diseño técnico y defensa legal de licencias ambientales mineras e industriales.' }
-  ]);
-
-  // --- PROJECTS (Incluye Proyectos B2B y Propuestas Técnicas Municipales) ---
-  const [activeServices, setActiveServices] = useState([
-    { id: 101, client: 'Minera Los Andes', type: 'Estudio de Impacto Ambiental (EsIA)', progress: 85, lead: 'Ing. Diego Barrientos', startDate: '2026-01-15', endDate: '2026-08-30', involved: ['Ing. Fabricio Orosco'], budget: 25000, labCosts: 3000, subcontractorCosts: 4000, taxRegime: 'Régimen General', tag: 'B2B Privado', isProposal: false },
-    { id: 102, client: 'EcoIndustrial S.A.', type: 'Auditoría de Gestión de Residuos', progress: 40, lead: 'Ing. Fabricio Orosco', startDate: '2026-03-01', endDate: '2026-12-15', involved: ['Ing. Fernando Araujo'], budget: 15000, labCosts: 1000, subcontractorCosts: 2000, taxRegime: 'Régimen General', tag: 'B2B Privado', isProposal: false },
-    { id: 103, client: 'Municipio Metropolitano', type: 'Plan de Ordenamiento Territorial', progress: 100, lead: 'Ing. Fernando Araujo', startDate: '2025-10-01', endDate: '2026-05-30', involved: ['Ing. Diego Barrientos'], budget: 35000, labCosts: 5000, subcontractorCosts: 6000, taxRegime: 'Régimen General', tag: 'Público', isProposal: false },
-    {
-      id: 104,
-      client: 'G.A.M. Guanay / Mapiri / Palos Blancos',
-      type: 'Línea Base: Monitoreo Hidrogeoquímico de Mercurio (Hg) y Fuentes de Agua por Minería Aurífera',
-      progress: 25,
-      lead: 'Ing. Diego Barrientos',
-      startDate: '2026-06-01',
-      endDate: '2026-09-30',
-      involved: ['Ing. Diego Barrientos', 'Ing. Fabricio Orosco'],
-      budget: 85000,
-      labCosts: 18000,
-      subcontractorCosts: 12000,
-      taxRegime: 'Régimen General',
-      isProposal: true,
-      tag: 'Propuesta',
-      proposalId: 'prop-mun-01'
-    },
-    {
-      id: 105,
-      client: 'G.A.M. Caranavi / Alto Beni / Palos Blancos',
-      type: 'EDTP: Diseño y Optimización de Redes de Riego Tecnificado Comunitario',
-      progress: 20,
-      lead: 'Ing. Diego Barrientos',
-      startDate: '2026-06-15',
-      endDate: '2026-09-15',
-      involved: ['Ing. Diego Barrientos', 'Ing. Fernando Araujo'],
-      budget: 68000,
-      labCosts: 8000,
-      subcontractorCosts: 10000,
-      taxRegime: 'Régimen SIETE (5%)',
-      isProposal: true,
-      tag: 'Propuesta',
-      proposalId: 'prop-mun-02'
-    },
-    {
-      id: 106,
-      client: 'G.A.M. Alto Beni / San Buenaventura',
-      type: 'Plan de Manejo Integrado de Microcuencas (PMIC) y Zonas de Recarga Hídrica',
-      progress: 15,
-      lead: 'Ing. Diego Barrientos',
-      startDate: '2026-07-01',
-      endDate: '2026-10-31',
-      involved: ['Ing. Diego Barrientos', 'Ing. Fabricio Orosco'],
-      budget: 95000,
-      labCosts: 12000,
-      subcontractorCosts: 15000,
-      taxRegime: 'Régimen General',
-      isProposal: true,
-      tag: 'Propuesta',
-      proposalId: 'prop-mun-03'
-    },
-    {
-      id: 107,
-      client: 'G.A.M. Palos Blancos / Ixiamas',
-      type: 'Monitoreo Agroambiental Satelital y Teledetección Multiespectral de Parcelas',
-      progress: 30,
-      lead: 'Ing. Diego Barrientos',
-      startDate: '2026-06-20',
-      endDate: '2026-09-10',
-      involved: ['Ing. Diego Barrientos'],
-      budget: 52000,
-      labCosts: 4000,
-      subcontractorCosts: 6000,
-      taxRegime: 'Régimen SIETE (5%)',
-      isProposal: true,
-      tag: 'Propuesta',
-      proposalId: 'prop-mun-04'
+  // --- COURSES (Catálogo Oficial de SERAM ACADEMY) ---
+  const [courses, setCourses] = useState(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('seram_courses') : null;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
     }
-  ]);
+    return [
+      {
+        id: 1,
+        title: 'Sistemas de Información Geográfica (SIG) Aplicado a la Gestión y Fiscalización Ambiental en Bolivia',
+        instructor: 'Ing. Diego Barrientos',
+        students: 28,
+        status: 'Activo',
+        isPremium: true,
+        type: 'mid_ticket',
+        price: 350.00,
+        image: '/assets/3d-backend/gis_satellite_mapping.webp',
+        duration: '40 horas prácticas (QGIS & ArcGIS Pro)',
+        desc: 'Capacitación profesional intensiva con datos satelitales bolivianos: delimitación de microcuencas, mapas temáticos para categorización FNCA y licencias ambientales, análisis multitemporal de deforestación y fiscalización pericial.',
+        pdfName: 'Syllabus_Curso_SIG_Ambiental_SERAM_2026.pdf',
+        pdfUrl: '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf'
+      }
+    ];
+  });
+
+  // --- PROJECTS (Proyectos B2B y Consultorías Ambientales Oficiales de SERAM SRL) ---
+  const [activeServices, setActiveServices] = useState(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('seram_active_services') : null;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    return [
+      {
+        id: 101,
+        code: 'SRM-2026-B2B-01',
+        client: 'Gobierno Autónomo Municipal de Palos Blancos',
+        type: 'Línea Base: Monitoreo Hidrogeoquímico de Mercurio (Hg) y Fuentes de Agua por Minería Aurífera',
+        lead: 'Ing. Diego Barrientos',
+        involved: ['Ing. Fernando Araujo', 'Ing. Fabricio Orosco'],
+        location: 'Palos Blancos, Alto Beni - La Paz',
+        startDate: '2026-06-01',
+        endDate: '2026-10-31',
+        progress: 35,
+        budget: 68000,
+        labCosts: 12000,
+        subcontractorCosts: 8000,
+        taxRegime: 'Régimen General',
+        description: 'Monitoreo hidrogeoquímico pericial de mercurio total en tomas de agua potable comunales y afluentes mineros del Río Kaka. Incluye mapas de vulnerabilidad geoespacial en ArcGIS Pro, informe pericial y TDRs oficiales.',
+        pdfName: 'SERAM_TDR_Monitoreo_Palos_Blancos_2026.pdf',
+        pdfUrl: '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf',
+        tag: 'Proyecto B2B Oficial',
+        isProposal: true,
+        proposalId: 'prop-mun-01'
+      }
+    ];
+  });
 
   // --- MUNICIPAL PROPOSALS (Líneas Base & Proyectos para Concejales Municipales) ---
   const [municipalProposals, setMunicipalProposals] = useState([
@@ -159,7 +139,7 @@ export function AppProvider({ children }) {
       shortTitle: 'Monitoreo de Mercurio & Minería Aurífera',
       axis: 'mercurio',
       axisLabel: 'Mercurio & Minería Aurífera',
-      targetMunicipalities: ['Guanay', 'Mapiri', 'Palos Blancos', 'Teoponte'],
+      targetMunicipalities: ['Palos Blancos', 'Alto Beni', 'Guanay', 'Mapiri'],
       lead: 'Ing. Diego Barrientos',
       leadRole: 'Especialista SIG & Monitoreo Ambiental - SERAM',
       problem: 'Dispersión crítica de mercurio metálico y metilmercurio derivado de la explotación de oro aluvial en los ríos Kaka, Mapiri y afluentes del Río Beni. Afectación directa a tomas de agua potable comunales, pueblos indígenas ribereños (Tsimane, Mosetén, Leco) y bioacumulación en especies ictiológicas de consumo diario.',
@@ -179,118 +159,13 @@ export function AppProvider({ children }) {
       budget: 68000,
       currency: 'Bs.',
       duration: '90 días calendario',
-      status: 'Propuesta en Formulación',
+      status: 'Propuesta Activa Oficial',
       priority: 'Alta Prioridad',
       phases: [
         { name: 'Fase 1: Diagnóstico Cartográfico y Red de Muestreo', duration: '20 días' },
         { name: 'Fase 2: Campaña de Campo y Toma de Muestras (AAS)', duration: '25 días' },
         { name: 'Fase 3: Análisis de Laboratorio y Modelación SIG', duration: '25 días' },
         { name: 'Fase 4: Formulación Normativa y Presentación a Concejo', duration: '20 días' }
-      ]
-    },
-    {
-      id: 'prop-mun-02',
-      title: 'Estudio de Diseño Técnico de Preinversión (EDTP) para Sistemas de Riego Tecnificado y Resiliencia Comunitaria',
-      shortTitle: 'Sistemas de Riego Tecnificado',
-      axis: 'riego',
-      axisLabel: 'Riego Tecnificado & Seguridad Hídrica',
-      targetMunicipalities: ['Palos Blancos', 'Caranavi', 'Alto Beni'],
-      lead: 'Ing. Diego Barrientos',
-      leadRole: 'Especialista en Hidráulica & Recursos Hídricos - SERAM',
-      problem: 'Pérdidas recurrentes de hasta el 55% en cosechas de cítricos, cacao y café por sequías estacionales prolongadas. Ineficiencia crítica de los sistemas tradicionales por gravedad o inundación (<30% de eficiencia), sumado a crecientes conflictos comunales por distribución de caudales de vertientes durante el estiaje.',
-      legalFramework: [
-        'Ley 2878 de Promoción y Apoyo al Sector Riego para la Producción Agropecuaria y Forestal',
-        'Guía de Elaboración de Proyectos de Riego Tecnificado del MMAyA (PRONAR / SENARI)',
-        'Ley 071 de Derechos de la Madre Tierra (Protección del Ciclo del Agua)',
-        'Ley 482 de Gobiernos Autónomos Municipales (Competencias Exclusivas en Micro Riego)'
-      ],
-      methodology: 'Aforos hidrométricos continuos en época de estiaje y balance oferta-demanda hídrica según requerimiento hídrico de cultivos (FAO CROPWAT). Relevamiento topográfico con estación total y drones fotogramétricos (Modelos Digitales de Terreno con curvas a 1 m). Modelación y dimensionamiento hidráulico en EPANET de obras de toma tirolesa, desarenadores, desripiadores, tanques de almacenamiento y red de distribución presurizada para aspersión y microgoteo. Talleres de fortalecimiento institucional para la Asociación de Regantes Comunal.',
-      deliverables: [
-        'Carpeta técnica completa a nivel EDTP lista para licitación y postulación a fondos VIPFE / FNDR / FPS',
-        'Planos constructivos de ingeniería de detalle georreferenciados (AutoCAD / Civil 3D)',
-        'Memoria de cálculo hidráulico, presupuesto general, cómputos métricos y análisis de precios unitarios (APUs)',
-        'Reglamento Interno y Estatuto Comunitario de Operación, Mantenimiento y Turnos de Distribución'
-      ],
-      budget: 85000,
-      currency: 'Bs.',
-      duration: '120 días calendario',
-      status: 'Propuesta en Formulación',
-      priority: 'Alta Prioridad',
-      phases: [
-        { name: 'Fase 1: Topografía Dron, Aforos y Censo de Usuarios', duration: '30 días' },
-        { name: 'Fase 2: Diseño Hidráulico y Agronómico en EPANET', duration: '35 días' },
-        { name: 'Fase 3: Cómputos Métricos, Presupuestos y Pliegos', duration: '30 días' },
-        { name: 'Fase 4: Validación Comunal y Aprobación en Concejo', duration: '25 días' }
-      ]
-    },
-    {
-      id: 'prop-mun-03',
-      title: 'Plan de Manejo Integrado de Cuencas (PMIC) y Ordenamiento Territorial para Protección de Cabeceras Hídricas',
-      shortTitle: 'Manejo Integrado de Cuencas (PMIC)',
-      axis: 'cuencas',
-      axisLabel: 'Manejo de Cuencas & Ordenamiento',
-      targetMunicipalities: ['Mancomunidad de Municipios del Norte de La Paz', 'Caranavi', 'Guanay', 'Palos Blancos'],
-      lead: 'Ing. Diego Barrientos',
-      leadRole: 'Especialista SIG & Planificación de Cuencas - SERAM',
-      problem: 'Acelerada deforestación de laderas y cabeceras de cuenca por chaqueos y apertura desordenada de caminos, ocasionando severa erosión laminar, deslizamientos masa en temporada de lluvias, turbidez extrema en captaciones e inundaciones que destruyen plataformas viales y puentes municipales.',
-      legalFramework: [
-        'Ley 1333 de Medio Ambiente (Título IV de los Recursos Hídricos y Protección de Suelos)',
-        'Plan Nacional de Cuencas (PNC - Viceministerio de Recursos Hídricos y Riego)',
-        'Ley 300 Marco de la Madre Tierra y Desarrollo Integral para Vivir Bien',
-        'Decreto Supremo 24782 (Reglamento General de Áreas Protegidas y Servidumbres Ecológicas)'
-      ],
-      methodology: 'Delimitación hidrográfica automática con Modelos Digitales de Elevación ALOS PALSAR (12.5 m) y Copernicus DEM (30 m). Caracterización geomorfológica, hidroclimatológica y de capacidad de uso mayor de la tierra en ArcGIS Pro / QGIS. Modelación de pérdida de suelo mediante la Ecuación Universal de Pérdida de Suelo Revisada (RUSLE). Talleres de diagnóstico socioambiental participativo con centrales agrarias y comunidades de cuenca alta, media y baja. Delimitación de fajas de protección y servidumbres ecológicas ribereñas.',
-      deliverables: [
-        'Documento Oficial del PMIC estructurado para su promulgación mediante Ley Municipal Autonómica',
-        'Geodatabase ArcGIS con Zonificación Ambiental, Aptitud de Suelos y Mapa de Riesgos Hidrológicos',
-        'Cartera priorizada de proyectos de inversión (zanjas de infiltración, bioingeniería y reforestación de riberas)',
-        'Acta de conformación y reglamento de funcionamiento del Comité de Gestión de Cuenca Intercomunal'
-      ],
-      budget: 95000,
-      currency: 'Bs.',
-      duration: '150 días calendario',
-      status: 'Propuesta en Formulación',
-      priority: 'Media-Alta',
-      phases: [
-        { name: 'Fase 1: Diagnóstico Físico-Biológico y Morfometría SIG', duration: '35 días' },
-        { name: 'Fase 2: Diagnóstico Socioeconómico y Talleres Comunales', duration: '40 días' },
-        { name: 'Fase 3: Zonificación Hidroambiental y Cartera de Proyectos', duration: '45 días' },
-        { name: 'Fase 4: Redacción de Ley Municipal y Defensa en Concejo', duration: '30 días' }
-      ]
-    },
-    {
-      id: 'prop-mun-04',
-      title: 'Auditoría Territorial y Teledetección Multitemporal de Lotes Agrícolas, Estrés Hídrico y Frontera Forestal',
-      shortTitle: 'Teledetección & Catastro Agrícola',
-      axis: 'teledeteccion',
-      axisLabel: 'Teledetección & Monitoreo Agrícola',
-      targetMunicipalities: ['Palos Blancos', 'Alto Beni', 'Caranavi'],
-      lead: 'Ing. Diego Barrientos',
-      leadRole: 'Especialista en Teledetección y Sensores Remotos - SERAM',
-      problem: 'Inexistencia de un catastro rural georreferenciado y actualizado a nivel municipal. Dificultad para fiscalizar desmontes no autorizados, descontrol en el avance sobre reservas forestales y ausencia de monitoreo preventivo de estrés hídrico, sanidad vegetal y pérdidas de rendimiento en parcelas agrícolas comunales.',
-      legalFramework: [
-        'Ley 1700 Forestal (Disposiciones sobre Desmontes, Quemas y Tierras de Protección)',
-        'Ley 1333 de Medio Ambiente (Control y Fiscalización Ambiental)',
-        'Ley 482 de Gobiernos Autónomos Municipales (Uso de Suelo Rural y Ordenamiento Catastral)',
-        'Normativas y Directrices Técnicas de la Autoridad de Fiscalización y Control Social de Bosques y Tierra (ABT)'
-      ],
-      methodology: 'Descarga y preprocesamiento radiométrico/atmosférico de constelaciones satelitales ópticas (Sentinel-2 MSI y Landsat 8/9). Análisis de series de tiempo para estimación de índices biofísicos: NDVI (vigor fotosintético), NDWI (contenido de agua en hoja), SAVI (ajuste por suelo descubierto) y NDMI (estrés hídrico). Aplicación de clasificadores de aprendizaje automático (Random Forest) para mapeo multitemporal de cambio de uso y cobertura (LULC 2020-2026). Relevamiento aéreo con drones en sectores piloto para georreferenciación de linderos a resolución centimétrica.',
-      deliverables: [
-        'Visor SIG Web Municipal interactivo con capas de parcelas, estado de cultivos y alertas de chaqueo',
-        'Atlas temático municipal de aptitud de uso del suelo, estrés hídrico y vigor agrícola (PDF y Geodatabase)',
-        'Informe multitemporal de detección de quemas, deforestación y avance de frontera agrícola 2020-2026',
-        'Base de datos georreferenciada de predios agrícolas para fortalecimiento del catastro y recaudación municipal'
-      ],
-      budget: 52000,
-      currency: 'Bs.',
-      duration: '60 días calendario',
-      status: 'Propuesta en Formulación',
-      priority: 'Alta Prioridad',
-      phases: [
-        { name: 'Fase 1: Adquisición Satelital y Calibración Radiométrica', duration: '15 días' },
-        { name: 'Fase 2: Procesamiento de Índices (NDVI, NDWI) y LULC', duration: '20 días' },
-        { name: 'Fase 3: Validación de Campo y Vuelos de Dron', duration: '15 días' },
-        { name: 'Fase 4: Montaje del Visor SIG y Entrega a Concejales', duration: '10 días' }
       ]
     }
   ]);
@@ -646,7 +521,14 @@ export function AppProvider({ children }) {
             instructor: c.instructor,
             students: c.students || 0,
             status: c.status || 'Activo',
-            isPremium: c.is_premium
+            isPremium: c.is_premium ?? false,
+            type: c.type || 'mid_ticket',
+            price: parseFloat(c.price) || 0,
+            image: c.image || '/assets/3d-backend/gis_satellite_mapping.webp',
+            duration: c.duration || '10 horas',
+            desc: c.desc || c.description || '',
+            pdfUrl: c.pdf_url || c.pdfUrl || null,
+            pdfName: c.pdf_name || c.pdfName || null
           }));
           setCourses(mappedCourses);
         }
@@ -655,13 +537,23 @@ export function AppProvider({ children }) {
         if (projectsRes.status === 'fulfilled' && !projectsRes.value.error && projectsRes.value.data?.length > 0) {
           const mappedProjects = projectsRes.value.data.map(p => ({
             id: p.id,
+            code: p.code || `SRM-2026-B2B-${p.id}`,
             client: p.client || p.title,
             type: p.type || p.title,
             progress: p.progress_percent || p.progress || 0,
             lead: p.lead || 'Ing. Diego Barrientos',
             startDate: p.start_date || p.startDate,
             endDate: p.end_date || p.endDate,
-            involved: p.involved || []
+            involved: p.involved || [],
+            location: p.location || '',
+            description: p.description || '',
+            budget: parseFloat(p.budget) || 0,
+            labCosts: parseFloat(p.lab_costs || p.labCosts) || 0,
+            subcontractorCosts: parseFloat(p.subcontractor_costs || p.subcontractorCosts) || 0,
+            taxRegime: p.tax_regime || p.taxRegime || 'Régimen General',
+            pdfUrl: p.pdf_url || p.pdfUrl || null,
+            pdfName: p.pdf_name || p.pdfName || null,
+            tag: p.tag || 'Proyecto B2B'
           }));
           setActiveServices(mappedProjects);
         }
@@ -702,6 +594,27 @@ export function AppProvider({ children }) {
     }
     loadDataFromSupabase();
   }, []);
+
+  // --- AUTOMATIC PERSISTENCE TO LOCALSTORAGE ---
+  useEffect(() => {
+    try {
+      if (courses && courses.length > 0) {
+        localStorage.setItem('seram_courses', JSON.stringify(courses));
+      }
+    } catch (e) {
+      console.warn('Could not save courses to localStorage', e);
+    }
+  }, [courses]);
+
+  useEffect(() => {
+    try {
+      if (activeServices && activeServices.length > 0) {
+        localStorage.setItem('seram_active_services', JSON.stringify(activeServices));
+      }
+    } catch (e) {
+      console.warn('Could not save activeServices to localStorage', e);
+    }
+  }, [activeServices]);
 
   const handleLogoClick = () => {
     const nextClicks = logoClicks + 1;
@@ -1012,7 +925,9 @@ export function AppProvider({ children }) {
       price: parseFloat(courseData.price) || 0,
       image: courseData.image || 'https://images.unsplash.com/photo-1500485035595-cbe6f645feb1?auto=format&fit=crop&q=80&w=600',
       duration: courseData.duration || '10 horas',
-      desc: courseData.desc || ''
+      desc: courseData.desc || '',
+      pdfUrl: courseData.pdfUrl || null,
+      pdfName: courseData.pdfName || null
     };
 
     setCourses(prev => [...prev, newCourse]);
@@ -1029,10 +944,12 @@ export function AppProvider({ children }) {
         price: newCourse.price,
         image: newCourse.image,
         duration: newCourse.duration,
-        desc: newCourse.desc
+        desc: newCourse.desc,
+        pdf_url: newCourse.pdfUrl,
+        pdf_name: newCourse.pdfName
       }]);
       if (error && error.code !== 'PGRST205') {
-        throw error;
+        console.warn('[Supabase Insert Course Warning]:', error.message);
       }
     } catch (err) {
       console.warn('[Supabase Sync Warning - AddCourse]:', err.message);
@@ -1044,18 +961,21 @@ export function AppProvider({ children }) {
     triggerToast('Recurso académico actualizado', 'success');
 
     try {
-      const { error } = await supabase.from('courses').update({
-        title: fields.title,
-        instructor: fields.instructor,
-        is_premium: fields.isPremium,
-        type: fields.type,
-        price: fields.price,
-        image: fields.image,
-        duration: fields.duration,
-        desc: fields.desc
-      }).eq('id', id);
+      const dbFields = {};
+      if (fields.title !== undefined) dbFields.title = fields.title;
+      if (fields.instructor !== undefined) dbFields.instructor = fields.instructor;
+      if (fields.isPremium !== undefined) dbFields.is_premium = fields.isPremium;
+      if (fields.type !== undefined) dbFields.type = fields.type;
+      if (fields.price !== undefined) dbFields.price = fields.price;
+      if (fields.image !== undefined) dbFields.image = fields.image;
+      if (fields.duration !== undefined) dbFields.duration = fields.duration;
+      if (fields.desc !== undefined) dbFields.desc = fields.desc;
+      if (fields.pdfUrl !== undefined) dbFields.pdf_url = fields.pdfUrl;
+      if (fields.pdfName !== undefined) dbFields.pdf_name = fields.pdfName;
+
+      const { error } = await supabase.from('courses').update(dbFields).eq('id', id);
       if (error && error.code !== 'PGRST205') {
-        throw error;
+        console.warn('[Supabase Update Course Warning]:', error.message);
       }
     } catch (err) {
       console.warn('[Supabase Sync Warning - UpdateCourse]:', err.message);
@@ -1101,20 +1021,66 @@ export function AppProvider({ children }) {
     }
   };
 
-  const handleAddProject = async (client, type, lead, startDate, endDate, involved = [], budget = 0, labCosts = 0, subcontractorCosts = 0, taxRegime = 'Régimen General') => {
+  const handleAddProject = async (
+    clientOrObj,
+    type,
+    lead,
+    startDate,
+    endDate,
+    involved = [],
+    budget = 0,
+    labCosts = 0,
+    subcontractorCosts = 0,
+    taxRegime = 'Régimen General',
+    location = '',
+    description = '',
+    pdfUrl = null,
+    pdfName = null,
+    code = null
+  ) => {
+    let projData;
+    if (typeof clientOrObj === 'object' && clientOrObj !== null) {
+      projData = clientOrObj;
+    } else {
+      projData = {
+        client: clientOrObj,
+        type,
+        lead,
+        startDate,
+        endDate,
+        involved,
+        budget,
+        labCosts,
+        subcontractorCosts,
+        taxRegime,
+        location,
+        description,
+        pdfUrl,
+        pdfName,
+        code
+      };
+    }
+
+    const generatedCode = projData.code || `SRM-2026-B2B-${String(activeServices.length + 1).padStart(2, '0')}`;
     const newProj = {
       id: Date.now(),
-      client,
-      type,
-      progress: 10,
-      lead: lead || currentSocio?.name || 'Ing. Diego Barrientos',
-      startDate: startDate || new Date().toISOString().split('T')[0],
-      endDate: endDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      involved: involved,
-      budget: parseFloat(budget),
-      labCosts: parseFloat(labCosts),
-      subcontractorCosts: parseFloat(subcontractorCosts),
-      taxRegime: taxRegime
+      code: generatedCode,
+      client: projData.client,
+      type: projData.type,
+      progress: projData.progress !== undefined ? projData.progress : 10,
+      lead: projData.lead || currentSocio?.name || 'Ing. Diego Barrientos',
+      location: projData.location || '',
+      description: projData.description || '',
+      startDate: projData.startDate || new Date().toISOString().split('T')[0],
+      endDate: projData.endDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      involved: Array.isArray(projData.involved) ? projData.involved : [projData.lead || 'Ing. Diego Barrientos'],
+      budget: parseFloat(projData.budget) || 0,
+      labCosts: parseFloat(projData.labCosts) || 0,
+      subcontractorCosts: parseFloat(projData.subcontractorCosts) || 0,
+      taxRegime: projData.taxRegime || 'Régimen General',
+      pdfUrl: projData.pdfUrl || null,
+      pdfName: projData.pdfName || null,
+      tag: projData.tag || 'Proyecto B2B'
     };
 
     setActiveServices(prev => [...prev, newProj]);
@@ -1122,20 +1088,25 @@ export function AppProvider({ children }) {
 
     try {
       const { error } = await supabase.from('projects').insert([{
-        client,
-        type,
-        progress_percent: 10,
+        client: newProj.client,
+        type: newProj.type,
+        progress_percent: newProj.progress,
         lead: newProj.lead,
         start_date: newProj.startDate,
         end_date: newProj.endDate,
-        involved,
-        budget: parseFloat(budget),
-        lab_costs: parseFloat(labCosts),
-        subcontractor_costs: parseFloat(subcontractorCosts),
-        tax_regime: taxRegime
+        involved: newProj.involved,
+        budget: newProj.budget,
+        lab_costs: newProj.labCosts,
+        subcontractor_costs: newProj.subcontractorCosts,
+        tax_regime: newProj.taxRegime,
+        location: newProj.location,
+        description: newProj.description,
+        pdf_url: newProj.pdfUrl,
+        pdf_name: newProj.pdfName,
+        code: newProj.code
       }]);
       if (error && error.code !== 'PGRST205') {
-        throw error;
+        console.warn('[Supabase Insert Project Warning]:', error.message);
       }
     } catch (err) {
       console.warn('[Supabase Sync Warning - AddProject]:', err.message);
@@ -1206,13 +1177,18 @@ export function AppProvider({ children }) {
         if (updatedFields.labCosts !== undefined) dbFields.lab_costs = parseFloat(updatedFields.labCosts);
         if (updatedFields.subcontractorCosts !== undefined) dbFields.subcontractor_costs = parseFloat(updatedFields.subcontractorCosts);
         if (updatedFields.taxRegime !== undefined) dbFields.tax_regime = updatedFields.taxRegime;
+        if (updatedFields.location !== undefined) dbFields.location = updatedFields.location;
+        if (updatedFields.description !== undefined) dbFields.description = updatedFields.description;
+        if (updatedFields.pdfUrl !== undefined) dbFields.pdf_url = updatedFields.pdfUrl;
+        if (updatedFields.pdfName !== undefined) dbFields.pdf_name = updatedFields.pdfName;
+        if (updatedFields.code !== undefined) dbFields.code = updatedFields.code;
 
         const { error } = await supabase
           .from('projects')
           .update(dbFields)
           .eq('id', id);
         if (error && error.code !== 'PGRST205') {
-          throw error;
+          console.warn('[Supabase Update Project Warning]:', error.message);
         }
       }
     } catch (err) {

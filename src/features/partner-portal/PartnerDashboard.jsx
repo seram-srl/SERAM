@@ -9,7 +9,8 @@ import {
   MapPin, UserCheck, Package, Star, AlertCircle, Lock,
   Wallet, Target, Layers, ArrowUpRight, ArrowDownRight, Percent,
   PieChart as LucidePie, Activity, CreditCard, Building2,
-  FileText, Smartphone, Laptop, Radio, Wifi
+  FileText, Smartphone, Laptop, Radio, Wifi,
+  UploadCloud, ExternalLink, FileCheck, Paperclip
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
@@ -19,6 +20,7 @@ import {
 } from 'recharts';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../services/supabaseClient';
+import { uploadProjectDocument } from '../../services/projectStorageService';
 import MunicipalProposalsView, { MunicipalProposalModal } from './MunicipalProposalsView';
 import VirtualOfficeView from './VirtualOfficeView';
 
@@ -367,6 +369,8 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
 
   const [newProjClient, setNewProjClient] = useState('');
   const [newProjType, setNewProjType] = useState('');
+  const [newProjCode, setNewProjCode] = useState('');
+  const [newProjLocation, setNewProjLocation] = useState('');
   const [newProjLead, setNewProjLead] = useState(registeredEngineers[0]?.name || '');
   const [newProjStartDate, setNewProjStartDate] = useState('');
   const [newProjEndDate, setNewProjEndDate] = useState('');
@@ -376,9 +380,18 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
   const [newProjLabCosts, setNewProjLabCosts] = useState('');
   const [newProjSubcontractorCosts, setNewProjSubcontractorCosts] = useState('');
   const [newProjTaxRegime, setNewProjTaxRegime] = useState('Régimen General');
+  const [newProjDesc, setNewProjDesc] = useState('');
 
+  // PDF Upload state
+  const [pdfFile, setPdfFile] = useState(null);
+  const [pdfUploading, setPdfUploading] = useState(false);
+  const [useSamplePdf, setUseSamplePdf] = useState(false);
+
+  // Edit State
   const [editingId, setEditingId] = useState(null);
   const [editState, setEditState] = useState({});
+  const [editPdfFile, setEditPdfFile] = useState(null);
+  const [editPdfUploading, setEditPdfUploading] = useState(false);
 
   const displayedServices = activeServices.filter(p => {
     const isProp = p.isProposal || p.tag === 'Propuesta';
@@ -389,7 +402,25 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
 
   const startEdit = (p) => {
     setEditingId(p.id);
-    setEditState({ client: p.client, type: p.type, lead: p.lead, startDate: p.startDate || '', endDate: p.endDate || '', progress: p.progress, involved: p.involved || [], budget: p.budget || 0, labCosts: p.labCosts || 0, subcontractorCosts: p.subcontractorCosts || 0, taxRegime: p.taxRegime || 'Régimen General' });
+    setEditPdfFile(null);
+    setEditState({
+      client: p.client || '',
+      type: p.type || '',
+      code: p.code || '',
+      location: p.location || '',
+      description: p.description || '',
+      lead: p.lead || registeredEngineers[0]?.name || '',
+      startDate: p.startDate || '',
+      endDate: p.endDate || '',
+      progress: p.progress || 0,
+      involved: p.involved || [],
+      budget: p.budget || 0,
+      labCosts: p.labCosts || 0,
+      subcontractorCosts: p.subcontractorCosts || 0,
+      taxRegime: p.taxRegime || 'Régimen General',
+      pdfUrl: p.pdfUrl || null,
+      pdfName: p.pdfName || null
+    });
   };
 
   const calculateTimeProgress = (start, end) => {
@@ -507,7 +538,7 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="text-slate-500 font-extrabold uppercase tracking-widest border-b border-white/[0.06]">
-                    {['Proyecto / Cliente', 'Líder', 'Finanzas (i)', 'Físico vs Temporal', 'Estado', 'Acciones'].map(h => (
+                    {['Proyecto / Código', 'Líder / Proponente', 'Finanzas (i)', 'Físico vs Temporal', 'Documento PDF', 'Estado', 'Acciones'].map(h => (
                       <th key={h} className="p-3">{h}</th>
                     ))}
                   </tr>
@@ -529,19 +560,30 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
                     return (
                       <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
                         <td className="p-3">
-                          <div className="flex items-center gap-1.5 mb-1">
+                          <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                             {isProp ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-400/15 border border-amber-400/30 text-amber-300">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-400/15 border border-amber-400/30 text-amber-300">
                                 <FileText className="w-2.5 h-2.5" /> Propuesta
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-blue-500/10 border border-blue-500/20 text-blue-400">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-blue-500/10 border border-blue-500/20 text-blue-400">
                                 <Briefcase className="w-2.5 h-2.5" /> {p.tag || 'Proyecto B2B'}
+                              </span>
+                            )}
+                            {p.code && (
+                              <span className="text-[9px] font-mono font-bold text-slate-300 bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/10">
+                                {p.code}
                               </span>
                             )}
                           </div>
                           <p className="font-extrabold text-white text-xs leading-snug">{p.client}</p>
                           <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-2">{p.type}</p>
+                          {p.location && (
+                            <p className="text-[10px] text-emerald-400/90 flex items-center gap-1 mt-1 font-medium">
+                              <MapPin className="w-2.5 h-2.5 shrink-0" />
+                              <span className="truncate">{p.location}</span>
+                            </p>
+                          )}
                         </td>
                         <td className="p-3">
                           <p className="text-white font-black text-xs flex items-center gap-1">
@@ -574,7 +616,7 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
                           })()}
                         </td>
                         <td className="p-3">
-                          <div className="space-y-1.5 w-40">
+                          <div className="space-y-1.5 w-36">
                             <div>
                               <div className="flex justify-between text-[9px] font-bold text-slate-500 mb-0.5"><span>Físico</span><span className="text-[#00e03c]">{p.progress}%</span></div>
                               <div className="w-full bg-white/[0.06] h-1.5 rounded-full overflow-hidden"><div className="bg-[#00e03c] h-full rounded-full" style={{ width: `${p.progress}%` }} /></div>
@@ -586,6 +628,25 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
                               </div>
                             )}
                           </div>
+                        </td>
+                        <td className="p-3">
+                          {p.pdfUrl ? (
+                            <a
+                              href={p.pdfUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 font-bold text-[10px] transition-all group shadow-sm shadow-emerald-500/10"
+                              title={p.pdfName || "Ver Términos de Referencia o Propuesta"}
+                            >
+                              <FileText className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
+                              <span className="truncate max-w-[100px] font-mono">{p.pdfName ? p.pdfName.replace(/\.pdf$/i, '') : 'TDR / PDF'}</span>
+                              <ExternalLink className="w-2.5 h-2.5 text-emerald-400 opacity-70" />
+                            </a>
+                          ) : (
+                            <span className="text-[10px] text-slate-500 italic flex items-center gap-1">
+                              <Paperclip className="w-3 h-3 opacity-40" /> Sin TDR
+                            </span>
+                          )}
                         </td>
                         <td className="p-3"><span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase ${badge}`}>{status}</span></td>
                         <td className="p-3">
@@ -615,10 +676,10 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
                                 <span className="hidden sm:inline">Ficha</span>
                               </button>
                             )}
-                            <button onClick={() => startEdit(p)} className="p-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-                            {!done && <button onClick={() => handleConcludeProject(p.id)} className="p-1.5 bg-[#00e03c]/10 border border-[#00e03c]/20 text-[#00e03c] hover:bg-[#00e03c]/20 rounded-lg transition-colors text-[9px] font-black px-2">✓</button>}
+                            <button onClick={() => startEdit(p)} className="p-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors" title="Editar proyecto"><Edit2 className="w-3.5 h-3.5" /></button>
+                            {!done && <button onClick={() => handleConcludeProject(p.id)} className="p-1.5 bg-[#00e03c]/10 border border-[#00e03c]/20 text-[#00e03c] hover:bg-[#00e03c]/20 rounded-lg transition-colors text-[9px] font-black px-2" title="Concluir proyecto">✓</button>}
                             {!done && <button onClick={() => { handleUpdateProjectProgress(p.id); triggerToast(`${p.client} +10%`, 'success'); }} className="p-1.5 bg-white/[0.04] border border-white/[0.08] text-slate-300 hover:bg-white/[0.08] rounded-lg transition-colors text-[9px] font-black px-2">+10%</button>}
-                            <button onClick={() => { if (confirm(`¿Eliminar "${p.client}"?`)) handleDeleteProject(p.id); }} className="p-1.5 bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => { if (confirm(`¿Eliminar "${p.client}"?`)) handleDeleteProject(p.id); }} className="p-1.5 bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors" title="Eliminar"><Trash2 className="w-3.5 h-3.5" /></button>
                           </div>
                         </td>
                       </tr>
@@ -633,26 +694,152 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
           <AnimatePresence>
             {editingId && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                <GlassCard className="p-6 space-y-4 border-[#00e03c]/20">
-                  <div className="flex items-center justify-between"><h4 className="font-extrabold text-white text-sm">Editar Proyecto</h4><button onClick={() => setEditingId(null)} className="text-slate-500 hover:text-white"><X className="w-4 h-4" /></button></div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <input className={inputCls} placeholder="Cliente" value={editState.client || ''} onChange={e => setEditState(s => ({ ...s, client: e.target.value }))} />
-                    <input className={inputCls} placeholder="Tipo de Estudio" value={editState.type || ''} onChange={e => setEditState(s => ({ ...s, type: e.target.value }))} />
-                    <select className={selectCls} value={editState.lead || ''} onChange={e => setEditState(s => ({ ...s, lead: e.target.value }))}>{registeredEngineers.map(e => <option key={e.email} value={e.name}>{e.name}</option>)}</select>
-                    <input className={inputCls} type="range" min="0" max="100" step="5" value={editState.progress || 0} onChange={e => setEditState(s => ({ ...s, progress: +e.target.value }))} />
-                    <input className={inputCls} type="date" value={editState.startDate || ''} onChange={e => setEditState(s => ({ ...s, startDate: e.target.value }))} />
-                    <input className={inputCls} type="date" value={editState.endDate || ''} onChange={e => setEditState(s => ({ ...s, endDate: e.target.value }))} />
-                    <input className={inputCls} type="number" placeholder="Presupuesto" value={editState.budget || ''} onChange={e => setEditState(s => ({ ...s, budget: e.target.value }))} />
-                    <input className={inputCls} type="number" placeholder="Costos Lab" value={editState.labCosts || ''} onChange={e => setEditState(s => ({ ...s, labCosts: e.target.value }))} />
-                    <input className={inputCls} type="number" placeholder="Costos Tercerizados" value={editState.subcontractorCosts || ''} onChange={e => setEditState(s => ({ ...s, subcontractorCosts: e.target.value }))} />
-                    <select className={selectCls} value={editState.taxRegime || 'Régimen General'} onChange={e => setEditState(s => ({ ...s, taxRegime: e.target.value }))}>
-                      <option value="Régimen General">Régimen General (16%)</option>
-                      <option value="Régimen SIETE (5%)">Régimen SIETE (5% Monotributo)</option>
-                    </select>
+                <GlassCard className="p-6 space-y-4 border-[#00e03c]/30">
+                  <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+                    <div className="flex items-center gap-2">
+                      <Edit2 className="w-4 h-4 text-[#00e03c]" />
+                      <h4 className="font-extrabold text-white text-sm">Editar Proyecto Técnico</h4>
+                    </div>
+                    <button onClick={() => setEditingId(null)} className="text-slate-500 hover:text-white"><X className="w-4 h-4" /></button>
                   </div>
-                  <div className="flex gap-2 justify-end">
-                    <button onClick={() => setEditingId(null)} className="px-4 py-2 bg-white/[0.04] border border-white/[0.08] text-slate-400 rounded-lg text-xs font-bold">Cancelar</button>
-                    <button onClick={() => { handleEditProject(editingId, { ...editState, progress: +editState.progress }); setEditingId(null); }} className="px-4 py-2 bg-[#00e03c] text-slate-950 rounded-lg text-xs font-black flex items-center gap-1"><Check className="w-3.5 h-3.5" /> Guardar</button>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Cliente / Entidad</label>
+                      <input className={inputCls} placeholder="Cliente" value={editState.client || ''} onChange={e => setEditState(s => ({ ...s, client: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Tipo de Servicio</label>
+                      <input className={inputCls} placeholder="Tipo de Estudio" value={editState.type || ''} onChange={e => setEditState(s => ({ ...s, type: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Código SRM</label>
+                      <input className={inputCls} placeholder="Ej: SRM-2026-B2B-01" value={editState.code || ''} onChange={e => setEditState(s => ({ ...s, code: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Ubicación / Municipio</label>
+                      <input className={inputCls} placeholder="Ej: Palos Blancos, La Paz" value={editState.location || ''} onChange={e => setEditState(s => ({ ...s, location: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Socio Responsable</label>
+                      <select className={selectCls} value={editState.lead || ''} onChange={e => setEditState(s => ({ ...s, lead: e.target.value }))}>
+                        {registeredEngineers.map(e => <option key={e.email} value={e.name}>{e.name}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Avance Físico ({editState.progress}%)</label>
+                      <input className={inputCls} type="range" min="0" max="100" step="5" value={editState.progress || 0} onChange={e => setEditState(s => ({ ...s, progress: +e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Fecha de Inicio</label>
+                      <input className={inputCls} type="date" value={editState.startDate || ''} onChange={e => setEditState(s => ({ ...s, startDate: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Fecha de Entrega</label>
+                      <input className={inputCls} type="date" value={editState.endDate || ''} onChange={e => setEditState(s => ({ ...s, endDate: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Presupuesto Total (Bs.)</label>
+                      <input className={inputCls} type="number" placeholder="Presupuesto" value={editState.budget || ''} onChange={e => setEditState(s => ({ ...s, budget: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Costos Lab / Equipos (Bs.)</label>
+                      <input className={inputCls} type="number" placeholder="Costos Lab" value={editState.labCosts || ''} onChange={e => setEditState(s => ({ ...s, labCosts: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Costos Tercerizados (Bs.)</label>
+                      <input className={inputCls} type="number" placeholder="Costos Tercerizados" value={editState.subcontractorCosts || ''} onChange={e => setEditState(s => ({ ...s, subcontractorCosts: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Régimen Tributario</label>
+                      <select className={selectCls} value={editState.taxRegime || 'Régimen General'} onChange={e => setEditState(s => ({ ...s, taxRegime: e.target.value }))}>
+                        <option value="Régimen General">Régimen General (16%)</option>
+                        <option value="Régimen SIETE (5%)">Régimen SIETE (5% Monotributo)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Descripción / Objetivos Técnicos</label>
+                    <textarea
+                      rows="2"
+                      className={`${inputCls} resize-none`}
+                      placeholder="Alcance técnico, metodologías o normativas aplicables..."
+                      value={editState.description || ''}
+                      onChange={e => setEditState(s => ({ ...s, description: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className="p-3 bg-white/[0.03] border border-white/[0.08] rounded-xl flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-emerald-400" />
+                      <div>
+                        <span className="text-xs font-bold text-white block">Documento Técnico / TDR (PDF)</span>
+                        <span className="text-[10px] text-slate-400">
+                          {editPdfFile ? `Nuevo archivo: ${editPdfFile.name}` : (editState.pdfName || 'Sin archivo adjunto')}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="cursor-pointer px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors">
+                        <UploadCloud className="w-3.5 h-3.5" />
+                        <span>{editPdfFile || editState.pdfUrl ? 'Cambiar PDF' : 'Adjuntar PDF'}</span>
+                        <input
+                          type="file"
+                          accept=".pdf,application/pdf"
+                          className="hidden"
+                          onChange={e => {
+                            if (e.target.files?.[0]) setEditPdfFile(e.target.files[0]);
+                          }}
+                        />
+                      </label>
+                      {editState.pdfUrl && (
+                        <a
+                          href={editState.pdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1.5 bg-white/5 hover:bg-white/10 text-emerald-400 rounded-lg border border-white/10"
+                          title="Ver PDF actual"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 justify-end pt-2">
+                    <button onClick={() => setEditingId(null)} className="px-4 py-2 bg-white/[0.04] border border-white/[0.08] text-slate-400 rounded-lg text-xs font-bold hover:text-white">Cancelar</button>
+                    <button
+                      disabled={editPdfUploading}
+                      onClick={async () => {
+                        setEditPdfUploading(true);
+                        try {
+                          let finalPdfUrl = editState.pdfUrl;
+                          let finalPdfName = editState.pdfName;
+                          if (editPdfFile) {
+                            const uploadRes = await uploadProjectDocument(editPdfFile, editingId, 'projects');
+                            finalPdfUrl = uploadRes.url;
+                            finalPdfName = uploadRes.name;
+                          }
+                          await handleEditProject(editingId, {
+                            ...editState,
+                            progress: +editState.progress,
+                            pdfUrl: finalPdfUrl,
+                            pdfName: finalPdfName
+                          });
+                          setEditingId(null);
+                        } catch (err) {
+                          console.error(err);
+                          triggerToast('Error guardando cambios del proyecto', 'error');
+                        } finally {
+                          setEditPdfUploading(false);
+                        }
+                      }}
+                      className="px-4 py-2 bg-[#00e03c] text-slate-950 rounded-lg text-xs font-black flex items-center gap-1.5 hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/20"
+                    >
+                      {editPdfUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                      Guardar Cambios
+                    </button>
                   </div>
                 </GlassCard>
               </motion.div>
@@ -661,30 +848,301 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
 
           {/* Add Project Form */}
           <GlassCard className="p-6 space-y-4">
-            <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/[0.06] pb-3">Registrar Nuevo Proyecto B2B</h4>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              if (!newProjClient || !newProjType || !newProjLead) { triggerToast('Completa todos los campos requeridos', 'error'); return; }
-              handleAddProject(newProjClient, newProjType, newProjLead, newProjStartDate, newProjEndDate, newProjInvolved, newProjBudget || 0, newProjLabCosts || 0, newProjSubcontractorCosts || 0, newProjTaxRegime);
-              setNewProjClient(''); setNewProjType(''); setNewProjStartDate(''); setNewProjEndDate(''); setNewProjInvolved([]);
-              setNewProjBudget(''); setNewProjLabCosts(''); setNewProjSubcontractorCosts('');
-            }} className="space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                <input required className={inputCls} placeholder="Cliente" value={newProjClient} onChange={e => setNewProjClient(e.target.value)} />
-                <input required className={inputCls} placeholder="Tipo de Servicio" value={newProjType} onChange={e => setNewProjType(e.target.value)} />
-                <select required className={selectCls} value={newProjLead} onChange={e => setNewProjLead(e.target.value)}>{registeredEngineers.map(e => <option key={e.email} value={e.name}>{e.name}</option>)}</select>
-                <input className={inputCls} type="date" value={newProjStartDate} onChange={e => setNewProjStartDate(e.target.value)} />
-                <input className={inputCls} type="date" value={newProjEndDate} onChange={e => setNewProjEndDate(e.target.value)} />
-                <input className={inputCls} type="number" placeholder="Presupuesto Inicial (Bs.)" value={newProjBudget} onChange={e => setNewProjBudget(e.target.value)} />
-                <input className={inputCls} type="number" placeholder="Costos Lab/Equipos (Bs.)" value={newProjLabCosts} onChange={e => setNewProjLabCosts(e.target.value)} />
-                <input className={inputCls} type="number" placeholder="Costo Firma Externa (Bs.)" value={newProjSubcontractorCosts} onChange={e => setNewProjSubcontractorCosts(e.target.value)} />
-                <select className={selectCls} value={newProjTaxRegime} onChange={e => setNewProjTaxRegime(e.target.value)}>
-                  <option value="Régimen General">Régimen General (16% Impuestos)</option>
-                  <option value="Régimen SIETE (5%)">Régimen SIETE (5% Monotributo)</option>
-                </select>
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+              <div className="flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-[#00e03c]" />
+                <h4 className="text-xs font-black text-white uppercase tracking-wider">Registrar Nuevo Proyecto B2B / Consultoría Real</h4>
               </div>
-              <button type="submit" className="w-full bg-[#00e03c] text-slate-950 py-2.5 rounded-xl font-black text-xs uppercase hover:bg-emerald-400 flex items-center justify-center gap-1.5 transition-colors">
-                <Plus className="w-4 h-4" /> Registrar Proyecto
+              <span className="text-[10px] text-slate-400 font-mono">Formulario Técnico Operativo SERAM</span>
+            </div>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              if (!newProjClient.trim() || !newProjType.trim() || !newProjLead) {
+                triggerToast('Completa cliente, tipo de servicio y socio líder', 'error');
+                return;
+              }
+              setPdfUploading(true);
+              try {
+                let finalPdfUrl = null;
+                let finalPdfName = null;
+
+                if (pdfFile) {
+                  const docRes = await uploadProjectDocument(pdfFile, Date.now(), 'projects');
+                  finalPdfUrl = docRes.url;
+                  finalPdfName = docRes.name;
+                } else if (useSamplePdf) {
+                  finalPdfUrl = '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf';
+                  finalPdfName = 'Propuesta_Tecnica_Oficial_SERAM_2026.pdf';
+                }
+
+                const generatedCode = newProjCode.trim() || `SRM-2026-B2B-${String(activeServices.length + 1).padStart(2, '0')}`;
+
+                await handleAddProject({
+                  code: generatedCode,
+                  client: newProjClient.trim(),
+                  type: newProjType.trim(),
+                  lead: newProjLead,
+                  location: newProjLocation.trim(),
+                  description: newProjDesc.trim(),
+                  startDate: newProjStartDate || new Date().toISOString().split('T')[0],
+                  endDate: newProjEndDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                  involved: newProjInvolved.length > 0 ? newProjInvolved : [newProjLead],
+                  budget: parseFloat(newProjBudget) || 0,
+                  labCosts: parseFloat(newProjLabCosts) || 0,
+                  subcontractorCosts: parseFloat(newProjSubcontractorCosts) || 0,
+                  taxRegime: newProjTaxRegime,
+                  pdfUrl: finalPdfUrl,
+                  pdfName: finalPdfName,
+                  progress: 10
+                });
+
+                // Clear form
+                setNewProjClient('');
+                setNewProjType('');
+                setNewProjCode('');
+                setNewProjLocation('');
+                setNewProjDesc('');
+                setNewProjStartDate('');
+                setNewProjEndDate('');
+                setNewProjInvolved([]);
+                setNewProjBudget('');
+                setNewProjLabCosts('');
+                setNewProjSubcontractorCosts('');
+                setPdfFile(null);
+                setUseSamplePdf(false);
+              } catch (err) {
+                console.error('Error registrando proyecto:', err);
+                triggerToast('Error al registrar proyecto', 'error');
+              } finally {
+                setPdfUploading(false);
+              }
+            }} className="space-y-4">
+              
+              {/* Row 1: Identificación del Proyecto */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Cliente / Entidad Requiriente *</label>
+                  <input
+                    required
+                    className={inputCls}
+                    placeholder="Ej: G.A.M. Palos Blancos / Minera San Cristóbal"
+                    value={newProjClient}
+                    onChange={e => setNewProjClient(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Tipo de Servicio Técnico *</label>
+                  <input
+                    required
+                    className={inputCls}
+                    placeholder="Ej: Línea Base Hidrogeoquímica / EsIA / FNCA"
+                    value={newProjType}
+                    onChange={e => setNewProjType(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Código de Proyecto SRM</label>
+                  <input
+                    className={inputCls}
+                    placeholder={`Auto: SRM-2026-B2B-${String(activeServices.length + 1).padStart(2, '0')}`}
+                    value={newProjCode}
+                    onChange={e => setNewProjCode(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Ubicación / Municipio</label>
+                  <input
+                    className={inputCls}
+                    placeholder="Ej: Palos Blancos, La Paz"
+                    value={newProjLocation}
+                    onChange={e => setNewProjLocation(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Row 2: Responsable y Fechas */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Socio Responsable / Líder *</label>
+                  <select
+                    required
+                    className={selectCls}
+                    value={newProjLead}
+                    onChange={e => setNewProjLead(e.target.value)}
+                  >
+                    {registeredEngineers.map(e => <option key={e.email} value={e.name}>{e.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Fecha de Inicio Estimada</label>
+                  <input
+                    className={inputCls}
+                    type="date"
+                    value={newProjStartDate}
+                    onChange={e => setNewProjStartDate(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Fecha de Conclusión Estimada</label>
+                  <input
+                    className={inputCls}
+                    type="date"
+                    value={newProjEndDate}
+                    onChange={e => setNewProjEndDate(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Régimen Tributario</label>
+                  <select
+                    className={selectCls}
+                    value={newProjTaxRegime}
+                    onChange={e => setNewProjTaxRegime(e.target.value)}
+                  >
+                    <option value="Régimen General">Régimen General (16% Impuestos)</option>
+                    <option value="Régimen SIETE (5%)">Régimen SIETE (5% Monotributo)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Row 3: Presupuesto y Costos Operativos */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Presupuesto Total Ofertado (Bs.)</label>
+                  <input
+                    className={inputCls}
+                    type="number"
+                    min="0"
+                    placeholder="Ej: 68000"
+                    value={newProjBudget}
+                    onChange={e => setNewProjBudget(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Costos Ensayos Lab / Equipos (Bs.)</label>
+                  <input
+                    className={inputCls}
+                    type="number"
+                    min="0"
+                    placeholder="Ej: 12000"
+                    value={newProjLabCosts}
+                    onChange={e => setNewProjLabCosts(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Costo Firma Externa / Tercerizados (Bs.)</label>
+                  <input
+                    className={inputCls}
+                    type="number"
+                    min="0"
+                    placeholder="Ej: 8000"
+                    value={newProjSubcontractorCosts}
+                    onChange={e => setNewProjSubcontractorCosts(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Row 4: Descripción / Objetivos */}
+              <div>
+                <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Descripción Técnica / Alcance del Servicio</label>
+                <textarea
+                  rows="2"
+                  className={`${inputCls} resize-none`}
+                  placeholder="Detalla los entregables, metodologías periciales o marco regulatorio (ej. Ley 1333, RMCH, ArcGIS Pro)..."
+                  value={newProjDesc}
+                  onChange={e => setNewProjDesc(e.target.value)}
+                />
+              </div>
+
+              {/* Row 5: UPLOADER DE DOCUMENTO PDF EN SUPABASE STORAGE */}
+              <div className="p-4 bg-white/[0.02] border border-white/[0.08] rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-emerald-400" />
+                    <div>
+                      <span className="text-xs font-bold text-white block">Documento Técnico / Términos de Referencia (PDF)</span>
+                      <span className="text-[10px] text-slate-400">Se almacenará en la nube con redundancia resiliente</span>
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2 text-[11px] text-slate-300 font-semibold cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={useSamplePdf}
+                      disabled={!!pdfFile}
+                      onChange={e => setUseSamplePdf(e.target.checked)}
+                      className="rounded border-white/20 bg-white/5 text-[#00e03c] focus:ring-0"
+                    />
+                    <span>Usar PDF Modelo SERAM</span>
+                  </label>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <label className="w-full sm:w-auto cursor-pointer px-4 py-2.5 bg-white/[0.05] hover:bg-white/[0.09] border border-dashed border-white/20 hover:border-emerald-400/50 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-2 transition-all">
+                    <UploadCloud className="w-4 h-4 text-emerald-400" />
+                    <span>{pdfFile ? 'Reemplazar archivo PDF' : 'Seleccionar PDF desde el equipo'}</span>
+                    <input
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      className="hidden"
+                      onChange={e => {
+                        if (e.target.files?.[0]) {
+                          setPdfFile(e.target.files[0]);
+                          setUseSamplePdf(false);
+                        }
+                      }}
+                    />
+                  </label>
+
+                  {pdfFile && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-300 text-xs">
+                      <FileCheck className="w-4 h-4 text-emerald-400" />
+                      <span className="font-mono truncate max-w-[200px]">{pdfFile.name}</span>
+                      <span className="text-[10px] opacity-75">({(pdfFile.size / 1024).toFixed(1)} KB)</span>
+                      <button
+                        type="button"
+                        onClick={() => setPdfFile(null)}
+                        className="text-slate-400 hover:text-white ml-1"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {!pdfFile && useSamplePdf && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-400/10 border border-amber-400/20 rounded-lg text-amber-300 text-xs">
+                      <FileCheck className="w-4 h-4 text-amber-400" />
+                      <span className="font-mono">ejemplo_propuesta_tecnica_seram.pdf</span>
+                      <a
+                        href="/assets/documents/ejemplo_propuesta_tecnica_seram.pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-amber-400 hover:text-amber-200 ml-1"
+                        title="Ver PDF modelo"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Submit button */}
+              <button
+                type="submit"
+                disabled={pdfUploading}
+                className="w-full bg-[#00e03c] text-slate-950 py-3 rounded-xl font-black text-xs uppercase hover:bg-emerald-400 flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(0,224,60,0.2)] disabled:opacity-50"
+              >
+                {pdfUploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Guardando Proyecto y Subiendo Documento Técnico...</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    <span>Registrar Proyecto B2B en el Monitor</span>
+                  </>
+                )}
               </button>
             </form>
           </GlassCard>
@@ -917,35 +1375,43 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
   const [form, setForm] = useState({
     title: '',
     instructor: registeredEngineers[0]?.name || 'Ing. Diego Barrientos',
-    type: 'gratis',
-    price: 0,
-    duration: '10 horas',
+    type: 'mid_ticket',
+    price: 350,
+    duration: '40 horas prácticas',
     desc: '',
-    image: '/assets/covers/cover_ebook_ley1333.png'
+    image: '/assets/3d-backend/gis_satellite_mapping.webp'
   });
+
+  const [coursePdfFile, setCoursePdfFile] = useState(null);
+  const [coursePdfUploading, setCoursePdfUploading] = useState(false);
+  const [useSampleCoursePdf, setUseSampleCoursePdf] = useState(false);
 
   // Edit state
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({
     title: '',
     instructor: '',
-    type: 'gratis',
+    type: 'mid_ticket',
     price: 0,
     duration: '',
     desc: '',
-    image: ''
+    image: '',
+    pdfUrl: null,
+    pdfName: null
   });
+  const [editCoursePdfFile, setEditCoursePdfFile] = useState(null);
+  const [editCoursePdfUploading, setEditCoursePdfUploading] = useState(false);
 
   // Preset covers based on type
   const PRESET_COVERS = {
     gratis: '/assets/covers/cover_ebook_ley1333.png',
     low_ticket: '/assets/covers/cover_qgis_basico.png',
-    mid_ticket: '/assets/covers/cover_taller_fichas.png',
+    mid_ticket: '/assets/3d-backend/gis_satellite_mapping.webp',
     high_ticket: '/assets/covers/cover_mentoria_consultoria.png'
   };
 
   const handleTypeChange = (type, isEdit = false) => {
-    const cover = PRESET_COVERS[type] || PRESET_COVERS.gratis;
+    const cover = PRESET_COVERS[type] || PRESET_COVERS.mid_ticket;
     if (isEdit) {
       setEditForm(prev => ({ ...prev, type, image: cover, price: type === 'gratis' ? 0 : prev.price }));
     } else {
@@ -956,51 +1422,98 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
   const inputCls = "w-full text-xs px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-[#00e03c]/40 transition-all";
   const selectCls = "w-full text-xs px-3 py-1.5 bg-white/[0.08] border border-white/[0.15] rounded-lg text-white focus:outline-none focus:border-[#00e03c] transition-all [&>option]:bg-[#0d1622] [&>option]:text-white";
 
-  const handleCreate = (e) => {
+  const handleCreate = async (e) => {
     e.preventDefault();
     if (!form.title || !form.instructor) {
       triggerToast('Título e Instructor son requeridos', 'error');
       return;
     }
-    handleAddCourse({
-      ...form,
-      isPremium: form.type !== 'gratis'
-    });
-    setForm({
-      title: '',
-      instructor: registeredEngineers[0]?.name || 'Ing. Diego Barrientos',
-      type: 'gratis',
-      price: 0,
-      duration: '10 horas',
-      desc: '',
-      image: '/assets/covers/cover_ebook_ley1333.png'
-    });
+    setCoursePdfUploading(true);
+    try {
+      let finalPdfUrl = null;
+      let finalPdfName = null;
+
+      if (coursePdfFile) {
+        const uploadRes = await uploadProjectDocument(coursePdfFile, Date.now(), 'academy');
+        finalPdfUrl = uploadRes.url;
+        finalPdfName = uploadRes.name;
+      } else if (useSampleCoursePdf) {
+        finalPdfUrl = '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf';
+        finalPdfName = 'Syllabus_Curso_Oficial_SERAM_2026.pdf';
+      }
+
+      await handleAddCourse({
+        ...form,
+        isPremium: form.type !== 'gratis',
+        pdfUrl: finalPdfUrl,
+        pdfName: finalPdfName
+      });
+
+      setForm({
+        title: '',
+        instructor: registeredEngineers[0]?.name || 'Ing. Diego Barrientos',
+        type: 'mid_ticket',
+        price: 350,
+        duration: '40 horas prácticas',
+        desc: '',
+        image: '/assets/3d-backend/gis_satellite_mapping.webp'
+      });
+      setCoursePdfFile(null);
+      setUseSampleCoursePdf(false);
+    } catch (err) {
+      console.error(err);
+      triggerToast('Error al registrar recurso académico', 'error');
+    } finally {
+      setCoursePdfUploading(false);
+    }
   };
 
   const handleStartEdit = (course) => {
     setEditingId(course.id);
+    setEditCoursePdfFile(null);
     setEditForm({
       title: course.title,
       instructor: course.instructor,
-      type: course.type || 'gratis',
+      type: course.type || 'mid_ticket',
       price: course.price || 0,
       duration: course.duration || '10 horas',
       desc: course.desc || '',
-      image: course.image || ''
+      image: course.image || '',
+      pdfUrl: course.pdfUrl || null,
+      pdfName: course.pdfName || null
     });
   };
 
-  const handleSaveEdit = (e) => {
+  const handleSaveEdit = async (e) => {
     e.preventDefault();
     if (!editForm.title || !editForm.instructor) {
       triggerToast('Título e Instructor son requeridos', 'error');
       return;
     }
-    handleUpdateCourse(editingId, {
-      ...editForm,
-      isPremium: editForm.type !== 'gratis'
-    });
-    setEditingId(null);
+    setEditCoursePdfUploading(true);
+    try {
+      let finalPdfUrl = editForm.pdfUrl;
+      let finalPdfName = editForm.pdfName;
+
+      if (editCoursePdfFile) {
+        const uploadRes = await uploadProjectDocument(editCoursePdfFile, editingId, 'academy');
+        finalPdfUrl = uploadRes.url;
+        finalPdfName = uploadRes.name;
+      }
+
+      await handleUpdateCourse(editingId, {
+        ...editForm,
+        isPremium: editForm.type !== 'gratis',
+        pdfUrl: finalPdfUrl,
+        pdfName: finalPdfName
+      });
+      setEditingId(null);
+    } catch (err) {
+      console.error(err);
+      triggerToast('Error al actualizar recurso académico', 'error');
+    } finally {
+      setEditCoursePdfUploading(false);
+    }
   };
 
   return (
@@ -1014,12 +1527,12 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
             <GlassCard className="p-6 space-y-4">
               <div className="flex items-center gap-2 border-b border-white/[0.06] pb-3">
                 <Plus className="w-4 h-4 text-[#00e03c]" />
-                <h4 className="text-xs font-black text-white uppercase tracking-wider">Añadir Recurso</h4>
+                <h4 className="text-xs font-black text-white uppercase tracking-wider">Añadir Recurso / Curso</h4>
               </div>
               <form onSubmit={handleCreate} className="space-y-3">
                 <div>
                   <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Título de la Lección / Recurso</label>
-                  <input required className={inputCls} placeholder="Ej: QGIS Básico para Cuencas" value={form.title} onChange={e => setForm(s => ({ ...s, title: e.target.value }))} />
+                  <input required className={inputCls} placeholder="Ej: SIG Aplicado a Fiscalización Ambiental" value={form.title} onChange={e => setForm(s => ({ ...s, title: e.target.value }))} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -1028,8 +1541,8 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
                     <select className={selectCls} value={form.type} onChange={e => handleTypeChange(e.target.value)}>
                       <option value="gratis">Gratis (Lead Magnet)</option>
                       <option value="low_ticket">Low Ticket (Base)</option>
-                      <option value="mid_ticket">Mid Ticket (Taller)</option>
-                      <option value="high_ticket">High Ticket (VIP)</option>
+                      <option value="mid_ticket">Mid Ticket (Taller Práctico)</option>
+                      <option value="high_ticket">High Ticket (VIP / Mentoring)</option>
                     </select>
                   </div>
                   <div>
@@ -1046,8 +1559,8 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Duración / Páginas</label>
-                    <input className={inputCls} placeholder="Ej: 15 horas, 90 págs" value={form.duration} onChange={e => setForm(s => ({ ...s, duration: e.target.value }))} />
+                    <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Duración / Horas</label>
+                    <input className={inputCls} placeholder="Ej: 40 horas prácticas" value={form.duration} onChange={e => setForm(s => ({ ...s, duration: e.target.value }))} />
                   </div>
                 </div>
 
@@ -1056,12 +1569,59 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
                   <textarea className={`${inputCls} h-20 resize-none`} placeholder="Describe brevemente el contenido..." value={form.desc} onChange={e => setForm(s => ({ ...s, desc: e.target.value }))} />
                 </div>
 
+                {/* PDF Syllabus Uploader */}
+                <div className="p-3 bg-white/[0.02] border border-white/[0.08] rounded-xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase">Syllabus / Guía en PDF</span>
+                    <label className="flex items-center gap-1.5 text-[10px] text-slate-400 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={useSampleCoursePdf}
+                        disabled={!!coursePdfFile}
+                        onChange={e => setUseSampleCoursePdf(e.target.checked)}
+                        className="rounded border-white/20 bg-white/5 text-[#00e03c]"
+                      />
+                      <span>PDF Modelo</span>
+                    </label>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <label className="cursor-pointer px-3 py-1.5 bg-white/[0.05] hover:bg-white/[0.08] border border-dashed border-white/20 rounded-lg text-white text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                      <UploadCloud className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>{coursePdfFile ? 'Cambiar PDF' : 'Subir Syllabus PDF'}</span>
+                      <input
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        className="hidden"
+                        onChange={e => {
+                          if (e.target.files?.[0]) {
+                            setCoursePdfFile(e.target.files[0]);
+                            setUseSampleCoursePdf(false);
+                          }
+                        }}
+                      />
+                    </label>
+                    {coursePdfFile && (
+                      <span className="text-[10px] text-emerald-300 font-mono truncate max-w-[130px]">
+                        {coursePdfFile.name}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
                 <div>
                   <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Ruta de Portada (Assets)</label>
                   <input className={inputCls} placeholder="Ruta de imagen" value={form.image} onChange={e => setForm(s => ({ ...s, image: e.target.value }))} />
                 </div>
 
-                <button type="submit" className="w-full bg-[#00e03c] text-slate-950 py-2.5 rounded-xl font-black text-xs uppercase hover:bg-emerald-400 flex items-center justify-center gap-1.5 transition-colors mt-2 shadow-[0_0_15px_rgba(0,224,60,0.15)]"><Plus className="w-4 h-4" /> Agregar Recurso</button>
+                <button
+                  type="submit"
+                  disabled={coursePdfUploading}
+                  className="w-full bg-[#00e03c] text-slate-950 py-2.5 rounded-xl font-black text-xs uppercase hover:bg-emerald-400 flex items-center justify-center gap-1.5 transition-colors mt-2 shadow-[0_0_15px_rgba(0,224,60,0.15)] disabled:opacity-50"
+                >
+                  {coursePdfUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                  {coursePdfUploading ? 'Subiendo Syllabus...' : 'Agregar Recurso'}
+                </button>
               </form>
             </GlassCard>
           ) : (
@@ -1103,7 +1663,7 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Duración / Páginas</label>
+                    <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Duración / Horas</label>
                     <input className={inputCls} placeholder="Duración" value={editForm.duration} onChange={e => setEditForm(s => ({ ...s, duration: e.target.value }))} />
                   </div>
                 </div>
@@ -1113,6 +1673,30 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
                   <textarea className={`${inputCls} h-20 resize-none`} placeholder="Descripción" value={editForm.desc} onChange={e => setEditForm(s => ({ ...s, desc: e.target.value }))} />
                 </div>
 
+                {/* Edit PDF Syllabus */}
+                <div className="p-3 bg-white/[0.02] border border-white/[0.08] rounded-xl space-y-2">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Syllabus / Guía en PDF</span>
+                  <div className="flex items-center gap-2">
+                    <label className="cursor-pointer px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                      <UploadCloud className="w-3.5 h-3.5" />
+                      <span>{editCoursePdfFile ? editCoursePdfFile.name : (editForm.pdfName || 'Cambiar/Subir PDF')}</span>
+                      <input
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        className="hidden"
+                        onChange={e => {
+                          if (e.target.files?.[0]) setEditCoursePdfFile(e.target.files[0]);
+                        }}
+                      />
+                    </label>
+                    {editForm.pdfUrl && (
+                      <a href={editForm.pdfUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 text-emerald-400 hover:text-emerald-300">
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+
                 <div>
                   <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Ruta de Portada (Assets)</label>
                   <input className={inputCls} placeholder="Ruta de imagen" value={editForm.image} onChange={e => setEditForm(s => ({ ...s, image: e.target.value }))} />
@@ -1120,7 +1704,14 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
 
                 <div className="grid grid-cols-2 gap-2 mt-2">
                   <button type="button" onClick={() => setEditingId(null)} className="w-full bg-white/5 hover:bg-white/10 text-white py-2 rounded-xl font-bold text-xs uppercase transition-colors flex items-center justify-center gap-1.5"><X className="w-3.5 h-3.5" /> Cancelar</button>
-                  <button type="submit" className="w-full bg-amber-500 text-slate-950 py-2 rounded-xl font-black text-xs uppercase hover:bg-amber-400 transition-colors flex items-center justify-center gap-1.5"><Check className="w-3.5 h-3.5" /> Guardar</button>
+                  <button
+                    type="submit"
+                    disabled={editCoursePdfUploading}
+                    className="w-full bg-amber-500 text-slate-950 py-2 rounded-xl font-black text-xs uppercase hover:bg-amber-400 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  >
+                    {editCoursePdfUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                    Guardar
+                  </button>
                 </div>
               </form>
             </GlassCard>
@@ -1163,6 +1754,19 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                    {c.pdfUrl && (
+                      <a
+                        href={c.pdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 rounded-lg text-[10px] font-bold transition-all"
+                        title={c.pdfName || "Ver Syllabus PDF"}
+                      >
+                        <FileText className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="hidden sm:inline">Syllabus PDF</span>
+                        <ExternalLink className="w-2.5 h-2.5 text-emerald-400 opacity-70" />
+                      </a>
+                    )}
                     <button
                       onClick={() => handleStartEdit(c)}
                       className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white rounded-lg transition-colors"

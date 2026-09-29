@@ -1,10 +1,18 @@
 {
   "version": "1.0",
   "project": "SERAM",
-  "last_updated": "2026-09-28",
+  "last_updated": "2026-09-29",
   "tasks": [],
   "in_progress": [],
   "completed": [
+    {
+      "id": "TASK-035",
+      "title": "Optimizar registro de proyectos y cursos en el Dashboard con soporte técnico para adjuntar y visualizar documentos en PDF almacenados en Supabase Storage (con redundancia offline), y depuración de catálogo dejando únicamente casos reales de ejemplo asignados a los socios",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-09-29",
+      "completed_at": "2026-09-29"
+    },
     {
       "id": "TASK-034",
       "title": "Rediseñar Oficina Virtual de SERAM con estética ilustrada/pixel-art top-down acogedora fiel a la imagen de referencia, transformando cada segmento de la web (Services, Academy, Experience, Store, Dirección/Socios) en una habitación interactiva navegable",
