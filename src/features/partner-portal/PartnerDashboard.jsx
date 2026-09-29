@@ -93,7 +93,7 @@ const GlassCard = ({ children, className = '' }) => (
 // ─────────────────────────────────────────────────────────────────────────────
 // MODULE: OVERVIEW
 // ─────────────────────────────────────────────────────────────────────────────
-function OverviewModule({ kpis, metrics, partnerPresences, timeLogs, onNavigate, activeServices, currentSocio }) {
+function OverviewModule({ kpis, metrics, partnerPresences, timeLogs, onNavigate, activeServices, courses = [], currentSocio }) {
   return (
     <div className="space-y-8">
       {/* KPI Cards — Visibles Permanentemente al 100% */}
@@ -123,6 +123,7 @@ function OverviewModule({ kpis, metrics, partnerPresences, timeLogs, onNavigate,
       <div className="space-y-3">
         <VirtualOfficeView
           activeServices={activeServices || []}
+          courses={courses || []}
           timeLogs={timeLogs || []}
           partnerPresences={partnerPresences || []}
           currentSocio={currentSocio}
@@ -3084,8 +3085,8 @@ export default function PartnerDashboard() {
 
           {/* Module Content — Permanente al 100% sin desvanecimiento */}
           <div key={activeModule} className="opacity-100 visible space-y-8">
-            {activeModule === 'overview'    && <OverviewModule kpis={kpis} metrics={metrics} partnerPresences={partnerPresences} timeLogs={timeLogs || []} onNavigate={setActiveModule} activeServices={activeServices || []} currentSocio={activeSocio} />}
-            {activeModule === 'office'      && <VirtualOfficeView activeServices={activeServices || []} timeLogs={timeLogs || []} partnerPresences={partnerPresences || []} currentSocio={activeSocio} onNavigateModule={setActiveModule} />}
+            {activeModule === 'overview'    && <OverviewModule kpis={kpis} metrics={metrics} partnerPresences={partnerPresences} timeLogs={timeLogs || []} onNavigate={setActiveModule} activeServices={activeServices || []} courses={courses || []} currentSocio={activeSocio} />}
+            {activeModule === 'office'      && <VirtualOfficeView activeServices={activeServices || []} courses={courses || []} timeLogs={timeLogs || []} partnerPresences={partnerPresences || []} currentSocio={activeSocio} onNavigateModule={setActiveModule} />}
             {activeModule === 'services'    && <ServicesModule activeServices={activeServices || []} registeredEngineers={safeEngineers} handlers={handlers} publicServices={publicServices || []} specialists={specialists || []} municipalProposals={municipalProposals || []} />}
             {activeModule === 'timetracker' && <TimeTrackerModule timeLogs={timeLogs || []} activeServices={activeServices || []} currentSocio={activeSocio} handlers={handlers} />}
             {activeModule === 'academy'     && <AcademyModule courses={courses || []} registeredEngineers={safeEngineers} handlers={handlers} />}

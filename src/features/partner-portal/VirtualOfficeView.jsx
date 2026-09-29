@@ -175,6 +175,7 @@ const OFFICE_STATIONS = [
 
 export default function VirtualOfficeView({
   activeServices = [],
+  courses = [],
   timeLogs = [],
   partnerPresences = [],
   currentSocio,
