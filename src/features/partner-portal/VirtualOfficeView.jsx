@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Building2, Users, Bot, Maximize2, Minimize2, ZoomIn, ZoomOut,
@@ -373,14 +374,28 @@ export default function VirtualOfficeView({
   const toggleFullscreen = () => {
     setIsFullscreen(prev => {
       const next = !prev;
-      if (next && document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else if (!next && document.exitFullscreen && document.fullscreenElement) {
-        document.exitFullscreen().catch(() => {});
+      if (next && typeof window !== 'undefined' && window.innerWidth < 640) {
+        setZoomLevel(0.55);
+        setPanOffset({ x: 0, y: 0 });
       }
       return next;
     });
   };
+
+  // Lock body scroll when fullscreen is active
+  useEffect(() => {
+    if (isFullscreen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [isFullscreen]);
 
   // Meritocratic calculations based on active logs & services
   const meritocracyStats = useMemo(() => {
@@ -508,125 +523,18 @@ export default function VirtualOfficeView({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isFullscreen]);
 
-  return (
-    <div className={`relative transition-all duration-300 select-none ${
-      isFullscreen 
-        ? 'fixed inset-0 z-50 bg-[#080d14] flex flex-col p-2 sm:p-4 overflow-hidden' 
-        : 'w-full rounded-2xl border border-white/10 bg-[#070b10] shadow-2xl overflow-hidden'
-    }`}>
-      {/* ── TOP HEADER HUD & STATUS ── */}
-      <div className="bg-white/[0.03] border-b border-white/[0.08] backdrop-blur-md px-4 py-3 sm:px-6 sm:py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3 z-20">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 shadow-lg shadow-emerald-500/10">
-            <Building2 className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-base sm:text-lg font-black text-white tracking-tight flex items-center gap-2">
-                Oficina Virtual SERAM
-                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  Metaverso 2.5D
-                </span>
-              </h2>
-            </div>
-            <p className="text-xs text-slate-400 font-medium line-clamp-1">
-              Piso Operativo & Estratégico · Socios, Consultores y Bots de Inteligencia Especializada
-            </p>
-          </div>
-        </div>
 
-        {/* Quick Rules & Meritocracy Pills */}
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          {/* Daily Schedule Pill */}
-          <button
-            onClick={() => setShowScheduleInfo(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 text-slate-300 font-bold transition-all"
-            title="Ver pautas de horario y conexión flexible"
-          >
-            <Clock className="w-3.5 h-3.5 text-amber-400" />
-            <span>4.5 hrs / día</span>
-            <span className="text-[10px] text-slate-400 font-normal hidden sm:inline">(09:00 AM pref · 24/7 libre)</span>
-            <Info className="w-3 h-3 text-slate-400 ml-0.5" />
-          </button>
-
-          {/* Meritocracy Pill */}
-          <button
-            onClick={() => setShowMeritocracyModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-bold transition-all shadow-sm shadow-emerald-500/10"
-            title="Ver modelo meritocrático de ganancias"
-          >
-            <Award className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Quien trabaja más gana más</span>
-            <span className="text-[10px] bg-emerald-500/20 px-1.5 py-0.2 rounded font-mono text-white">
-              Bs. {meritocracyStats.projectPool.toLocaleString()}
-            </span>
-          </button>
-
-          {/* Fullscreen toggle button */}
-          <button
-            onClick={toggleFullscreen}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.07] hover:bg-white/[0.12] border border-white/15 text-white font-bold transition-all ml-auto lg:ml-0"
-            title={isFullscreen ? "Salir de pantalla completa (Esc)" : "Pantalla completa optimizada para mobile"}
-          >
-            {isFullscreen ? <Minimize2 className="w-4 h-4 text-amber-400" /> : <Maximize2 className="w-4 h-4 text-emerald-400" />}
-            <span className="hidden sm:inline">{isFullscreen ? 'Minimizar' : 'Pantalla Completa'}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* ── DEPARTMENT NAVIGATION CHIPS & SEARCH ── */}
-      <div className="bg-white/[0.02] border-b border-white/[0.06] px-4 py-2.5 sm:px-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 z-20">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
-          {DEPARTMENTS.map(dept => (
-            <button
-              key={dept.id}
-              onClick={() => setSelectedDept(dept.id)}
-              className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                selectedDept === dept.id
-                  ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 shadow-md shadow-emerald-500/10'
-                  : 'bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-slate-200 hover:bg-white/[0.06]'
-              }`}
-            >
-              <span>{dept.name}</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                selectedDept === dept.id ? 'bg-emerald-400/20 text-emerald-200' : 'bg-white/5 text-slate-500'
-              }`}>
-                {dept.count}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        {/* Search agent */}
-        <div className="relative w-full md:w-56 shrink-0">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Buscar socio o bot..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/[0.04] border border-white/10 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50"
-          />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
-              <X className="w-3 h-3" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* ── ISOMETRIC CANVAS CONTAINER ── */}
-      <div
-        ref={containerRef}
+  // ── RENDER HELPERS ──
+  const renderOfficeCanvas = (isFullMode) => (
+    <div
+      ref={containerRef}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className={`relative w-full overflow-hidden bg-gradient-to-b from-[#0a0f18] via-[#080d15] to-[#04070b] cursor-grab active:cursor-grabbing ${
-          isFullscreen ? 'flex-1 h-full' : 'h-[560px] sm:h-[640px]'
-        }`}
+        className="relative w-full h-full overflow-hidden bg-gradient-to-b from-[#0a0f18] via-[#080d15] to-[#04070b] cursor-grab active:cursor-grabbing select-none"
       >
         {/* Subtle Isometric Grid Background */}
         <div 
@@ -998,9 +906,10 @@ export default function VirtualOfficeView({
           <span>Arrastra para explorar · Haz click en cualquier socio o bot</span>
         </div>
       </div>
+  );
 
-      {/* ── AGENT / PARTNER DETAIL DRAWER / CARD (BOTTOM) ── */}
-      <AnimatePresence>
+  const renderAgentDrawer = () => (
+    <AnimatePresence>
         {selectedAgent && (
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -1129,8 +1038,10 @@ export default function VirtualOfficeView({
           </motion.div>
         )}
       </AnimatePresence>
+  );
 
-      {/* ── MODAL: REGLAS DE HORARIO & ASINCRONÍA (4.5 HORAS/DÍA) ── */}
+  const renderModals = () => (
+    <>
       <AnimatePresence>
         {showScheduleInfo && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -1280,6 +1191,182 @@ export default function VirtualOfficeView({
           </div>
         )}
       </AnimatePresence>
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* ── VISTA PRINCIPAL INTEGRADA EN EL DASHBOARD ── */}
+      <div className="w-full rounded-2xl border border-white/10 bg-[#070b10] shadow-2xl overflow-hidden text-left relative">
+        {/* Top Header HUD */}
+        <div className="bg-white/[0.03] border-b border-white/[0.08] backdrop-blur-md px-4 py-3 sm:px-6 sm:py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3 z-20">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 shadow-lg shadow-emerald-500/10">
+              <Building2 className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base sm:text-lg font-black text-white tracking-tight flex items-center gap-2">
+                  Oficina Virtual SERAM
+                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    Metaverso 2.5D
+                  </span>
+                </h2>
+              </div>
+              <p className="text-xs text-slate-400 font-medium line-clamp-1">
+                Piso Operativo & Estratégico · Socios, Consultores y Bots de Inteligencia Especializada
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Rules & Meritocracy Pills */}
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <button
+              onClick={() => setShowScheduleInfo(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 text-slate-300 font-bold transition-all"
+              title="Ver pautas de horario y conexión flexible"
+            >
+              <Clock className="w-3.5 h-3.5 text-amber-400" />
+              <span>4.5 hrs / día</span>
+              <Info className="w-3 h-3 text-slate-400 ml-0.5" />
+            </button>
+
+            <button
+              onClick={() => setShowMeritocracyModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-bold transition-all"
+              title="Ver modelo meritocrático de ganancias"
+            >
+              <Award className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Quien trabaja más gana más</span>
+            </button>
+
+            {/* Prominent Fullscreen Button */}
+            <button
+              onClick={toggleFullscreen}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs transition-all shadow-lg shadow-emerald-500/25 ml-auto lg:ml-0 active:scale-95"
+            >
+              <Maximize2 className="w-4 h-4" />
+              <span>Ampliar Pantalla Completa</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Department Filter Chips & Search */}
+        <div className="bg-white/[0.02] border-b border-white/[0.06] px-4 py-2.5 sm:px-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 z-20">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+            {DEPARTMENTS.map(dept => (
+              <button
+                key={dept.id}
+                onClick={() => setSelectedDept(dept.id)}
+                className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  selectedDept === dept.id
+                    ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 shadow-md shadow-emerald-500/10'
+                    : 'bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-slate-200 hover:bg-white/[0.06]'
+                }`}
+              >
+                <span>{dept.name}</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                  selectedDept === dept.id ? 'bg-emerald-400/20 text-emerald-200' : 'bg-white/5 text-slate-500'
+                }`}>
+                  {dept.count}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <div className="relative w-full md:w-56 shrink-0">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Buscar socio o bot..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-white/[0.04] border border-white/10 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Embedded Canvas with fixed reliable height */}
+        <div className="relative w-full h-[460px] sm:h-[580px] lg:h-[640px] overflow-hidden">
+          {renderOfficeCanvas(false)}
+        </div>
+
+        {/* Embedded Agent Drawer */}
+        {renderAgentDrawer()}
+      </div>
+
+      {/* ── PORTAL ULTRA-INMERSIVO PANTALLA COMPLETA (DIRECTO AL BODY) ── */}
+      {isFullscreen && typeof document !== 'undefined' && createPortal(
+        <div
+          className="fixed inset-0 z-[99999999] w-screen h-[100dvh] bg-[#060a0f] flex flex-col overflow-hidden select-none text-left"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100dvh',
+            zIndex: 99999999
+          }}
+        >
+          {/* Mobile Fullscreen Top Bar */}
+          <div className="bg-[#0c131d]/95 border-b border-white/15 px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2 z-30 shrink-0 backdrop-blur-md">
+            <div className="flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-emerald-400" />
+              <span className="text-xs sm:text-sm font-black text-white">Oficina Virtual SERAM</span>
+              <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-mono hidden sm:inline">
+                Metaverso 2.5D
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleFullscreen}
+                className="px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-lg active:scale-95 transition-all"
+              >
+                <Minimize2 className="w-3.5 h-3.5" />
+                <span>Salir Pantalla Completa</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Department Selector in Fullscreen */}
+          <div className="bg-[#080d14]/90 border-b border-white/10 px-3 py-1.5 flex items-center gap-1.5 overflow-x-auto scrollbar-none z-30 shrink-0">
+            {DEPARTMENTS.map(dept => (
+              <button
+                key={dept.id}
+                onClick={() => setSelectedDept(dept.id)}
+                className={`shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 ${
+                  selectedDept === dept.id
+                    ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 shadow-sm'
+                    : 'bg-white/[0.04] text-slate-400'
+                }`}
+              >
+                <span>{dept.name}</span>
+                <span className="text-[9px] opacity-75 font-mono">{dept.count}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Fullscreen Canvas filling 100% of remaining screen */}
+          <div className="relative flex-1 w-full h-full overflow-hidden">
+            {renderOfficeCanvas(true)}
+          </div>
+
+          {/* Fullscreen Drawer */}
+          {renderAgentDrawer()}
+        </div>,
+        document.body
+      )}
+
+      {/* Modals */}
+      {renderModals()}
+    </>
   );
 }
