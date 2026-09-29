@@ -6,6 +6,14 @@
   "in_progress": [],
   "completed": [
     {
+      "id": "TASK-036",
+      "title": "Transformar Oficina Virtual en Miniverso interactivo pixel art (Gather.town / RollerCoin style) con Phaser 3 embebido en Canvas HTML5 sobre React con arquitectura híbrida (Canvas para render/física y React DOM para modales con proyectos, cursos, PDFs y webhooks)",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-09-29",
+      "completed_at": "2026-09-29"
+    },
+    {
       "id": "TASK-035",
       "title": "Optimizar registro de proyectos y cursos en el Dashboard con soporte técnico para adjuntar y visualizar documentos en PDF almacenados en Supabase Storage (con redundancia offline), y depuración de catálogo dejando únicamente casos reales de ejemplo asignados a los socios",
       "status": "completed",

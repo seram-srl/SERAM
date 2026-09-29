@@ -7,9 +7,10 @@ import {
   AlertCircle, ChevronRight, X, Search, Filter, Play, ExternalLink,
   Laptop, Smartphone, Award, TrendingUp, Layers, Compass, Target,
   Briefcase, BookOpenCheck, Globe, ShoppingBag, Info, MapPin,
-  ChevronDown, ArrowUpRight
+  ChevronDown, ArrowUpRight, Gamepad2
 } from 'lucide-react';
 import officeRoomImage from '../../assets/virtual-office/seram_office_model.jpg';
+import PhaserMiniverse from './PhaserMiniverse';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DATA: STATIONS IN THE EXACT OFFICE MODEL (MAPPED TO SERAM SEGMENTS)
@@ -181,6 +182,7 @@ export default function VirtualOfficeView({
 }) {
   // Navigation & Selected Station
   const [selectedStationId, setSelectedStationId] = useState('services'); // default to Services / Diego Barrientos
+  const [officePerspective, setOfficePerspective] = useState('phaser'); // 'phaser' (Miniverso Pixel Art) or 'isometric' (Vista Isométrica 2.5D)
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showScheduleInfo, setShowScheduleInfo] = useState(false);
   const [showMeritocracyModal, setShowMeritocracyModal] = useState(false);
@@ -790,8 +792,36 @@ export default function VirtualOfficeView({
             </div>
           </div>
 
-          {/* Quick Rules & Meritocracy Pills */}
+          {/* Quick Rules & Perspective Switcher */}
           <div className="flex flex-wrap items-center gap-2 text-xs">
+            {/* View Switcher: Miniverso Pixel Art (Phaser 3) vs Isométrica 2.5D */}
+            <div className="flex items-center bg-black/60 border border-white/10 rounded-xl p-1 gap-1">
+              <button
+                onClick={() => setOfficePerspective('phaser')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
+                  officePerspective === 'phaser'
+                    ? 'bg-[#00e03c] text-slate-950 shadow-md shadow-[#00e03c]/20'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Miniverso Pixel Art interactivo con motor Phaser 3 (Gather.town / RollerCoin style)"
+              >
+                <Gamepad2 className="w-3.5 h-3.5" />
+                <span>Miniverso Pixel Art (Phaser 3)</span>
+              </button>
+              <button
+                onClick={() => setOfficePerspective('isometric')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
+                  officePerspective === 'isometric'
+                    ? 'bg-amber-400 text-slate-950 shadow-md shadow-amber-400/20'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Vista Isométrica 2.5D de alta resolución"
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>Vista Isométrica 2.5D</span>
+              </button>
+            </div>
+
             <button
               onClick={() => setShowScheduleInfo(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 text-slate-300 font-bold transition-all"
@@ -808,7 +838,8 @@ export default function VirtualOfficeView({
               title="Ver modelo meritocrático de ganancias"
             >
               <Award className="w-3.5 h-3.5 text-amber-400" />
-              <span>Quien trabaja más gana más</span>
+              <span className="hidden sm:inline">Quien trabaja más gana más</span>
+              <span className="sm:hidden">Meritocracia</span>
             </button>
 
             {/* Prominent Fullscreen Button */}
@@ -817,36 +848,52 @@ export default function VirtualOfficeView({
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs transition-all shadow-lg shadow-amber-500/25 ml-auto lg:ml-0 active:scale-95"
             >
               <Maximize2 className="w-4 h-4" />
-              <span>Ampliar Pantalla Completa</span>
+              <span className="hidden sm:inline">Pantalla Completa</span>
             </button>
           </div>
         </div>
 
-        {/* Station Navigation Chips */}
-        <div className="bg-black/30 border-b border-white/[0.06] px-4 py-2.5 sm:px-6 flex items-center gap-2 overflow-x-auto scrollbar-none z-20">
-          {OFFICE_STATIONS.map(st => (
-            <button
-              key={st.id}
-              onClick={() => handleSelectStation(st.id)}
-              className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-                selectedStationId === st.id
-                  ? 'bg-amber-500/20 border border-amber-500/50 text-amber-300 shadow-md shadow-amber-500/10'
-                  : 'bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-slate-200 hover:bg-white/[0.06]'
-              }`}
-            >
-              <span>{st.icon}</span>
-              <span>{st.name}</span>
-            </button>
-          ))}
-        </div>
+        {/* ── CONDITIONAL VIEW BASED ON PERSPECTIVE ── */}
+        {officePerspective === 'phaser' ? (
+          <div className="p-4 bg-[#0a0d12]">
+            <PhaserMiniverse
+              activeServices={activeServices}
+              courses={courses}
+              timeLogs={timeLogs}
+              currentSocio={currentSocio}
+              onNavigateModule={onNavigateModule}
+              onOpenMeritocracy={() => setShowMeritocracyModal(true)}
+            />
+          </div>
+        ) : (
+          <>
+            {/* Station Navigation Chips */}
+            <div className="bg-black/30 border-b border-white/[0.06] px-4 py-2.5 sm:px-6 flex items-center gap-2 overflow-x-auto scrollbar-none z-20">
+              {OFFICE_STATIONS.map(st => (
+                <button
+                  key={st.id}
+                  onClick={() => handleSelectStation(st.id)}
+                  className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                    selectedStationId === st.id
+                      ? 'bg-amber-500/20 border border-amber-500/50 text-amber-300 shadow-md shadow-amber-500/10'
+                      : 'bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-slate-200 hover:bg-white/[0.06]'
+                  }`}
+                >
+                  <span>{st.icon}</span>
+                  <span>{st.name}</span>
+                </button>
+              ))}
+            </div>
 
-        {/* Embedded Canvas */}
-        <div className="relative w-full h-[500px] sm:h-[620px] lg:h-[700px] overflow-hidden">
-          {renderOfficeCanvas(false)}
-        </div>
+            {/* Embedded Canvas */}
+            <div className="relative w-full h-[500px] sm:h-[620px] lg:h-[700px] overflow-hidden">
+              {renderOfficeCanvas(false)}
+            </div>
 
-        {/* Embedded Station Drawer */}
-        {renderStationDrawer()}
+            {/* Embedded Station Drawer */}
+            {renderStationDrawer()}
+          </>
+        )}
       </div>
 
       {/* ── FULLSCREEN PORTAL (100% SCREEN VIEWPORT OVERLAY) ── */}
@@ -870,46 +917,86 @@ export default function VirtualOfficeView({
               <Building2 className="w-4 h-4 text-amber-400" />
               <span className="text-xs sm:text-sm font-black text-white">Oficina Virtual SERAM</span>
               <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-mono hidden sm:inline">
-                Modelo Interactivo
+                {officePerspective === 'phaser' ? 'Phaser 3 Pixel Art' : 'Modelo Isométrico 2.5D'}
               </span>
             </div>
 
             <div className="flex items-center gap-2">
+              {/* Perspective Switcher in Fullscreen */}
+              <div className="flex items-center bg-black/60 border border-white/10 rounded-xl p-0.5 gap-1">
+                <button
+                  onClick={() => setOfficePerspective('phaser')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 ${
+                    officePerspective === 'phaser' ? 'bg-[#00e03c] text-slate-950 font-black' : 'text-slate-400'
+                  }`}
+                >
+                  <Gamepad2 className="w-3 h-3" />
+                  <span>Pixel Art</span>
+                </button>
+                <button
+                  onClick={() => setOfficePerspective('isometric')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 ${
+                    officePerspective === 'isometric' ? 'bg-amber-400 text-slate-950 font-black' : 'text-slate-400'
+                  }`}
+                >
+                  <Layers className="w-3 h-3" />
+                  <span>Isométrica</span>
+                </button>
+              </div>
+
               <button
                 onClick={toggleFullscreen}
                 className="px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-lg active:scale-95 transition-all"
               >
                 <Minimize2 className="w-3.5 h-3.5" />
-                <span>Salir Pantalla Completa</span>
+                <span className="hidden sm:inline">Salir Pantalla Completa</span>
               </button>
             </div>
           </div>
 
-          {/* Station Selector in Fullscreen */}
-          <div className="bg-[#150f0b]/90 border-b border-white/10 px-3 py-1.5 flex items-center gap-1.5 overflow-x-auto scrollbar-none z-30 shrink-0">
-            {OFFICE_STATIONS.map(st => (
-              <button
-                key={st.id}
-                onClick={() => handleSelectStation(st.id)}
-                className={`shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1.5 ${
-                  selectedStationId === st.id
-                    ? 'bg-amber-500/20 border border-amber-500/50 text-amber-300 shadow-sm'
-                    : 'bg-white/[0.04] text-slate-400'
-                }`}
-              >
-                <span>{st.icon}</span>
-                <span>{st.name}</span>
-              </button>
-            ))}
-          </div>
+          {officePerspective === 'phaser' ? (
+            <div className="relative flex-1 w-full h-full overflow-y-auto p-4 bg-[#0a0d12]">
+              <PhaserMiniverse
+                activeServices={activeServices}
+                courses={courses}
+                timeLogs={timeLogs}
+                currentSocio={currentSocio}
+                onNavigateModule={(mod) => {
+                  toggleFullscreen();
+                  if (onNavigateModule) onNavigateModule(mod);
+                }}
+                onOpenMeritocracy={() => setShowMeritocracyModal(true)}
+              />
+            </div>
+          ) : (
+            <>
+              {/* Station Selector in Fullscreen */}
+              <div className="bg-[#150f0b]/90 border-b border-white/10 px-3 py-1.5 flex items-center gap-1.5 overflow-x-auto scrollbar-none z-30 shrink-0">
+                {OFFICE_STATIONS.map(st => (
+                  <button
+                    key={st.id}
+                    onClick={() => handleSelectStation(st.id)}
+                    className={`shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1.5 ${
+                      selectedStationId === st.id
+                        ? 'bg-amber-500/20 border border-amber-500/50 text-amber-300 shadow-sm'
+                        : 'bg-white/[0.04] text-slate-400'
+                    }`}
+                  >
+                    <span>{st.icon}</span>
+                    <span>{st.name}</span>
+                  </button>
+                ))}
+              </div>
 
-          {/* Fullscreen Canvas filling 100% of remaining screen */}
-          <div className="relative flex-1 w-full h-full overflow-hidden">
-            {renderOfficeCanvas(true)}
-          </div>
+              {/* Fullscreen Canvas filling 100% of remaining screen */}
+              <div className="relative flex-1 w-full h-full overflow-hidden">
+                {renderOfficeCanvas(true)}
+              </div>
 
-          {/* Fullscreen Drawer */}
-          {renderStationDrawer()}
+              {/* Fullscreen Drawer */}
+              {renderStationDrawer()}
+            </>
+          )}
         </div>,
         document.body
       )}
