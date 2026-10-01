@@ -131,6 +131,113 @@ export function AppProvider({ children }) {
     ];
   });
 
+  // --- CLIENTS (Directorio de Clientes e Instituciones de SERAM) ---
+  const [clients, setClients] = useState(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('seram_clients') : null;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    return [
+      {
+        id: 1,
+        name: 'Gobierno Autónomo Municipal de Palos Blancos',
+        type: 'Municipal / Público',
+        contactPerson: 'Dirección de Medio Ambiente y Madre Tierra',
+        contactPhone: '+591 71500000',
+        contactEmail: 'medioambiente@palosblancos.gob.bo',
+        location: 'Palos Blancos, Alto Beni - La Paz',
+        notes: 'Prioridad: Monitoreo de mercurio y fuentes de agua potable comunales'
+      },
+      {
+        id: 2,
+        name: 'Gobierno Autónomo Municipal de Guanay',
+        type: 'Municipal / Público',
+        contactPerson: 'Secretaría Técnica Municipal',
+        contactPhone: '+591 72000000',
+        contactEmail: 'tecnica@guanay.gob.bo',
+        location: 'Guanay - La Paz',
+        notes: 'Prioridad: Línea base de contaminación y fiscalización de concesiones auríferas'
+      },
+      {
+        id: 3,
+        name: 'Cooperativa Minera Aurífera Kaka R.L.',
+        type: 'Minería / Cooperativa',
+        contactPerson: 'Gerencia de Operaciones',
+        contactPhone: '+591 73000000',
+        contactEmail: 'operaciones@coopkaka.bo',
+        location: 'Río Kaka - La Paz',
+        notes: 'Tramitación de Ficha Ambiental y adecuación a RMCH'
+      }
+    ];
+  });
+
+  // --- ACTIVITIES (Central de Actividades Claves de Socios - Migrada de Notion) ---
+  const [activities, setActivities] = useState(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('seram_activities') : null;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    return [
+      {
+        id: 1,
+        title: 'Procesamiento cartográfico y mapa de isolíneas de mercurio en ArcGIS Pro',
+        description: 'Generación de la capa raster de concentración de mercurio en puntos de toma comunal en Palos Blancos.',
+        projectId: 101,
+        projectTitle: 'Línea Base: Monitoreo Hidrogeoquímico de Mercurio (Hg) y Fuentes de Agua por Minería Aurífera',
+        assignedPartner: 'Ing. Diego Barrientos',
+        assignedPartnerEmail: 'barrientoso2401@gmail.com',
+        category: 'SIG / Cartografía',
+        status: 'En curso',
+        priority: 'Alta',
+        dueDate: '2026-10-15',
+        estimatedHours: 18.00,
+        actualHours: 12.50,
+        deliverableUrl: null,
+        deliverableName: null
+      },
+      {
+        id: 2,
+        title: 'Revisión legal de TDRs y adecuación a Ley 1333 y Ley de Minería 535',
+        description: 'Armado de la carpeta legal para presentación ante la comisión del Concejo Municipal.',
+        projectId: 101,
+        projectTitle: 'Línea Base: Monitoreo Hidrogeoquímico de Mercurio (Hg) y Fuentes de Agua por Minería Aurífera',
+        assignedPartner: 'Ing. Fernando Araujo',
+        assignedPartnerEmail: 'fernandoaraujo1912@gmail.com',
+        category: 'Elaboración Informe / TDR',
+        status: 'En curso',
+        priority: 'Alta',
+        dueDate: '2026-10-18',
+        estimatedHours: 14.00,
+        actualHours: 8.00,
+        deliverableUrl: null,
+        deliverableName: null
+      },
+      {
+        id: 3,
+        title: 'Logística y coordinación de reactivos para segunda campaña de muestreo de agua',
+        description: 'Cotización de espectrometría con generador de hidruros y frascos de preservación.',
+        projectId: 101,
+        projectTitle: 'Línea Base: Monitoreo Hidrogeoquímico de Mercurio (Hg) y Fuentes de Agua por Minería Aurífera',
+        assignedPartner: 'Ing. Fabricio Orosco',
+        assignedPartnerEmail: 'sebastiansbs51@gmail.com',
+        category: 'Trabajo de Campo / Muestreo',
+        status: 'Pendiente',
+        priority: 'Media',
+        dueDate: '2026-10-22',
+        estimatedHours: 10.00,
+        actualHours: 3.00,
+        deliverableUrl: null,
+        deliverableName: null
+      }
+    ];
+  });
+
   // --- MUNICIPAL PROPOSALS (Líneas Base & Proyectos para Concejales Municipales) ---
   const [municipalProposals, setMunicipalProposals] = useState([
     {
@@ -506,11 +613,13 @@ export function AppProvider({ children }) {
   useEffect(() => {
     async function loadDataFromSupabase() {
       try {
-        const [coursesRes, projectsRes, productsRes, logsRes] = await Promise.allSettled([
+        const [coursesRes, projectsRes, productsRes, logsRes, clientsRes, activitiesRes] = await Promise.allSettled([
           supabase.from('courses').select('*'),
           supabase.from('projects').select('*'),
           supabase.from('products').select('*'),
-          supabase.from('time_logs').select('*')
+          supabase.from('time_logs').select('*'),
+          supabase.from('clients').select('*'),
+          supabase.from('activities').select('*')
         ]);
 
         // 1. Courses
@@ -539,8 +648,9 @@ export function AppProvider({ children }) {
             id: p.id,
             code: p.code || `SRM-2026-B2B-${p.id}`,
             client: p.client || p.title,
+            clientId: p.client_id || null,
             type: p.type || p.title,
-            progress: p.progress_percent || p.progress || 0,
+            progress: p.progress_percent !== undefined ? p.progress_percent : (p.progress || 0),
             lead: p.lead || 'Ing. Diego Barrientos',
             startDate: p.start_date || p.startDate,
             endDate: p.end_date || p.endDate,
@@ -588,11 +698,65 @@ export function AppProvider({ children }) {
           }));
           setTimeLogs(mappedLogs);
         }
+
+        // 5. Clients (Directorio de Clientes de SERAM)
+        if (clientsRes.status === 'fulfilled' && !clientsRes.value.error && clientsRes.value.data?.length > 0) {
+          const mappedClients = clientsRes.value.data.map(cl => ({
+            id: cl.id,
+            name: cl.name,
+            type: cl.type || 'Municipal / Público',
+            contactPerson: cl.contact_person,
+            contactPhone: cl.contact_phone,
+            contactEmail: cl.contact_email,
+            location: cl.location || '',
+            notes: cl.notes || ''
+          }));
+          setClients(mappedClients);
+        }
+
+        // 6. Activities (Central de Actividades Claves de Socios)
+        if (activitiesRes.status === 'fulfilled' && !activitiesRes.value.error && activitiesRes.value.data?.length > 0) {
+          const mappedActivities = activitiesRes.value.data.map(act => ({
+            id: act.id,
+            title: act.title,
+            description: act.description || '',
+            projectId: act.project_id,
+            projectTitle: act.project_title || 'Proyecto General',
+            assignedPartner: act.assigned_partner || 'Ing. Diego Barrientos',
+            assignedPartnerEmail: act.assigned_partner_email || '',
+            category: act.category || 'Consultoría Técnica',
+            status: act.status || 'En curso',
+            priority: act.priority || 'Media',
+            dueDate: act.due_date,
+            estimatedHours: parseFloat(act.estimated_hours) || 0,
+            actualHours: parseFloat(act.actual_hours) || 0,
+            deliverableUrl: act.deliverable_url || null,
+            deliverableName: act.deliverable_name || null
+          }));
+          setActivities(mappedActivities);
+        }
       } catch (err) {
         console.warn('[Supabase AppContext Pull Warning]: Red/DNS no disponible. Usando catálogo local mock.', err.message);
       }
     }
     loadDataFromSupabase();
+
+    // Suscripción Realtime para actividades y proyectos en tiempo real
+    const channel = supabase.channel('seram-portal-sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'activities' }, () => {
+        loadDataFromSupabase();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => {
+        loadDataFromSupabase();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'clients' }, () => {
+        loadDataFromSupabase();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // --- AUTOMATIC PERSISTENCE TO LOCALSTORAGE ---
@@ -615,6 +779,26 @@ export function AppProvider({ children }) {
       console.warn('Could not save activeServices to localStorage', e);
     }
   }, [activeServices]);
+
+  useEffect(() => {
+    try {
+      if (clients && clients.length > 0) {
+        localStorage.setItem('seram_clients', JSON.stringify(clients));
+      }
+    } catch (e) {
+      console.warn('Could not save clients to localStorage', e);
+    }
+  }, [clients]);
+
+  useEffect(() => {
+    try {
+      if (activities && activities.length > 0) {
+        localStorage.setItem('seram_activities', JSON.stringify(activities));
+      }
+    } catch (e) {
+      console.warn('Could not save activities to localStorage', e);
+    }
+  }, [activities]);
 
   const handleLogoClick = () => {
     const nextClicks = logoClicks + 1;
@@ -1213,6 +1397,187 @@ export function AppProvider({ children }) {
     }
   };
 
+  // ─── ACTIVITIES HANDLERS (CENTRAL DE ACTIVIDADES CLAVES) ───
+  const handleAddActivity = async (actData) => {
+    const newAct = {
+      id: Date.now(),
+      title: actData.title,
+      description: actData.description || '',
+      projectId: actData.projectId || null,
+      projectTitle: actData.projectTitle || 'General',
+      assignedPartner: actData.assignedPartner || currentSocio?.name || 'Ing. Diego Barrientos',
+      assignedPartnerEmail: actData.assignedPartnerEmail || currentSocio?.email || '',
+      category: actData.category || 'Consultoría Técnica',
+      status: actData.status || 'En curso',
+      priority: actData.priority || 'Media',
+      dueDate: actData.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      estimatedHours: parseFloat(actData.estimatedHours) || 0,
+      actualHours: parseFloat(actData.actualHours) || 0,
+      deliverableUrl: actData.deliverableUrl || null,
+      deliverableName: actData.deliverableName || null
+    };
+
+    setActivities(prev => [newAct, ...prev]);
+    triggerToast('Actividad clave registrada correctamente', 'success');
+
+    try {
+      const { error } = await supabase.from('activities').insert([{
+        title: newAct.title,
+        description: newAct.description,
+        project_id: newAct.projectId ? (typeof newAct.projectId === 'number' && newAct.projectId < 2147483647 ? newAct.projectId : null) : null,
+        project_title: newAct.projectTitle,
+        assigned_partner: newAct.assignedPartner,
+        assigned_partner_email: newAct.assignedPartnerEmail,
+        category: newAct.category,
+        status: newAct.status,
+        priority: newAct.priority,
+        due_date: newAct.dueDate,
+        estimated_hours: newAct.estimatedHours,
+        actual_hours: newAct.actualHours,
+        deliverable_url: newAct.deliverableUrl,
+        deliverable_name: newAct.deliverableName
+      }]);
+      if (error && error.code !== 'PGRST205') {
+        console.warn('[Supabase Insert Activity Warning]:', error.message);
+      }
+    } catch (err) {
+      console.warn('[Supabase Sync Warning - AddActivity]:', err.message);
+    }
+  };
+
+  const handleUpdateActivityStatus = async (id, newStatus) => {
+    setActivities(prev => prev.map(a => a.id === id ? { ...a, status: newStatus } : a));
+    triggerToast(`Estado actualizado: ${newStatus}`, 'info');
+
+    try {
+      const { error } = await supabase
+        .from('activities')
+        .update({ status: newStatus })
+        .eq('id', id);
+      if (error && error.code !== 'PGRST205') {
+        console.warn('[Supabase Update Activity Status Warning]:', error.message);
+      }
+    } catch (err) {
+      console.warn('[Supabase Sync Warning - UpdateActivityStatus]:', err.message);
+    }
+  };
+
+  const handleEditActivity = async (id, updatedFields) => {
+    setActivities(prev => prev.map(a => a.id === id ? { ...a, ...updatedFields } : a));
+    triggerToast('Actividad actualizada', 'success');
+
+    try {
+      const dbFields = {};
+      if (updatedFields.title !== undefined) dbFields.title = updatedFields.title;
+      if (updatedFields.description !== undefined) dbFields.description = updatedFields.description;
+      if (updatedFields.category !== undefined) dbFields.category = updatedFields.category;
+      if (updatedFields.status !== undefined) dbFields.status = updatedFields.status;
+      if (updatedFields.priority !== undefined) dbFields.priority = updatedFields.priority;
+      if (updatedFields.dueDate !== undefined) dbFields.due_date = updatedFields.dueDate;
+      if (updatedFields.assignedPartner !== undefined) dbFields.assigned_partner = updatedFields.assignedPartner;
+      if (updatedFields.actualHours !== undefined) dbFields.actual_hours = parseFloat(updatedFields.actualHours);
+      if (updatedFields.estimatedHours !== undefined) dbFields.estimated_hours = parseFloat(updatedFields.estimatedHours);
+
+      const { error } = await supabase
+        .from('activities')
+        .update(dbFields)
+        .eq('id', id);
+      if (error && error.code !== 'PGRST205') {
+        console.warn('[Supabase Update Activity Warning]:', error.message);
+      }
+    } catch (err) {
+      console.warn('[Supabase Sync Warning - EditActivity]:', err.message);
+    }
+  };
+
+  const handleDeleteActivity = async (id) => {
+    setActivities(prev => prev.filter(a => a.id !== id));
+    triggerToast('Actividad eliminada', 'info');
+
+    try {
+      const { error } = await supabase.from('activities').delete().eq('id', id);
+      if (error && error.code !== 'PGRST205') {
+        throw error;
+      }
+    } catch (err) {
+      console.warn('[Supabase Sync Warning - DeleteActivity]:', err.message);
+    }
+  };
+
+  // ─── CLIENTS HANDLERS (DIRECTORIO DE CLIENTES) ───
+  const handleAddClient = async (clientData) => {
+    const newClient = {
+      id: Date.now(),
+      name: clientData.name,
+      type: clientData.type || 'Municipal / Público',
+      contactPerson: clientData.contactPerson || '',
+      contactPhone: clientData.contactPhone || '',
+      contactEmail: clientData.contactEmail || '',
+      location: clientData.location || '',
+      notes: clientData.notes || ''
+    };
+
+    setClients(prev => [...prev, newClient]);
+    triggerToast('Cliente registrado exitosamente', 'success');
+
+    try {
+      const { error } = await supabase.from('clients').insert([{
+        name: newClient.name,
+        type: newClient.type,
+        contact_person: newClient.contactPerson,
+        contact_phone: newClient.contactPhone,
+        contact_email: newClient.contactEmail,
+        location: newClient.location,
+        notes: newClient.notes
+      }]);
+      if (error && error.code !== 'PGRST205') {
+        console.warn('[Supabase Insert Client Warning]:', error.message);
+      }
+    } catch (err) {
+      console.warn('[Supabase Sync Warning - AddClient]:', err.message);
+    }
+  };
+
+  const handleEditClient = async (id, updatedFields) => {
+    setClients(prev => prev.map(c => c.id === id ? { ...c, ...updatedFields } : c));
+    triggerToast('Datos del cliente actualizados', 'success');
+
+    try {
+      const dbFields = {};
+      if (updatedFields.name !== undefined) dbFields.name = updatedFields.name;
+      if (updatedFields.type !== undefined) dbFields.type = updatedFields.type;
+      if (updatedFields.contactPerson !== undefined) dbFields.contact_person = updatedFields.contactPerson;
+      if (updatedFields.contactPhone !== undefined) dbFields.contact_phone = updatedFields.contactPhone;
+      if (updatedFields.contactEmail !== undefined) dbFields.contact_email = updatedFields.contactEmail;
+      if (updatedFields.location !== undefined) dbFields.location = updatedFields.location;
+      if (updatedFields.notes !== undefined) dbFields.notes = updatedFields.notes;
+
+      const { error } = await supabase
+        .from('clients')
+        .update(dbFields)
+        .eq('id', id);
+      if (error && error.code !== 'PGRST205') {
+        console.warn('[Supabase Update Client Warning]:', error.message);
+      }
+    } catch (err) {
+      console.warn('[Supabase Sync Warning - EditClient]:', err.message);
+    }
+  };
+
+  const handleDeleteClient = async (id) => {
+    setClients(prev => prev.filter(c => c.id !== id));
+    triggerToast('Cliente eliminado del directorio', 'info');
+
+    try {
+      const { error } = await supabase.from('clients').delete().eq('id', id);
+      if (error && error.code !== 'PGRST205') {
+        throw error;
+      }
+    } catch (err) {
+      console.warn('[Supabase Sync Warning - DeleteClient]:', err.message);
+    }
+  };
+
   const handleToggleUserPremium = (email) => {
     setRegisteredUsers(prev => prev.map(u => u.email.toLowerCase() === email.toLowerCase() ? { ...u, isPremiumApproved: !u.isPremiumApproved } : u));
   };
@@ -1533,6 +1898,7 @@ export function AppProvider({ children }) {
       cart, showCart, setShowCart,
       // Data
       products: productList, productList, courses, setCourses, activeServices, setActiveServices,
+      clients, setClients, activities, setActivities,
       municipalProposals, setMunicipalProposals,
       experiences, setExperiences,
       timeLogs, setTimeLogs,
@@ -1554,6 +1920,8 @@ export function AppProvider({ children }) {
       handleAddCourse, handleUpdateCourse, handleDeleteCourse, handleToggleCoursePremium,
       handleAddProject, handleUpdateProjectProgress, handleDeleteProject,
       handleEditProject, handleConcludeProject,
+      handleAddActivity, handleUpdateActivityStatus, handleEditActivity, handleDeleteActivity,
+      handleAddClient, handleEditClient, handleDeleteClient,
       handleAddMunicipalProposal, handleEditMunicipalProposal, handleDeleteMunicipalProposal,
       handleToggleUserPremium, handleRevokeUserAccess, handleLogoutPartner,
       // Experience handlers

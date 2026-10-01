@@ -10,7 +10,7 @@ import {
   Wallet, Target, Layers, ArrowUpRight, ArrowDownRight, Percent,
   PieChart as LucidePie, Activity, CreditCard, Building2,
   FileText, Smartphone, Laptop, Radio, Wifi,
-  UploadCloud, ExternalLink, FileCheck, Paperclip
+  UploadCloud, ExternalLink, FileCheck, Paperclip, CheckSquare
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
@@ -23,6 +23,7 @@ import { supabase } from '../../services/supabaseClient';
 import { uploadProjectDocument } from '../../services/projectStorageService';
 import MunicipalProposalsView, { MunicipalProposalModal } from './MunicipalProposalsView';
 import VirtualOfficeView from './VirtualOfficeView';
+import ActivitiesAndClientsModule from './ActivitiesAndClientsModule';
 
 // ── ANIMATION VARIANTS ─────────────────────────────────────────────────────
 const pageVariants = {
@@ -40,6 +41,7 @@ const stagger = { animate: { transition: { staggerChildren: 0.07 } } };
 const SIDEBAR_MODULES = [
   { id: 'overview',    icon: <BarChart2 className="w-5 h-5" />,    label: 'Resumen General' },
   { id: 'office',      icon: <Building2 className="w-5 h-5" />,    label: 'Oficina Virtual · Metaverso' },
+  { id: 'activities',  icon: <CheckSquare className="w-5 h-5" />,  label: 'Central de Actividades & Clientes' },
   { id: 'services',   icon: <Briefcase className="w-5 h-5" />,    label: 'SERAM SERVICES' },
   { id: 'timetracker', icon: <Clock className="w-5 h-5" />,        label: 'Time Tracker' },
   { id: 'academy',    icon: <BookOpenCheck className="w-5 h-5" />, label: 'Gestión de Info-productos y Oferta Académica' },
@@ -94,6 +96,7 @@ const GlassCard = ({ children, className = '' }) => (
 // MODULE: OVERVIEW
 // ─────────────────────────────────────────────────────────────────────────────
 function OverviewModule({ kpis, metrics, partnerPresences, timeLogs, onNavigate, activeServices, courses = [], currentSocio }) {
+  const { activities = [] } = useApp();
   return (
     <div className="space-y-8">
       {/* KPI Cards — Visibles Permanentemente al 100% */}
@@ -253,6 +256,64 @@ function OverviewModule({ kpis, metrics, partnerPresences, timeLogs, onNavigate,
                     <p className="text-[10px] text-slate-500 italic">Sin registros de trabajo recientes.</p>
                   )}
                 </div>
+              </div>
+            );
+          })}
+        </div>
+      </GlassCard>
+
+      {/* ── CENTRAL DE ACTIVIDADES CLAVES & HITOS (NOTION ➔ WEB SERAM) ── */}
+      <GlassCard className="p-5 sm:p-6 space-y-4 border-blue-500/20">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/[0.06] pb-3 gap-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+              <CheckSquare className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-white text-sm tracking-tight">
+                Central de Actividades Claves & Entregables de Socios
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                Seguimiento en tiempo real de tareas operativas, trámites y entregables periciales
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => onNavigate('activities')}
+            className="text-xs font-bold text-[#00e03c] hover:text-[#00e03c]/80 flex items-center gap-1.5 transition-colors self-start sm:self-auto bg-[#00e03c]/10 border border-[#00e03c]/20 px-3 py-1.5 rounded-xl"
+          >
+            Abrir Central de Gestión <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* Mini lista de tareas en curso */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {['Ing. Diego Barrientos', 'Ing. Fernando Araujo', 'Ing. Fabricio Orosco'].map((pName) => {
+            const socioAct = (activities || []).filter(a => a.assignedPartner === pName);
+            const activeAct = socioAct.find(a => a.status === 'En curso') || socioAct[0];
+            const doneCount = socioAct.filter(a => a.status === 'Concluido').length;
+
+            return (
+              <div key={pName} className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.08] space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-black text-white">{pName.replace('Ing. ', '')}</span>
+                  <span className="text-[9px] font-bold text-slate-400 bg-white/[0.06] px-2 py-0.5 rounded-full">
+                    {doneCount}/{socioAct.length} Hechas
+                  </span>
+                </div>
+                {activeAct ? (
+                  <div className="space-y-1">
+                    <p className="text-[11px] text-slate-200 font-bold line-clamp-1">{activeAct.title}</p>
+                    <div className="flex items-center justify-between text-[10px] text-slate-400">
+                      <span className="text-emerald-400 font-medium truncate max-w-[120px]">{activeAct.category}</span>
+                      <span className={`px-1.5 py-0.2 rounded font-black text-[9px] ${activeAct.status === 'Concluido' ? 'text-[#00e03c]' : 'text-blue-300'}`}>
+                        {activeAct.status}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-slate-500 italic">Sin tareas pendientes</p>
+                )}
               </div>
             );
           })}
@@ -3087,6 +3148,7 @@ export default function PartnerDashboard() {
           <div key={activeModule} className="opacity-100 visible space-y-8">
             {activeModule === 'overview'    && <OverviewModule kpis={kpis} metrics={metrics} partnerPresences={partnerPresences} timeLogs={timeLogs || []} onNavigate={setActiveModule} activeServices={activeServices || []} courses={courses || []} currentSocio={activeSocio} />}
             {activeModule === 'office'      && <VirtualOfficeView activeServices={activeServices || []} courses={courses || []} timeLogs={timeLogs || []} partnerPresences={partnerPresences || []} currentSocio={activeSocio} onNavigateModule={setActiveModule} />}
+            {activeModule === 'activities'  && <ActivitiesAndClientsModule currentSocio={activeSocio} />}
             {activeModule === 'services'    && <ServicesModule activeServices={activeServices || []} registeredEngineers={safeEngineers} handlers={handlers} publicServices={publicServices || []} specialists={specialists || []} municipalProposals={municipalProposals || []} />}
             {activeModule === 'timetracker' && <TimeTrackerModule timeLogs={timeLogs || []} activeServices={activeServices || []} currentSocio={activeSocio} handlers={handlers} />}
             {activeModule === 'academy'     && <AcademyModule courses={courses || []} registeredEngineers={safeEngineers} handlers={handlers} />}

@@ -6,6 +6,14 @@
   "in_progress": [],
   "completed": [
     {
+      "id": "TASK-038",
+      "title": "Migración integral de Notion a Supabase y despliegue de la Central de Actividades Claves, Proyectos y Clientes en PartnerDashboard de SERAM",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-01",
+      "completed_at": "2026-10-01"
+    },
+    {
       "id": "TASK-037",
       "title": "Reestructurar el Miniverso de la oficina en Phaser 3 según el croquis de 11 zonas (Administración, Dirección, Sala de Reuniones, Service, Academy, Experience, Operaciones, Marketing y Ventas, Social Media, Finanzas, Comercial) con webhook n8n y apertura de modales React",
       "status": "completed",
