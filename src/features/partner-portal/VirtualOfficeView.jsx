@@ -187,6 +187,7 @@ export default function VirtualOfficeView({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showScheduleInfo, setShowScheduleInfo] = useState(false);
   const [showMeritocracyModal, setShowMeritocracyModal] = useState(false);
+  const [miniverseRoomModal, setMiniverseRoomModal] = useState(null);
 
   // Zoom & Pan state
   const [zoomLevel, setZoomLevel] = useState(() => {
@@ -761,6 +762,80 @@ export default function VirtualOfficeView({
             </motion.div>
           </div>
         )}
+
+        {miniverseRoomModal && (
+          <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="w-full max-w-lg bg-[#141a23] border border-white/15 rounded-3xl p-6 shadow-2xl text-left text-white space-y-4 relative"
+            >
+              <div className="flex items-start justify-between border-b border-white/10 pb-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <h3 className="text-lg font-black text-white">{miniverseRoomModal}</h3>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5">Zona Operativa del Miniverso SERAM</p>
+                </div>
+                <button
+                  onClick={() => setMiniverseRoomModal(null)}
+                  className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-3.5 bg-white/[0.04] border border-white/10 rounded-2xl space-y-2 text-xs">
+                <div className="flex items-center justify-between text-slate-300">
+                  <span className="text-slate-400 font-semibold">Estado de Actividad:</span>
+                  <span className="text-emerald-400 font-bold flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" /> Time Tracker Iniciado
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-slate-300">
+                  <span className="text-slate-400 font-semibold">Sincronización:</span>
+                  <span className="text-cyan-400 font-mono text-[11px]">Webhook n8n emitido</span>
+                </div>
+                <div className="flex items-center justify-between text-slate-300">
+                  <span className="text-slate-400 font-semibold">Socio Activo:</span>
+                  <span className="text-white font-medium">{currentSocio?.name || 'Socio_Activo'}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  onClick={() => setMiniverseRoomModal(null)}
+                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-slate-300 transition-colors"
+                >
+                  Cerrar
+                </button>
+                {['Service', 'Academy', 'Experience', 'Comercial', 'Finanzas', 'Operaciones'].includes(miniverseRoomModal) && (
+                  <button
+                    onClick={() => {
+                      const mapping = {
+                        'Service': 'services',
+                        'Academy': 'academy',
+                        'Experience': 'experience',
+                        'Comercial': 'store',
+                        'Finanzas': 'finances',
+                        'Operaciones': 'services'
+                      };
+                      const target = mapping[miniverseRoomModal];
+                      setMiniverseRoomModal(null);
+                      if (onNavigateModule && target) onNavigateModule(target);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs flex items-center gap-1.5 transition-all shadow-lg shadow-amber-500/20"
+                  >
+                    <span>Ir a Módulo</span>
+                    <ArrowUpRight className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
     </>
   );
@@ -856,14 +931,9 @@ export default function VirtualOfficeView({
 
         {/* ── CONDITIONAL VIEW BASED ON PERSPECTIVE ── */}
         {officePerspective === 'phaser' ? (
-          <div className="p-4 bg-[#0a0d12]">
+          <div className="p-4 bg-[#0a0d12] overflow-x-auto flex justify-center">
             <PhaserMiniverse
-              activeServices={activeServices}
-              courses={courses}
-              timeLogs={timeLogs}
-              currentSocio={currentSocio}
-              onNavigateModule={onNavigateModule}
-              onOpenMeritocracy={() => setShowMeritocracyModal(true)}
+              openModal={(roomName) => setMiniverseRoomModal(roomName)}
             />
           </div>
         ) : (
@@ -956,17 +1026,9 @@ export default function VirtualOfficeView({
           </div>
 
           {officePerspective === 'phaser' ? (
-            <div className="relative flex-1 w-full h-full overflow-y-auto p-4 bg-[#0a0d12]">
+            <div className="relative flex-1 w-full h-full overflow-auto p-4 bg-[#0a0d12] flex justify-center items-start">
               <PhaserMiniverse
-                activeServices={activeServices}
-                courses={courses}
-                timeLogs={timeLogs}
-                currentSocio={currentSocio}
-                onNavigateModule={(mod) => {
-                  toggleFullscreen();
-                  if (onNavigateModule) onNavigateModule(mod);
-                }}
-                onOpenMeritocracy={() => setShowMeritocracyModal(true)}
+                openModal={(roomName) => setMiniverseRoomModal(roomName)}
               />
             </div>
           ) : (
