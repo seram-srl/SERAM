@@ -35,6 +35,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
   const {
     activities = [],
     clients = [],
+    prospects = [],
     activeServices = [],
     handleAddActivity,
     handleUpdateActivityStatus,
@@ -43,13 +44,21 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     handleAddClient,
     handleEditClient,
     handleDeleteClient,
+    handleUpdateProspect,
+    handleConvertProspectToClient,
     triggerToast
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState('kanban'); // 'kanban', 'table', 'clients', 'progress'
+  const [activeTab, setActiveTab] = useState('kanban'); // 'kanban', 'table', 'clients', 'prospects', 'progress'
   const [partnerFilter, setPartnerFilter] = useState('all');
   const [projectFilter, setProjectFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Estados Prospección B2B Global
+  const [prospectSearch, setProspectSearch] = useState('');
+  const [prospectDept, setProspectDept] = useState('all');
+  const [prospectStatusFilter, setProspectStatusFilter] = useState('all');
+  const [prospectServiceFilter, setProspectServiceFilter] = useState('all');
 
   // Modales
   const [showNewActivityModal, setShowNewActivityModal] = useState(false);
@@ -268,7 +277,17 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                 : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
             }`}
           >
-            <Building2 className="w-3.5 h-3.5" /> Directorio Clientes ({clients.length})
+            <Building2 className="w-3.5 h-3.5" /> Clientes ({clients.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('prospects')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+              activeTab === 'prospects'
+                ? 'bg-[#00e03c] text-slate-950 shadow-md font-black'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Prospección B2B Global ({prospects.length})
           </button>
           <button
             onClick={() => setActiveTab('progress')}
@@ -626,6 +645,215 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                 </GlassCard>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* ── VISTA 4: PROSPECCIÓN B2B GLOBAL (BASE DE DATOS EMPRESAS SEPREC) ── */}
+      {activeTab === 'prospects' && (
+        <div className="space-y-4">
+          {/* Barra de Filtros de Prospección */}
+          <div className="bg-white/[0.03] border border-white/[0.08] p-4 rounded-2xl space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
+              <div>
+                <h4 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-400" /> Base de Datos Global SERAM (SEPREC Bolivia)
+                </h4>
+                <p className="text-[11px] text-slate-400">
+                  Directorio de empresas con datos de contacto verificados para captación de trámites (RAI, FNCA, SIG, etc.)
+                </p>
+              </div>
+              <span className="text-[10px] font-black px-3 py-1 rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/20">
+                {prospects.length} Empresas Objetivo
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {/* Búsqueda */}
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Buscar empresa, rubro..."
+                  value={prospectSearch}
+                  onChange={(e) => setProspectSearch(e.target.value)}
+                  className="w-full text-xs pl-9 pr-3 py-2 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                />
+              </div>
+
+              {/* Filtro Departamento */}
+              <div>
+                <select
+                  value={prospectDept}
+                  onChange={(e) => setProspectDept(e.target.value)}
+                  className="w-full text-xs px-3 py-2 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white"
+                >
+                  <option value="all">Todos los Departamentos</option>
+                  <option value="LA PAZ">La Paz</option>
+                  <option value="SANTA CRUZ">Santa Cruz</option>
+                  <option value="COCHABAMBA">Cochabamba</option>
+                  <option value="ORURO">Oruro</option>
+                  <option value="POTOSI">Potosí</option>
+                  <option value="CHUQUISACA">Chuquisaca</option>
+                  <option value="TARIJA">Tarija</option>
+                  <option value="BENI">Beni</option>
+                  <option value="PANDO">Pando</option>
+                </select>
+              </div>
+
+              {/* Filtro Estado Gestión */}
+              <div>
+                <select
+                  value={prospectStatusFilter}
+                  onChange={(e) => setProspectStatusFilter(e.target.value)}
+                  className="w-full text-xs px-3 py-2 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white"
+                >
+                  <option value="all">Todos los Estados</option>
+                  <option value="Prospecto Nuevo">Prospecto Nuevo</option>
+                  <option value="Contactado">Contactado</option>
+                  <option value="Cotización Enviada">Cotización Enviada</option>
+                  <option value="Cliente Cerrado">Cliente Cerrado</option>
+                </select>
+              </div>
+
+              {/* Filtro Servicio Sugerido */}
+              <div>
+                <select
+                  value={prospectServiceFilter}
+                  onChange={(e) => setProspectServiceFilter(e.target.value)}
+                  className="w-full text-xs px-3 py-2 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white"
+                >
+                  <option value="all">Todos los Servicios</option>
+                  <option value="RAI">Registro Industrial (RAI)</option>
+                  <option value="FNCA">Categorización (FNCA)</option>
+                  <option value="EMAP">Formulario Minero (EMAP)</option>
+                  <option value="Auditoría">Auditoría Ambiental</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Grid de Prospectos */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {prospects
+              .filter((p) => {
+                const matchSearch =
+                  p.razonSocial.toLowerCase().includes(prospectSearch.toLowerCase()) ||
+                  p.actividad.toLowerCase().includes(prospectSearch.toLowerCase()) ||
+                  p.matricula.includes(prospectSearch);
+                const matchDept = prospectDept === 'all' || p.departamento === prospectDept;
+                const matchStatus = prospectStatusFilter === 'all' || p.estadoGestion === prospectStatusFilter;
+                const matchService =
+                  prospectServiceFilter === 'all' || p.servicioInteres.includes(prospectServiceFilter);
+                return matchSearch && matchDept && matchStatus && matchService;
+              })
+              .map((p) => (
+                <GlassCard key={p.id} className="p-4 space-y-3 flex flex-col justify-between hover:border-amber-400/30 transition-all">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                        {p.departamento} · {p.municipio}
+                      </span>
+                      <span
+                        className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
+                          p.estadoGestion === 'Cliente Cerrado'
+                            ? 'bg-[#00e03c]/20 text-[#00e03c] border-[#00e03c]/30'
+                            : p.estadoGestion === 'Cotización Enviada'
+                            ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                            : 'bg-white/[0.08] text-slate-300 border-white/[0.12]'
+                        }`}
+                      >
+                        {p.estadoGestion}
+                      </span>
+                    </div>
+
+                    <h4 className="text-xs font-black text-white leading-tight">{p.razonSocial}</h4>
+                    <p className="text-[9px] text-slate-500 font-mono">Matrícula: {p.matricula}</p>
+
+                    <p className="text-[10px] text-slate-300 line-clamp-2 leading-relaxed">
+                      {p.actividad}
+                    </p>
+
+                    {/* Servicio sugerido de SERAM */}
+                    <div className="bg-white/[0.04] p-2 rounded-lg border border-white/[0.06] text-[10px]">
+                      <span className="text-slate-400 font-bold block">Servicio sugerido SERAM:</span>
+                      <span className="text-emerald-400 font-black">{p.servicioInteres}</span>
+                    </div>
+
+                    {/* Contacto */}
+                    <div className="space-y-1 pt-1 text-[11px]">
+                      {p.telefono && (
+                        <div className="flex items-center justify-between text-slate-300">
+                          <span className="flex items-center gap-1.5 font-mono">
+                            <Phone className="w-3 h-3 text-blue-400" /> {p.telefono}
+                          </span>
+                          <a
+                            href={`https://wa.me/591${p.telefono.replace(/[^0-9]/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[9px] font-black text-[#00e03c] bg-[#00e03c]/10 hover:bg-[#00e03c]/20 px-2 py-0.5 rounded transition-colors"
+                          >
+                            WhatsApp ➔
+                          </a>
+                        </div>
+                      )}
+                      {p.email && (
+                        <div className="flex items-center justify-between text-slate-300">
+                          <span className="flex items-center gap-1.5 font-mono text-[10px] truncate max-w-[170px]">
+                            <Mail className="w-3 h-3 text-purple-400 shrink-0" /> {p.email}
+                          </span>
+                          <a
+                            href={`mailto:${p.email}?subject=Asesoramiento%20Ambiental%20SERAM`}
+                            className="text-[9px] font-black text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 px-2 py-0.5 rounded transition-colors"
+                          >
+                            Email
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Acciones de Gestión y Conversión a Cliente */}
+                  <div className="pt-3 border-t border-white/[0.06] space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <select
+                        value={p.estadoGestion}
+                        onChange={(e) => handleUpdateProspect(p.id, { estadoGestion: e.target.value })}
+                        className="text-[10px] font-bold px-2 py-1 rounded bg-white/[0.06] border border-white/[0.1] text-white focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white flex-1"
+                      >
+                        <option value="Prospecto Nuevo">Prospecto Nuevo</option>
+                        <option value="Contactado">Contactado</option>
+                        <option value="Cotización Enviada">Cotización Enviada</option>
+                        <option value="Cliente Cerrado">Cliente Cerrado</option>
+                      </select>
+
+                      <select
+                        value={p.socioAsignado}
+                        onChange={(e) => handleUpdateProspect(p.id, { socioAsignado: e.target.value })}
+                        className="text-[10px] font-bold px-2 py-1 rounded bg-white/[0.06] border border-white/[0.1] text-white focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white flex-1"
+                      >
+                        <option value="Sin Asignar">Sin Asignar</option>
+                        <option value="Ing. Diego Barrientos">Diego</option>
+                        <option value="Ing. Fernando Araujo">Fernando</option>
+                        <option value="Ing. Fabricio Orosco">Fabricio</option>
+                      </select>
+                    </div>
+
+                    {p.estadoGestion !== 'Cliente Cerrado' ? (
+                      <button
+                        onClick={() => handleConvertProspectToClient(p.id)}
+                        className="w-full py-1.5 rounded-lg bg-gradient-to-r from-emerald-500 to-[#00e03c] text-slate-950 font-black text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-[#00e03c]/10 hover:brightness-110 transition-all"
+                      >
+                        <Sparkles className="w-3 h-3" /> Convertir en Cliente SERAM
+                      </button>
+                    ) : (
+                      <div className="text-center py-1 text-[10px] font-black text-[#00e03c] bg-[#00e03c]/10 rounded-lg border border-[#00e03c]/20 flex items-center justify-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" /> Cliente Oficial Registrado
+                      </div>
+                    )}
+                  </div>
+                </GlassCard>
+              ))}
           </div>
         </div>
       )}

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
+import initialProspects from '../data/b2b_prospects.json';
 
 export const AppContext = createContext(null);
 
@@ -236,6 +237,18 @@ export function AppProvider({ children }) {
         deliverableName: null
       }
     ];
+  });
+
+  // --- B2B PROSPECTS (Base Global de Empresas de Bolivia para Captación Comercial) ---
+  const [prospects, setProspects] = useState(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('seram_prospects') : null;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    return initialProspects || [];
   });
 
   // --- MUNICIPAL PROPOSALS (Líneas Base & Proyectos para Concejales Municipales) ---
@@ -799,6 +812,16 @@ export function AppProvider({ children }) {
       console.warn('Could not save activities to localStorage', e);
     }
   }, [activities]);
+
+  useEffect(() => {
+    try {
+      if (prospects && prospects.length > 0) {
+        localStorage.setItem('seram_prospects', JSON.stringify(prospects));
+      }
+    } catch (e) {
+      console.warn('Could not save prospects to localStorage', e);
+    }
+  }, [prospects]);
 
   const handleLogoClick = () => {
     const nextClicks = logoClicks + 1;
@@ -1578,6 +1601,40 @@ export function AppProvider({ children }) {
     }
   };
 
+  // ─── B2B PROSPECTS HANDLERS (BASE GLOBAL SEPREC / NOTION ➔ CLIENTES) ───
+  const handleUpdateProspect = (id, updatedFields) => {
+    setProspects(prev => prev.map(p => p.id === id ? { ...p, ...updatedFields } : p));
+    triggerToast('Estado de gestión comercial actualizado', 'info');
+  };
+
+  const handleConvertProspectToClient = async (prospectId) => {
+    const prospect = prospects.find(p => p.id === prospectId);
+    if (!prospect) return;
+
+    // Crear cliente oficial a partir del prospecto
+    const newClientData = {
+      name: prospect.razonSocial,
+      type: prospect.tipoSocietario?.includes('SOCIEDAD') ? 'Industrial / Fabril' : 'Privado / Particular',
+      contactPerson: prospect.socioAsignado !== 'Sin Asignar' ? `Atendido por ${prospect.socioAsignado}` : 'Gerencia / Representante',
+      contactPhone: prospect.telefono || '',
+      contactEmail: prospect.email || '',
+      location: `${prospect.departamento} - ${prospect.municipio}`,
+      notes: `Matrícula SEPREC: ${prospect.matricula}. Actividad: ${prospect.actividad}. Interés inicial: ${prospect.servicioInteres}.`
+    };
+
+    // Agregar a clientes oficiales
+    await handleAddClient(newClientData);
+
+    // Marcar prospecto como "Cliente Cerrado"
+    setProspects(prev => prev.map(p => p.id === prospectId ? {
+      ...p,
+      estadoGestion: 'Cliente Cerrado',
+      notas: `${p.notas || ''} [Convertido a Cliente Oficial el ${new Date().toLocaleDateString()}]`
+    } : p));
+
+    triggerToast(`¡${prospect.razonSocial} convertido a Cliente Oficial!`, 'success');
+  };
+
   const handleToggleUserPremium = (email) => {
     setRegisteredUsers(prev => prev.map(u => u.email.toLowerCase() === email.toLowerCase() ? { ...u, isPremiumApproved: !u.isPremiumApproved } : u));
   };
@@ -1899,6 +1956,7 @@ export function AppProvider({ children }) {
       // Data
       products: productList, productList, courses, setCourses, activeServices, setActiveServices,
       clients, setClients, activities, setActivities,
+      prospects, setProspects,
       municipalProposals, setMunicipalProposals,
       experiences, setExperiences,
       timeLogs, setTimeLogs,
@@ -1922,6 +1980,7 @@ export function AppProvider({ children }) {
       handleEditProject, handleConcludeProject,
       handleAddActivity, handleUpdateActivityStatus, handleEditActivity, handleDeleteActivity,
       handleAddClient, handleEditClient, handleDeleteClient,
+      handleUpdateProspect, handleConvertProspectToClient,
       handleAddMunicipalProposal, handleEditMunicipalProposal, handleDeleteMunicipalProposal,
       handleToggleUserPremium, handleRevokeUserAccess, handleLogoutPartner,
       // Experience handlers
