@@ -626,7 +626,8 @@ export function AppProvider({ children }) {
   useEffect(() => {
     async function loadDataFromSupabase() {
       try {
-        const [coursesRes, projectsRes, productsRes, logsRes, clientsRes, activitiesRes] = await Promise.allSettled([
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000));
+        const fetchPromise = Promise.allSettled([
           supabase.from('courses').select('*'),
           supabase.from('projects').select('*'),
           supabase.from('products').select('*'),
@@ -634,6 +635,8 @@ export function AppProvider({ children }) {
           supabase.from('clients').select('*'),
           supabase.from('activities').select('*')
         ]);
+        const results = await Promise.race([fetchPromise, timeoutPromise]);
+        const [coursesRes, projectsRes, productsRes, logsRes, clientsRes, activitiesRes] = results;
 
         // 1. Courses
         if (coursesRes.status === 'fulfilled' && !coursesRes.value.error && coursesRes.value.data?.length > 0) {

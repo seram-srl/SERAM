@@ -350,6 +350,11 @@ function generarTexturasOficina(scene) {
 
 const MiniversoSERAM = ({ openModal }) => {
   const gameRef = useRef(null);
+  const openModalRef = useRef(openModal);
+
+  useEffect(() => {
+    openModalRef.current = openModal;
+  }, [openModal]);
 
   useEffect(() => {
     const config = {
@@ -660,7 +665,7 @@ const MiniversoSERAM = ({ openModal }) => {
             ease: 'Power2'
           });
 
-          if (openModal) openModal(z.name);
+          if (openModalRef.current) openModalRef.current(z.name);
           iniciarTimeTracker(z.name);
         });
       });
@@ -669,7 +674,7 @@ const MiniversoSERAM = ({ openModal }) => {
     return () => {
       game.destroy(true);
     };
-  }, [openModal]);
+  }, []);
 
   // Función para registrar el inicio de actividad en Supabase/N8N
   const iniciarTimeTracker = (departamento) => {

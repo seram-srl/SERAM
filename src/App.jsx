@@ -56,7 +56,7 @@ export default function App() {
       style={{ position: 'relative' }}
     >
       {/* ── CAPA z-0: Fondo WebGL tridimensional ─────────────────────────── */}
-      {location.pathname !== '/' && <EnvironmentalCanvas />}
+      {location.pathname !== '/' && location.pathname !== '/dashboard' && <EnvironmentalCanvas />}
 
       {/* ── CAPA z-2: Vignette degradé lateral para el home y páginas ───── */}
       <div className="vignette-overlay-sides" />

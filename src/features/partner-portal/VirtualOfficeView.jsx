@@ -183,11 +183,15 @@ export default function VirtualOfficeView({
 }) {
   // Navigation & Selected Station
   const [selectedStationId, setSelectedStationId] = useState('services'); // default to Services / Diego Barrientos
-  const [officePerspective, setOfficePerspective] = useState('phaser'); // 'phaser' (Miniverso Pixel Art) or 'isometric' (Vista Isométrica 2.5D)
+  const [officePerspective, setOfficePerspective] = useState('isometric'); // 'isometric' (Vista Isométrica 2.5D instantánea) or 'phaser' (Miniverso Pixel Art)
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showScheduleInfo, setShowScheduleInfo] = useState(false);
   const [showMeritocracyModal, setShowMeritocracyModal] = useState(false);
   const [miniverseRoomModal, setMiniverseRoomModal] = useState(null);
+
+  const handleOpenMiniverseModal = useCallback((roomName) => {
+    setMiniverseRoomModal(roomName);
+  }, []);
 
   // Zoom & Pan state
   const [zoomLevel, setZoomLevel] = useState(() => {
@@ -933,7 +937,7 @@ export default function VirtualOfficeView({
         {officePerspective === 'phaser' ? (
           <div className="p-4 bg-[#0a0d12] overflow-x-auto flex justify-center">
             <PhaserMiniverse
-              openModal={(roomName) => setMiniverseRoomModal(roomName)}
+              openModal={handleOpenMiniverseModal}
             />
           </div>
         ) : (
@@ -1028,7 +1032,7 @@ export default function VirtualOfficeView({
           {officePerspective === 'phaser' ? (
             <div className="relative flex-1 w-full h-full overflow-auto p-4 bg-[#0a0d12] flex justify-center items-start">
               <PhaserMiniverse
-                openModal={(roomName) => setMiniverseRoomModal(roomName)}
+                openModal={handleOpenMiniverseModal}
               />
             </div>
           ) : (

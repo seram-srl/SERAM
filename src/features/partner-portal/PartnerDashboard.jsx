@@ -2974,8 +2974,15 @@ export default function PartnerDashboard() {
 
   const [activeModule, setActiveModule] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [loading, setLoading] = useState(true);
-  const [metrics, setMetrics] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [metrics, setMetrics] = useState(() => {
+    try {
+      const saved = localStorage.getItem('seram_company_metrics');
+      return saved ? JSON.parse(saved) : null;
+    } catch (_) {
+      return null;
+    }
+  });
   const mainRef = React.useRef(null);
 
   useEffect(() => {
@@ -2988,18 +2995,20 @@ export default function PartnerDashboard() {
     let mounted = true;
     async function fetchMetrics() {
       try {
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500));
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2500));
         const fetchPromise = supabase.from('company_metrics').select('*').limit(1);
         const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
-        if (!error && data?.length > 0 && mounted) setMetrics(data[0]);
+        if (!error && data?.length > 0 && mounted) {
+          setMetrics(data[0]);
+          try {
+            localStorage.setItem('seram_company_metrics', JSON.stringify(data[0]));
+          } catch (_) {}
+        }
       } catch (_) {
-        // Fallback inmediato a métricas locales
-      } finally {
-        if (mounted) setLoading(false);
+        // Fallback silencioso e inmediato a métricas cacheadas/locales
       }
     }
     if (activeRole === 'AdminMod') fetchMetrics();
-    else setLoading(false);
     return () => { mounted = false; };
   }, [activeRole]);
 
@@ -3033,19 +3042,6 @@ export default function PartnerDashboard() {
     { label: 'Propuestas Municipales', value: (municipalProposals || []).length.toString(), unit: 'Líneas Base', trend: 'Líder: Ing. Diego Barrientos', icon: <Building2 className="w-5 h-5" />, color: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' },
     { label: 'CO₂ Compensado', value: metrics?.co2_compensated ? metrics.co2_compensated.toLocaleString() : '1,240', unit: 'Tons', trend: 'Meta: 1,500T anuales', icon: <Leaf className="w-5 h-5" />, color: 'bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/30' },
   ];
-
-  if (loading) {
-    return (
-      <div className="min-h-screen neuform-bg flex items-center justify-center relative z-10">
-        <div className="space-y-4 text-center">
-          <div className="w-12 h-12 rounded-2xl bg-[#00e03c]/10 border border-[#00e03c]/20 flex items-center justify-center mx-auto">
-            <Loader2 className="w-6 h-6 text-[#00e03c] animate-spin" />
-          </div>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Cargando Panel Directivo…</p>
-        </div>
-      </div>
-    );
-  }
 
   if (activeRole !== 'AdminMod') {
     return <InlinePartnerLogin registeredEngineers={safeEngineers} onLogin={handlePartnerLogin} />;
