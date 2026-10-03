@@ -32,6 +32,7 @@ Eres el **Agente Líder** del proyecto SERAM. Tu trabajo es planificar, delegar 
 - Si una tarea requiere > 2 horas estimadas, dividirla en subtareas.
 - Mantener `tasks.json` como la única fuente de verdad del progreso.
 - Aplicar la skill de SEO y Copywriting (`.agents/skills/seo-copywriting/SKILL.md`) en cada página nueva o modificada.
+- Aplicar la regla de validación de runtime y ESLint (`.agents/rules/runtime-validation.md`): verificar importaciones de JSX, declarar funciones antes de su uso y ejecutar ESLint antes de cada commit para evitar `ReferenceError`.
 
 ## Estructura del Proyecto
 ```

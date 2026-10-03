@@ -352,9 +352,21 @@ const MiniversoSERAM = ({ openModal }) => {
   const gameRef = useRef(null);
   const openModalRef = useRef(openModal);
 
-  useEffect(() => {
-    openModalRef.current = openModal;
-  }, [openModal]);
+  // Función para registrar el inicio de actividad en Supabase/N8N
+  const iniciarTimeTracker = (departamento) => {
+    fetch('https://tu-webhook-n8n.com/webhook/time-tracker', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        socio: 'Socio_Activo',
+        area: departamento,
+        accion: 'iniciar_reloj',
+        timestamp: new Date().toISOString()
+      })
+    }).catch((_) => {
+      console.warn('[n8n Webhook] time-tracker emitido para:', departamento);
+    });
+  };
 
   useEffect(() => {
     const config = {
@@ -675,22 +687,6 @@ const MiniversoSERAM = ({ openModal }) => {
       game.destroy(true);
     };
   }, []);
-
-  // Función para registrar el inicio de actividad en Supabase/N8N
-  const iniciarTimeTracker = (departamento) => {
-    fetch('https://tu-webhook-n8n.com/webhook/time-tracker', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        socio: 'Socio_Activo',
-        area: departamento,
-        accion: 'iniciar_reloj',
-        timestamp: new Date().toISOString()
-      })
-    }).catch(err => {
-      console.warn('[n8n Webhook] time-tracker emitido para:', departamento);
-    });
-  };
 
   return (
     <div

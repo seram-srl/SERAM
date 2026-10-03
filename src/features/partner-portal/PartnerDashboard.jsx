@@ -7,7 +7,7 @@ import {
   Clock, Award, TrendingUp, BarChart2, ShoppingBag,
   Globe, Users, ChevronLeft, ChevronRight, Settings,
   MapPin, UserCheck, Package, Star, AlertCircle, Lock,
-  Wallet, Target, Layers, ArrowUpRight, ArrowDownRight, Percent,
+  Wallet, Target, Layers, ArrowRight, ArrowUpRight, ArrowDownRight, Percent,
   PieChart as LucidePie, Activity, CreditCard, Building2,
   FileText, Smartphone, Laptop, Radio, Wifi,
   UploadCloud, ExternalLink, FileCheck, Paperclip, CheckSquare
@@ -3002,7 +3002,9 @@ export default function PartnerDashboard() {
           setMetrics(data[0]);
           try {
             localStorage.setItem('seram_company_metrics', JSON.stringify(data[0]));
-          } catch (_) {}
+          } catch (err) {
+            // Ignorar error de cuota de localStorage
+          }
         }
       } catch (_) {
         // Fallback silencioso e inmediato a métricas cacheadas/locales
