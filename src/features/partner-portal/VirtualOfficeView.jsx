@@ -4,272 +4,383 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Building2, Users, Bot, Maximize2, Minimize2, ZoomIn, ZoomOut,
   RotateCcw, Sparkles, Shield, DollarSign, Clock, CheckCircle2,
-  AlertCircle, ChevronRight, X, Search, Filter, Play, ExternalLink,
+  AlertCircle, ChevronRight, X, Search, Filter, Play, Pause, ExternalLink,
   Laptop, Smartphone, Award, TrendingUp, Layers, Compass, Target,
   Briefcase, BookOpenCheck, Globe, ShoppingBag, Info, MapPin,
   ChevronDown, ArrowUpRight, Coffee, Microscope, FolderArchive,
-  Car, UserCheck, CheckSquare, FileText
+  Car, UserCheck, CheckSquare, FileText, Volume2, VolumeX, MessageSquare,
+  Share2, Radio, Sliders, ChevronUp, RefreshCw
 } from 'lucide-react';
-import officeRoomImage from '../../assets/virtual-office/seram_office_model.jpg';
+import soundEngine from './OfficeSoundEngine';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DATA: ESTACIONES DE LA OFICINA ISOMÉTRICA 2.5D UNIFICADA (SERAM SRL)
+// DATA: 13 OFICINAS INDEPENDIENTES SEGÚN EL BOCETO A MANO ALZADA + TOTEM
 // ─────────────────────────────────────────────────────────────────────────────
 
-const OFFICE_STATIONS = [
+export const OFFICE_ROOMS = [
+  // ── ALA DERECHA (Columna Derecha del Boceto) ──
   {
-    id: 'all',
-    name: 'Toda la Oficina',
-    segmentTitle: 'Oficina Central SERAM SRL',
-    icon: <Building2 className="w-3.5 h-3.5" />,
-    badge: 'Vista Panorámica 2.5D',
-    color: 'emerald',
-    targetModule: 'overview',
-    description: 'Espacio de trabajo unificado de la consultora ambiental e ingeniería SERAM.'
+    id: 'admin',
+    number: '01',
+    name: 'ADMINISTRACIÓN',
+    subtitle: 'Gestión de Socios, Roles & Gobierno',
+    wing: 'Ala Ejecutiva',
+    targetModule: 'users',
+    color: '#3b82f6',
+    x: 820,
+    y: 80,
+    w: 320,
+    h: 180,
+    doorX: 820,
+    doorY: 170,
+    lead: 'Gerencia Administrativa',
+    role: 'Gobierno Corporativo',
+    desk: { x: 980, y: 170 },
+    bot: {
+      name: 'Bot Gestor de Accesos',
+      role: 'Auditoría de Roles & Socios',
+      avatar: '🛡️',
+      status: 'Activo · Supervisando credenciales'
+    },
+    description: 'Control de accesos a la intranet, estatutos de SERAM SRL, poderes notariales y gestión de usuarios.',
+    metrics: '3 socios directivos · 12 permisos activos'
   },
   {
-    id: 'services',
-    name: 'SERAM SERVICES',
-    segmentTitle: 'Dirección General & Propuestas Municipales',
-    icon: <Briefcase className="w-3.5 h-3.5" />,
-    badge: 'Ingeniería & SIG',
-    color: 'blue',
+    id: 'direction',
+    number: '02',
+    name: 'DIRECCIÓN',
+    subtitle: 'Despacho de Presidencia & Estrategia',
+    wing: 'Ala Ejecutiva',
     targetModule: 'services',
-    xPercent: 50,
-    yPercent: 54,
-    zoomTarget: 1.35,
-    panX: 0,
-    panY: -25,
-    assignedLead: 'Ing. Diego Barrientos',
-    assignedRole: 'Socio Fundador · Dirección General',
-    leadAvatar: 'DB',
+    color: '#f59e0b',
+    x: 820,
+    y: 280,
+    w: 320,
+    h: 190,
+    doorX: 820,
+    doorY: 375,
+    lead: 'Ing. Diego Barrientos',
+    role: 'Socio Fundador · Dirección General',
+    leadInitials: 'DB',
     leadColor: 'from-amber-400 to-yellow-600',
-    currentActivity: 'Liderando Propuestas Técnicas de Agua y Minería Aurífera ante Gobiernos Municipales',
-    bots: ['Bot Sentinel-2 NDVI', 'Bot Dossier Concejales', 'Bot QGIS Cuencas'],
-    hoursToday: 4.2,
-    targetHours: 4.5,
-    cycleEarnings: 13950,
-    description: 'Estación de modelación satelital, análisis multiespectral de cuencas mineras y formulación de proyectos ambientales para municipios.'
+    desk: { x: 980, y: 375 },
+    bot: {
+      name: 'Bot Dossier Concejales',
+      role: 'Asistente de Presidencia',
+      avatar: '👑',
+      status: 'Procesando TDRs Municipales'
+    },
+    description: 'Despacho del Ing. Diego Barrientos: dirección estratégica, articulación con gobernaciones y aprobación de ofertas técnicas.',
+    metrics: '4 propuestas clave en revisión'
   },
   {
     id: 'operations',
-    name: 'HIDRÁULICA & RIEGO',
-    segmentTitle: 'Estación de Modelación Hidráulica & Obras',
-    icon: <Layers className="w-3.5 h-3.5" />,
-    badge: 'Redes & Balances',
-    color: 'sky',
+    number: '03',
+    name: 'OPERACIONES Y PLANIFICACIÓN',
+    subtitle: 'Ingeniería Hidráulica, Riego & Obras',
+    wing: 'Ala Técnica',
     targetModule: 'services',
-    xPercent: 28,
-    yPercent: 61,
-    zoomTarget: 1.4,
-    panX: 160,
-    panY: -70,
-    assignedLead: 'Ing. Fernando Araujo',
-    assignedRole: 'Socio Directivo · Hidráulica & Obras',
-    leadAvatar: 'FA',
+    color: '#0284c7',
+    x: 820,
+    y: 490,
+    w: 320,
+    h: 190,
+    doorX: 820,
+    doorY: 585,
+    lead: 'Ing. Fernando Araujo',
+    role: 'Socio Directivo · Hidráulica & Obras',
+    leadInitials: 'FA',
     leadColor: 'from-blue-500 to-indigo-600',
-    currentActivity: 'Simulación de pérdidas de carga en redes de microriego y balance CROPWAT',
-    bots: ['Bot EPANET Riego', 'Bot Calidad de Agua & Hg'],
-    hoursToday: 3.5,
-    targetHours: 4.5,
-    cycleEarnings: 9600,
-    description: 'Cálculo de redes hidráulicas presurizadas, aforos de caudales y dimensionamiento de obras de toma.'
-  },
-  {
-    id: 'experience',
-    name: 'SERAM EXPERIENCE',
-    segmentTitle: 'Mesa de Cartografía, Drones & Expediciones',
-    icon: <Globe className="w-3.5 h-3.5" />,
-    badge: 'Expediciones & Campo',
-    color: 'amber',
-    targetModule: 'experience',
-    xPercent: 78,
-    yPercent: 58,
-    zoomTarget: 1.35,
-    panX: -190,
-    panY: -50,
-    assignedLead: 'Ing. Fabricio Orosco',
-    assignedRole: 'Socio Directivo · Calidad & Expansión',
-    leadAvatar: 'FO',
-    leadColor: 'from-emerald-500 to-teal-700',
-    currentActivity: 'Procesamiento de nubes de puntos LiDAR y logística de expedición Valle de las Agujas',
-    bots: ['Bot Drones & Ortomosaicos', 'Bot Guía de Montaña'],
-    hoursToday: 2.8,
-    targetHours: 4.5,
-    cycleEarnings: 7350,
-    description: 'Planificación de salidas de campo, expediciones científicas de alta montaña, turismo científico y vuelos fotogramétricos.'
-  },
-  {
-    id: 'recreation',
-    name: 'SALA DE RECREACIÓN & CAFÉ',
-    segmentTitle: 'Lounge de Descanso & Diligencias de Comisión',
-    icon: <Coffee className="w-3.5 h-3.5" />,
-    badge: 'Descanso / Sin Cómputo',
-    color: 'emerald',
-    targetModule: 'timetracker',
-    xPercent: 18,
-    yPercent: 36,
-    zoomTarget: 1.45,
-    panX: 230,
-    panY: 80,
-    assignedLead: 'Zona de Pausa & Diligencias',
-    assignedRole: 'Área Común · Socios en Comisión o Trámites',
-    leadAvatar: '☕',
-    leadColor: 'from-emerald-600 to-green-700',
-    currentActivity: 'Espacio de descanso, café y diligencias externas. Los avatares descansan aquí cuando no ejecutan tareas activas.',
-    isRecreationRoom: true,
-    description: 'Área de sofás y cafetería. Cuando un socio está conectado pero no ejecuta una tarea técnica, su avatar descansa aquí. En esta sala no se contabilizan horas de trabajo.'
-  },
-  {
-    id: 'meeting',
-    name: 'SALA DE REUNIONES',
-    segmentTitle: 'Mesa de Directorio & Acuerdos Técnicos',
-    icon: <Users className="w-3.5 h-3.5" />,
-    badge: 'Mesa de Directorio',
-    color: 'amber',
-    targetModule: 'overview',
-    xPercent: 52,
-    yPercent: 26,
-    zoomTarget: 1.45,
-    panX: -20,
-    panY: 150,
-    assignedLead: 'Consejo de Socios Directivos',
-    assignedRole: 'Directorio Plenario SERAM SRL',
-    leadAvatar: '🏛️',
-    leadColor: 'from-amber-500 to-yellow-600',
-    currentActivity: 'Mesa de toma de decisiones, asambleas de socios, revisión de TDRs y coordinación interdepartamental.',
-    description: 'Sala de conferencias central. Cuando hay una reunión técnica o asamblea convocada, los avatares se ubican alrededor de la mesa.'
+    desk: { x: 980, y: 585 },
+    bot: {
+      name: 'Bot EPANET & Balances',
+      role: 'Cálculo de Redes & Caudales',
+      avatar: '💧',
+      status: 'Simulando pérdidas de carga'
+    },
+    description: 'Despacho del Ing. Fernando Araujo: dimensionamiento de obras de toma, balances hídricos CROPWAT y supervisión de obras civiles.',
+    metrics: '3 proyectos de microriego en cómputo'
   },
   {
     id: 'commercial',
-    name: 'ÁREA COMERCIAL',
-    segmentTitle: 'Ventas Corporativas & Licitaciones B2B',
-    icon: <Target className="w-3.5 h-3.5" />,
-    badge: 'Ventas & Contratos',
-    color: 'rose',
+    number: '04',
+    name: 'COMERCIAL',
+    subtitle: 'Licitaciones Públicas B2B & Clientes',
+    wing: 'Ala Comercial',
     targetModule: 'activities',
-    xPercent: 84,
-    yPercent: 26,
-    zoomTarget: 1.45,
-    panX: -240,
-    panY: 150,
-    assignedLead: 'Gerencia Comercial B2B',
-    assignedRole: 'Captación & Licitaciones',
-    leadAvatar: '💼',
-    leadColor: 'from-rose-500 to-red-600',
-    currentActivity: 'Monitoreo de contrataciones estatales en SICOES y prospección en la base de 150 empresas industriales.',
-    bots: ['Bot Licitaciones SICOES', 'Bot WhatsApp B2B'],
-    description: 'Oficina comercial compacta para el cierre de contratos ambientales, licitaciones públicas y propuestas para empresas privadas.'
+    color: '#e11d48',
+    x: 820,
+    y: 700,
+    w: 320,
+    h: 180,
+    doorX: 820,
+    doorY: 790,
+    lead: 'Gerencia Comercial B2B',
+    role: 'Captación & SICOES',
+    desk: { x: 980, y: 790 },
+    bot: {
+      name: 'Bot Licitaciones SICOES',
+      role: 'Monitoreo de Contrataciones Estatales',
+      avatar: '💼',
+      status: 'Escaneando DBCs mineros y agua'
+    },
+    description: 'Oficina comercial y licitaciones: seguimiento al SICOES, preparación de sobres A/B y prospección en la base de 150 empresas industriales.',
+    metrics: '8 licitaciones monitoreadas hoy'
   },
+
+  // ── COLUMNA CENTRAL (Centro del Boceto) ──
   {
-    id: 'research',
-    name: 'INVESTIGACIÓN & LAB (I+D)',
-    segmentTitle: 'Laboratorio de Calidad Ambiental & Mercurio',
-    icon: <Microscope className="w-3.5 h-3.5" />,
-    badge: 'I+D / Análisis Pericial',
-    color: 'cyan',
+    id: 'service',
+    number: '07',
+    name: 'SERVICE',
+    subtitle: 'Catálogo de Consultoría Ambiental & SIG',
+    wing: 'Núcleo Central',
     targetModule: 'services',
-    xPercent: 84,
-    yPercent: 42,
-    zoomTarget: 1.45,
-    panX: -240,
-    panY: 40,
-    assignedLead: 'Laboratorio Pericial SERAM',
-    assignedRole: 'Investigación Aplicada',
-    leadAvatar: '🔬',
-    leadColor: 'from-cyan-500 to-blue-600',
-    currentActivity: 'Protocolos de espectrometría para mercurio (Hg total) y ensayos de lixiviación según Ley 1333.',
-    bots: ['Bot Espectrometría Hg', 'Bot Parámetros EPA'],
-    description: 'Área de investigación científica aplicada: pruebas periciales de fuentes de agua, sedimentos auríferos y calibración de sensores.'
+    color: '#059669',
+    x: 480,
+    y: 80,
+    w: 310,
+    h: 230,
+    doorX: 635,
+    doorY: 310,
+    lead: 'Equipo Técnico Central',
+    role: 'Servicios Ambientales',
+    desk: { x: 635, y: 195 },
+    bot: {
+      name: 'Bot Sentinel-2 NDVI',
+      role: 'Teledetección & Multiespectral',
+      avatar: '🛰️',
+      status: 'Mapeando cuenca aurífera'
+    },
+    description: 'Área de formulación y ejecución de servicios ambientales: pasivos mineros, monitoreo satelital, planes de contingencia y EIA.',
+    metrics: '5 servicios activos en ejecución'
   },
   {
-    id: 'archive',
-    name: 'ARCHIVO TÉCNICO',
-    segmentTitle: 'Archivo Técnico & Documentación Oficial',
-    icon: <FolderArchive className="w-3.5 h-3.5" />,
-    badge: 'Custodia & Licencias',
-    color: 'indigo',
+    id: 'marketing',
+    number: '06',
+    name: 'MARKETING Y VENTAS',
+    subtitle: 'Embudos Comerciales & Estrategia B2B',
+    wing: 'Núcleo Central',
     targetModule: 'activities',
-    xPercent: 84,
-    yPercent: 74,
-    zoomTarget: 1.45,
-    panX: -240,
-    panY: -160,
-    assignedLead: 'Archivo Técnico Central',
-    assignedRole: 'Custodia Documental',
-    leadAvatar: '📁',
-    leadColor: 'from-indigo-500 to-purple-600',
-    currentActivity: 'Custodia de TDRs, decretos supremos, licencias ambientales FNCA y expedientes municipales.',
-    bots: ['Bot Archivo PDF', 'Bot Licencias Ambientales'],
-    description: 'Repositorio documental físico y digital de proyectos concluidos, informes periciales, resoluciones administrativas y carpetas legales.'
-  },
-  {
-    id: 'academy',
-    name: 'SERAM ACADEMY',
-    segmentTitle: 'Aula Virtual & Biblioteca Técnica',
-    icon: <BookOpenCheck className="w-3.5 h-3.5" />,
-    badge: 'Campus & Alumnos',
-    color: 'purple',
-    targetModule: 'academy',
-    xPercent: 36,
-    yPercent: 22,
-    zoomTarget: 1.45,
-    panX: 100,
-    panY: 170,
-    assignedLead: 'Bot Tutor Teledetección',
-    assignedRole: 'Agente IA · Soporte a Estudiantes',
-    leadAvatar: '🎓',
-    leadColor: 'from-purple-500 to-indigo-600',
-    currentActivity: 'Resolviendo consultas de alumnos sobre scripts en Google Earth Engine y clasificación supervisada',
-    bots: ['Bot Certificados Digitales QR', 'Bot Campus Virtual'],
-    metrics: '143 alumnos activos · 98.4% aprobación',
-    description: 'Espacio de capacitación profesional, bibliografía técnica ambiental, info-productos y emisión de credenciales con código QR.'
-  },
-  {
-    id: 'store',
-    name: 'SERAM STORE',
-    segmentTitle: 'Mostrador de Sensores & Equipamiento',
-    icon: <ShoppingBag className="w-3.5 h-3.5" />,
-    badge: 'Showroom Técnico',
-    color: 'rose',
-    targetModule: 'store',
-    xPercent: 50,
-    yPercent: 86,
-    zoomTarget: 1.4,
-    panX: 0,
-    panY: -220,
-    assignedLead: 'Bot Store & Envíos',
-    assignedRole: 'Agente IA · Inventario & Despachos',
-    leadAvatar: '📦',
-    leadColor: 'from-rose-500 to-pink-600',
-    currentActivity: 'Recepción de sondas multiparamétricas de calidad de agua y detectores de metales pesados',
-    bots: ['Bot Facturación B2B', 'Bot Cotizador'],
-    metrics: '24 productos técnicos en catálogo',
-    description: 'Venta de instrumentos científicos de medición de campo, reactivos, drones de muestreo y licencias de software.'
+    color: '#f97316',
+    x: 480,
+    y: 330,
+    w: 310,
+    h: 240,
+    doorX: 635,
+    doorY: 570,
+    lead: 'Equipo de Crecimiento',
+    role: 'Growth & Alianzas',
+    desk: { x: 635, y: 450 },
+    bot: {
+      name: 'Bot Growth & Campañas',
+      role: 'Optimización de Pauta B2B',
+      avatar: '📈',
+      status: 'Segmentando directores de medio ambiente'
+    },
+    description: 'Unidad unificada de marketing corporativo y ventas: gestión de cartera de clientes, embudos de conversión y campañas en LinkedIn.',
+    metrics: '22 leads cualificados en pipeline'
   },
   {
     id: 'finances',
-    name: 'BÓVEDA FINANCIERA',
-    segmentTitle: 'Bóveda Financiera & Meritocracia',
-    icon: <Shield className="w-3.5 h-3.5" />,
-    badge: 'Finanzas & Reglas',
-    color: 'yellow',
+    number: '05',
+    name: 'FINANZAS',
+    subtitle: 'Bóveda Financiera & Meritocracia',
+    wing: 'Núcleo Central',
     targetModule: 'finances',
-    xPercent: 28,
-    yPercent: 44,
-    zoomTarget: 1.45,
-    panX: 160,
-    panY: 30,
-    assignedLead: 'Consejo de Socios Directivos',
-    assignedRole: 'SERAM SRL · Gobernanza Meritocrática',
-    leadAvatar: '⚖️',
-    leadColor: 'from-amber-500 to-yellow-600',
-    currentActivity: 'Cómputo en tiempo real del Time Tracker (4.5h/día) y distribución proporcional de honorarios',
-    bots: ['Bot Auditoría de Horas', 'Bot Dividendos'],
-    metrics: 'Fondo disponible: Bs. 35,000',
-    description: 'Despacho de acuerdos estatutarios: "Quien trabaja más gana más". Monitoreo de horas efectivas y dividendos netos.'
+    color: '#eab308',
+    x: 480,
+    y: 590,
+    w: 310,
+    h: 290,
+    doorX: 635,
+    doorY: 590,
+    lead: 'Gobernanza Financiera',
+    role: 'Bóveda & Distribución',
+    desk: { x: 635, y: 735 },
+    bot: {
+      name: 'Bot Auditor Contable',
+      role: 'Cálculo de Retenciones & Dividendos',
+      avatar: '⚖️',
+      status: 'Regla: Quien trabaja más gana más'
+    },
+    description: 'Bóveda y control financiero de SERAM: liquidación del fondo de socios por horas efectivas (Time Tracker), retenciones de ley y flujo de caja.',
+    metrics: 'Fondo de Socios: Bs. 35,000'
+  },
+
+  // ── ALA IZQUIERDA (Columna Izquierda del Boceto) ──
+  {
+    id: 'meeting',
+    number: '08',
+    name: 'SALA DE REUNIONES',
+    subtitle: 'Mesa de Directorio & Juntas Plenarias',
+    wing: 'Ala Colaborativa',
+    targetModule: 'overview',
+    color: '#d97706',
+    x: 60,
+    y: 80,
+    w: 390,
+    h: 210,
+    doorX: 450,
+    doorY: 185,
+    lead: 'Directorio Plenario',
+    role: 'Asamblea de Socios',
+    isMeetingRoom: true,
+    desk: { x: 255, y: 185 },
+    bot: {
+      name: 'Bot Minutas & Acuerdos',
+      role: 'Secretaría de Directorio',
+      avatar: '🏛️',
+      status: 'Sala disponible para deliberación'
+    },
+    description: 'Sala de juntas equipada con mesa de directorio y proyector interactivo para asambleas de socios, presentación de balances y toma de acuerdos.',
+    metrics: 'Capacidad para los 3 socios directivos'
+  },
+  {
+    id: 'recreation',
+    number: '09',
+    name: 'SALA RECREATIVA (DE COMISIÓN)',
+    subtitle: 'Lounge, Barra de Café & Diligencias',
+    wing: 'Ala Colaborativa',
+    targetModule: 'timetracker',
+    color: '#10b981',
+    x: 60,
+    y: 310,
+    w: 390,
+    h: 200,
+    doorX: 450,
+    doorY: 410,
+    lead: 'Zona de Pausa & Diligencias',
+    role: 'Descanso / Horas Detenidas',
+    isRecreationRoom: true,
+    desk: { x: 255, y: 410 },
+    bot: {
+      name: 'Barista Espresso Bar',
+      role: 'Cafetería & Refrigerios',
+      avatar: '☕',
+      status: 'Cafetera expreso activa'
+    },
+    description: 'Espacio de descanso y sofás. Cuando un socio no tiene una tarea activa en el Time Tracker o está en trámites/comisión externa, su avatar descansa aquí. En esta sala NO se contabilizan horas.',
+    metrics: 'Horas en pausa · Sin cómputo laboral'
+  },
+  {
+    id: 'academy',
+    number: '10',
+    name: 'ACADEMY',
+    subtitle: 'Aula Virtual, Cursos & Infoproductos',
+    wing: 'Ala Académica',
+    targetModule: 'products',
+    color: '#8b5cf6',
+    x: 60,
+    y: 530,
+    w: 200,
+    h: 170,
+    doorX: 260,
+    doorY: 615,
+    lead: 'SERAM Campus Virtual',
+    role: 'Educación & Certificados',
+    desk: { x: 160, y: 615 },
+    bot: {
+      name: 'Bot Tutor Teledetección',
+      role: 'Soporte a Estudiantes & QR',
+      avatar: '🎓',
+      status: 'Resolviendo consultas de QGIS'
+    },
+    description: 'Gestión de infoproductos ambientales, guías periciales, clases grabadas y emisión de certificados digitales con código QR.',
+    metrics: '143 alumnos inscritos en cursos'
+  },
+  {
+    id: 'experience',
+    number: '11',
+    name: 'EXPERIENCE',
+    subtitle: 'Drones, Cartografía & Expediciones',
+    wing: 'Ala de Campo',
+    targetModule: 'experience',
+    color: '#06b6d4',
+    x: 280,
+    y: 530,
+    w: 170,
+    h: 170,
+    doorX: 280,
+    doorY: 615,
+    lead: 'Ing. Fabricio Orosco',
+    role: 'Socio Directivo · Calidad & Expansión',
+    leadInitials: 'FO',
+    leadColor: 'from-emerald-500 to-teal-700',
+    desk: { x: 365, y: 615 },
+    bot: {
+      name: 'Bot Drones & Ortomosaicos',
+      role: 'Fotogrametría & Nubes de Puntos',
+      avatar: '🚁',
+      status: 'Procesando ortomosaico LiDAR'
+    },
+    description: 'Despacho doble del Ing. Fabricio Orosco: planificación de expediciones científicas, vuelos fotogramétricos con drones y turismo de alta montaña.',
+    metrics: '2 misiones de campo programadas'
+  },
+  {
+    id: 'social_media',
+    number: '12',
+    name: 'SOCIAL MEDIA',
+    subtitle: 'Contenidos, Producción Audiovisual & Reels',
+    wing: 'Ala Creativa',
+    targetModule: 'activities',
+    color: '#ec4899',
+    x: 60,
+    y: 720,
+    w: 200,
+    h: 160,
+    doorX: 260,
+    doorY: 800,
+    lead: 'Estudio de Contenido',
+    role: 'Difusión & Divulgación',
+    desk: { x: 160, y: 800 },
+    bot: {
+      name: 'Bot Multimedia & Reels',
+      role: 'Generador de Guiones & Clips',
+      avatar: '🎬',
+      status: 'Editando cápsula de minería aurífera'
+    },
+    description: 'Producción audiovisual técnica, divulgación en redes sociales, podcasts periciales y posicionamiento de marca de SERAM.',
+    metrics: '4 videos en renderización'
+  },
+  {
+    id: 'research',
+    number: '13',
+    name: 'INVESTIGACIÓN',
+    subtitle: 'Laboratorio de Mercurio (Hg) & Calidad Hídrica',
+    wing: 'Ala Científica',
+    targetModule: 'services',
+    color: '#14b8a6',
+    x: 280,
+    y: 720,
+    w: 170,
+    h: 160,
+    doorX: 280,
+    doorY: 800,
+    lead: 'Laboratorio Pericial',
+    role: 'I+D Ambiental',
+    desk: { x: 365, y: 800 },
+    bot: {
+      name: 'Bot Espectrometría Mercurio',
+      role: 'Análisis Pericial Ley 1333',
+      avatar: '🔬',
+      status: 'Curva de calibración Hg lista'
+    },
+    description: 'Laboratorio de investigación científica aplicada: pruebas analíticas de mercurio en sedimentos y agua, y desarrollo de nuevos sensores.',
+    metrics: 'Muestreo pericial estandarizado EPA'
   }
 ];
+
+// Totem Central de Pasillo
+export const TOTEM_STATION = {
+  id: 'totem',
+  name: 'TOTEM TIME TRACKER',
+  subtitle: 'Reloj Holográfico Central & Cómputo de Horas',
+  x: 635,
+  y: 450,
+  targetModule: 'timetracker',
+  description: 'Terminal central de pasillo. Inicia y pausa el cronómetro de trabajo en un toque desde cualquier rincón de la oficina.'
+};
 
 export default function VirtualOfficeView({
   activeServices = [],
@@ -279,10 +390,15 @@ export default function VirtualOfficeView({
   currentSocio,
   onNavigateModule
 }) {
-  const [selectedStationId, setSelectedStationId] = useState('services');
+  const [selectedRoomId, setSelectedRoomId] = useState('direction');
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showScheduleInfo, setShowScheduleInfo] = useState(false);
-  const [showMeritocracyModal, setShowMeritocracyModal] = useState(false);
+  const [isSoundMuted, setIsSoundMuted] = useState(() => soundEngine.isMuted());
+  const [clickEffect, setClickEffect] = useState(null);
+  const [activePartnerFilter, setActivePartnerFilter] = useState('all');
+
+  // Posición del avatar del usuario interactivo (Point & Click)
+  const [userAvatarPos, setUserAvatarPos] = useState({ x: 980, y: 375 });
+  const [isWalking, setIsWalking] = useState(false);
 
   // Estado operativo seleccionado por el socio activo ('working', 'recreation', 'commission', 'meeting')
   const [partnerActiveStatus, setPartnerActiveStatus] = useState(() => {
@@ -293,6 +409,14 @@ export default function VirtualOfficeView({
     }
   });
 
+  const handleToggleSound = () => {
+    const nextMuted = soundEngine.toggleMute();
+    setIsSoundMuted(nextMuted);
+    if (!nextMuted) {
+      soundEngine.playDeskClick();
+    }
+  };
+
   const handleSetPartnerStatus = (status) => {
     setPartnerActiveStatus(status);
     try {
@@ -300,12 +424,26 @@ export default function VirtualOfficeView({
     } catch (_) {
       // Ignorar si el almacenamiento local está restringido
     }
+
+    if (status === 'recreation' || status === 'commission') {
+      soundEngine.playCoffeeBrew();
+      setUserAvatarPos({ x: 255, y: 410 });
+      setSelectedRoomId('recreation');
+    } else if (status === 'meeting') {
+      soundEngine.playDeskClick();
+      setUserAvatarPos({ x: 255, y: 185 });
+      setSelectedRoomId('meeting');
+    } else if (status === 'working') {
+      soundEngine.playDeskClick();
+      setUserAvatarPos({ x: 980, y: 375 });
+      setSelectedRoomId('direction');
+    }
   };
 
   // Zoom & Pan state
   const [zoomLevel, setZoomLevel] = useState(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 640) return 0.52;
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) return 0.80;
+    if (typeof window !== 'undefined' && window.innerWidth < 640) return 0.55;
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) return 0.78;
     return 1.0;
   });
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
@@ -315,12 +453,12 @@ export default function VirtualOfficeView({
   const containerRef = useRef(null);
   const floorStageRef = useRef(null);
 
-  // Estación activa seleccionada
-  const currentStation = useMemo(() => {
-    return OFFICE_STATIONS.find(s => s.id === selectedStationId) || OFFICE_STATIONS[1];
-  }, [selectedStationId]);
+  // Habitación activa seleccionada
+  const activeRoom = useMemo(() => {
+    return OFFICE_ROOMS.find(r => r.id === selectedRoomId) || OFFICE_ROOMS[1];
+  }, [selectedRoomId]);
 
-  // Lista de socios con su ubicación dinámica según el requerimiento exacto
+  // Lista de los 3 socios humanos con su ubicación dinámica en las oficinas
   const partnerAvatars = useMemo(() => {
     const list = [
       {
@@ -330,8 +468,8 @@ export default function VirtualOfficeView({
         shortName: 'Diego',
         initials: 'DB',
         avatarBg: 'from-amber-400 to-yellow-600',
-        homeStation: 'services',
-        defaultStationCoords: { x: 50, y: 58 }
+        homeRoomId: 'direction',
+        homeCoords: { x: 980, y: 375 }
       },
       {
         id: 'fernando',
@@ -340,8 +478,8 @@ export default function VirtualOfficeView({
         shortName: 'Fernando',
         initials: 'FA',
         avatarBg: 'from-blue-500 to-indigo-600',
-        homeStation: 'operations',
-        defaultStationCoords: { x: 28, y: 66 }
+        homeRoomId: 'operations',
+        homeCoords: { x: 980, y: 585 }
       },
       {
         id: 'fabricio',
@@ -350,23 +488,21 @@ export default function VirtualOfficeView({
         shortName: 'Fabricio',
         initials: 'FO',
         avatarBg: 'from-emerald-500 to-teal-700',
-        homeStation: 'experience',
-        defaultStationCoords: { x: 78, y: 63 }
+        homeRoomId: 'experience',
+        homeCoords: { x: 365, y: 615 }
       }
     ];
 
-    // Sala de Recreación: sofás & descanso (coords distribuidas)
     const recreationSpots = [
-      { x: 16, y: 34, label: 'En Sofá Lounge' },
-      { x: 20, y: 38, label: 'En Mesa Café' },
-      { x: 15, y: 40, label: 'Tomando Café' }
+      { x: 210, y: 380, label: 'En Sofá Lounge' },
+      { x: 300, y: 440, label: 'En Mesa Café' },
+      { x: 260, y: 370, label: 'Tomando Café' }
     ];
 
-    // Sala de Reuniones: mesa central de conferencias
     const meetingSpots = [
-      { x: 49, y: 26, label: 'Mesa de Directorio' },
-      { x: 53, y: 24, label: 'Mesa de Directorio' },
-      { x: 55, y: 28, label: 'Mesa de Directorio' }
+      { x: 210, y: 185, label: 'Mesa Directorio' },
+      { x: 260, y: 165, label: 'Mesa Directorio' },
+      { x: 310, y: 185, label: 'Mesa Directorio' }
     ];
 
     return list.map((partner, idx) => {
@@ -374,9 +510,8 @@ export default function VirtualOfficeView({
       const isOnline = presence.isOnline ?? true;
       const isCurrent = currentSocio?.email === partner.email;
 
-      // Determinación del estado operativo del socio
-      let status = 'recreation'; // Por defecto: en descanso/café sin computar horas
-      let statusLabel = 'En Sala de Recreación (Sin actividad en curso)';
+      let status = 'recreation';
+      let statusLabel = 'En Sala Recreativa (Sin cómputo de horas)';
       let isWorking = false;
 
       if (isCurrent) {
@@ -389,9 +524,9 @@ export default function VirtualOfficeView({
 
       if (status === 'meeting') {
         coords = meetingSpots[idx % meetingSpots.length];
-        statusLabel = 'En Reunión Técnica de Directorio';
+        statusLabel = 'En Reunión de Directorio';
       } else if (status === 'working') {
-        coords = partner.defaultStationCoords;
+        coords = partner.homeCoords;
         statusLabel = 'En Estación Técnica (Horas Computándose)';
         isWorking = true;
       } else if (status === 'commission') {
@@ -399,7 +534,12 @@ export default function VirtualOfficeView({
         statusLabel = 'De Comisión / Trámites Externos';
       } else {
         coords = recreationSpots[idx % recreationSpots.length];
-        statusLabel = 'En Pausa / Café (No se contabilizan horas)';
+        statusLabel = 'En Sala Recreativa (En Pausa / Café)';
+      }
+
+      // Si es el usuario actual, usamos su posición Point & Click interactiva
+      if (isCurrent && userAvatarPos) {
+        coords = userAvatarPos;
       }
 
       return {
@@ -413,263 +553,406 @@ export default function VirtualOfficeView({
         y: coords.y
       };
     });
-  }, [partnerPresences, currentSocio, partnerActiveStatus]);
+  }, [partnerPresences, currentSocio, partnerActiveStatus, userAvatarPos]);
 
-  // Cálculos meritocráticos basados en Time Tracker
-  const meritocracyStats = useMemo(() => {
-    const totalPartnerHours = timeLogs.reduce((acc, l) => acc + (Number(l.hours) || 0), 0) || 103;
-    const partnerDiegoHours = timeLogs.filter(l => l.partner_name?.toLowerCase().includes('diego')).reduce((acc, l) => acc + (Number(l.hours) || 0), 0) || 46.5;
-    const partnerFernandoHours = timeLogs.filter(l => l.partner_name?.toLowerCase().includes('fernando')).reduce((acc, l) => acc + (Number(l.hours) || 0), 0) || 32.0;
-    const partnerFabricioHours = timeLogs.filter(l => l.partner_name?.toLowerCase().includes('fabricio')).reduce((acc, l) => acc + (Number(l.hours) || 0), 0) || 24.5;
+  // Manejador de navegación Point & Click al hacer clic en el suelo de la oficina
+  const handleFloorClick = (e) => {
+    if (isDragging) return;
+    const stageRect = floorStageRef.current?.getBoundingClientRect();
+    if (!stageRect) return;
 
-    const baseProjectPool = 35000;
-    const diegoShare = (partnerDiegoHours / totalPartnerHours);
-    const fernandoShare = (partnerFernandoHours / totalPartnerHours);
-    const fabricioShare = (partnerFabricioHours / totalPartnerHours);
+    const clickScreenX = e.clientX - stageRect.left;
+    const clickScreenY = e.clientY - stageRect.top;
 
-    return {
-      totalHours: totalPartnerHours,
-      projectPool: baseProjectPool,
-      partners: [
-        {
-          name: 'Ing. Diego Barrientos',
-          role: 'Dirección General & Estrategia',
-          hours: partnerDiegoHours,
-          today: 4.2,
-          sharePercent: Math.round(diegoShare * 100),
-          estimatedEarnings: Math.round(baseProjectPool * diegoShare),
-          ratePerHour: 300,
-          status: 'online'
-        },
-        {
-          name: 'Ing. Fernando Araujo',
-          role: 'Hidráulica & Obras',
-          hours: partnerFernandoHours,
-          today: 3.5,
-          sharePercent: Math.round(fernandoShare * 100),
-          estimatedEarnings: Math.round(baseProjectPool * fernandoShare),
-          ratePerHour: 300,
-          status: 'online'
-        },
-        {
-          name: 'Ing. Fabricio Orosco',
-          role: 'Gestión Ambiental & Calidad',
-          hours: partnerFabricioHours,
-          today: 2.8,
-          sharePercent: Math.round(fabricioShare * 100),
-          estimatedEarnings: Math.round(baseProjectPool * fabricioShare),
-          ratePerHour: 300,
-          status: 'online'
-        }
-      ]
-    };
-  }, [timeLogs]);
+    // Convertir de pixeles pantalla a coordenadas de plano (1200 x 920)
+    const targetX = Math.round((clickScreenX / stageRect.width) * 1200);
+    const targetY = Math.round((clickScreenY / stageRect.height) * 920);
 
-  // Pantalla completa
-  const toggleFullscreen = () => {
-    setIsFullscreen(prev => {
-      const next = !prev;
-      if (next && typeof window !== 'undefined' && window.innerWidth < 640) {
-        setZoomLevel(0.50);
-        setPanOffset({ x: 0, y: 0 });
-      }
-      return next;
-    });
+    // Reproducir paso de audio y efecto visual
+    soundEngine.playFootstep();
+    setClickEffect({ x: targetX, y: targetY, key: Date.now() });
+
+    setIsWalking(true);
+    setUserAvatarPos({ x: targetX, y: targetY });
+
+    setTimeout(() => {
+      soundEngine.playFootstep(1);
+    }, 150);
+
+    setTimeout(() => {
+      setIsWalking(false);
+    }, 400);
+
+    // Comprobar si el clic cayó dentro de alguna de las 13 habitaciones
+    const hitRoom = OFFICE_ROOMS.find(r => (
+      targetX >= r.x && targetX <= r.x + r.w &&
+      targetY >= r.y && targetY <= r.y + r.h
+    ));
+
+    if (hitRoom) {
+      setSelectedRoomId(hitRoom.id);
+      soundEngine.playDeskClick();
+    }
   };
 
-  useEffect(() => {
-    if (isFullscreen) {
-      document.body.style.overflow = 'hidden';
-      document.body.style.touchAction = 'none';
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
-    };
-  }, [isFullscreen]);
+  // Seleccionar habitación desde el menú o al hacer clic en su escritorio
+  const handleSelectRoom = (roomId) => {
+    setSelectedRoomId(roomId);
+    soundEngine.playDeskClick();
 
-  // Controles de ratón y táctiles
+    const room = OFFICE_ROOMS.find(r => r.id === roomId);
+    if (room && room.desk) {
+      setUserAvatarPos({ x: room.desk.x, y: room.desk.y });
+    }
+  };
+
+  // Abrir módulo respectivo con sonido armónico
+  const handleOpenModule = (targetModule) => {
+    soundEngine.playModuleOpen();
+    if (onNavigateModule) {
+      onNavigateModule(targetModule || 'services');
+    }
+  };
+
+  // Controles de ratón y arrastre (Pan)
   const handleMouseDown = (e) => {
     if (e.target.closest('.no-drag')) return;
-    setIsDragging(true);
+    setIsDragging(false);
     setDragStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
   };
 
   const handleMouseMove = (e) => {
-    if (!isDragging) return;
+    if (e.buttons !== 1) return;
+    setIsDragging(true);
     setPanOffset({
       x: e.clientX - dragStart.x,
       y: e.clientY - dragStart.y
     });
   };
 
-  const handleMouseUp = () => setIsDragging(false);
-
-  const handleTouchStart = (e) => {
-    if (e.target.closest('.no-drag')) return;
-    if (e.touches.length === 1) {
-      setIsDragging(true);
-      setDragStart({
-        x: e.touches[0].clientX - panOffset.x,
-        y: e.touches[0].clientY - panOffset.y
-      });
-    }
-  };
-
-  const handleTouchMove = (e) => {
-    if (!isDragging || e.touches.length !== 1) return;
-    setPanOffset({
-      x: e.touches[0].clientX - dragStart.x,
-      y: e.touches[0].clientY - dragStart.y
-    });
-  };
-
-  const handleTouchEnd = () => setIsDragging(false);
-
   const handleZoom = (delta) => {
-    setZoomLevel(prev => Math.min(Math.max(0.4, prev + delta), 2.2));
+    setZoomLevel(prev => Math.min(Math.max(0.45, prev + delta), 2.2));
   };
 
   const handleResetView = () => {
-    setZoomLevel(typeof window !== 'undefined' && window.innerWidth < 640 ? 0.50 : 1.0);
+    setZoomLevel(typeof window !== 'undefined' && window.innerWidth < 640 ? 0.55 : 0.95);
     setPanOffset({ x: 0, y: 0 });
-    setSelectedStationId('all');
+    soundEngine.playDeskClick();
   };
 
-  const handleSelectStation = (stationId) => {
-    setSelectedStationId(stationId);
-    if (stationId === 'all') {
-      handleResetView();
-      return;
-    }
-    const st = OFFICE_STATIONS.find(s => s.id === stationId);
-    if (st) {
-      setPanOffset({ x: st.panX || 0, y: st.panY || 0 });
-      setZoomLevel(typeof window !== 'undefined' && window.innerWidth < 640 ? 0.75 : st.zoomTarget || 1.3);
-    }
+  const toggleFullscreen = () => {
+    setIsFullscreen(prev => !prev);
+    soundEngine.playDeskClick();
   };
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // RENDER: LIENZO ISOMÉTRICO 2.5D CÁLIDO CON ESTACIONES Y AVATARES EN VIVO
+  // RENDER: MAQUETA ARQUITECTÓNICA ISOMÉTRICA 2.5D VECTORIAL (13 DESPACHOS)
   // ─────────────────────────────────────────────────────────────────────────────
   const renderOfficeCanvas = (isFullMode) => (
     <div
       ref={containerRef}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      className="relative w-full h-full overflow-hidden bg-[#1c140d] cursor-grab active:cursor-grabbing select-none"
+      className="relative w-full h-full overflow-hidden bg-[#0e0a07] cursor-crosshair select-none"
     >
-      {/* Viñeta ambiental cálida */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-950/20 via-[#140e09]/80 to-[#0a0705] pointer-events-none z-10" />
+      {/* Viñeta cálida ambiental */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-950/15 via-[#120d09]/80 to-[#070503] pointer-events-none z-10" />
 
-      {/* Escenario con Zoom & Pan */}
+      {/* Escenario Isométrico Escalable con Zoom & Pan */}
       <div
         ref={floorStageRef}
-        className="absolute origin-center transition-transform duration-100 will-change-transform"
+        onClick={handleFloorClick}
+        className="absolute origin-center transition-transform duration-75 will-change-transform"
         style={{
           transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomLevel})`,
           left: '50%',
           top: '50%',
-          marginLeft: '-368px',
-          marginTop: '-368px',
-          width: '736px',
-          height: '736px'
+          marginLeft: '-600px',
+          marginTop: '-460px',
+          width: '1200px',
+          height: '920px'
         }}
       >
-        {/* Ilustración de Planta Isométrica 2.5D Oficial */}
-        <img
-          src={officeRoomImage}
-          alt="Oficina Virtual SERAM"
-          className="w-full h-full object-contain rounded-xl shadow-2xl pointer-events-none select-none"
-          style={{
-            imageRendering: 'auto',
-            filter: 'contrast(1.04) brightness(1.02)'
-          }}
-          draggable={false}
-        />
+        {/* ── PLANO ARQUITECTÓNICO SVG DE ALTA FIDELIDAD ── */}
+        <svg
+          viewBox="0 0 1200 920"
+          className="w-full h-full shadow-2xl rounded-2xl overflow-hidden pointer-events-auto"
+          style={{ background: '#120d09' }}
+        >
+          <defs>
+            {/* Patrón de losas de piso porcelanato oscuro */}
+            <pattern id="floorTiles" width="40" height="40" patternUnits="userSpaceOnUse">
+              <rect width="40" height="40" fill="#17110b" />
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
+            </pattern>
 
-        {/* ── 1. ESTACIONES TÉCNICAS INTERACTIVAS ── */}
-        {OFFICE_STATIONS.filter(s => s.id !== 'all').map((st) => {
-          const isSelected = selectedStationId === st.id;
+            {/* Patrón de alfombra para salas ejecutivas */}
+            <pattern id="carpetPattern" width="20" height="20" patternUnits="userSpaceOnUse">
+              <rect width="20" height="20" fill="#1c140d" />
+              <circle cx="10" cy="10" r="1.5" fill="rgba(201,168,76,0.08)" />
+            </pattern>
+
+            {/* Iluminación de techos y neón */}
+            <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+          </defs>
+
+          {/* Piso base general de la oficina */}
+          <rect width="1200" height="920" fill="url(#floorTiles)" />
+
+          {/* Pasillos principales con alfombra de tránsito corporativa */}
+          <rect x="445" y="60" width="40" height="820" fill="#1f160e" stroke="rgba(201,168,76,0.15)" strokeWidth="1" />
+          <rect x="790" y="60" width="30" height="820" fill="#1f160e" stroke="rgba(201,168,76,0.15)" strokeWidth="1" />
+          <rect x="60" y="510" width="1080" height="20" fill="#1f160e" stroke="rgba(201,168,76,0.1)" strokeWidth="1" />
+
+          {/* ── 13 DESPACHOS CON PAREDES, MAMPARAS Y MOBILIARIO ── */}
+          {OFFICE_ROOMS.map((room) => {
+            const isSelected = selectedRoomId === room.id;
+            return (
+              <g
+                key={room.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSelectRoom(room.id);
+                }}
+                className="cursor-pointer group"
+              >
+                {/* Piso del despacho */}
+                <rect
+                  x={room.x}
+                  y={room.y}
+                  width={room.w}
+                  height={room.h}
+                  rx="10"
+                  fill="url(#carpetPattern)"
+                  stroke={isSelected ? room.color : 'rgba(255,255,255,0.1)'}
+                  strokeWidth={isSelected ? '2.5' : '1'}
+                  className="transition-all duration-300"
+                />
+
+                {/* Resplandor interior al estar seleccionada */}
+                {isSelected && (
+                  <rect
+                    x={room.x + 3}
+                    y={room.y + 3}
+                    width={room.w - 6}
+                    height={room.h - 6}
+                    rx="8"
+                    fill={room.color}
+                    fillOpacity="0.08"
+                    stroke={room.color}
+                    strokeWidth="1"
+                  />
+                )}
+
+                {/* Paredes de cristal ahumado / Mamparas */}
+                <rect
+                  x={room.x}
+                  y={room.y}
+                  width={room.w}
+                  height="12"
+                  fill="#2a1e14"
+                  stroke="rgba(255,255,255,0.12)"
+                />
+                <rect
+                  x={room.x}
+                  y={room.y}
+                  width="10"
+                  height={room.h}
+                  fill="#2a1e14"
+                  stroke="rgba(255,255,255,0.12)"
+                />
+                <rect
+                  x={room.x + room.w - 10}
+                  y={room.y}
+                  width="10"
+                  height={room.h}
+                  fill="#2a1e14"
+                  stroke="rgba(255,255,255,0.12)"
+                />
+                <rect
+                  x={room.x}
+                  y={room.y + room.h - 10}
+                  width={room.w}
+                  height="10"
+                  fill="#2a1e14"
+                  stroke="rgba(255,255,255,0.12)"
+                />
+
+                {/* Puerta / Abertura de acceso */}
+                <circle
+                  cx={room.doorX}
+                  cy={room.doorY}
+                  r="7"
+                  fill={isSelected ? '#00e03c' : 'rgba(255,255,255,0.2)'}
+                  stroke="#120d09"
+                  strokeWidth="2"
+                />
+
+                {/* Mobiliario específico según el tipo de sala */}
+                {room.isMeetingRoom ? (
+                  /* Mesa de Directorio Ovalada */
+                  <g>
+                    <ellipse cx={room.desk.x} cy={room.desk.y} rx="90" ry="45" fill="#382516" stroke="rgba(201,168,76,0.3)" strokeWidth="2" />
+                    <ellipse cx={room.desk.x} cy={room.desk.y} rx="70" ry="30" fill="#24170d" />
+                    <text x={room.desk.x} y={room.desk.y + 4} textAnchor="middle" fill="#c9a84c" fontSize="10" fontWeight="900" letterSpacing="1">MESA DE DIRECTORIO</text>
+                  </g>
+                ) : room.isRecreationRoom ? (
+                  /* Barra de Café y Sofás Lounge */
+                  <g>
+                    {/* Barra de Café */}
+                    <rect x={room.x + 30} y={room.y + 30} width="120" height="28" rx="6" fill="#2e1f13" stroke="#c9a84c" strokeWidth="1" />
+                    <text x={room.x + 90} y={room.y + 48} textAnchor="middle" fill="#c9a84c" fontSize="10" fontWeight="bold">BARRA DE CAFÉ ☕</text>
+                    {/* Sofás Lounge */}
+                    <rect x={room.desk.x - 70} y={room.desk.y - 20} width="140" height="42" rx="8" fill="#132a1e" stroke="#10b981" strokeWidth="1" />
+                    <text x={room.desk.x} y={room.desk.y + 5} textAnchor="middle" fill="#10b981" fontSize="10" fontWeight="bold">LOUNGE DE DESCANSO</text>
+                  </g>
+                ) : (
+                  /* Escritorio Ejecutivo con Computadoras */
+                  <g>
+                    <rect x={room.desk.x - 45} y={room.desk.y - 18} width="90" height="36" rx="5" fill="#2c1e13" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" />
+                    {/* Monitor de computadora encendido */}
+                    <rect x={room.desk.x - 20} y={room.desk.y - 14} width="40" height="12" rx="2" fill="#0f172a" stroke={room.color} strokeWidth="1" />
+                    <rect x={room.desk.x - 16} y={room.desk.y - 12} width="32" height="8" fill={room.color} fillOpacity="0.4" />
+                    {/* Silla ergonómica */}
+                    <circle cx={room.desk.x} cy={room.desk.y + 24} r="10" fill="#1e140d" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+                  </g>
+                )}
+
+                {/* Letrero Luminoso Superior con Nombre de la Sala (Estilo Fábrica Viva) */}
+                <g>
+                  <rect
+                    x={room.x + 16}
+                    y={room.y + 14}
+                    width={room.w - 32}
+                    height="24"
+                    rx="5"
+                    fill="#150f0b"
+                    stroke={isSelected ? room.color : 'rgba(255,255,255,0.15)'}
+                    strokeWidth={isSelected ? '2' : '1'}
+                  />
+                  <text
+                    x={room.x + 26}
+                    y={room.y + 30}
+                    fill={isSelected ? '#ffffff' : '#e2e8f0'}
+                    fontSize="11"
+                    fontWeight="900"
+                    letterSpacing="0.5"
+                  >
+                    {room.number}. {room.name}
+                  </text>
+                  {/* Badge de área / estado */}
+                  <circle
+                    cx={room.x + room.w - 30}
+                    cy={room.y + 26}
+                    r="4"
+                    fill={isSelected ? '#00e03c' : room.color}
+                  />
+                </g>
+              </g>
+            );
+          })}
+
+          {/* ── TOTEM CENTRAL INTERACTIVO (TIME TRACKER) EN EL PASILLO ── */}
+          <g
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSelectRoom('recreation');
+              soundEngine.playDeskClick();
+            }}
+            className="cursor-pointer group"
+          >
+            <circle cx={TOTEM_STATION.x} cy={TOTEM_STATION.y} r="28" fill="#1a120c" stroke="#c9a84c" strokeWidth="2" filter="url(#neonGlow)" />
+            <circle cx={TOTEM_STATION.x} cy={TOTEM_STATION.y} r="20" fill="#2a1d12" />
+            <text x={TOTEM_STATION.x} y={TOTEM_STATION.y - 2} textAnchor="middle" fill="#00e03c" fontSize="10" fontWeight="900" fontFamily="monospace">4.5h</text>
+            <text x={TOTEM_STATION.x} y={TOTEM_STATION.y + 9} textAnchor="middle" fill="#c9a84c" fontSize="7" fontWeight="bold">TRACKER</text>
+          </g>
+
+          {/* ── EFECTO VISUAL AL HACER CLIC EN EL SUELO (POINT & CLICK RIPPLE) ── */}
+          {clickEffect && (
+            <g key={clickEffect.key}>
+              <circle
+                cx={clickEffect.x}
+                cy={clickEffect.y}
+                r="16"
+                fill="none"
+                stroke="#c9a84c"
+                strokeWidth="2"
+                opacity="0.8"
+                className="animate-ping"
+              />
+              <circle
+                cx={clickEffect.x}
+                cy={clickEffect.y}
+                r="4"
+                fill="#c9a84c"
+              />
+            </g>
+          )}
+        </svg>
+
+        {/* ── SUBAGENTES IA EN LOS ESCRITORIOS CON INSIGNIAS FLOTANTES ── */}
+        {OFFICE_ROOMS.map((room) => {
+          if (!room.bot || room.isMeetingRoom || room.isRecreationRoom) return null;
           return (
             <div
-              key={st.id}
+              key={`bot-${room.id}`}
               onClick={(e) => {
                 e.stopPropagation();
-                handleSelectStation(st.id);
+                handleSelectRoom(room.id);
               }}
-              className="absolute z-20 cursor-pointer transform -translate-x-1/2 -translate-y-1/2 group"
+              className="absolute z-20 cursor-pointer transform -translate-x-1/2 -translate-y-1/2 group no-drag"
               style={{
-                left: `${st.xPercent}%`,
-                top: `${st.yPercent}%`,
+                left: `${(room.desk.x / 1200) * 100}%`,
+                top: `${(room.desk.y / 920) * 100}%`
               }}
             >
-              {/* Anillo Pulsante de Interacción */}
-              <div className="relative flex items-center justify-center">
-                <span className={`absolute inline-flex h-12 w-12 rounded-full transition-all duration-300 ${
-                  isSelected ? 'bg-amber-400/40 animate-ping' : 'bg-emerald-400/20 group-hover:bg-amber-400/30'
-                }`} />
-                <span className={`relative inline-flex rounded-full h-6 w-6 items-center justify-center border-2 shadow-xl ${
-                  isSelected
-                    ? 'bg-amber-400 border-white text-slate-950 scale-125'
-                    : 'bg-slate-900/90 border-emerald-400 text-emerald-300 group-hover:border-amber-400'
-                }`}>
-                  <span className="text-[10px] font-black">{st.icon}</span>
-                </span>
-              </div>
-
-              {/* Etiqueta Flotante Estilizada */}
-              <div className={`no-drag mt-1 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-tight whitespace-nowrap shadow-2xl flex items-center gap-1.5 transition-all mx-auto ${
-                isSelected
-                  ? 'bg-amber-400 text-slate-950 font-black ring-2 ring-white scale-110'
-                  : 'bg-slate-950/90 text-slate-100 border border-white/20 group-hover:border-amber-400 group-hover:bg-slate-900'
-              }`}>
-                <span className={`w-2 h-2 rounded-full ${isSelected ? 'bg-emerald-600 animate-pulse' : 'bg-emerald-400'}`} />
-                <span>{st.name}</span>
-                {st.assignedLead && (
-                  <span className={`text-[9px] font-normal px-1 rounded ${isSelected ? 'bg-black/20 text-slate-900' : 'text-slate-400'}`}>
-                    {st.assignedLead.split(' ')[0]}
-                  </span>
-                )}
+              <div className="relative flex flex-col items-center">
+                {/* Bot Avatar Bubble */}
+                <div className="w-8 h-8 rounded-full bg-slate-900 border-2 border-amber-400/80 shadow-xl flex items-center justify-center text-sm transform group-hover:scale-110 transition-transform">
+                  <span>{room.bot.avatar}</span>
+                </div>
+                {/* Insignia Flotante con Nombre del Bot (Estilo Fábrica Viva) */}
+                <div className="mt-1 px-2 py-0.5 rounded-full bg-black/90 border border-white/20 text-[9px] font-bold text-slate-200 shadow-md whitespace-nowrap flex items-center gap-1 group-hover:border-amber-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>{room.bot.name}</span>
+                </div>
               </div>
             </div>
           );
         })}
 
-        {/* ── 2. AVATARES DE SOCIOS EN VIVO UBICADOS DINÁMICAMENTE ── */}
+        {/* ── AVATARES DE SOCIOS HUMANOS CON NAVEGACIÓN EN TIEMPO REAL ── */}
         {partnerAvatars.map((partner) => (
           <div
             key={partner.id}
-            className="absolute z-25 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-700 ease-out"
+            className={`absolute z-30 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-300 ease-out ${
+              isWalking && partner.isCurrent ? 'scale-110' : ''
+            }`}
             style={{
-              left: `${partner.x}%`,
-              top: `${partner.y}%`
+              left: `${(partner.x / 1200) * 100}%`,
+              top: `${(partner.y / 920) * 100}%`
             }}
           >
             <div className="relative flex flex-col items-center">
               {/* Halo de Presencia */}
-              <span className={`absolute -inset-1 rounded-full blur-sm opacity-75 animate-pulse ${
-                partner.isWorking ? 'bg-[#00e03c]' : 'bg-amber-400'
+              <span className={`absolute -inset-1.5 rounded-full blur-sm opacity-80 ${
+                partner.isWorking ? 'bg-[#00e03c] animate-pulse' : 'bg-amber-400'
               }`} />
 
               {/* Avatar Bubble */}
-              <div className={`relative w-8 h-8 rounded-full border-2 border-white shadow-2xl flex items-center justify-center font-black text-xs text-white bg-gradient-to-br ${partner.avatarBg}`}>
+              <div className={`relative w-9 h-9 rounded-full border-2 border-white shadow-2xl flex items-center justify-center font-black text-xs text-white bg-gradient-to-br ${partner.avatarBg}`}>
                 {partner.initials}
               </div>
 
               {/* Name Tag con Estado Operativo */}
-              <div className="mt-1 px-2 py-0.5 rounded-md bg-black/85 border border-white/20 text-[9px] font-bold text-white shadow-lg whitespace-nowrap flex items-center gap-1">
+              <div className="mt-1 px-2.5 py-0.5 rounded-md bg-black/90 border border-white/25 text-[9px] font-bold text-white shadow-xl whitespace-nowrap flex items-center gap-1.5">
                 <span className={`w-1.5 h-1.5 rounded-full ${partner.isWorking ? 'bg-[#00e03c] animate-ping' : 'bg-amber-400'}`} />
                 <span>{partner.shortName}</span>
-                <span className="text-[8px] text-slate-400">
-                  {partner.isWorking ? '· Trabajando' : partner.status === 'meeting' ? '· Reunión' : '· En Café'}
+                <span className="text-[8px] text-slate-400 font-normal">
+                  {partner.isWorking ? '· Estación' : partner.status === 'meeting' ? '· Reunión' : '· En Café'}
                 </span>
               </div>
             </div>
@@ -678,7 +961,20 @@ export default function VirtualOfficeView({
       </div>
 
       {/* ── CONTROLES FLOTANTES HUD (INFERIOR DERECHA) ── */}
-      <div className="absolute bottom-4 right-4 z-30 flex items-center gap-1.5 bg-black/80 border border-white/15 rounded-2xl p-1.5 backdrop-blur-md shadow-2xl text-xs text-white">
+      <div className="absolute bottom-4 right-4 z-30 flex items-center gap-1.5 bg-black/80 border border-white/15 rounded-2xl p-1.5 backdrop-blur-md shadow-2xl text-xs text-white no-drag">
+        {/* Interruptor de Efectos de Sonido */}
+        <button
+          onClick={handleToggleSound}
+          className={`p-2 rounded-xl transition-colors ${
+            isSoundMuted ? 'text-slate-500 hover:text-slate-300' : 'text-amber-400 hover:bg-amber-400/20'
+          }`}
+          title={isSoundMuted ? 'Activar efectos de sonido' : 'Silenciar sonido'}
+        >
+          {isSoundMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+        </button>
+
+        <div className="w-[1px] h-5 bg-white/15 mx-0.5" />
+
         <button
           onClick={() => handleZoom(-0.15)}
           className="p-2 rounded-xl hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
@@ -699,7 +995,7 @@ export default function VirtualOfficeView({
           <ZoomIn className="w-4 h-4" />
         </button>
 
-        <div className="w-[1px] h-5 bg-white/15 mx-1" />
+        <div className="w-[1px] h-5 bg-white/15 mx-0.5" />
 
         <button
           onClick={handleResetView}
@@ -722,118 +1018,87 @@ export default function VirtualOfficeView({
         </button>
       </div>
 
-      {/* Rótulo de guía táctil */}
-      <div className="absolute bottom-4 left-4 z-30 hidden sm:flex items-center gap-2 bg-black/60 border border-white/10 rounded-xl px-3 py-1.5 backdrop-blur-sm text-[11px] text-slate-300 pointer-events-none">
+      {/* Rótulo de guía interactiva Point & Click */}
+      <div className="absolute bottom-4 left-4 z-30 hidden sm:flex items-center gap-2 bg-black/70 border border-white/10 rounded-xl px-3 py-1.5 backdrop-blur-sm text-[11px] text-slate-300 pointer-events-none">
         <Compass className="w-3.5 h-3.5 text-amber-400" />
-        <span>Arrastra para recorrer la oficina isométrica · Toca cualquier sala para inspeccionar</span>
+        <span>Haz clic en el suelo para caminar · Toca cualquier oficina para abrir su módulo</span>
       </div>
     </div>
   );
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // RENDER: DRAWER / INSPECTOR INFERIOR DE LA ESTACIÓN SELECCIONADA
+  // RENDER: DRAWER INFERIOR TIPO 'FÁBRICA VIVA' (BOT & MÓDULO OPERATIVO)
   // ─────────────────────────────────────────────────────────────────────────────
-  const renderStationDrawer = () => (
+  const renderRoomDrawer = () => (
     <AnimatePresence>
-      {currentStation && currentStation.id !== 'all' && (
+      {activeRoom && (
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 30 }}
-          className="bg-[#18110b]/95 border-t border-amber-500/20 backdrop-blur-xl p-4 sm:p-5 z-30 text-left"
+          exit={{ opacity: 0, y: 25 }}
+          className="bg-[#18110b]/98 border-t border-amber-500/25 backdrop-blur-2xl p-4 sm:p-5 z-30 text-left"
         >
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
-            {/* Identidad de la Sala */}
-            <div className="flex items-start sm:items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-xl text-amber-400 shrink-0 shadow-lg">
-                {currentStation.leadAvatar || currentStation.icon}
+            {/* Tarjeta de Identidad de la Sala o Bot */}
+            <div className="flex items-start sm:items-center gap-4">
+              <div
+                className="w-14 h-14 rounded-2xl border flex items-center justify-center text-2xl shrink-0 shadow-xl"
+                style={{
+                  backgroundColor: `${activeRoom.color}15`,
+                  borderColor: `${activeRoom.color}40`,
+                  color: activeRoom.color
+                }}
+              >
+                {activeRoom.bot?.avatar || <Building2 className="w-6 h-6" />}
               </div>
 
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-sm sm:text-base font-black text-white">
-                    {currentStation.segmentTitle}
-                  </h3>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-amber-500/10 text-amber-300 border-amber-500/30">
-                    {currentStation.badge}
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full border bg-white/5 border-white/15 text-slate-300 font-mono">
+                    SALA {activeRoom.number}
                   </span>
-                  {currentStation.assignedLead && (
-                    <span className="text-[10px] font-semibold text-slate-300 bg-white/5 px-2 py-0.5 rounded-md">
-                      {currentStation.assignedLead}
-                    </span>
-                  )}
+                  <h3 className="text-base sm:text-lg font-black text-white tracking-tight">
+                    {activeRoom.name}
+                  </h3>
+                  <span
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
+                    style={{
+                      backgroundColor: `${activeRoom.color}20`,
+                      borderColor: `${activeRoom.color}50`,
+                      color: activeRoom.color
+                    }}
+                  >
+                    {activeRoom.wing}
+                  </span>
                 </div>
 
-                <p className="text-xs text-slate-300 flex items-center gap-1.5 font-medium">
-                  <span className="text-amber-400 font-bold">Descripción:</span>
-                  <span className="line-clamp-1">{currentStation.currentActivity || currentStation.description}</span>
+                <p className="text-xs text-slate-300 font-medium line-clamp-1">
+                  <span className="text-amber-400 font-bold">Subagente / Bot:</span>{' '}
+                  {activeRoom.bot ? `${activeRoom.bot.name} — ${activeRoom.bot.status}` : activeRoom.subtitle}
+                </p>
+
+                <p className="text-[11px] text-slate-400 line-clamp-1">
+                  {activeRoom.description}
                 </p>
               </div>
             </div>
 
-            {/* Aviso especial de Sala de Recreación (No computa horas) */}
-            {currentStation.isRecreationRoom ? (
-              <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-xl px-3 py-2 text-xs text-emerald-300 flex items-center gap-2">
-                <Coffee className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span className="text-[11px] leading-tight">
-                  <strong>Zona de Pausa & Diligencias:</strong> El cronómetro de horas permanece detenido mientras el socio descansa en este espacio.
-                </span>
-              </div>
-            ) : (
-              /* Métricas habituales de jornada o equipo */
-              <div className="flex flex-wrap items-center gap-4 border-y sm:border-y-0 sm:border-x border-white/[0.08] py-2 sm:py-0 sm:px-4">
-                {currentStation.hoursToday ? (
-                  <>
-                    <div className="space-y-0.5">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
-                        Jornada Hoy (Meta 4.5h)
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-black text-emerald-400 font-mono">
-                          {currentStation.hoursToday}h / 4.5h
-                        </span>
-                        <div className="w-16 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-emerald-400 rounded-full"
-                            style={{ width: `${Math.min(100, (currentStation.hoursToday / 4.5) * 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-0.5">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
-                        Ganancia Estimada
-                      </span>
-                      <span className="text-xs font-black text-amber-300 font-mono">
-                        Bs. {currentStation.cycleEarnings?.toLocaleString()}
-                      </span>
-                    </div>
-                  </>
-                ) : (
-                  <div className="space-y-0.5">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
-                      Operación Técnica
-                    </span>
-                    <span className="text-xs font-black text-emerald-400">
-                      {currentStation.metrics || 'En línea · Conectado en Tiempo Real'}
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Botón de Salto Directo */}
-            <div className="flex items-center gap-2 shrink-0">
-              {onNavigateModule && (
-                <button
-                  onClick={() => onNavigateModule(currentStation.targetModule || 'services')}
-                  className="flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20 active:scale-95"
-                >
-                  <span>Abrir {currentStation.name}</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </button>
+            {/* Acciones y Botón de Salto Contextual */}
+            <div className="flex items-center gap-3 shrink-0">
+              {activeRoom.isRecreationRoom && (
+                <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs">
+                  <Coffee className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Horas en pausa · Zona de café y descanso</span>
+                </div>
               )}
+
+              <button
+                onClick={() => handleOpenModule(activeRoom.targetModule)}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs transition-all flex items-center justify-center gap-2 shadow-xl shadow-amber-500/20 active:scale-95"
+              >
+                <span>Abrir Módulo ({activeRoom.name})</span>
+                <ArrowUpRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </motion.div>
@@ -842,137 +1107,115 @@ export default function VirtualOfficeView({
   );
 
   return (
-    <>
-      {/* ── CONTENEDOR PRINCIPAL DEL DASHBOARD ── */}
-      <div className="w-full rounded-2xl border border-amber-500/20 bg-[#120d09] shadow-2xl overflow-hidden text-left relative">
-        {/* Encabezado Superior HUD */}
-        <div className="bg-black/40 border-b border-white/[0.08] backdrop-blur-md px-4 py-3 sm:px-6 sm:py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3 z-20">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 shadow-lg">
-              <Building2 className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base sm:text-lg font-black text-white tracking-tight flex items-center gap-2">
-                  Oficina Virtual SERAM
-                  <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                    Planta Isométrica 2.5D
-                  </span>
-                </h2>
-              </div>
-              <p className="text-xs text-slate-400 font-medium line-clamp-1">
-                Toca cualquier sala de trabajo o usa el selector para interactuar con los socios y bots en tiempo real
-              </p>
-            </div>
+    <div className="w-full rounded-2xl border border-amber-500/25 bg-[#120d09] shadow-2xl overflow-hidden text-left relative">
+      {/* ── HEADER SUPERIOR HUD ── */}
+      <div className="bg-black/50 border-b border-white/[0.08] backdrop-blur-md px-4 py-3 sm:px-6 sm:py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3 z-20">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 shadow-lg">
+            <Building2 className="w-5 h-5" />
           </div>
-
-          {/* Selector de Estado Operativo del Socio Activo + Controles */}
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            {/* Control Rápido de Ubicación del Socio */}
-            <div className="flex items-center bg-black/60 border border-white/10 rounded-xl p-1 gap-1">
-              <span className="text-[10px] font-bold text-slate-400 px-2 hidden sm:inline">Mi Estado:</span>
-              <button
-                onClick={() => handleSetPartnerStatus('working')}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 ${
-                  partnerActiveStatus === 'working' ? 'bg-[#00e03c] text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
-                }`}
-                title="Avatar en mi estación técnica trabajando (Horas contabilizándose)"
-              >
-                <Briefcase className="w-3 h-3" />
-                <span>En Estación</span>
-              </button>
-              <button
-                onClick={() => handleSetPartnerStatus('recreation')}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 ${
-                  partnerActiveStatus === 'recreation' ? 'bg-amber-400 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
-                }`}
-                title="Avatar en el Café / Descanso (Horas en pausa)"
-              >
-                <Coffee className="w-3 h-3" />
-                <span>En Café</span>
-              </button>
-              <button
-                onClick={() => handleSetPartnerStatus('commission')}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 ${
-                  partnerActiveStatus === 'commission' ? 'bg-blue-400 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
-                }`}
-                title="De Comisión / Trámites fuera de la oficina"
-              >
-                <Car className="w-3 h-3" />
-                <span>De Comisión</span>
-              </button>
-              <button
-                onClick={() => handleSetPartnerStatus('meeting')}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 ${
-                  partnerActiveStatus === 'meeting' ? 'bg-purple-400 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
-                }`}
-                title="En Reunión de Directorio"
-              >
-                <Users className="w-3 h-3" />
-                <span>Reunión</span>
-              </button>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base sm:text-lg font-black text-white tracking-tight flex items-center gap-2">
+                Oficina Virtual SERAM
+                <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  13 Despachos · Fábrica Viva
+                </span>
+              </h2>
             </div>
-
-            <button
-              onClick={() => setShowScheduleInfo(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 text-slate-300 font-bold transition-all"
-              title="Ver pautas de horario y conexión flexible"
-            >
-              <Clock className="w-3.5 h-3.5 text-amber-400" />
-              <span>4.5 hrs / día</span>
-            </button>
-
-            <button
-              onClick={() => setShowMeritocracyModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 font-bold transition-all"
-              title="Ver modelo meritocrático de ganancias"
-            >
-              <Award className="w-3.5 h-3.5 text-amber-400" />
-              <span className="hidden sm:inline">Meritocracia</span>
-            </button>
-
-            {/* Botón Pantalla Completa */}
-            <button
-              onClick={toggleFullscreen}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs transition-all shadow-lg shadow-amber-500/25 ml-auto lg:ml-0 active:scale-95"
-            >
-              <Maximize2 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Pantalla Completa</span>
-            </button>
+            <p className="text-xs text-slate-400 font-medium line-clamp-1">
+              Haz clic en el suelo para mover tu avatar Point & Click o selecciona una oficina para desplegar su módulo
+            </p>
           </div>
         </div>
 
-        {/* Chips de Navegación Rápida entre Salas */}
-        <div className="bg-black/30 border-b border-white/[0.06] px-4 py-2.5 sm:px-6 flex items-center gap-2 overflow-x-auto scrollbar-none z-20">
-          {OFFICE_STATIONS.map(st => (
+        {/* Selector Rápido de Estado del Socio Activo */}
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <div className="flex items-center bg-black/60 border border-white/10 rounded-xl p-1 gap-1">
+            <span className="text-[10px] font-bold text-slate-400 px-2 hidden sm:inline">Mi Estado:</span>
             <button
-              key={st.id}
-              onClick={() => handleSelectStation(st.id)}
-              className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-                selectedStationId === st.id
-                  ? 'bg-amber-500/20 border border-amber-500/50 text-amber-300 shadow-md shadow-amber-500/10'
-                  : 'bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-slate-200 hover:bg-white/[0.06]'
+              onClick={() => handleSetPartnerStatus('working')}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 ${
+                partnerActiveStatus === 'working' ? 'bg-[#00e03c] text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
               }`}
+              title="Avatar en mi estación técnica trabajando"
             >
-              <span>{st.icon}</span>
-              <span>{st.name}</span>
+              <Briefcase className="w-3 h-3" />
+              <span>En Estación</span>
             </button>
-          ))}
-        </div>
+            <button
+              onClick={() => handleSetPartnerStatus('recreation')}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 ${
+                partnerActiveStatus === 'recreation' ? 'bg-amber-400 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
+              }`}
+              title="Avatar en el Café / Descanso (Horas en pausa)"
+            >
+              <Coffee className="w-3 h-3" />
+              <span>En Café</span>
+            </button>
+            <button
+              onClick={() => handleSetPartnerStatus('commission')}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 ${
+                partnerActiveStatus === 'commission' ? 'bg-blue-400 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
+              }`}
+              title="De Comisión / Trámites fuera de la oficina"
+            >
+              <Car className="w-3 h-3" />
+              <span>De Comisión</span>
+            </button>
+            <button
+              onClick={() => handleSetPartnerStatus('meeting')}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 ${
+                partnerActiveStatus === 'meeting' ? 'bg-purple-400 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
+              }`}
+              title="En Reunión de Directorio"
+            >
+              <Users className="w-3 h-3" />
+              <span>Reunión</span>
+            </button>
+          </div>
 
-        {/* Lienzo Embebido */}
-        <div className="relative w-full h-[500px] sm:h-[620px] lg:h-[700px] overflow-hidden">
-          {renderOfficeCanvas(false)}
+          {/* Botón Pantalla Completa */}
+          <button
+            onClick={toggleFullscreen}
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs transition-all shadow-lg shadow-amber-500/25 ml-auto lg:ml-0 active:scale-95"
+          >
+            <Maximize2 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Pantalla Completa</span>
+          </button>
         </div>
-
-        {/* Inspector Inferior */}
-        {renderStationDrawer()}
       </div>
 
-      {/* ── OVERLAY PANTALLA COMPLETA (100% VIEWPORT VIA REACT PORTAL) ── */}
+      {/* ── SELECTOR DE SALAS / PESTAÑAS (13 DESPACHOS DEL BOCETO) ── */}
+      <div className="bg-black/40 border-b border-white/[0.06] px-4 py-2 sm:px-6 flex items-center gap-2 overflow-x-auto scrollbar-none z-20">
+        {OFFICE_ROOMS.map(room => (
+          <button
+            key={room.id}
+            onClick={() => handleSelectRoom(room.id)}
+            className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              selectedRoomId === room.id
+                ? 'bg-amber-500/20 border border-amber-500/50 text-amber-300 shadow-md'
+                : 'bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-slate-200 hover:bg-white/[0.06]'
+            }`}
+          >
+            <span className="text-[10px] opacity-75 font-mono">{room.number}</span>
+            <span>{room.name}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* ── LIENZO EMBEBIDO ── */}
+      <div className="relative w-full h-[520px] sm:h-[640px] lg:h-[720px] overflow-hidden">
+        {renderOfficeCanvas(false)}
+      </div>
+
+      {/* ── INSPECTOR INFERIOR TIPO FÁBRICA VIVA ── */}
+      {renderRoomDrawer()}
+
+      {/* ── OVERLAY PANTALLA COMPLETA (REACT PORTAL) ── */}
       {isFullscreen && typeof document !== 'undefined' && createPortal(
         <div
-          className="fixed inset-0 z-[99999999] w-screen h-[100dvh] bg-[#120d09] flex flex-col overflow-hidden select-none text-left"
+          className="fixed inset-0 z-[99999999] w-screen h-[100dvh] bg-[#0e0a07] flex flex-col overflow-hidden select-none text-left"
           style={{
             position: 'fixed',
             top: 0,
@@ -985,12 +1228,12 @@ export default function VirtualOfficeView({
           }}
         >
           {/* Top Bar en Pantalla Completa */}
-          <div className="bg-[#1c140e]/95 border-b border-white/15 px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2 z-30 shrink-0 backdrop-blur-md">
+          <div className="bg-[#18110b]/95 border-b border-white/15 px-4 py-2.5 flex items-center justify-between gap-2 z-30 shrink-0 backdrop-blur-md">
             <div className="flex items-center gap-2">
               <Building2 className="w-4 h-4 text-amber-400" />
-              <span className="text-xs sm:text-sm font-black text-white">Oficina Virtual SERAM</span>
+              <span className="text-xs sm:text-sm font-black text-white">Oficina Virtual SERAM SRL</span>
               <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-mono hidden sm:inline">
-                Planta Isométrica 2.5D
+                13 Despachos Isométricos
               </span>
             </div>
 
@@ -1005,159 +1248,16 @@ export default function VirtualOfficeView({
             </div>
           </div>
 
-          {/* Selector de Salas en Pantalla Completa */}
-          <div className="bg-[#150f0b]/90 border-b border-white/10 px-3 py-1.5 flex items-center gap-1.5 overflow-x-auto scrollbar-none z-30 shrink-0">
-            {OFFICE_STATIONS.map(st => (
-              <button
-                key={st.id}
-                onClick={() => handleSelectStation(st.id)}
-                className={`shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1.5 ${
-                  selectedStationId === st.id
-                    ? 'bg-amber-500/20 border border-amber-500/50 text-amber-300 shadow-sm'
-                    : 'bg-white/[0.04] text-slate-400'
-                }`}
-              >
-                <span>{st.icon}</span>
-                <span>{st.name}</span>
-              </button>
-            ))}
-          </div>
-
           {/* Lienzo en Pantalla Completa */}
           <div className="relative flex-1 w-full h-full overflow-hidden">
             {renderOfficeCanvas(true)}
           </div>
 
-          {/* Inspector Inferior */}
-          {renderStationDrawer()}
+          {/* Drawer Inferior */}
+          {renderRoomDrawer()}
         </div>,
         document.body
       )}
-
-      {/* ── MODAL: PAUTAS DE HORARIO FLEXIBLE (4.5 HORAS/DÍA) ── */}
-      <AnimatePresence>
-        {showScheduleInfo && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-[#1a120c] border border-amber-500/30 rounded-3xl p-6 max-w-lg w-full space-y-5 shadow-2xl text-left"
-            >
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                    <Clock className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-black text-white text-base">Pauta de Jornada SERAM</h3>
-                    <p className="text-xs text-amber-400 font-bold">4.5 Horas Técnicas Efectivas por Día</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowScheduleInfo(false)}
-                  className="p-2 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="space-y-3 text-xs text-slate-300 leading-relaxed">
-                <div className="bg-black/30 border border-white/5 rounded-2xl p-4 space-y-2">
-                  <p className="font-bold text-white flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    Horario Flexible Basado en Entregables
-                  </p>
-                  <p className="text-slate-400">
-                    Los socios fundadores coordinan sus 4.5 horas diarias según sus picos de productividad (mañana, tarde o noche), sincronizados mediante el Time Tracker.
-                  </p>
-                </div>
-
-                <div className="bg-emerald-950/20 border border-emerald-500/20 rounded-2xl p-4 space-y-2">
-                  <p className="font-bold text-emerald-300 flex items-center gap-2">
-                    <Coffee className="w-4 h-4 text-emerald-400" />
-                    Sala de Recreación & Comisiones
-                  </p>
-                  <p className="text-slate-400">
-                    Si un socio está en trámites, gestiones municipales o en pausa, su avatar se muestra en la <strong>Sala de Recreación & Café</strong>. En esta zona no se contabilizan horas de trabajo.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setShowScheduleInfo(false)}
-                className="w-full py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs transition-colors"
-              >
-                Entendido
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* ── MODAL: MODELO MERITOCRÁTICO ("QUIEN TRABAJA MÁS GANA MÁS") ── */}
-      <AnimatePresence>
-        {showMeritocracyModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-[#18110b] border border-amber-500/30 rounded-3xl p-6 sm:p-7 max-w-2xl w-full space-y-6 shadow-2xl text-left max-h-[90vh] overflow-y-auto"
-            >
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                    <Award className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-black text-white text-base">Gobernanza Meritocrática SERAM</h3>
-                    <p className="text-xs text-amber-400 font-bold">&ldquo;Quien trabaja más gana más&rdquo;</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowMeritocracyModal(false)}
-                  className="p-2 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {meritocracyStats.partners.map((p) => (
-                    <div key={p.name} className="bg-black/40 border border-white/10 rounded-2xl p-4 space-y-2">
-                      <p className="font-extrabold text-white text-xs leading-tight line-clamp-1">{p.name}</p>
-                      <p className="text-[10px] text-slate-400 line-clamp-1">{p.role}</p>
-                      <div className="pt-2 border-t border-white/5 space-y-1">
-                        <div className="flex justify-between text-[11px]">
-                          <span className="text-slate-400">Horas Acumuladas:</span>
-                          <span className="font-black text-[#00e03c] font-mono">{p.hours}h</span>
-                        </div>
-                        <div className="flex justify-between text-[11px]">
-                          <span className="text-slate-400">Participación:</span>
-                          <span className="font-black text-amber-400 font-mono">{p.sharePercent}%</span>
-                        </div>
-                        <div className="flex justify-between text-[11px] pt-1 border-t border-white/5">
-                          <span className="text-slate-400">Honorarios Netos:</span>
-                          <span className="font-black text-white font-mono">Bs. {p.estimatedEarnings.toLocaleString()}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                onClick={() => setShowMeritocracyModal(false)}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs transition-colors"
-              >
-                Cerrar Panel Meritocrático
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-    </>
+    </div>
   );
 }
