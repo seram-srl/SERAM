@@ -462,14 +462,21 @@ export function AppProvider({ children }) {
     { id: 203, name: 'Taller de Lombricultura Urbana', date: '2026-07-20', location: 'La Paz, Bolivia', capacity: 25, enrolled: 25, price: 80, type: 'Taller', status: 'Lleno' },
   ]);
 
-  // --- TIME LOGS (intranet tracker de trabajo realizado) ---
-  const [timeLogs, setTimeLogs] = useState([
-    { id: 1, partner_id: 'barrientoso2401@gmail.com', partner_name: 'Ing. Diego Barrientos', project_id: 104, project_title: 'G.A.M. Guanay / Mapiri (Mercurio)', hours: 5.5, description: 'Estructuración de línea base hidrogeoquímica para Concejo Municipal, protocolo de muestreo de mercurio y marco Ley 1333 / Minamata.', logged_at: '2026-09-28T16:20:00Z' },
-    { id: 2, partner_id: 'barrientoso2401@gmail.com', partner_name: 'Ing. Diego Barrientos', project_id: 105, project_title: 'G.A.M. Caranavi / Alto Beni (Riego)', hours: 4.0, description: 'Dimensionamiento preliminar de red de riego tecnificado y balance hídrico con CROPWAT para concejales.', logged_at: '2026-09-28T14:10:00Z' },
-    { id: 3, partner_id: 'barrientoso2401@gmail.com', partner_name: 'Ing. Diego Barrientos', project_id: 101, project_title: 'Minera Los Andes', hours: 4.5, description: 'Revisión y corrección del EsIA - Minera Los Andes', logged_at: '2026-09-27T14:30:00Z' },
-    { id: 4, partner_id: 'fernandoaraujo1912@gmail.com', partner_name: 'Ing. Fernando Araujo', project_id: 103, project_title: 'Municipio Metropolitano', hours: 6.0, description: 'Revisión técnica de cartografía y ordenamiento territorial municipal', logged_at: '2026-09-28T11:15:00Z' },
-    { id: 5, partner_id: 'sebastiansbs51@gmail.com', partner_name: 'Ing. Fabricio Orosco', project_id: 102, project_title: 'EcoIndustrial S.A.', hours: 5.0, description: 'Auditoría in-situ, muestreo de suelos y verificación de almacenamiento de residuos', logged_at: '2026-09-28T09:40:00Z' },
-  ]);
+  // --- TIME LOGS (intranet tracker de trabajo realizado con persistencia Supabase y LocalStorage) ---
+  const [timeLogs, setTimeLogs] = useState(() => {
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem('seram_time_logs') : null;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (_) {}
+    return [
+      { id: 1, partner_id: 'barrientoso2401@gmail.com', partner_name: 'Ing. Diego Barrientos', project_id: 1, project_title: 'Gobierno Autónomo Municipal de Palos Blancos', hours: 4.5, description: 'Línea base hidrogeoquímica de mercurio y protocolo de muestreo de agua potable.', logged_at: new Date().toISOString() },
+      { id: 2, partner_id: 'fernandoaraujo1912@gmail.com', partner_name: 'Ing. Fernando Araujo', project_id: 6, project_title: 'Plan Minero Ecológico y Protección de Cuencas - Guanay', hours: 3.5, description: 'Modelación hidráulica de red y balance de cuenca para concejales.', logged_at: new Date().toISOString() },
+      { id: 3, partner_id: 'sebastiansbs51@gmail.com', partner_name: 'Ing. Fabricio Orosco', project_id: 10, project_title: 'G.A.M.L.P. - Propuesta Técnica de Lombricultura', hours: 4.0, description: 'Estructuración de guía técnica de compostaje y gestión de residuos sólidos orgánicos.', logged_at: new Date().toISOString() },
+    ];
+  });
 
   // --- REAL-TIME PARTNERS PRESENCE & SESSION TRACKING ---
   const [partnerPresences, setPartnerPresences] = useState(() => {
@@ -626,12 +633,12 @@ export function AppProvider({ children }) {
   useEffect(() => {
     async function loadDataFromSupabase() {
       try {
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000));
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 7000));
         const fetchPromise = Promise.allSettled([
           supabase.from('courses').select('*'),
           supabase.from('projects').select('*'),
           supabase.from('products').select('*'),
-          supabase.from('time_logs').select('*'),
+          supabase.from('time_logs').select('*').order('id', { ascending: false }),
           supabase.from('clients').select('*'),
           supabase.from('activities').select('*')
         ]);
@@ -679,7 +686,8 @@ export function AppProvider({ children }) {
             taxRegime: p.tax_regime || p.taxRegime || 'Régimen General',
             pdfUrl: p.pdf_url || p.pdfUrl || null,
             pdfName: p.pdf_name || p.pdfName || null,
-            tag: p.tag || 'Proyecto B2B'
+            isProposal: Boolean(p.is_proposal || p.isProposal || p.tag === 'Propuesta'),
+            tag: p.tag || (p.is_proposal || p.isProposal ? 'Propuesta' : 'Proyecto B2B')
           }));
           setActiveServices(mappedProjects);
         }
@@ -705,14 +713,17 @@ export function AppProvider({ children }) {
           const mappedLogs = logsRes.value.data.map(l => ({
             id: l.id,
             partner_id: l.partner_id,
-            partner_name: l.partner_name || 'Socio',
+            partner_name: l.partner_name || 'Socio directivo',
             project_id: l.project_id,
-            project_title: l.project_title || 'Proyecto',
-            hours: parseFloat(l.hours),
-            description: l.description,
+            project_title: l.project_title || 'Proyecto General',
+            hours: parseFloat(l.hours) || 0,
+            description: l.description || '',
             logged_at: l.logged_at
           }));
           setTimeLogs(mappedLogs);
+          try {
+            localStorage.setItem('seram_time_logs', JSON.stringify(mappedLogs));
+          } catch (_) {}
         }
 
         // 5. Clients (Directorio de Clientes de SERAM)
@@ -757,7 +768,7 @@ export function AppProvider({ children }) {
     }
     loadDataFromSupabase();
 
-    // Suscripción Realtime para actividades y proyectos en tiempo real
+    // Suscripción Realtime para actividades, proyectos, cursos y time_logs en tiempo real
     const channel = supabase.channel('seram-portal-sync')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'activities' }, () => {
         loadDataFromSupabase();
@@ -766,6 +777,12 @@ export function AppProvider({ children }) {
         loadDataFromSupabase();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'clients' }, () => {
+        loadDataFromSupabase();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'courses' }, () => {
+        loadDataFromSupabase();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'time_logs' }, () => {
         loadDataFromSupabase();
       })
       .subscribe();
@@ -825,6 +842,16 @@ export function AppProvider({ children }) {
       console.warn('Could not save prospects to localStorage', e);
     }
   }, [prospects]);
+
+  useEffect(() => {
+    try {
+      if (timeLogs && timeLogs.length > 0) {
+        localStorage.setItem('seram_time_logs', JSON.stringify(timeLogs));
+      }
+    } catch (e) {
+      console.warn('Could not save timeLogs to localStorage', e);
+    }
+  }, [timeLogs]);
 
   const handleLogoClick = () => {
     const nextClicks = logoClicks + 1;
@@ -1144,7 +1171,7 @@ export function AppProvider({ children }) {
     triggerToast('Nuevo recurso registrado en SERAM ACADEMY', 'success');
 
     try {
-      const { error } = await supabase.from('courses').insert([{
+      const { data, error } = await supabase.from('courses').insert([{
         title: newCourse.title,
         instructor: newCourse.instructor,
         students: 0,
@@ -1157,9 +1184,12 @@ export function AppProvider({ children }) {
         desc: newCourse.desc,
         pdf_url: newCourse.pdfUrl,
         pdf_name: newCourse.pdfName
-      }]);
+      }]).select();
+
       if (error && error.code !== 'PGRST205') {
         console.warn('[Supabase Insert Course Warning]:', error.message);
+      } else if (data && data[0]?.id) {
+        setCourses(prev => prev.map(c => c.id === newCourse.id ? { ...c, id: data[0].id } : c));
       }
     } catch (err) {
       console.warn('[Supabase Sync Warning - AddCourse]:', err.message);
@@ -1290,14 +1320,15 @@ export function AppProvider({ children }) {
       taxRegime: projData.taxRegime || 'Régimen General',
       pdfUrl: projData.pdfUrl || null,
       pdfName: projData.pdfName || null,
-      tag: projData.tag || 'Proyecto B2B'
+      isProposal: Boolean(projData.isProposal || projData.tag === 'Propuesta'),
+      tag: projData.tag || (projData.isProposal ? 'Propuesta' : 'Proyecto B2B')
     };
 
     setActiveServices(prev => [...prev, newProj]);
     triggerToast('Proyecto registrado correctamente', 'success');
 
     try {
-      const { error } = await supabase.from('projects').insert([{
+      const { data, error } = await supabase.from('projects').insert([{
         client: newProj.client,
         type: newProj.type,
         progress_percent: newProj.progress,
@@ -1314,9 +1345,12 @@ export function AppProvider({ children }) {
         pdf_url: newProj.pdfUrl,
         pdf_name: newProj.pdfName,
         code: newProj.code
-      }]);
+      }]).select();
+
       if (error && error.code !== 'PGRST205') {
         console.warn('[Supabase Insert Project Warning]:', error.message);
+      } else if (data && data[0]?.id) {
+        setActiveServices(prev => prev.map(p => p.id === newProj.id ? { ...p, id: data[0].id } : p));
       }
     } catch (err) {
       console.warn('[Supabase Sync Warning - AddProject]:', err.message);
@@ -1841,18 +1875,21 @@ export function AppProvider({ children }) {
       } catch (_) {}
       return updated;
     });
-    triggerToast('Horas registradas exitosamente', 'success');
-
     try {
-      const { error } = await supabase.from('time_logs').insert([{
-        partner_id: supabaseUser?.id || partnerId,
-        project_id: projectId,
+      const { data, error } = await supabase.from('time_logs').insert([{
+        partner_id: partnerId,
+        partner_name: partnerName,
+        project_id: projectId ? parseInt(projectId) : null,
+        project_title: proj.client || proj.type || proj.title || 'Proyecto General',
         hours: parseFloat(hours),
         description,
         logged_at: newLog.logged_at
-      }]);
-      if (error && error.code !== 'PGRST205') {
-        throw error;
+      }]).select();
+
+      if (error) {
+        console.warn('[Supabase Insert TimeLog Error]:', error.message);
+      } else if (data && data[0]?.id) {
+        setTimeLogs(prev => prev.map(l => l.id === newLog.id ? { ...l, id: data[0].id } : l));
       }
     } catch (err) {
       console.warn('[Supabase Sync Warning - AddTimeLog]:', err.message);

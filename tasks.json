@@ -6,6 +6,14 @@
   "in_progress": [],
   "completed": [
     {
+      "id": "TASK-040",
+      "title": "Conectar y blindar persistencia real en Supabase para Time Tracker (time_logs con not-null constraints), cursos de Academy y proyectos con Realtime; simplificar flujo de creación UX/UI para proyectos y cursos con PDFs, y depurar proyectos duplicados ficticios",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-04",
+      "completed_at": "2026-10-04"
+    },
+    {
       "id": "TASK-039",
       "title": "Unificar la Oficina Virtual en maqueta 2.5D fotorrealista HD con parquet natural e iluminación arquitectónica (Fábrica Viva), 13 despachos independientes con paredes, mamparas y letreros, avatares humanos con chaleco institucional SERAM (azul marino y dorado), navegación Point & Click y Time Tracker flotante PiP",
       "status": "completed",

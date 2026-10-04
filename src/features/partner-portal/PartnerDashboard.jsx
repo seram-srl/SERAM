@@ -444,6 +444,9 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
   const [newProjTaxRegime, setNewProjTaxRegime] = useState('Régimen General');
   const [newProjDesc, setNewProjDesc] = useState('');
 
+  const [isProposalMode, setIsProposalMode] = useState(false);
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+
   // PDF Upload state
   const [pdfFile, setPdfFile] = useState(null);
   const [pdfUploading, setPdfUploading] = useState(false);
@@ -910,12 +913,33 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
 
           {/* Add Project Form */}
           <GlassCard className="p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/[0.06] pb-3 gap-3">
               <div className="flex items-center gap-2">
                 <Briefcase className="w-4 h-4 text-[#00e03c]" />
-                <h4 className="text-xs font-black text-white uppercase tracking-wider">Registrar Nuevo Proyecto B2B / Consultoría Real</h4>
+                <h4 className="text-xs font-black text-white uppercase tracking-wider">
+                  {isProposalMode ? 'Registrar Nueva Propuesta Técnica / Licitación' : 'Registrar Nuevo Proyecto B2B / Contrato Adjudicado'}
+                </h4>
               </div>
-              <span className="text-[10px] text-slate-400 font-mono">Formulario Técnico Operativo SERAM</span>
+              <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
+                <button
+                  type="button"
+                  onClick={() => setIsProposalMode(false)}
+                  className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                    !isProposalMode ? 'bg-[#00e03c] text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  💼 Proyecto B2B
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsProposalMode(true)}
+                  className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                    isProposalMode ? 'bg-amber-400 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  📄 Propuesta Comercial
+                </button>
+              </div>
             </div>
 
             <form onSubmit={async (e) => {
@@ -938,14 +962,15 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
                   finalPdfName = 'Propuesta_Tecnica_Oficial_SERAM_2026.pdf';
                 }
 
-                const generatedCode = newProjCode.trim() || `SRM-2026-B2B-${String(activeServices.length + 1).padStart(2, '0')}`;
+                const prefix = isProposalMode ? 'PROP' : 'B2B';
+                const generatedCode = newProjCode.trim() || `SRM-2026-${prefix}-${String(activeServices.length + 1).padStart(2, '0')}`;
 
                 await handleAddProject({
                   code: generatedCode,
                   client: newProjClient.trim(),
                   type: newProjType.trim(),
                   lead: newProjLead,
-                  location: newProjLocation.trim(),
+                  location: newProjLocation.trim() || 'Bolivia',
                   description: newProjDesc.trim(),
                   startDate: newProjStartDate || new Date().toISOString().split('T')[0],
                   endDate: newProjEndDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -956,7 +981,9 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
                   taxRegime: newProjTaxRegime,
                   pdfUrl: finalPdfUrl,
                   pdfName: finalPdfName,
-                  progress: 10
+                  isProposal: isProposalMode,
+                  tag: isProposalMode ? 'Propuesta' : 'Proyecto B2B',
+                  progress: isProposalMode ? 0 : 10
                 });
 
                 // Clear form
@@ -973,6 +1000,7 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
                 setNewProjSubcontractorCosts('');
                 setPdfFile(null);
                 setUseSamplePdf(false);
+                setShowAdvancedOptions(false);
               } catch (err) {
                 console.error('Error registrando proyecto:', err);
                 triggerToast('Error al registrar proyecto', 'error');
@@ -981,96 +1009,54 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
               }
             }} className="space-y-4">
               
-              {/* Row 1: Identificación del Proyecto */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {/* Sección Principal y Esencial */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Cliente / Entidad Requiriente *</label>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">
+                    Cliente / Municipio / Entidad *
+                  </label>
                   <input
                     required
                     className={inputCls}
-                    placeholder="Ej: G.A.M. Palos Blancos / Minera San Cristóbal"
+                    placeholder="Ej: G.A.M. Palos Blancos, Minera San Cristóbal, etc."
                     value={newProjClient}
                     onChange={e => setNewProjClient(e.target.value)}
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Tipo de Servicio Técnico *</label>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">
+                    {isProposalMode ? 'Título de la Propuesta / Servicio Técnico *' : 'Nombre del Proyecto / Servicio Técnico *'}
+                  </label>
                   <input
                     required
                     className={inputCls}
-                    placeholder="Ej: Línea Base Hidrogeoquímica / EsIA / FNCA"
+                    placeholder="Ej: Línea Base Hidrogeoquímica, Mitigación de Mercurio, etc."
                     value={newProjType}
                     onChange={e => setNewProjType(e.target.value)}
                   />
                 </div>
-                <div>
-                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Código de Proyecto SRM</label>
-                  <input
-                    className={inputCls}
-                    placeholder={`Auto: SRM-2026-B2B-${String(activeServices.length + 1).padStart(2, '0')}`}
-                    value={newProjCode}
-                    onChange={e => setNewProjCode(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Ubicación / Municipio</label>
-                  <input
-                    className={inputCls}
-                    placeholder="Ej: Palos Blancos, La Paz"
-                    value={newProjLocation}
-                    onChange={e => setNewProjLocation(e.target.value)}
-                  />
-                </div>
               </div>
 
-              {/* Row 2: Responsable y Fechas */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Socio Responsable / Líder *</label>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">
+                    Socio Responsable / Líder *
+                  </label>
                   <select
                     required
                     className={selectCls}
                     value={newProjLead}
                     onChange={e => setNewProjLead(e.target.value)}
                   >
-                    {registeredEngineers.map(e => <option key={e.email} value={e.name}>{e.name}</option>)}
+                    {registeredEngineers.map(e => (
+                      <option key={e.email} value={e.name}>{e.name}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Fecha de Inicio Estimada</label>
-                  <input
-                    className={inputCls}
-                    type="date"
-                    value={newProjStartDate}
-                    onChange={e => setNewProjStartDate(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Fecha de Conclusión Estimada</label>
-                  <input
-                    className={inputCls}
-                    type="date"
-                    value={newProjEndDate}
-                    onChange={e => setNewProjEndDate(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Régimen Tributario</label>
-                  <select
-                    className={selectCls}
-                    value={newProjTaxRegime}
-                    onChange={e => setNewProjTaxRegime(e.target.value)}
-                  >
-                    <option value="Régimen General">Régimen General (16% Impuestos)</option>
-                    <option value="Régimen SIETE (5%)">Régimen SIETE (5% Monotributo)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Row 3: Presupuesto y Costos Operativos */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Presupuesto Total Ofertado (Bs.)</label>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">
+                    Presupuesto Ofertado (Bs.)
+                  </label>
                   <input
                     className={inputCls}
                     type="number"
@@ -1080,50 +1066,20 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
                     onChange={e => setNewProjBudget(e.target.value)}
                   />
                 </div>
-                <div>
-                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Costos Ensayos Lab / Equipos (Bs.)</label>
-                  <input
-                    className={inputCls}
-                    type="number"
-                    min="0"
-                    placeholder="Ej: 12000"
-                    value={newProjLabCosts}
-                    onChange={e => setNewProjLabCosts(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Costo Firma Externa / Tercerizados (Bs.)</label>
-                  <input
-                    className={inputCls}
-                    type="number"
-                    min="0"
-                    placeholder="Ej: 8000"
-                    value={newProjSubcontractorCosts}
-                    onChange={e => setNewProjSubcontractorCosts(e.target.value)}
-                  />
-                </div>
               </div>
 
-              {/* Row 4: Descripción / Objetivos */}
-              <div>
-                <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Descripción Técnica / Alcance del Servicio</label>
-                <textarea
-                  rows="2"
-                  className={`${inputCls} resize-none`}
-                  placeholder="Detalla los entregables, metodologías periciales o marco regulatorio (ej. Ley 1333, RMCH, ArcGIS Pro)..."
-                  value={newProjDesc}
-                  onChange={e => setNewProjDesc(e.target.value)}
-                />
-              </div>
-
-              {/* Row 5: UPLOADER DE DOCUMENTO PDF EN SUPABASE STORAGE */}
-              <div className="p-4 bg-white/[0.02] border border-white/[0.08] rounded-xl space-y-3">
-                <div className="flex items-center justify-between">
+              {/* UPLOADER DE DOCUMENTO PDF EN SUPABASE STORAGE */}
+              <div className="p-3.5 bg-white/[0.02] border border-white/[0.08] rounded-xl space-y-2.5">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-2">
                     <FileText className="w-4 h-4 text-emerald-400" />
                     <div>
-                      <span className="text-xs font-bold text-white block">Documento Técnico / Términos de Referencia (PDF)</span>
-                      <span className="text-[10px] text-slate-400">Se almacenará en la nube con redundancia resiliente</span>
+                      <span className="text-xs font-bold text-white block">
+                        Documento Técnico / Términos de Referencia (PDF)
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        Se guardará en Supabase Storage vinculado a la base de datos
+                      </span>
                     </div>
                   </div>
                   <label className="flex items-center gap-2 text-[11px] text-slate-300 font-semibold cursor-pointer select-none">
@@ -1139,9 +1095,9 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-3">
-                  <label className="w-full sm:w-auto cursor-pointer px-4 py-2.5 bg-white/[0.05] hover:bg-white/[0.09] border border-dashed border-white/20 hover:border-emerald-400/50 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-2 transition-all">
+                  <label className="w-full sm:w-auto cursor-pointer px-4 py-2 bg-white/[0.05] hover:bg-white/[0.09] border border-dashed border-white/20 hover:border-emerald-400/50 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-2 transition-all">
                     <UploadCloud className="w-4 h-4 text-emerald-400" />
-                    <span>{pdfFile ? 'Reemplazar archivo PDF' : 'Seleccionar PDF desde el equipo'}</span>
+                    <span>{pdfFile ? 'Reemplazar archivo PDF' : 'Seleccionar PDF del equipo'}</span>
                     <input
                       type="file"
                       accept=".pdf,application/pdf"
@@ -1164,6 +1120,7 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
                         type="button"
                         onClick={() => setPdfFile(null)}
                         className="text-slate-400 hover:text-white ml-1"
+                        title="Quitar archivo"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -1188,6 +1145,107 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
                 </div>
               </div>
 
+              {/* Botón Acordeón para Opciones Avanzadas */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                  className="text-xs font-semibold text-slate-400 hover:text-[#00e03c] flex items-center gap-1.5 transition-colors py-1"
+                >
+                  <span>{showAdvancedOptions ? '▼ Ocultar detalles adicionales' : '▶ Configurar fechas, desglose financiero o ubicación (Opcional)'}</span>
+                </button>
+
+                {showAdvancedOptions && (
+                  <div className="mt-3 p-4 bg-white/[0.015] border border-white/[0.06] rounded-xl space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      <div>
+                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Código Personalizado SRM</label>
+                        <input
+                          className={inputCls}
+                          placeholder={`Auto: SRM-2026-${isProposalMode ? 'PROP' : 'B2B'}-${String(activeServices.length + 1).padStart(2, '0')}`}
+                          value={newProjCode}
+                          onChange={e => setNewProjCode(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Ubicación / Municipio</label>
+                        <input
+                          className={inputCls}
+                          placeholder="Ej: Cobija, Pando / Palos Blancos"
+                          value={newProjLocation}
+                          onChange={e => setNewProjLocation(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Fecha de Inicio</label>
+                        <input
+                          className={inputCls}
+                          type="date"
+                          value={newProjStartDate}
+                          onChange={e => setNewProjStartDate(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Fecha de Conclusión</label>
+                        <input
+                          className={inputCls}
+                          type="date"
+                          value={newProjEndDate}
+                          onChange={e => setNewProjEndDate(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Régimen Tributario</label>
+                        <select
+                          className={selectCls}
+                          value={newProjTaxRegime}
+                          onChange={e => setNewProjTaxRegime(e.target.value)}
+                        >
+                          <option value="Régimen General">Régimen General (16% Impuestos)</option>
+                          <option value="Régimen SIETE (5%)">Régimen SIETE (5% Monotributo)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Costos Lab / Equipos (Bs.)</label>
+                        <input
+                          className={inputCls}
+                          type="number"
+                          min="0"
+                          placeholder="Ej: 12000"
+                          value={newProjLabCosts}
+                          onChange={e => setNewProjLabCosts(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Costos Tercerizados (Bs.)</label>
+                        <input
+                          className={inputCls}
+                          type="number"
+                          min="0"
+                          placeholder="Ej: 8000"
+                          value={newProjSubcontractorCosts}
+                          onChange={e => setNewProjSubcontractorCosts(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Descripción / Alcance Técnico</label>
+                      <textarea
+                        rows="2"
+                        className={`${inputCls} resize-none`}
+                        placeholder="Entregables, marco regulatorio o metodologías..."
+                        value={newProjDesc}
+                        onChange={e => setNewProjDesc(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Submit button */}
               <button
                 type="submit"
@@ -1197,12 +1255,17 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
                 {pdfUploading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Guardando Proyecto y Subiendo Documento Técnico...</span>
+                    <span>Guardando en Supabase y Subiendo Documento Técnico...</span>
+                  </>
+                ) : isProposalMode ? (
+                  <>
+                    <FileText className="w-4 h-4" />
+                    <span>Guardar Propuesta Comercial en Base de Datos</span>
                   </>
                 ) : (
                   <>
                     <Plus className="w-4 h-4" />
-                    <span>Registrar Proyecto B2B en el Monitor</span>
+                    <span>Registrar Proyecto Operativo en Base de Datos</span>
                   </>
                 )}
               </button>
@@ -1586,55 +1649,63 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
         <div className="lg:col-span-1 space-y-6">
           
           {editingId === null ? (
-            <GlassCard className="p-6 space-y-4">
+            <GlassCard className="p-6 space-y-4 border-emerald-500/20">
               <div className="flex items-center gap-2 border-b border-white/[0.06] pb-3">
-                <Plus className="w-4 h-4 text-[#00e03c]" />
-                <h4 className="text-xs font-black text-white uppercase tracking-wider">Añadir Recurso / Curso</h4>
-              </div>
-              <form onSubmit={handleCreate} className="space-y-3">
+                <div className="w-8 h-8 rounded-lg bg-[#00e03c]/10 text-[#00e03c] flex items-center justify-center">
+                  <BookOpenCheck className="w-4 h-4" />
+                </div>
                 <div>
-                  <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Título de la Lección / Recurso</label>
-                  <input required className={inputCls} placeholder="Ej: SIG Aplicado a Fiscalización Ambiental" value={form.title} onChange={e => setForm(s => ({ ...s, title: e.target.value }))} />
+                  <h4 className="text-xs font-black text-white uppercase tracking-wider">Publicar Recurso / Curso</h4>
+                  <p className="text-[10px] text-slate-400">Guías técnicas, sílabos o cursos con persistencia en Supabase</p>
+                </div>
+              </div>
+              <form onSubmit={handleCreate} className="space-y-3.5">
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Título del Documento / Curso *</label>
+                  <input required className={inputCls} placeholder="Ej: Guía Técnica de Lombricultura Urbana" value={form.title} onChange={e => setForm(s => ({ ...s, title: e.target.value }))} />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2.5">
                   <div>
-                    <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Categoría</label>
+                    <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Formato / Tipo</label>
                     <select className={selectCls} value={form.type} onChange={e => handleTypeChange(e.target.value)}>
-                      <option value="gratis">Gratis (Lead Magnet)</option>
-                      <option value="low_ticket">Low Ticket (Base)</option>
-                      <option value="mid_ticket">Mid Ticket (Taller Práctico)</option>
-                      <option value="high_ticket">High Ticket (VIP / Mentoring)</option>
+                      <option value="mid_ticket">Guía Técnica en PDF</option>
+                      <option value="low_ticket">Manual / E-Book</option>
+                      <option value="high_ticket">Curso Especializado / Taller</option>
+                      <option value="gratis">Documento Gratuito</option>
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Precio (Bs.)</label>
-                    <input type="number" min={0} disabled={form.type === 'gratis'} className={inputCls} value={form.price} onChange={e => setForm(s => ({ ...s, price: +e.target.value }))} />
+                    <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Precio (Bs.)</label>
+                    <input type="number" min={0} disabled={form.type === 'gratis'} className={inputCls} placeholder="0 si es libre" value={form.price} onChange={e => setForm(s => ({ ...s, price: +e.target.value }))} />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2.5">
                   <div>
-                    <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Instructor / Mentor</label>
+                    <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Socio Autor / Instructor *</label>
                     <select className={selectCls} value={form.instructor} onChange={e => setForm(s => ({ ...s, instructor: e.target.value }))}>
                       {registeredEngineers.map(e => <option key={e.email} value={e.name}>{e.name}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Duración / Horas</label>
-                    <input className={inputCls} placeholder="Ej: 40 horas prácticas" value={form.duration} onChange={e => setForm(s => ({ ...s, duration: e.target.value }))} />
+                    <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Carga Horaria / Formato</label>
+                    <input className={inputCls} placeholder="Ej: Lectura técnica / 20 hrs" value={form.duration} onChange={e => setForm(s => ({ ...s, duration: e.target.value }))} />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Descripción Corta</label>
-                  <textarea className={`${inputCls} h-20 resize-none`} placeholder="Describe brevemente el contenido..." value={form.desc} onChange={e => setForm(s => ({ ...s, desc: e.target.value }))} />
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Descripción / Objetivos</label>
+                  <textarea className={`${inputCls} h-16 resize-none`} placeholder="Resumen del contenido, metodología o público destinatario..." value={form.desc} onChange={e => setForm(s => ({ ...s, desc: e.target.value }))} />
                 </div>
 
-                {/* PDF Syllabus Uploader */}
-                <div className="p-3 bg-white/[0.02] border border-white/[0.08] rounded-xl space-y-2">
+                {/* PDF Syllabus Uploader Simplificado */}
+                <div className="p-3.5 bg-emerald-500/[0.04] border border-emerald-500/25 rounded-xl space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase">Syllabus / Guía en PDF</span>
+                    <span className="text-[10px] text-emerald-300 font-extrabold uppercase flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-emerald-400" />
+                      Adjuntar Documento PDF (Guía / Sílabo)
+                    </span>
                     <label className="flex items-center gap-1.5 text-[10px] text-slate-400 cursor-pointer select-none">
                       <input
                         type="checkbox"
@@ -1643,14 +1714,14 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
                         onChange={e => setUseSampleCoursePdf(e.target.checked)}
                         className="rounded border-white/20 bg-white/5 text-[#00e03c]"
                       />
-                      <span>PDF Modelo</span>
+                      <span>PDF Modelo SERAM</span>
                     </label>
                   </div>
                   
-                  <div className="flex items-center gap-2">
-                    <label className="cursor-pointer px-3 py-1.5 bg-white/[0.05] hover:bg-white/[0.08] border border-dashed border-white/20 rounded-lg text-white text-xs font-semibold flex items-center gap-1.5 transition-colors">
-                      <UploadCloud className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>{coursePdfFile ? 'Cambiar PDF' : 'Subir Syllabus PDF'}</span>
+                  <div className="flex flex-col gap-2">
+                    <label className="cursor-pointer px-3.5 py-2.5 bg-white/[0.05] hover:bg-white/[0.09] border border-dashed border-emerald-400/40 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-2 transition-all">
+                      <UploadCloud className="w-4 h-4 text-emerald-400" />
+                      <span>{coursePdfFile ? 'Reemplazar archivo PDF' : 'Seleccionar PDF desde mi equipo'}</span>
                       <input
                         type="file"
                         accept=".pdf,application/pdf"
@@ -1664,25 +1735,23 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
                       />
                     </label>
                     {coursePdfFile && (
-                      <span className="text-[10px] text-emerald-300 font-mono truncate max-w-[130px]">
-                        {coursePdfFile.name}
-                      </span>
+                      <div className="flex items-center justify-between px-2.5 py-1.5 bg-emerald-500/15 border border-emerald-500/30 rounded-lg text-emerald-300 text-xs">
+                        <span className="font-mono truncate max-w-[200px]">{coursePdfFile.name}</span>
+                        <button type="button" onClick={() => setCoursePdfFile(null)} className="text-slate-400 hover:text-white">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     )}
                   </div>
-                </div>
-
-                <div>
-                  <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Ruta de Portada (Assets)</label>
-                  <input className={inputCls} placeholder="Ruta de imagen" value={form.image} onChange={e => setForm(s => ({ ...s, image: e.target.value }))} />
                 </div>
 
                 <button
                   type="submit"
                   disabled={coursePdfUploading}
-                  className="w-full bg-[#00e03c] text-slate-950 py-2.5 rounded-xl font-black text-xs uppercase hover:bg-emerald-400 flex items-center justify-center gap-1.5 transition-colors mt-2 shadow-[0_0_15px_rgba(0,224,60,0.15)] disabled:opacity-50"
+                  className="w-full bg-[#00e03c] text-slate-950 py-3 rounded-xl font-black text-xs uppercase hover:bg-emerald-400 flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(0,224,60,0.2)] disabled:opacity-50"
                 >
                   {coursePdfUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                  {coursePdfUploading ? 'Subiendo Syllabus...' : 'Agregar Recurso'}
+                  {coursePdfUploading ? 'Guardando y Subiendo PDF...' : 'Publicar en SERAM Academy'}
                 </button>
               </form>
             </GlassCard>
