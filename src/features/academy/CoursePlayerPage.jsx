@@ -598,7 +598,7 @@ function DeliverablePdfView({ course, navigate, triggerToast, currentSocio }) {
                     </div>
 
                     <p className="text-xs text-slate-200 font-medium pl-2 border-l-2 border-white/20">
-                      "{q.text}"
+                      &ldquo;{q.text}&rdquo;
                     </p>
 
                     {q.answer ? (
@@ -750,11 +750,8 @@ export default function CoursePlayerPage() {
   ]);
   const [newNoteText, setNewNoteText] = useState('');
 
-  // Comentarios / Q&A
-  const [comments, setComments] = useState([
-    { id: 1, user: 'Rodrigo Camacho', date: 'Hace 2 horas', text: '¿Dónde puedo descargar las capas SHP del Valle de Zongo para hacer la práctica?' },
-    { id: 2, user: 'Ing. Diego Barrientos', isInstructor: true, date: 'Hace 1 hora', text: 'Hola Rodrigo, las capas están disponibles en el botón superior "Descarga los adjuntos aquí" y en la pestaña de recursos.' }
-  ]);
+  // Comentarios / Q&A (Comunidad de estudiantes)
+  const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
 
   // Estados locales para tareas y evaluación
@@ -1756,17 +1753,24 @@ export default function CoursePlayerPage() {
                 </form>
 
                 <div className="space-y-2.5">
-                  {comments.map(c => (
-                    <div key={c.id} className="p-3 bg-white/[0.02] border border-white/5 rounded-xl space-y-1">
-                      <div className="flex justify-between items-center text-[10px]">
-                        <span className={`font-bold ${c.isInstructor ? 'text-[#00e03c]' : 'text-slate-300'}`}>
-                          {c.user} {c.isInstructor && '✓ (Profesor)'}
-                        </span>
-                        <span className="text-slate-600">{c.date}</span>
-                      </div>
-                      <p className="text-xs text-slate-400 leading-relaxed">{c.text}</p>
+                  {comments.length === 0 ? (
+                    <div className="p-6 text-center rounded-xl bg-white/[0.02] border border-white/5 space-y-1">
+                      <p className="text-xs text-slate-400 font-medium">Aún no hay preguntas en este módulo.</p>
+                      <p className="text-[10px] text-slate-600">Sé el primero en plantear tus dudas técnicas al instructor.</p>
                     </div>
-                  ))}
+                  ) : (
+                    comments.map(c => (
+                      <div key={c.id} className="p-3 bg-white/[0.02] border border-white/5 rounded-xl space-y-1">
+                        <div className="flex justify-between items-center text-[10px]">
+                          <span className={`font-bold ${c.isInstructor ? 'text-[#00e03c]' : 'text-slate-300'}`}>
+                            {c.user} {c.isInstructor && '✓ (Profesor)'}
+                          </span>
+                          <span className="text-slate-600">{c.date}</span>
+                        </div>
+                        <p className="text-xs text-slate-400 leading-relaxed">{c.text}</p>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             )}

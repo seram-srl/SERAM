@@ -30,6 +30,8 @@ import LoginPage        from './features/auth/LoginPage';
 import RegisterPage     from './features/auth/RegisterPage';
 import ProtectedRoute   from './components/shared/ProtectedRoute';
 import ContactPage      from './features/contact/ContactPage';
+import LegalPage        from './features/legal/LegalPage';
+import CookieBanner     from './components/ui/CookieBanner';
 
 
 export default function App() {
@@ -88,6 +90,9 @@ export default function App() {
       {/* ── CAPA z-110: Botón de chat de atención al cliente (FAB) ────────── */}
       <ChatbotFAB />
 
+      {/* ── CAPA z-150: Banner informativo de cookies y almacenamiento ──── */}
+      <CookieBanner />
+
       {/* ── CAPA z-10: Contenido principal con transiciones de ruta ─────── */}
       {/*
         Cada página se monta con AnimatePresence y Framer Motion.
@@ -108,6 +113,10 @@ export default function App() {
             <Route path="/shop"       element={<ShopPage />}         />
             <Route path="/dashboard"  element={<PartnerDashboard />} />
             <Route path="/contact"    element={<ContactPage />}      />
+            <Route path="/privacidad" element={<LegalPage />}        />
+            <Route path="/terminos"   element={<LegalPage />}        />
+            <Route path="/cookies"    element={<LegalPage />}        />
+            <Route path="/reembolsos" element={<LegalPage />}        />
             <Route path="*"           element={<NotFoundPage />}     />
           </Routes>
         </AnimatePresence>

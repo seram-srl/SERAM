@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
   Activity, FileText, Trash2, Map, Compass, Leaf, Shield, 
   ChevronRight, ChevronLeft, Send, Sparkles, Calendar, CheckCircle, ClipboardCheck,
@@ -91,6 +91,7 @@ export default function QuotePage() {
     phone: '',
     details: ''
   });
+  const [consent, setConsent] = useState(false);
 
   const handleSelectOption = (optionId) => {
     const key = QUESTIONS[step].id;
@@ -234,6 +235,10 @@ export default function QuotePage() {
     e.preventDefault();
     if (!contactInfo.name || !contactInfo.email || !contactInfo.phone) {
       triggerToast('Por favor completa todos los campos requeridos.', 'error');
+      return;
+    }
+    if (!consent) {
+      triggerToast('Debes declarar que eres mayor de 18 años y aceptar la Política de Privacidad y Confidencialidad.', 'error');
       return;
     }
 
@@ -668,82 +673,115 @@ export default function QuotePage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nombre Completo *</label>
+                  <label htmlFor="quote-name" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nombre Completo *</label>
                   <input
+                    id="quote-name"
                     type="text"
                     name="name"
                     required
                     value={contactInfo.name}
                     onChange={handleInputChange}
-                    placeholder="Ej. Diego Barrientos"
-                    className="w-full bg-slate-950/40 border border-white/10 focus:border-[#00e03c]/50 focus:shadow-[0_0_12px_rgba(0,224,60,0.1)] rounded-xl px-4 py-3 text-xs text-white outline-none transition-all"
+                    placeholder="Ej. Ing. Juan Pérez"
+                    className="w-full bg-slate-950/40 border border-white/10 focus:border-[#00e03c] focus:ring-2 focus:ring-[#00e03c]/30 rounded-xl px-4 py-3 text-xs text-white outline-none transition-all"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Empresa / Proyecto</label>
+                  <label htmlFor="quote-company" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Empresa / Proyecto</label>
                   <input
+                    id="quote-company"
                     type="text"
                     name="company"
                     value={contactInfo.company}
                     onChange={handleInputChange}
-                    placeholder="Ej. SERAM Consultores"
-                    className="w-full bg-slate-950/40 border border-white/10 focus:border-[#00e03c]/50 focus:shadow-[0_0_12px_rgba(0,224,60,0.1)] rounded-xl px-4 py-3 text-xs text-white outline-none transition-all"
+                    placeholder="Ej. Minera o Empresa Industrial"
+                    className="w-full bg-slate-950/40 border border-white/10 focus:border-[#00e03c] focus:ring-2 focus:ring-[#00e03c]/30 rounded-xl px-4 py-3 text-xs text-white outline-none transition-all"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Correo Electrónico *</label>
+                  <label htmlFor="quote-email" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Correo Electrónico *</label>
                   <input
+                    id="quote-email"
                     type="email"
                     name="email"
                     required
                     value={contactInfo.email}
                     onChange={handleInputChange}
-                    placeholder="Ej. barrientos@empresa.com"
-                    className="w-full bg-slate-950/40 border border-white/10 focus:border-[#00e03c]/50 focus:shadow-[0_0_12px_rgba(0,224,60,0.1)] rounded-xl px-4 py-3 text-xs text-white outline-none transition-all"
+                    placeholder="Ej. contacto@empresa.com"
+                    className="w-full bg-slate-950/40 border border-white/10 focus:border-[#00e03c] focus:ring-2 focus:ring-[#00e03c]/30 rounded-xl px-4 py-3 text-xs text-white outline-none transition-all"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Número de Celular (WhatsApp) *</label>
+                  <label htmlFor="quote-phone" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Número de Celular (WhatsApp) *</label>
                   <input
+                    id="quote-phone"
                     type="tel"
                     name="phone"
                     required
                     value={contactInfo.phone}
                     onChange={handleInputChange}
                     placeholder="Ej. 78945612"
-                    className="w-full bg-slate-950/40 border border-white/10 focus:border-[#00e03c]/50 focus:shadow-[0_0_12px_rgba(0,224,60,0.1)] rounded-xl px-4 py-3 text-xs text-white outline-none transition-all"
+                    className="w-full bg-slate-950/40 border border-white/10 focus:border-[#00e03c] focus:ring-2 focus:ring-[#00e03c]/30 rounded-xl px-4 py-3 text-xs text-white outline-none transition-all"
                   />
                 </div>
                 <div className="sm:col-span-2 space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Detalles adicionales del requerimiento</label>
+                  <label htmlFor="quote-details" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Detalles adicionales del requerimiento</label>
                   <textarea
+                    id="quote-details"
                     name="details"
                     value={contactInfo.details}
                     onChange={handleInputChange}
                     placeholder="Cuéntanos brevemente sobre las dimensiones, ubicación del predio o dudas puntuales sobre la Ley 1333..."
                     rows={3}
-                    className="w-full bg-slate-950/40 border border-white/10 focus:border-[#00e03c]/50 focus:shadow-[0_0_12px_rgba(0,224,60,0.1)] rounded-xl p-4 text-xs text-white outline-none transition-all resize-none"
+                    className="w-full bg-slate-950/40 border border-white/10 focus:border-[#00e03c] focus:ring-2 focus:ring-[#00e03c]/30 rounded-xl p-4 text-xs text-white outline-none transition-all resize-none"
                   />
+                </div>
+
+                {/* Checkbox de Consentimiento Obligatorio y Mayoría de Edad */}
+                <div className="pt-2 flex items-start gap-3 sm:col-span-2">
+                  <input
+                    type="checkbox"
+                    id="quote-consent"
+                    required
+                    checked={consent}
+                    onChange={(e) => setConsent(e.target.checked)}
+                    className="w-4 h-4 mt-0.5 rounded border-white/20 bg-slate-950/60 text-[#00e03c] focus:ring-2 focus:ring-[#00e03c] cursor-pointer accent-[#126c0f]"
+                  />
+                  <label htmlFor="quote-consent" className="text-[11px] text-slate-300 leading-snug cursor-pointer select-none">
+                    Declaro que <strong>soy mayor de 18 años</strong> y acepto la{' '}
+                    <Link to="/privacidad" target="_blank" className="text-[#00e03c] hover:underline font-semibold">
+                      Política de Privacidad
+                    </Link>
+                    , los{' '}
+                    <Link to="/terminos" target="_blank" className="text-[#00e03c] hover:underline font-semibold">
+                      Términos de Servicio
+                    </Link>{' '}
+                    y el Acuerdo de Confidencialidad Técnica y Secreto Industrial (Ley 1333 y Ley 1182 Escazú).
+                  </label>
                 </div>
               </div>
 
               {/* Botones de control del formulario de contacto */}
               <div className="neuform-divider my-6" />
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center gap-4">
                 <button
                   type="button"
                   onClick={handlePrev}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white uppercase tracking-wider transition-colors cursor-none"
-                  data-cursor-text="VOLVER"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white uppercase tracking-wider transition-colors min-h-[44px] px-3 focus:outline-none focus:ring-2 focus:ring-white/20 rounded-xl"
                 >
                   <ChevronLeft className="w-4 h-4" /> Volver
                 </button>
                 <button
                   type="submit"
-                  className="neuform-btn-primary cursor-none !rounded-xl !py-3 !px-6 shadow-[0_4px_16px_rgba(0,224,60,0.25)]"
-                  data-cursor-text="ENVIAR"
+                  disabled={isSubmitting || !consent}
+                  className="neuform-btn-primary min-h-[44px] !rounded-xl !py-3 !px-6 shadow-[0_4px_16px_rgba(0,224,60,0.25)] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#00e03c]"
                 >
-                  Enviar Diagnóstico <Send className="w-4 h-4" />
+                  {isSubmitting ? (
+                    'Procesando...'
+                  ) : (
+                    <>
+                      Solicitar Diagnóstico Técnico <Send className="w-4 h-4" />
+                    </>
+                  )}
                 </button>
               </div>
             </motion.form>

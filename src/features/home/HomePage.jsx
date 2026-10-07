@@ -159,7 +159,7 @@ function TiltGlassCard({ imageUrl, cursorText = 'EXPLORAR' }) {
       <div style={{ transform: 'translateZ(24px)', transformStyle: 'preserve-3d' }} className="w-full h-full p-2.5">
         <img
           src={imageUrl}
-          alt="SERAM Visual"
+          alt={cursorText ? `SERAM - ${cursorText}` : "Consultoría e Ingeniería Ambiental SERAM"}
           className="w-full h-full object-cover rounded-xl opacity-90 select-none"
           draggable="false"
         />
@@ -1267,9 +1267,10 @@ function FooterSection() {
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
             <Link to="/contact" className="hover:text-white transition-colors pointer-events-auto">Contacto</Link>
-            <a href="#" className="hover:text-white transition-colors pointer-events-auto">Términos</a>
-            <a href="#" className="hover:text-white transition-colors pointer-events-auto">Privacidad</a>
-            <a href="#" className="hover:text-white transition-colors pointer-events-auto">Cookies</a>
+            <Link to="/terminos" className="hover:text-white transition-colors pointer-events-auto">Términos</Link>
+            <Link to="/privacidad" className="hover:text-white transition-colors pointer-events-auto">Privacidad</Link>
+            <Link to="/cookies" className="hover:text-white transition-colors pointer-events-auto">Cookies</Link>
+            <Link to="/reembolsos" className="hover:text-white transition-colors pointer-events-auto">Reembolsos</Link>
           </div>
           <p className="text-[10px] text-slate-600 font-mono mt-4">
             © 2026 SERAM SRL. Todos los derechos reservados.

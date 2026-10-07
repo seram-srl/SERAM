@@ -9,18 +9,21 @@ export function AppProvider({ children }) {
   const [supabaseUser, setSupabaseUser] = useState(null);
   const [activeRole, setActiveRole] = useState(() => {
     try {
-      return localStorage.getItem('seram_partner_role') || 'AccessLimit';
+      // Limpieza proactiva de localStorage para no retener credenciales de socio permanentemente
+      localStorage.removeItem('seram_partner_role');
+      return sessionStorage.getItem('seram_partner_role') || 'AccessLimit';
     } catch (_) {
       return 'AccessLimit';
     }
   });
   const [currentSocio, setCurrentSocio] = useState(() => {
     try {
-      const saved = localStorage.getItem('seram_current_socio');
+      localStorage.removeItem('seram_current_socio');
+      const saved = sessionStorage.getItem('seram_current_socio');
       const parsed = saved ? JSON.parse(saved) : null;
       const validEmails = ['barrientoso2401@gmail.com', 'fernandoaraujo1912@gmail.com', 'sebastiansbs51@gmail.com'];
       if (parsed && (!parsed.email || !validEmails.includes(parsed.email.toLowerCase()))) {
-        localStorage.removeItem('seram_current_socio');
+        sessionStorage.removeItem('seram_current_socio');
         return null;
       }
       return parsed;
@@ -37,17 +40,22 @@ export function AppProvider({ children }) {
     { email: 'sebastiansbs51@gmail.com', role: 'AdminMod', name: 'Ing. Fabricio Orosco', isPremiumApproved: true },
   ]);
 
-  // Persistir sesión de socio en localStorage
+  // Persistir sesión de socio únicamente en sessionStorage (volátil, expira al cerrar la pestaña/navegador)
   useEffect(() => {
     try {
       if (activeRole === 'AdminMod' && currentSocio) {
-        localStorage.setItem('seram_partner_role', 'AdminMod');
-        localStorage.setItem('seram_current_socio', JSON.stringify(currentSocio));
+        sessionStorage.setItem('seram_partner_role', 'AdminMod');
+        sessionStorage.setItem('seram_current_socio', JSON.stringify(currentSocio));
       } else if (activeRole !== 'AdminMod') {
-        localStorage.removeItem('seram_partner_role');
-        localStorage.removeItem('seram_current_socio');
+        sessionStorage.removeItem('seram_partner_role');
+        sessionStorage.removeItem('seram_current_socio');
       }
-    } catch (_) {}
+      // Garantizar que nunca quede guardado en localStorage persistente
+      localStorage.removeItem('seram_partner_role');
+      localStorage.removeItem('seram_current_socio');
+    } catch (_) {
+      // Ignorar error de almacenamiento
+    }
   }, [activeRole, currentSocio]);
 
   // --- SECRET PARTNER PORTAL ---
@@ -1496,9 +1504,13 @@ export function AppProvider({ children }) {
         setShowSecretPortal(false);
         setSecretPassword('');
         try {
-          localStorage.setItem('seram_partner_role', 'AdminMod');
-          localStorage.setItem('seram_current_socio', JSON.stringify(partner));
-        } catch (_) {}
+          sessionStorage.setItem('seram_partner_role', 'AdminMod');
+          sessionStorage.setItem('seram_current_socio', JSON.stringify(partner));
+          localStorage.removeItem('seram_partner_role');
+          localStorage.removeItem('seram_current_socio');
+        } catch (_) {
+          // Ignorar error de almacenamiento
+        }
         triggerToast(`¡Bienvenido, ${partner.name}! Acceso al Dashboard Directivo.`, 'success');
         return { success: true, partner };
       }
@@ -2375,9 +2387,13 @@ export function AppProvider({ children }) {
     setActiveRole('AccessLimit');
     setCurrentSocio(null);
     try {
+      sessionStorage.removeItem('seram_partner_role');
+      sessionStorage.removeItem('seram_current_socio');
       localStorage.removeItem('seram_partner_role');
       localStorage.removeItem('seram_current_socio');
-    } catch (_) {}
+    } catch (_) {
+      // Ignorar error de almacenamiento
+    }
     triggerToast('Sesión de Socio cerrada', 'info');
   };
 
@@ -2387,9 +2403,13 @@ export function AppProvider({ children }) {
       setActiveRole('AdminMod');
       setCurrentSocio(partner);
       try {
-        localStorage.setItem('seram_partner_role', 'AdminMod');
-        localStorage.setItem('seram_current_socio', JSON.stringify(partner));
-      } catch (_) {}
+        sessionStorage.setItem('seram_partner_role', 'AdminMod');
+        sessionStorage.setItem('seram_current_socio', JSON.stringify(partner));
+        localStorage.removeItem('seram_partner_role');
+        localStorage.removeItem('seram_current_socio');
+      } catch (_) {
+        // Ignorar error de almacenamiento
+      }
       triggerToast(`Sesión activa cambiada a ${partner.name}`, 'success');
     }
   };

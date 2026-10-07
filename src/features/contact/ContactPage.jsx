@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, User, Building, MessageSquare, Send, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
@@ -16,6 +17,7 @@ export default function ContactPage() {
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [consent, setConsent] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -38,6 +40,10 @@ export default function ContactPage() {
       triggerToast('El mensaje es obligatorio.', 'error');
       return;
     }
+    if (!consent) {
+      triggerToast('Debes ser mayor de 18 años y aceptar la Política de Privacidad y Términos.', 'error');
+      return;
+    }
 
     setLoading(true);
 
@@ -53,6 +59,7 @@ export default function ContactPage() {
       setSuccess(true);
       triggerToast('¡Mensaje enviado con éxito!', 'success');
       setFormData({ name: '', email: '', subject: '', message: '' });
+      setConsent(false);
     } catch (err) {
       console.error('[Contact Form Error]:', err);
       triggerToast(err.message || 'Error al enviar el mensaje. Inténtalo de nuevo.', 'error');
@@ -105,76 +112,103 @@ export default function ContactPage() {
               </div>
             </motion.div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5 text-left">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <label htmlFor="contact-name" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                   <User className="w-3.5 h-3.5 text-[#00e03c]" />
                   Nombre Completo *
                 </label>
                 <input
+                  id="contact-name"
                   type="text"
                   name="name"
                   required
                   value={formData.name}
                   onChange={handleInputChange}
-                  placeholder="Ej. Diego Barrientos"
-                  className="w-full bg-slate-950/40 border border-white/10 focus:border-[#00e03c]/50 focus:shadow-[0_0_12px_rgba(0,224,60,0.1)] rounded-xl px-4 py-3 text-xs text-white outline-none transition-all cursor-none"
+                  placeholder="Ej. Juan Pérez"
+                  className="w-full bg-slate-950/40 border border-white/10 focus:border-[#00e03c] focus:ring-2 focus:ring-[#00e03c]/30 rounded-xl px-4 py-3 text-xs text-white outline-none transition-all"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <label htmlFor="contact-email" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                   <Mail className="w-3.5 h-3.5 text-[#00e03c]" />
                   Correo Electrónico *
                 </label>
                 <input
+                  id="contact-email"
                   type="email"
                   name="email"
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  placeholder="Ej. d.barrientos@empresa.com"
-                  className="w-full bg-slate-950/40 border border-white/10 focus:border-[#00e03c]/50 focus:shadow-[0_0_12px_rgba(0,224,60,0.1)] rounded-xl px-4 py-3 text-xs text-white outline-none transition-all cursor-none"
+                  placeholder="Ej. contacto@empresa.com"
+                  className="w-full bg-slate-950/40 border border-white/10 focus:border-[#00e03c] focus:ring-2 focus:ring-[#00e03c]/30 rounded-xl px-4 py-3 text-xs text-white outline-none transition-all"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <label htmlFor="contact-subject" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                   <Building className="w-3.5 h-3.5 text-[#00e03c]" />
                   Asunto / Empresa
                 </label>
                 <input
+                  id="contact-subject"
                   type="text"
                   name="subject"
                   value={formData.subject}
                   onChange={handleInputChange}
                   placeholder="Ej. Cotización Auditoría Ley 1333"
-                  className="w-full bg-slate-950/40 border border-white/10 focus:border-[#00e03c]/50 focus:shadow-[0_0_12px_rgba(0,224,60,0.1)] rounded-xl px-4 py-3 text-xs text-white outline-none transition-all cursor-none"
+                  className="w-full bg-slate-950/40 border border-white/10 focus:border-[#00e03c] focus:ring-2 focus:ring-[#00e03c]/30 rounded-xl px-4 py-3 text-xs text-white outline-none transition-all"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <label htmlFor="contact-message" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                   <MessageSquare className="w-3.5 h-3.5 text-[#00e03c]" />
                   Mensaje o Requerimiento *
                 </label>
                 <textarea
+                  id="contact-message"
                   name="message"
                   required
                   rows={4}
                   value={formData.message}
                   onChange={handleInputChange}
                   placeholder="Por favor describe brevemente tus requerimientos o dudas técnicas..."
-                  className="w-full bg-slate-950/40 border border-white/10 focus:border-[#00e03c]/50 focus:shadow-[0_0_12px_rgba(0,224,60,0.1)] rounded-xl p-4 text-xs text-white outline-none transition-all resize-none cursor-none"
+                  className="w-full bg-slate-950/40 border border-white/10 focus:border-[#00e03c] focus:ring-2 focus:ring-[#00e03c]/30 rounded-xl p-4 text-xs text-white outline-none transition-all resize-none"
                 />
+              </div>
+
+              {/* Checkbox de Consentimiento Obligatorio y Mayoría de Edad */}
+              <div className="pt-2 flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="contact-consent"
+                  required
+                  checked={consent}
+                  onChange={(e) => setConsent(e.target.checked)}
+                  className="w-4 h-4 mt-0.5 rounded border-white/20 bg-slate-950/60 text-[#00e03c] focus:ring-2 focus:ring-[#00e03c] cursor-pointer accent-[#126c0f]"
+                />
+                <label htmlFor="contact-consent" className="text-[11px] text-slate-300 leading-snug cursor-pointer select-none">
+                  Declaro que <strong>soy mayor de 18 años</strong> y acepto la{' '}
+                  <Link to="/privacidad" target="_blank" className="text-[#00e03c] hover:underline font-semibold">
+                    Política de Privacidad
+                  </Link>
+                  , los{' '}
+                  <Link to="/terminos" target="_blank" className="text-[#00e03c] hover:underline font-semibold">
+                    Términos de Servicio
+                  </Link>{' '}
+                  y el Acuerdo de Confidencialidad Técnica de SERAM.
+                </label>
               </div>
 
               <div className="pt-2 flex justify-end">
                 <Magnetic>
                   <button
                     type="submit"
-                    disabled={loading}
-                    className="neuform-btn-primary cursor-none inline-flex items-center justify-center gap-2 !bg-[#c9a84c] !border-[#b0913b] hover:!bg-[#bda043] text-slate-950 font-black shadow-[0_4px_15px_rgba(201,168,76,0.25)] hover:shadow-[0_6px_20px_rgba(201,168,76,0.4)]"
+                    disabled={loading || !consent}
+                    className="neuform-btn-primary min-h-[44px] inline-flex items-center justify-center gap-2 !bg-[#c9a84c] !border-[#b0913b] hover:!bg-[#bda043] text-slate-950 font-black shadow-[0_4px_15px_rgba(201,168,76,0.25)] hover:shadow-[0_6px_20px_rgba(201,168,76,0.4)] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#c9a84c]"
                   >
                     {loading ? (
                       <>
@@ -184,7 +218,7 @@ export default function ContactPage() {
                     ) : (
                       <>
                         <Send className="w-3.5 h-3.5" />
-                        Enviar Mensaje
+                        Enviar Mensaje Técnico
                       </>
                     )}
                   </button>

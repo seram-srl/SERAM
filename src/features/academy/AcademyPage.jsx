@@ -166,7 +166,7 @@ export default function AcademyPage() {
                                         {/* Footer Action */}
                                         <div className="flex items-center justify-between pt-4 border-t border-white/5 mt-auto">
                                             <span className="text-[10px] tracking-wider font-mono text-gray-500 uppercase">
-                                                {isPdf ? `${course.pages || 120} págs.` : `${course.students} alumnos`}
+                                                {isPdf ? `${course.pages || 95} págs. · Entregable` : 'Online HD · Asincrónico'}
                                             </span>
                                             
                                             <div className="flex items-center gap-2">

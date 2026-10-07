@@ -14,6 +14,14 @@
   "in_progress": [],
   "completed": [
     {
+      "id": "TASK-043",
+      "title": "Implementar marco legal y de privacidad (Política de Privacidad, Términos, Cookies y Reembolsos) con cláusula de confidencialidad técnica bajo normativa boliviana (CPE Art. 21/130, Ley 164, Ley 1333, Ley 1182 Escazú, Ley 453), consentimiento obligatorio +18 en formularios, banner de cookies Neuform, auditoría de reseñas y accesibilidad con teclado",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-07",
+      "completed_at": "2026-10-07"
+    },
+    {
       "id": "TASK-042",
       "title": "Sincronización On-line en tiempo real de sesiones de socios, Time Tracker activo con cronómetro en vivo multi-usuario y posicionamiento dinámico de avatares en sectores de la Oficina Virtual",
       "status": "completed",

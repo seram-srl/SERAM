@@ -268,6 +268,14 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
               Sección Activa
             </p>
             <p className="fullscreen-menu__meta-value">{getActiveLabel()}</p>
+
+            <div style={{ marginTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '0.75rem' }}>
+              <p className="fullscreen-menu__meta-label" style={{ fontSize: '0.65rem' }}>Legalidad</p>
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.25rem' }}>
+                <NavLink to="/privacidad" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.7rem', textDecoration: 'none' }} className="hover:text-white transition-colors">Privacidad</NavLink>
+                <NavLink to="/terminos" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.7rem', textDecoration: 'none' }} className="hover:text-white transition-colors">Términos</NavLink>
+              </div>
+            </div>
           </div>
         </div>
       </nav>
