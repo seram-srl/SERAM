@@ -10,16 +10,23 @@ if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KE
 }
 
 /**
- * Fetch con timeout estricto de 3.5 segundos para evitar bloqueos por latencia
- * o errores de DNS en el host de Supabase, permitiendo fallback inmediato.
+ * Fetch con control de latencia inteligente y soporte de subida de archivos:
+ * - Para consultas de lectura (GET) se aplica un timeout de 7 segundos para activar fallbacks si hay fallas de DNS.
+ * - Para subidas a Supabase Storage (/storage/v1/) y operaciones de mutación (POST, PUT, PATCH, DELETE),
+ *   se proporciona un tiempo de hasta 120 segundos para garantizar la subida íntegra de documentos, PDFs y registros.
  */
-const FETCH_TIMEOUT_MS = 3500;
+const GET_TIMEOUT_MS = 7000;
+const MUTATION_TIMEOUT_MS = 120000;
 
 const resilientFetch = (url, options = {}) => {
+  const isStorage = typeof url === 'string' && url.includes('/storage/v1/');
+  const isMutation = options.method && options.method.toUpperCase() !== 'GET';
+  const timeoutMs = (isStorage || isMutation) ? MUTATION_TIMEOUT_MS : GET_TIMEOUT_MS;
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
-  }, FETCH_TIMEOUT_MS);
+  }, timeoutMs);
 
   const signal = options.signal || controller.signal;
 

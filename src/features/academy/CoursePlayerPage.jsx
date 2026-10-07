@@ -6,7 +6,8 @@ import {
   ArrowLeft, BookOpen, Lock, Download, MessageSquare, Info, Star, 
   HelpCircle, FileSpreadsheet, Map, Upload, Check, Award, 
   FileText, ChevronDown, ChevronRight, Edit3, Settings, 
-  GraduationCap, Paperclip, ExternalLink, ShieldCheck, UserCheck
+  GraduationCap, Paperclip, ExternalLink, ShieldCheck, UserCheck,
+  Eye, Sparkles, Send, Copy, Shield, Layers, CheckCircle2, Bookmark
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import '../../styles/academy-cinematic.css';
@@ -60,6 +61,637 @@ const renderFormattedText = (text) => {
     return part;
   });
 };
+
+// =============================================================================
+// COMPONENTE DEDICADO: PLANTILLA PARA CURSOS / ENTREGABLES TÉCNICOS EN PDF
+// Modalidad 100% enfocada en información técnica, visor interactivo y descarga directa
+// =============================================================================
+function DeliverablePdfView({ course, navigate, triggerToast, currentSocio }) {
+  const [activeTab, setActiveTab] = useState('visor'); // 'visor' | 'indice' | 'consultas' | 'licencia'
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [newQuestionText, setNewQuestionText] = useState('');
+  const [questions, setQuestions] = useState([
+    {
+      id: 1,
+      author: 'Ing. Rodrigo Camacho',
+      role: 'Consultor Ambiental RENCA',
+      date: 'Hace 2 horas',
+      text: '¿Este compendio normativo incluye los umbrales del D.S. 3549 para la categorización 3 y 4 en proyectos de exploración minera y canteras?',
+      answer: 'Sí. En el Capítulo II se desglosa la matriz completa de umbrales sectoriales, los formularios de declaración jurada y los criterios de exoneración ante el Viceministerio de Medio Ambiente.',
+      answeredBy: course.instructor || 'Ing. Fernando Araujo'
+    },
+    {
+      id: 2,
+      author: 'Lic. Mariana Siles',
+      role: 'Auditora Ambiental y Perito',
+      date: 'Ayer',
+      text: '¿Los carimbos y matrices de mitigación vienen en vectores editables compatibles con AutoCAD y QGIS para adjuntar directamente a los informes técnicos?',
+      answer: 'Efectivamente. Todas las plantillas y carimbos incluidos en los anexos cumplen con la normalización de capas y formatos estándar A3/A4 requeridos por la Autoridad Ambiental Competente.',
+      answeredBy: course.instructor || 'Ing. Fernando Araujo'
+    }
+  ]);
+
+  const pdfUrl = course.pdfUrl || '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf';
+  const pdfName = course.pdfName || 'Documento_Tecnico_SERAM_2026.pdf';
+  const pagesCount = course.pages || 180;
+  const versionText = course.version || 'Edición Oficial 2026';
+
+  const handleCopyLink = () => {
+    navigator.clipboard?.writeText(window.location.href);
+    setCopiedLink(true);
+    triggerToast('Enlace al entregable técnico copiado al portapapeles', 'info');
+    setTimeout(() => setCopiedLink(false), 2500);
+  };
+
+  const handleAddQuestion = (e) => {
+    e.preventDefault();
+    if (!newQuestionText.trim()) return;
+    const newQ = {
+      id: Date.now(),
+      author: currentSocio?.name || 'Tú (Consultor Ambiental)',
+      role: 'Socio Verificado SERAM',
+      date: 'Hace un momento',
+      text: newQuestionText.trim(),
+      answer: null,
+      answeredBy: null
+    };
+    setQuestions([newQ, ...questions]);
+    setNewQuestionText('');
+    triggerToast('Consulta técnica enviada al equipo de consultores de SERAM SRL.', 'success');
+  };
+
+  const defaultSections = [
+    {
+      title: 'Capítulo I: Marco Regulatorio General y Jerarquía Normativa (Ley 1333)',
+      desc: 'Principios rectores del derecho ambiental boliviano, competencias de la AACN y AACD, y directrices para la categorización y evaluación de impacto.',
+      items: ['Art. 25: Obligatoriedad de la Ficha Ambiental e IRAP', 'Reglamento General de Gestión Ambiental (RGGA)', 'Reglamento de Prevención y Control Ambiental (RPCA)']
+    },
+    {
+      title: 'Capítulo II: D.S. 3549 y Procedimientos Administrativos de Licenciamiento',
+      desc: 'Simplificación de trámites, actualización del listado de categorización y sustitución de instrumentos para Categorías 3 y 4.',
+      items: ['Nivel de Categorización Ambiental (FNCA)', 'Formatos de Declaración Jurada Oficial', 'Plazos de tramitación y silencio administrativo positivo/negativo']
+    },
+    {
+      title: 'Capítulo III: Regulaciones Sectoriales Específicas (RMCH, RASIM y Minería)',
+      desc: 'Parámetros máximos permisibles para descargas de efluentes hídricos, monitoreo de metales pesados y adecuación ambiental de plantas industriales.',
+      items: ['Límites permisibles de DBO5, DQO y Mercurio (Hg)', 'Registro Ambiental Industrial (RAI) y Manifiesto Ambiental', 'Plan de Manejo de Residuos Peligrosos e Industriales']
+    },
+    {
+      title: 'Capítulo IV: Carimbos, Matrices de Mitigación y Anexos Cartográficos Oficiales',
+      desc: 'Modelos de carátula técnica, matrices causa-efecto Leopold adaptadas al contexto boliviano y especificaciones para mapas temáticos.',
+      items: ['Carimbos normalizados en formato A3/A4 con proyección WGS84 UTM', 'Matrices de Medidas de Mitigación (PPM-PASA)', 'Guía metodológica para sustentación de licencias']
+    }
+  ];
+
+  const sectionsToRender = course.sections && course.sections.length > 0
+    ? course.sections.map((s, idx) => ({
+        title: s.title || `Capítulo ${idx + 1}`,
+        desc: s.desc || 'Contenido técnico desarrollado con especificaciones normativas y tablas analíticas.',
+        items: s.items || ['Desarrollo teórico y metodológico', 'Ejemplos de aplicación práctica', 'Referencias normativas vinculadas']
+      }))
+    : defaultSections;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      className="min-h-screen bg-[#020502] text-slate-100 font-sans pb-28 text-left selection:bg-[#00e03c] selection:text-black"
+    >
+      {/* Barra Superior de Navegación Institucional */}
+      <header className="sticky top-0 z-40 bg-[#030703]/90 backdrop-blur-xl border-b border-white/10 px-4 sm:px-8 py-3.5">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/academy')}
+              className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-xs font-bold text-slate-200 hover:text-white flex items-center gap-2 transition-all cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 text-[#00e03c]" /> Regresar a SERAM Academy
+            </button>
+            <button
+              onClick={() => navigate('/')}
+              className="hidden sm:flex text-xs text-slate-400 hover:text-[#00e03c] transition-colors items-center gap-1.5 cursor-pointer font-medium"
+            >
+              Inicio
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00e03c]/10 border border-[#00e03c]/30 text-[#00e03c] text-[10px] font-mono font-bold uppercase tracking-wider">
+              <span className="w-2 h-2 rounded-full bg-[#00e03c] animate-pulse" />
+              Documento Técnico Oficial
+            </span>
+            <div className="w-8 h-8 rounded-full bg-[#00e03c]/20 border border-[#00e03c]/40 flex items-center justify-center text-white text-xs font-black">
+              {currentSocio?.name ? currentSocio.name[0] : 'S'}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Contenedor Principal */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 space-y-12">
+        
+        {/* =================================================================== */}
+        {/* HERO PRINCIPAL: INFORMACIÓN DEL ENTREGABLE + TARJETA DE PREVIEW     */}
+        {/* =================================================================== */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+          
+          {/* Columna Izquierda: Información Detallada del Entregable */}
+          <div className="lg:col-span-7 space-y-6">
+            
+            {/* Badges de Modalidad y Categoría */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="px-3 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
+                <FileText className="w-3.5 h-3.5 text-emerald-400" />
+                Modalidad: Documento Entregable & Dossier PDF
+              </span>
+              <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-slate-300 text-[11px] font-mono font-bold uppercase">
+                {course.type ? course.type.replace('_', ' ') : 'Recurso Oficial'}
+              </span>
+              <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[#00e03c] text-[11px] font-bold">
+                {course.price === 0 ? '✓ Descarga Libre y Gratuita' : `Bs. ${course.price} • Licencia Profesional`}
+              </span>
+            </div>
+
+            {/* Título Principal */}
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-[1.2]">
+              {renderFormattedText(course.title)}
+            </h1>
+
+            {/* Ficha de Autoría / Consultor Responsable */}
+            <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 max-w-xl">
+              <div className="w-11 h-11 rounded-xl bg-[#00e03c]/15 border border-[#00e03c]/40 flex items-center justify-center text-[#00e03c] font-black text-base shrink-0 shadow-[0_0_15px_rgba(0,224,60,0.2)]">
+                <UserCheck className="w-5 h-5 text-[#00e03c]" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-extrabold text-white truncate">{course.instructor || 'Ing. Fernando Araujo'}</h3>
+                  <span className="px-1.5 py-0.5 rounded bg-white/10 text-[9px] font-mono text-emerald-400 font-bold">RENCA OK</span>
+                </div>
+                <p className="text-xs text-slate-400 truncate">Socio Consultor Especialista • SERAM Servicios Ambientales SRL</p>
+              </div>
+            </div>
+
+            {/* Descripción Técnica y Objetivos */}
+            <p className="text-sm text-slate-300 font-light leading-relaxed max-w-2xl">
+              {course.desc || 'Documento técnico normativo y metodológico de aplicación directa en consultoría ambiental boliviana. Estructurado para el cumplimiento riguroso de la legislación vigente y sustentación pericial de proyectos.'}
+            </p>
+
+            {/* Grilla de Métricas Técnicas */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl pt-2">
+              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 space-y-1">
+                <div className="text-[10px] text-slate-400 uppercase font-bold flex items-center gap-1">
+                  <FileText className="w-3 h-3 text-[#00e03c]" /> Extensión
+                </div>
+                <div className="text-sm font-extrabold text-white">{pagesCount} Páginas</div>
+                <div className="text-[10px] text-slate-500">Documento completo</div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 space-y-1">
+                <div className="text-[10px] text-slate-400 uppercase font-bold flex items-center gap-1">
+                  <Layers className="w-3 h-3 text-[#00e03c]" /> Formato
+                </div>
+                <div className="text-sm font-extrabold text-white">PDF Vectorial</div>
+                <div className="text-[10px] text-slate-500">300 DPI Imprimible</div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 space-y-1">
+                <div className="text-[10px] text-slate-400 uppercase font-bold flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3 text-[#00e03c]" /> Versión
+                </div>
+                <div className="text-sm font-extrabold text-white truncate">{versionText}</div>
+                <div className="text-[10px] text-emerald-400">Vigente 2026</div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 space-y-1">
+                <div className="text-[10px] text-slate-400 uppercase font-bold flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-[#00e03c]" /> Aplicación
+                </div>
+                <div className="text-sm font-extrabold text-white">Nacional</div>
+                <div className="text-[10px] text-slate-500">Ley 1333 Bolivia</div>
+              </div>
+            </div>
+
+            {/* ============================================================= */}
+            {/* BOTÓN PRIMARIO DE DESCARGA DIRECTA + ACCIONES SECUNDARIAS      */}
+            {/* ============================================================= */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-3">
+              <a
+                href={pdfUrl}
+                download={pdfName}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => triggerToast(`Descargando entregable oficial: ${pdfName}`, 'success')}
+                className="px-8 py-4 bg-[#00e03c] hover:bg-[#00c534] text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-[0_0_30px_rgba(0,224,60,0.35)] hover:shadow-[0_0_40px_rgba(0,224,60,0.55)] transition-all transform hover:scale-[1.02] active:scale-95 cursor-pointer flex items-center justify-center gap-2.5 text-center group"
+              >
+                <Download className="w-4 h-4 text-slate-950 group-hover:translate-y-0.5 transition-transform" />
+                <span>Descargar Entregable Oficial (.PDF)</span>
+              </a>
+
+              <button
+                onClick={() => {
+                  setActiveTab('visor');
+                  const viewerEl = document.getElementById('deliverable-tabs-section');
+                  viewerEl?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="px-5 py-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <Eye className="w-4 h-4 text-[#00e03c]" />
+                <span>Leer en Visor</span>
+              </button>
+
+              <button
+                onClick={handleCopyLink}
+                className="px-4 py-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-slate-300 hover:text-white rounded-xl transition-all cursor-pointer flex items-center justify-center"
+                title="Copiar enlace directo"
+              >
+                {copiedLink ? <CheckCircle2 className="w-4 h-4 text-[#00e03c]" /> : <Copy className="w-4 h-4" />}
+              </button>
+            </div>
+
+            <p className="text-[11px] text-slate-500 flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              Documento verificado contra alteraciones • Descarga segura y libre de marcas de agua comerciales
+            </p>
+
+          </div>
+
+          {/* Columna Derecha: Tarjeta de Vista Previa 3D y Certificación */}
+          <div className="lg:col-span-5 space-y-6">
+            <div className="relative rounded-2xl overflow-hidden border border-white/15 shadow-2xl bg-gradient-to-b from-[#0a150a] to-[#040804] p-5 space-y-4 group">
+              
+              {/* Imagen de Portada con efecto de relieve */}
+              <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-white/10 shadow-lg bg-black">
+                <img
+                  src={course.image || '/assets/covers/cover_ebook_ley1333.png'}
+                  alt={course.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
+                />
+                
+                {/* Overlay Degradado y Badge Superior */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent flex flex-col justify-between p-4">
+                  <div className="flex justify-between items-start">
+                    <span className="px-2.5 py-1 rounded-md bg-black/75 backdrop-blur-md border border-white/20 text-emerald-300 text-[10px] font-mono font-bold uppercase">
+                      PDF Vectorial Acreditado
+                    </span>
+                    <span className="px-2.5 py-1 rounded-md bg-[#00e03c] text-black text-[10px] font-black uppercase shadow-lg">
+                      SERAM 2026
+                    </span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="text-xs font-mono text-emerald-400 font-bold">{pdfName}</div>
+                    <div className="text-[11px] text-slate-300">{pagesCount} Páginas Técnicas • {course.duration || 'Descarga Inmediata'}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Métricas de Descargas y Aprobación */}
+              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/5 space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-400">Descargas registradas:</span>
+                  <span className="text-white font-extrabold font-mono">{course.students || 142} consultas</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-400">Valoración pericial:</span>
+                  <div className="flex items-center gap-1.5 text-amber-400 font-bold">
+                    <span>5.0</span>
+                    <div className="flex">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-3.5 h-3.5 fill-current" />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400">
+                  <span className="flex items-center gap-1 text-emerald-400 font-semibold">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Compatibilidad
+                  </span>
+                  <span>Adobe Acrobat, Foxit, QGIS, Móvil</span>
+                </div>
+              </div>
+
+              {/* Enlace rápido de descarga */}
+              <a
+                href={pdfUrl}
+                download={pdfName}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => triggerToast(`Descargando entregable oficial: ${pdfName}`, 'success')}
+                className="w-full py-3 bg-white/5 hover:bg-[#00e03c]/20 border border-white/10 hover:border-[#00e03c]/40 text-slate-200 hover:text-[#00e03c] text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Download className="w-4 h-4" /> Guardar archivo PDF en el equipo
+              </a>
+
+            </div>
+          </div>
+
+        </section>
+
+        {/* =================================================================== */}
+        {/* PESTAÑAS DE CONTENIDO: VISOR, ÍNDICE, CONSULTAS Y LICENCIA          */}
+        {/* =================================================================== */}
+        <section id="deliverable-tabs-section" className="space-y-8 pt-4">
+          
+          {/* Navegación por Pestañas */}
+          <div className="border-b border-white/10">
+            <div className="flex flex-wrap gap-2 sm:gap-6">
+              {[
+                { id: 'visor', label: 'Visor de Documento Interactivo', icon: Eye },
+                { id: 'indice', label: 'Índice & Estructura Capitular', icon: BookOpen },
+                { id: 'consultas', label: 'Consultas Técnicas con el Autor', icon: MessageSquare },
+                { id: 'licencia', label: 'Ficha Técnica & Respaldo Legal', icon: ShieldCheck }
+              ].map(tab => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`pb-4 px-2 text-xs sm:text-sm font-bold transition-all relative flex items-center gap-2 cursor-pointer ${
+                      isActive ? 'text-white' : 'text-slate-500 hover:text-slate-300'
+                    }`}
+                  >
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-[#00e03c]' : 'text-slate-500'}`} />
+                    <span>{tab.label}</span>
+                    {isActive && (
+                      <motion.div
+                        layoutId="pdf-tab-underline"
+                        className="absolute bottom-0 inset-x-0 h-0.5 bg-[#00e03c] shadow-[0_0_12px_#00e03c]"
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ================================================================= */}
+          {/* CONTENIDO PESTAÑA 1: VISOR INTERACTIVO DEL DOCUMENTO              */}
+          {/* ================================================================= */}
+          {activeTab === 'visor' && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4"
+            >
+              {/* Barra de Herramientas del Visor */}
+              <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                  <span className="font-extrabold text-white truncate max-w-xs sm:max-w-md">{pdfName}</span>
+                  <span className="text-slate-500">•</span>
+                  <span className="text-slate-400 font-mono text-[11px]">{pagesCount} págs.</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <a
+                    href={pdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    title="Abrir en pantalla completa o nueva pestaña"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5 text-[#00e03c]" /> Pantalla Completa
+                  </a>
+                  <a
+                    href={pdfUrl}
+                    download={pdfName}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => triggerToast(`Descargando entregable: ${pdfName}`, 'success')}
+                    className="px-3 py-1.5 rounded-lg bg-[#00e03c] hover:bg-[#00c534] text-slate-950 text-xs font-black flex items-center gap-1.5 transition-colors cursor-pointer shadow-[0_0_15px_rgba(0,224,60,0.3)]"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Descargar Copia
+                  </a>
+                </div>
+              </div>
+
+              {/* Visor Embebido (Iframe) */}
+              <div className="relative w-full rounded-2xl overflow-hidden border border-white/15 bg-[#060c06] shadow-2xl">
+                <iframe
+                  src={pdfUrl}
+                  title={course.title}
+                  className="w-full h-[760px] border-none bg-slate-950"
+                />
+              </div>
+
+              {/* Banner Informativo y Fallback */}
+              <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-400">
+                <div className="flex items-center gap-2">
+                  <Info className="w-4 h-4 text-[#00e03c] shrink-0" />
+                  <span>¿Tienes bloqueadores de iframes o prefieres leerlo sin conexión? El archivo PDF está preparado para consulta local y archivo digital.</span>
+                </div>
+                <a
+                  href={pdfUrl}
+                  download={pdfName}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#00e03c] hover:underline font-bold shrink-0"
+                >
+                  Descargar archivo directo (.PDF) →
+                </a>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ================================================================= */}
+          {/* CONTENIDO PESTAÑA 2: ÍNDICE Y ESTRUCTURA CAPITULAR                */}
+          {/* ================================================================= */}
+          {activeTab === 'indice' && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
+            >
+              <div className="space-y-1">
+                <h3 className="text-lg font-black text-white">Tabla de Contenidos & Esquema Técnico</h3>
+                <p className="text-xs text-slate-400">Desglose analítico de los capítulos, normativas y anexos incluidos en el documento descargable.</p>
+              </div>
+
+              <div className="space-y-4">
+                {sectionsToRender.map((sec, idx) => (
+                  <div
+                    key={idx}
+                    className="p-5 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-[#00e03c]/30 transition-all space-y-3"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-mono text-[#00e03c] uppercase font-bold tracking-wider">
+                          Módulo / Capítulo 0{idx + 1}
+                        </span>
+                        <h4 className="text-sm font-extrabold text-white">{sec.title}</h4>
+                      </div>
+                      <span className="px-2 py-1 rounded bg-white/5 text-[10px] text-slate-400 font-mono">
+                        {pagesCount ? `~${Math.round(pagesCount / sectionsToRender.length)} págs.` : 'Sección Técnica'}
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-slate-300 font-light leading-relaxed">
+                      {sec.desc}
+                    </p>
+
+                    {sec.items && sec.items.length > 0 && (
+                      <div className="pt-2 border-t border-white/5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                          {sec.items.map((it, i) => (
+                            <div key={i} className="flex items-center gap-2 text-slate-300">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-[#00e03c] shrink-0" />
+                              <span className="truncate">{it}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* ================================================================= */}
+          {/* CONTENIDO PESTAÑA 3: CONSULTAS TÉCNICAS CON EL AUTOR              */}
+          {/* ================================================================= */}
+          {activeTab === 'consultas' && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-8"
+            >
+              <div className="space-y-1">
+                <h3 className="text-lg font-black text-white">Foro de Aplicación Práctica & Dudas Normativas</h3>
+                <p className="text-xs text-slate-400">Espacio de consulta directa con {course.instructor || 'los especialistas de SERAM SRL'} para resolver inquietudes sobre el uso de este documento en trámites reales.</p>
+              </div>
+
+              {/* Formulario para Enviar Consulta */}
+              <form onSubmit={handleAddQuestion} className="p-5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
+                <label className="text-xs font-bold text-slate-200 block">
+                  ¿Tienes una consulta específica sobre la aplicación de este entregable?
+                </label>
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    value={newQuestionText}
+                    onChange={(e) => setNewQuestionText(e.target.value)}
+                    placeholder="Ej: ¿Este compendio aplica para proyectos con categorización en municipios categoría B y C?..."
+                    className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#00e03c] transition-all"
+                  />
+                  <button
+                    type="submit"
+                    className="px-5 py-2.5 bg-[#00e03c] hover:bg-[#00c534] text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-[0_0_15px_rgba(0,224,60,0.25)] shrink-0"
+                  >
+                    <Send className="w-3.5 h-3.5" /> Enviar Consulta
+                  </button>
+                </div>
+              </form>
+
+              {/* Hilo de Consultas */}
+              <div className="space-y-4">
+                {questions.map(q => (
+                  <div key={q.id} className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-white">{q.author}</span>
+                        <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">{q.role}</span>
+                      </div>
+                      <span className="text-[10px] text-slate-500">{q.date}</span>
+                    </div>
+
+                    <p className="text-xs text-slate-200 font-medium pl-2 border-l-2 border-white/20">
+                      "{q.text}"
+                    </p>
+
+                    {q.answer ? (
+                      <div className="p-3.5 rounded-xl bg-[#00e03c]/[0.05] border border-[#00e03c]/20 space-y-1.5">
+                        <div className="flex items-center gap-2 text-[11px] font-bold text-[#00e03c]">
+                          <ShieldCheck className="w-3.5 h-3.5" /> Respuesta Oficial de {q.answeredBy}:
+                        </div>
+                        <p className="text-xs text-slate-300 leading-relaxed">
+                          {q.answer}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="text-[11px] text-amber-400 italic">
+                        ⏳ Consulta registrada. Pendiente de revisión por el equipo técnico de SERAM.
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* ================================================================= */}
+          {/* CONTENIDO PESTAÑA 4: FICHA TÉCNICA Y RESPALDO LEGAL               */}
+          {/* ================================================================= */}
+          {activeTab === 'licencia' && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Cuadro de Validez Jurídica */}
+                <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 space-y-4">
+                  <div className="flex items-center gap-2 text-[#00e03c]">
+                    <ShieldCheck className="w-5 h-5" />
+                    <h4 className="text-sm font-black text-white uppercase tracking-wider">Marco Jurídico de Aplicación</h4>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Este documento ha sido confeccionado conforme a los postulados de la <strong>Ley de Medio Ambiente Nº 1333</strong> y sus decretos reglamentarios conexos (D.S. 3549, D.S. 28592 y resoluciones ministeriales sectoriales de Minería, Industria, Hidrocarburos y Obras Civiles).
+                  </p>
+                  <div className="space-y-2 text-xs text-slate-400 pt-2 border-t border-white/5">
+                    <div className="flex justify-between">
+                      <span>Jurisdicción:</span>
+                      <strong className="text-white">Estado Plurinacional de Bolivia</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Autoridad Competente:</span>
+                      <strong className="text-white">AACN / AACD / Gobiernos Municipales</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Acreditación SERAM:</span>
+                      <strong className="text-[#00e03c]">Consultoría Ambiental Registrada</strong>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Cuadro de Términos de Licencia */}
+                <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 space-y-4">
+                  <div className="flex items-center gap-2 text-blue-400">
+                    <Award className="w-5 h-5" />
+                    <h4 className="text-sm font-black text-white uppercase tracking-wider">Licencia y Derechos de Uso</h4>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    El usuario adquiere el derecho de utilizar las plantillas, matrices y contenidos para la formulación de estudios de impacto ambiental (EEIA), fichas FNCA, auditorías periciales y trámites ante la AAC.
+                  </p>
+                  <div className="space-y-2 text-xs text-slate-400 pt-2 border-t border-white/5">
+                    <div className="flex justify-between">
+                      <span>Uso Profesional:</span>
+                      <strong className="text-[#00e03c]">Permitido para Consultoría</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Reproducción Digital:</span>
+                      <strong className="text-white">Permitida para Clientes del Socio</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Soporte Técnico:</span>
+                      <strong className="text-white">Disponible vía SERAM ACADEMY</strong>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </motion.div>
+          )}
+
+        </section>
+
+      </main>
+    </motion.div>
+  );
+}
 
 export default function CoursePlayerPage() {
   const { id } = useParams();
@@ -345,6 +977,19 @@ export default function CoursePlayerPage() {
   const nextPendingLesson = useMemo(() => {
     return ALL_LESSONS.find(l => !courseCompletedList.includes(l.id)) || ALL_LESSONS[0];
   }, [courseCompletedList]);
+
+  // Si el recurso es en modalidad PDF / Entregable (sin video), renderizar la vista especializada
+  const isPdfCourse = course.format === 'pdf' || course.hasVideo === false;
+  if (isPdfCourse) {
+    return (
+      <DeliverablePdfView
+        course={course}
+        navigate={navigate}
+        triggerToast={triggerToast}
+        currentSocio={currentSocio}
+      />
+    );
+  }
 
   // =========================================================================
   // RENDER VISTA 1: CREHANA COURSE HUB / OVERVIEW (Captura 1)

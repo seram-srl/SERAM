@@ -129,30 +129,13 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
         aria-modal="true"
         aria-label="Navegación principal SERAM"
       >
-        {/* 1. Capa de imagen de fondo sutil con difuminado */}
-        <div
-          className="fullscreen-menu__backdrop-image"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: "url('/assets/3d-backend/bg_menu.webp')",
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            opacity: isOpen ? 0.35 : 0,
-            transition: 'opacity var(--dur-menu-open) var(--transition-menu)',
-            zIndex: -1,
-            pointerEvents: 'none',
-            filter: 'blur(4px)',
-          }}
-        />
-
-        {/* 2. Capa de gradiente oscuro para asegurar contraste y énfasis en el contenido */}
+        {/* Capa traslúcida suave para contraste en textos permitiendo ver el fondo 3D / página con claridad */}
         <div
           className="fullscreen-menu__backdrop-overlay"
           style={{
             position: 'absolute',
             inset: 0,
-            background: 'linear-gradient(to bottom, rgba(1, 4, 9, 0.82) 0%, rgba(1, 4, 9, 0.94) 100%)',
+            background: 'linear-gradient(to right, rgba(1, 4, 9, 0.58) 0%, rgba(1, 4, 9, 0.35) 50%, rgba(1, 4, 9, 0.12) 100%)',
             opacity: isOpen ? 1 : 0,
             transition: 'opacity var(--dur-menu-open) var(--transition-menu)',
             zIndex: -1,

@@ -8,9 +8,10 @@ import '../../styles/academy-cinematic.css';
 export default function AcademyPage() {
     const navigate = useNavigate();
     const { courses } = useApp();
-    const [activeTab, setActiveTab] = useState('gratis');
+    const [activeTab, setActiveTab] = useState('todos');
 
     const TABS = [
+        { id: 'todos', label: 'Todos los Recursos', desc: 'Catálogo integral: cursos en video, e-books y entregables técnicos.' },
         { id: 'gratis', label: 'Gratis (Lead Magnets)', desc: 'E-books, carimbos, planos y guías de mitigación normativa.' },
         { id: 'low_ticket', label: 'Low Ticket (Base)', desc: 'Cursos fundamentales y herramientas técnicas de software GIS.' },
         { id: 'mid_ticket', label: 'Mid Ticket (Talleres)', desc: 'Talleres prácticos y metodologías de evaluación de impacto.' },
@@ -19,16 +20,17 @@ export default function AcademyPage() {
 
     // Filter courses dynamically based on tab selection
     const filteredCourses = courses.filter(course => {
+        if (activeTab === 'todos') return true;
         if (activeTab === 'gratis') return course.price === 0 || course.type === 'gratis';
-        if (activeTab === 'low_ticket') return course.price > 0 && course.price <= 50;
-        if (activeTab === 'mid_ticket') return course.price > 50 && course.price <= 200;
-        if (activeTab === 'high_ticket') return course.price > 200;
-        return false;
+        if (activeTab === 'low_ticket') return course.type === 'low_ticket' || (course.price > 0 && course.price <= 50);
+        if (activeTab === 'mid_ticket') return course.type === 'mid_ticket' || (course.price > 50 && course.price <= 200);
+        if (activeTab === 'high_ticket') return course.type === 'high_ticket' || course.price > 200;
+        return true;
     });
 
-    const getIconForCategory = (type) => {
+    const getIconForCategory = (type, format) => {
+        if (format === 'pdf' || type === 'gratis') return <Download className="w-4 h-4 text-amber-400" />;
         switch (type) {
-            case 'gratis': return <Download className="w-4 h-4 text-[#00e03c]" />;
             case 'low_ticket': return <BookOpen className="w-4 h-4 text-[#00e03c]" />;
             case 'mid_ticket': return <Compass className="w-4 h-4 text-[#00e03c]" />;
             case 'high_ticket': return <Award className="w-4 h-4 text-[#00e03c]" />;
@@ -64,16 +66,16 @@ export default function AcademyPage() {
             </header>
 
             {/* Pestañas de Categoría (Figma Auto Layout - Flexbox) */}
-            <nav className="flex flex-wrap items-center justify-center gap-2 mb-12 max-w-4xl w-full pointer-events-auto">
+            <nav className="flex flex-wrap items-center justify-center gap-2 mb-12 max-w-5xl w-full pointer-events-auto">
                 {TABS.map((tab) => {
                     const isActive = activeTab === tab.id;
                     return (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`flex flex-col items-center justify-center px-5 py-3.5 rounded-xl border transition-all duration-300 flex-1 min-w-[150px] text-center ${
+                            className={`flex flex-col items-center justify-center px-4 py-3 rounded-xl border transition-all duration-300 flex-1 min-w-[140px] text-center cursor-pointer ${
                                 isActive
-                                    ? 'bg-[#00e03c]/10 border-[#00e03c] text-white shadow-[0_0_15px_rgba(0,224,60,0.15)]'
+                                    ? 'bg-[#00e03c]/15 border-[#00e03c] text-white shadow-[0_0_15px_rgba(0,224,60,0.15)] ring-1 ring-[#00e03c]/30'
                                     : 'bg-white/[0.02] border-white/5 text-gray-500 hover:border-white/10 hover:text-gray-300'
                             }`}
                         >
@@ -97,84 +99,97 @@ export default function AcademyPage() {
                             No hay recursos registrados en esta categoría actualmente.
                         </motion.div>
                     ) : (
-                        filteredCourses.map((course) => (
-                            <motion.article
-                                key={course.id}
-                                initial={{ opacity: 0, y: 15 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -15 }}
-                                transition={{ duration: 0.4 }}
-                                className="academy-glass-card overflow-hidden flex flex-col justify-between pointer-events-auto h-full hover:border-[#00e03c]/30"
-                            >
-                                {/* Cover Image */}
-                                <div className="relative aspect-video bg-[#050505] overflow-hidden border-b border-white/5">
-                                    <img
-                                        src={course.image}
-                                        alt={course.title}
-                                        className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-                                    />
-                                    
-                                    {/* Cost/Access Tag */}
-                                    <div className="absolute top-4 right-4 flex items-center gap-2">
-                                        <span className="text-[10px] tracking-wider font-extrabold uppercase bg-black/85 border border-white/10 px-3 py-1 rounded-md text-white">
-                                            {course.price === 0 ? 'Gratuito' : `Bs. ${course.price}`}
-                                        </span>
-                                    </div>
-
-                                    {/* Type icon indicator */}
-                                    <div className="absolute bottom-4 left-4 p-2 bg-black/85 border border-white/10 rounded-lg">
-                                        {getIconForCategory(course.type)}
-                                    </div>
-                                </div>
-
-                                {/* Content Details */}
-                                <div className="p-6 flex-1 flex flex-col justify-between gap-6">
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between text-[10px] text-gray-500 font-mono">
-                                            <span className="flex items-center gap-1.5">
-                                                <User className="w-3.5 h-3.5 text-[#00e03c]/70" /> {course.instructor}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <Clock className="w-3.5 h-3.5 text-[#00e03c]/70" /> {course.duration}
-                                            </span>
-                                        </div>
-
-                                        <h3 className="text-xl font-bold text-white tracking-tight leading-snug">
-                                            {renderFormattedText(course.title)}
-                                        </h3>
+                        filteredCourses.map((course) => {
+                            const isPdf = course.format === 'pdf' || course.hasVideo === false;
+                            return (
+                                <motion.article
+                                    key={course.id}
+                                    initial={{ opacity: 0, y: 15 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -15 }}
+                                    transition={{ duration: 0.4 }}
+                                    className={`academy-glass-card overflow-hidden flex flex-col justify-between pointer-events-auto h-full transition-all ${
+                                        isPdf ? 'hover:border-amber-400/40' : 'hover:border-[#00e03c]/40'
+                                    }`}
+                                >
+                                    {/* Cover Image */}
+                                    <div className="relative aspect-video bg-[#050505] overflow-hidden border-b border-white/5">
+                                        <img
+                                            src={course.image}
+                                            alt={course.title}
+                                            className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                                        />
                                         
-                                        <p className="text-xs text-gray-400 font-light leading-relaxed line-clamp-3">
-                                            {renderFormattedText(course.desc)}
-                                        </p>
-                                    </div>
-
-                                    {/* Footer Action */}
-                                    <div className="flex items-center justify-between pt-4 border-t border-white/5 mt-auto">
-                                        <span className="text-[10px] tracking-wider font-mono text-gray-500 uppercase">
-                                            {course.students} estudiantes
-                                        </span>
-                                        
-                                        <div className="flex items-center gap-2">
-                                            {course.id === 2 && (
-                                                <button 
-                                                    onClick={() => navigate('/academy/workspace')}
-                                                    className="flex items-center gap-1 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 font-extrabold text-[10px] uppercase tracking-wider rounded-lg transition-all"
-                                                    title="Abrir Laboratorio Shader"
-                                                >
-                                                    Lab
-                                                </button>
+                                        {/* Modality Tag & Price */}
+                                        <div className="absolute top-3 right-3 flex items-center gap-2">
+                                            {isPdf ? (
+                                                <span className="text-[9px] tracking-wider font-extrabold uppercase bg-amber-400/90 text-slate-950 px-2.5 py-0.5 rounded shadow">
+                                                    📄 PDF Entregable
+                                                </span>
+                                            ) : (
+                                                <span className="text-[9px] tracking-wider font-extrabold uppercase bg-[#00e03c]/90 text-slate-950 px-2.5 py-0.5 rounded shadow">
+                                                    🎥 Video HD
+                                                </span>
                                             )}
-                                            <button 
-                                                onClick={() => navigate(`/academy/course/${course.id}`)}
-                                                className="flex items-center gap-1.5 px-4 py-2 bg-[#00e03c]/15 hover:bg-[#00e03c]/25 border border-[#00e03c]/40 hover:border-[#00e03c]/80 text-[#00e03c] hover:text-white font-extrabold text-[10px] uppercase tracking-wider rounded-lg transition-all active:scale-95 shadow-[0_0_12px_rgba(0,224,60,0.1)]"
-                                            >
-                                                Ver Detalles <ArrowRight className="w-3 h-3 text-[#00e03c]" />
-                                            </button>
+                                            <span className="text-[10px] tracking-wider font-extrabold uppercase bg-black/85 border border-white/10 px-2.5 py-0.5 rounded text-white">
+                                                {course.price === 0 ? 'Gratuito' : `Bs. ${course.price}`}
+                                            </span>
+                                        </div>
+
+                                        {/* Type icon indicator */}
+                                        <div className="absolute bottom-3 left-3 p-2 bg-black/85 border border-white/10 rounded-lg">
+                                            {getIconForCategory(course.type, course.format)}
                                         </div>
                                     </div>
-                                </div>
-                            </motion.article>
-                        ))
+
+                                    {/* Content Details */}
+                                    <div className="p-6 flex-1 flex flex-col justify-between gap-6">
+                                        <div className="space-y-3">
+                                            <div className="flex items-center justify-between text-[10px] text-gray-500 font-mono">
+                                                <span className="flex items-center gap-1.5 truncate max-w-[160px]">
+                                                    <User className="w-3.5 h-3.5 text-[#00e03c]/70 shrink-0" /> {course.instructor}
+                                                </span>
+                                                <span className="flex items-center gap-1 shrink-0">
+                                                    <Clock className="w-3.5 h-3.5 text-[#00e03c]/70" /> {course.duration}
+                                                </span>
+                                            </div>
+
+                                            <h3 className="text-lg font-bold text-white tracking-tight leading-snug line-clamp-2">
+                                                {renderFormattedText(course.title)}
+                                            </h3>
+                                            
+                                            <p className="text-xs text-gray-400 font-light leading-relaxed line-clamp-3">
+                                                {renderFormattedText(course.desc)}
+                                            </p>
+                                        </div>
+
+                                        {/* Footer Action */}
+                                        <div className="flex items-center justify-between pt-4 border-t border-white/5 mt-auto">
+                                            <span className="text-[10px] tracking-wider font-mono text-gray-500 uppercase">
+                                                {isPdf ? `${course.pages || 120} págs.` : `${course.students} alumnos`}
+                                            </span>
+                                            
+                                            <div className="flex items-center gap-2">
+                                                <button 
+                                                    onClick={() => navigate(`/academy/course/${course.id}`)}
+                                                    className={`flex items-center gap-1.5 px-4 py-2 font-extrabold text-[10px] uppercase tracking-wider rounded-lg transition-all active:scale-95 cursor-pointer shadow-md ${
+                                                        isPdf
+                                                            ? 'bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/50 text-amber-300'
+                                                            : 'bg-[#00e03c]/15 hover:bg-[#00e03c]/25 border border-[#00e03c]/40 text-[#00e03c]'
+                                                    }`}
+                                                >
+                                                    {isPdf ? (
+                                                        <>Ver Entregable <Download className="w-3 h-3 text-amber-300" /></>
+                                                    ) : (
+                                                        <>Entrar al Aula <ArrowRight className="w-3 h-3 text-[#00e03c]" /></>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.article>
+                            );
+                        })
                     )}
                 </AnimatePresence>
             </div>

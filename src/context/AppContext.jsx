@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { supabase } from '../services/supabaseClient';
 import initialProspects from '../data/b2b_prospects.json';
 
@@ -69,32 +69,173 @@ export function AppProvider({ children }) {
 
 
 
-  // --- COURSES (Catálogo Oficial de SERAM ACADEMY) ---
+  // --- DEFAULT MULTI-CATEGORY COURSES & DELIVERABLES CATALOG (SERAM ACADEMY) ---
+  const DEFAULT_COURSES_CATALOG = [
+    {
+      id: 101,
+      title: 'E-Book & Compendio Normativo: Ley 1333, D.S. 3549 y Guía de Mitigación Ambiental en Bolivia',
+      instructor: 'Ing. Fernando Araujo',
+      students: 142,
+      status: 'Activo',
+      isPremium: false,
+      type: 'gratis',
+      format: 'pdf',
+      hasVideo: false,
+      price: 0,
+      image: '/assets/covers/cover_ebook_ley1333.png',
+      duration: 'Dossier Técnico Descargable (180 págs.)',
+      desc: 'Compendio interpretado de la legislación ambiental boliviana (Ley 1333, D.S. 3549, RMCH y RASIM). Incluye carimbos editables, matrices de dispersión y diagrama de flujo de licencias ambientales descargable en PDF de alta resolución.',
+      pdfName: 'Compendio_Normativo_Gestion_Ambiental_SERAM_2026.pdf',
+      pdfUrl: '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf',
+      pages: 180,
+      version: 'Edición 2026 Revisada',
+      sections: [
+        { title: 'Capítulo I: Marco Regulatorio General y Jerarquía Normativa (Ley 1333)' },
+        { title: 'Capítulo II: D.S. 3549 y Procedimientos Administrativos de Licenciamiento' },
+        { title: 'Capítulo III: Reglamento en Materia de Contaminación Hídrica (RMCH)' },
+        { title: 'Capítulo IV: Carimbos, Matrices de Mitigación y Anexos Oficiales' }
+      ]
+    },
+    {
+      id: 102,
+      title: 'Guía Metodológica & Plantillas SIG: Delimitación de Microcuencas y Mapas Temáticos en QGIS',
+      instructor: 'Ing. Diego Barrientos',
+      students: 87,
+      status: 'Activo',
+      isPremium: true,
+      type: 'low_ticket',
+      format: 'pdf',
+      hasVideo: false,
+      price: 45.00,
+      image: '/assets/covers/cover_qgis_basico.png',
+      duration: 'Dossier Práctico + Modelos QGIS (95 págs.)',
+      desc: 'Manual técnico paso a paso para la delimitación automatizada de cuencas hidrográficas con modelos digitales de elevación (DEM SRTM 30m). Incluye archivos de proyecto QGIS (.qgz), paletas de colores normativas y carimbos vectoriales oficiales listos para impresión.',
+      pdfName: 'Guia_Metodologica_SIG_Cuencas_SERAM.pdf',
+      pdfUrl: '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf',
+      pages: 95,
+      version: 'Versión 3.28 LTR',
+      sections: [
+        { title: 'Sección 1: Preparación y Corrección Hidrológica del DEM (Fill Sinks)' },
+        { title: 'Sección 2: Determinación de Direcciones de Flujo y Acumulación' },
+        { title: 'Sección 3: Vectorización de Cuenca y Orden de Drenaje (Strahler)' },
+        { title: 'Sección 4: Simbología y Maquetación Cartográfica para Presentación Municipal' }
+      ]
+    },
+    {
+      id: 1,
+      title: 'Sistemas de Información Geográfica (SIG) Aplicado a la Gestión y Fiscalización Ambiental en Bolivia',
+      instructor: 'Ing. Diego Barrientos',
+      students: 54,
+      status: 'Activo',
+      isPremium: true,
+      type: 'mid_ticket',
+      format: 'video',
+      hasVideo: true,
+      price: 180.00,
+      image: '/assets/3d-backend/gis_satellite_mapping.webp',
+      duration: '40 horas prácticas (QGIS & ArcGIS Pro)',
+      desc: 'Capacitación profesional intensiva con datos satelitales bolivianos: delimitación de microcuencas, mapas temáticos para categorización FNCA y licencias ambientales, análisis multitemporal de deforestación y fiscalización pericial.',
+      pdfName: 'Syllabus_Curso_SIG_Ambiental_SERAM_2026.pdf',
+      pdfUrl: '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf'
+    },
+    {
+      id: 103,
+      title: 'Taller Especializado: Formulación de Fichas Ambientales y Categorización FNCA para Proyectos Mineros y Civiles',
+      instructor: 'Ing. Fabricio Orosco',
+      students: 41,
+      status: 'Activo',
+      isPremium: true,
+      type: 'mid_ticket',
+      format: 'video',
+      hasVideo: true,
+      price: 150.00,
+      image: '/assets/covers/cover_taller_fichas.png',
+      duration: '25 horas prácticas',
+      desc: 'Taller intensivo en video y talleres sincrónicos de llenado pericial de formularios FNCA (Categorías 1, 2, 3 y 4) ante la Autoridad Ambiental Competente. Estudio de casos mineros auríferos y plantas de tratamiento.',
+      pdfName: 'Plantillas_FNCA_IRAP_Oficial_2026.pdf',
+      pdfUrl: '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf'
+    },
+    {
+      id: 104,
+      title: 'Programa Directivo & Mentoría 1-on-1: Consultoría Ambiental Estratégica, Defensa Legal y Proyectos Municipales',
+      instructor: 'Ing. Diego Barrientos & Ing. Fernando Araujo',
+      students: 12,
+      status: 'Activo',
+      isPremium: true,
+      type: 'high_ticket',
+      format: 'video',
+      hasVideo: true,
+      price: 480.00,
+      image: '/assets/covers/cover_mentoria_consultoria.png',
+      duration: '60 horas + 4 sesiones 1-on-1',
+      desc: 'Programa de mentoría avanzada para directores ambientales, consultores senior y líderes técnicos. Acompañamiento personalizado en la estructuración de propuestas B2B, licitaciones municipales y defensa pericial ante contingencias ambientales.',
+      pdfName: 'Dossier_Mentoria_Consultoria_SERAM_2026.pdf',
+      pdfUrl: '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf'
+    },
+    {
+      id: 105,
+      title: 'Dossier Pericial & Protocolo de Monitoreo Hidrogeoquímico de Mercurio (Hg) en Fuentes de Agua',
+      instructor: 'Ing. Diego Barrientos',
+      students: 19,
+      status: 'Activo',
+      isPremium: true,
+      type: 'high_ticket',
+      format: 'pdf',
+      hasVideo: false,
+      price: 250.00,
+      image: '/assets/3d-backend/gis_satellite_mapping.webp',
+      duration: 'Protocolo Pericial Descargable (140 págs. + Planillas)',
+      desc: 'Dossier técnico estandarizado de monitoreo pericial para cuencas afectadas por minería aluvial. Incluye protocolos de cadena de custodia, planillas de cálculo de incertidumbre analítica y plantillas de informes legales para municipios.',
+      pdfName: 'Protocolo_Pericial_Monitoreo_Mercurio_SERAM.pdf',
+      pdfUrl: '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf',
+      pages: 140,
+      version: 'Norma NB 512 & EPA Met. 1631',
+      sections: [
+        { title: 'Fase I: Diseño de Red de Monitoreo y Selección de Estaciones Geoespaciales' },
+        { title: 'Fase II: Protocolo de Muestreo Ultra-Limpio y Preservación de Muestras' },
+        { title: 'Fase III: Análisis por Espectrometría de Fluorescencia Atómica (AFS)' },
+        { title: 'Fase IV: Modelo de Informe Pericial con Validez Forense y Municipal' }
+      ]
+    }
+  ];
+
+  // Helper resiliente para guardar catálogo en localStorage sin fallos por exceso de cuota
+  const saveCoursesToStorage = (list) => {
+    try {
+      if (typeof window === 'undefined' || !Array.isArray(list)) return;
+      const sanitized = list.map(c => {
+        if (c.pdfUrl && typeof c.pdfUrl === 'string' && c.pdfUrl.startsWith('data:') && c.pdfUrl.length > 50000) {
+          return { ...c, pdfUrl: '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf' };
+        }
+        return c;
+      });
+      localStorage.setItem('seram_courses', JSON.stringify(sanitized));
+    } catch (err) {
+      console.warn('[Courses localStorage Quota Notice]:', err);
+    }
+  };
+
+  // --- COURSES STATE (Catálogo Oficial Persistente de SERAM ACADEMY) ---
   const [courses, setCourses] = useState(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('seram_courses') : null;
-    if (saved) {
+    let initialList = DEFAULT_COURSES_CATALOG;
+    if (typeof window !== 'undefined') {
       try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        const saved = localStorage.getItem('seram_courses');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const map = new Map();
+            DEFAULT_COURSES_CATALOG.forEach(c => map.set(c.id, c));
+            parsed.forEach(c => {
+              const existing = map.get(c.id) || {};
+              map.set(c.id, { ...existing, ...c });
+            });
+            initialList = Array.from(map.values());
+          }
+        }
       } catch (e) {}
     }
-    return [
-      {
-        id: 1,
-        title: 'Sistemas de Información Geográfica (SIG) Aplicado a la Gestión y Fiscalización Ambiental en Bolivia',
-        instructor: 'Ing. Diego Barrientos',
-        students: 28,
-        status: 'Activo',
-        isPremium: true,
-        type: 'mid_ticket',
-        price: 350.00,
-        image: '/assets/3d-backend/gis_satellite_mapping.webp',
-        duration: '40 horas prácticas (QGIS & ArcGIS Pro)',
-        desc: 'Capacitación profesional intensiva con datos satelitales bolivianos: delimitación de microcuencas, mapas temáticos para categorización FNCA y licencias ambientales, análisis multitemporal de deforestación y fiscalización pericial.',
-        pdfName: 'Syllabus_Curso_SIG_Ambiental_SERAM_2026.pdf',
-        pdfUrl: '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf'
-      }
-    ];
+    return initialList;
   });
 
   // --- PROJECTS (Proyectos B2B y Consultorías Ambientales Oficiales de SERAM SRL) ---
@@ -478,11 +619,33 @@ export function AppProvider({ children }) {
     ];
   });
 
+  // --- DEFAULT ISOMETRIC OFFICE ROOMS REFERENCE ---
+  const DEFAULT_OFFICE_ROOMS = {
+    admin: { name: '01. ADMINISTRACIÓN', coords: { x: 29, y: 22 } },
+    direction: { name: '02. DIRECCIÓN', coords: { x: 35, y: 35 } },
+    operations: { name: '03. OPERACIONES Y PLANIFICACIÓN', coords: { x: 53, y: 17 } },
+    commercial: { name: '04. COMERCIAL', coords: { x: 64, y: 27 } },
+    finances: { name: '05. FINANZAS', coords: { x: 77, y: 46 } },
+    marketing: { name: '06. MARKETING Y VENTAS', coords: { x: 21, y: 46 } },
+    service: { name: '07. SERVICE', coords: { x: 62, y: 44 } },
+    academy: { name: '08. ACADEMY', coords: { x: 17, y: 31 } },
+    store: { name: '09. STORE', coords: { x: 37, y: 64 } },
+    legal: { name: '10. LEGAL', coords: { x: 80, y: 29 } },
+    experience: { name: '11. EXPERIENCIA Y CAMPO', coords: { x: 12, y: 55 } },
+    social_media: { name: '12. SOCIAL MEDIA', coords: { x: 71, y: 70 } },
+    research: { name: '13. INVESTIGACIÓN', coords: { x: 91, y: 54 } },
+    recreation: { name: 'Área de Café & Descanso', coords: { x: 49, y: 82 } },
+    meeting: { name: 'Sala de Directorio', coords: { x: 52, y: 52 } }
+  };
+
   // --- REAL-TIME PARTNERS PRESENCE & SESSION TRACKING ---
   const [partnerPresences, setPartnerPresences] = useState(() => {
     try {
       const saved = localStorage.getItem('seram_partners_presence');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') return parsed;
+      }
     } catch (_) {}
     const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone/i.test(navigator.userAgent);
     return {
@@ -492,9 +655,17 @@ export function AppProvider({ children }) {
         isOnline: true,
         lastLogin: new Date().toISOString(),
         sessionStart: Date.now() - 34 * 60 * 1000,
+        lastPing: Date.now(),
+        currentRoomId: 'direction',
+        currentSectorName: '02. DIRECCIÓN',
+        roomCoords: { x: 35, y: 35 },
+        isTimerRunning: false,
+        timerSeconds: 13320,
+        timerStartedAt: null,
+        activeTaskId: 101,
+        activeTaskTitle: 'Formulación y Presentación de Propuestas Socioambientales para Concejales Municipales',
         device: isMobile ? 'Dispositivo Móvil (Android)' : 'Escritorio (Web)',
-        location: 'La Paz, Bolivia',
-        activeTask: 'Formulación y Presentación de Propuestas Socioambientales para Concejales Municipales'
+        location: 'La Paz, Bolivia'
       },
       'fernandoaraujo1912@gmail.com': {
         name: 'Ing. Fernando Araujo',
@@ -502,9 +673,17 @@ export function AppProvider({ children }) {
         isOnline: false,
         lastLogin: new Date(Date.now() - 48 * 60 * 1000).toISOString(),
         sessionStart: null,
+        lastPing: Date.now() - 48 * 60 * 1000,
+        currentRoomId: 'operations',
+        currentSectorName: '03. OPERACIONES Y PLANIFICACIÓN',
+        roomCoords: { x: 53, y: 17 },
+        isTimerRunning: false,
+        timerSeconds: 9720,
+        timerStartedAt: null,
+        activeTaskId: 101,
+        activeTaskTitle: 'Plan de Ordenamiento Territorial y Trámites RMCH',
         device: 'Escritorio (Web)',
-        location: 'Santa Cruz, Bolivia',
-        activeTask: 'Plan de Ordenamiento Territorial y Trámites RMCH'
+        location: 'Santa Cruz, Bolivia'
       },
       'sebastiansbs51@gmail.com': {
         name: 'Ing. Fabricio Orosco',
@@ -512,31 +691,365 @@ export function AppProvider({ children }) {
         isOnline: false,
         lastLogin: new Date(Date.now() - 125 * 60 * 1000).toISOString(),
         sessionStart: null,
+        lastPing: Date.now() - 125 * 60 * 1000,
+        currentRoomId: 'experience',
+        currentSectorName: '11. EXPERIENCIA Y CAMPO',
+        roomCoords: { x: 12, y: 55 },
+        isTimerRunning: false,
+        timerSeconds: 7200,
+        timerStartedAt: null,
+        activeTaskId: 101,
+        activeTaskTitle: 'Auditoría de Gestión de Residuos EcoIndustrial S.A.',
         device: 'Dispositivo Móvil',
-        location: 'La Paz, Bolivia',
-        activeTask: 'Auditoría de Gestión de Residuos EcoIndustrial S.A.'
+        location: 'La Paz, Bolivia'
       }
     };
   });
 
-  // Mantener actualizado el estado del socio en sesión activa
+  // --- TIME TRACKER EN TIEMPO REAL (ESTADO GLOBAL COMPARTIDO) ---
+  const [activeTimer, setActiveTimer] = useState(() => {
+    try {
+      const saved = localStorage.getItem('seram_active_partner_timer');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') return parsed;
+      }
+    } catch (_) {}
+    return {
+      isRunning: false,
+      seconds: 13320, // 3.7 horas iniciales por defecto
+      startedAt: null,
+      projectId: 101,
+      projectTitle: 'Línea Base: Monitoreo Hidrogeoquímico de Mercurio (Hg)',
+      sectorId: 'direction',
+      sectorName: '02. DIRECCIÓN'
+    };
+  });
+
+  // Guardar estado del timer en localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('seram_active_partner_timer', JSON.stringify(activeTimer));
+    } catch (_) {}
+  }, [activeTimer]);
+
+  // Ticker de 1 segundo para el activeTimer
+  useEffect(() => {
+    let interval = null;
+    if (activeTimer.isRunning) {
+      interval = setInterval(() => {
+        setActiveTimer(prev => ({
+          ...prev,
+          seconds: (prev.seconds || 0) + 1
+        }));
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [activeTimer.isRunning]);
+
+  // CANAL BROADCAST MULTI-PESTAÑA LOCAL ('seram_partner_realtime')
+  const [broadcastChan, setBroadcastChan] = useState(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      try {
+        const chan = new BroadcastChannel('seram_partner_realtime');
+        setBroadcastChan(chan);
+
+        chan.onmessage = (event) => {
+          const { type, payload } = event.data || {};
+          if (type === 'PARTNER_PRESENCE_UPDATE' && payload && payload.email) {
+            setPartnerPresences(prev => {
+              const current = prev[payload.email] || {};
+              const merged = {
+                ...prev,
+                [payload.email]: { ...current, ...payload.data, lastPing: Date.now() }
+              };
+              try {
+                localStorage.setItem('seram_partners_presence', JSON.stringify(merged));
+              } catch (_) {}
+              return merged;
+            });
+          } else if (type === 'PARTNER_TIMER_TICK' && payload && payload.email) {
+            setPartnerPresences(prev => {
+              const current = prev[payload.email];
+              if (!current) return prev;
+              return {
+                ...prev,
+                [payload.email]: {
+                  ...current,
+                  isTimerRunning: payload.isTimerRunning,
+                  timerSeconds: payload.timerSeconds,
+                  lastPing: Date.now()
+                }
+              };
+            });
+          }
+        };
+
+        return () => {
+          chan.close();
+        };
+      } catch (err) {
+        console.warn('[BroadcastChannel Error]:', err);
+      }
+    }
+  }, []);
+
+  // Escuchar evento 'storage' para sincronización cruzada en navegadores sin BroadcastChannel
+  useEffect(() => {
+    const handleStorage = (e) => {
+      if (e.key === 'seram_partners_presence' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (parsed && typeof parsed === 'object') {
+            setPartnerPresences(parsed);
+          }
+        } catch (_) {}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  // REF PERSISTENTE DEL CANAL SUPABASE REALTIME
+  const supabaseChannelRef = useRef(null);
+
+  // SUPABASE REALTIME CHANNEL (PRESENCE & BROADCAST EN TIEMPO REAL ENTRE DISPOSITIVOS)
+  useEffect(() => {
+    const currentEmail = currentSocio?.email || (activeRole === 'AdminMod' ? 'barrientoso2401@gmail.com' : null);
+    const channelName = 'seram-partners-presence-v1';
+
+    // Desconectar canal previo si existía
+    if (supabaseChannelRef.current) {
+      try {
+        supabaseChannelRef.current.untrack();
+        supabase.removeChannel(supabaseChannelRef.current);
+      } catch (_) {}
+      supabaseChannelRef.current = null;
+    }
+
+    const channel = supabase.channel(channelName, {
+      config: {
+        presence: { key: currentEmail || 'anonymous' },
+        broadcast: { self: false }
+      }
+    });
+
+    supabaseChannelRef.current = channel;
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        if (state) {
+          setPartnerPresences(prev => {
+            const next = { ...prev };
+            const activePresenceKeys = Object.keys(state);
+
+            // 1. Sincronizar socios activos en tiempo real desde Supabase
+            Object.entries(state).forEach(([key, presences]) => {
+              if (Array.isArray(presences) && presences.length > 0) {
+                const latest = presences[presences.length - 1];
+                if (latest && latest.email) {
+                  next[latest.email] = {
+                    ...(next[latest.email] || {}),
+                    ...latest,
+                    isOnline: true,
+                    lastPing: Date.now()
+                  };
+                }
+              }
+            });
+
+            // 2. Socios no conectados en la red Supabase (salvo el usuario local actual)
+            const knownPartnerEmails = [
+              'barrientoso2401@gmail.com',
+              'fernandoaraujo1912@gmail.com',
+              'sebastiansbs51@gmail.com'
+            ];
+            knownPartnerEmails.forEach(email => {
+              if (email !== currentEmail && !activePresenceKeys.includes(email)) {
+                if (next[email]) {
+                  next[email] = {
+                    ...next[email],
+                    isOnline: false,
+                    isTimerRunning: false
+                  };
+                }
+              }
+            });
+
+            // 3. El socio local logueado siempre está online
+            if (currentEmail && next[currentEmail]) {
+              next[currentEmail] = {
+                ...next[currentEmail],
+                isOnline: true,
+                lastPing: Date.now()
+              };
+            }
+
+            try {
+              localStorage.setItem('seram_partners_presence', JSON.stringify(next));
+            } catch (_) {}
+            return next;
+          });
+        }
+      })
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        if (Array.isArray(newPresences) && newPresences.length > 0) {
+          const latest = newPresences[0];
+          if (latest && latest.email) {
+            setPartnerPresences(prev => {
+              const updated = {
+                ...prev,
+                [latest.email]: {
+                  ...(prev[latest.email] || {}),
+                  ...latest,
+                  isOnline: true,
+                  lastPing: Date.now()
+                }
+              };
+              try {
+                localStorage.setItem('seram_partners_presence', JSON.stringify(updated));
+              } catch (_) {}
+              return updated;
+            });
+          }
+        }
+      })
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        if (Array.isArray(leftPresences) && leftPresences.length > 0) {
+          const left = leftPresences[0];
+          if (left && left.email && left.email !== currentEmail) {
+            setPartnerPresences(prev => {
+              const updated = {
+                ...prev,
+                [left.email]: {
+                  ...(prev[left.email] || {}),
+                  isOnline: false,
+                  isTimerRunning: false,
+                  lastPing: Date.now()
+                }
+              };
+              try {
+                localStorage.setItem('seram_partners_presence', JSON.stringify(updated));
+              } catch (_) {}
+              return updated;
+            });
+          }
+        }
+      })
+      .on('broadcast', { event: 'partner_presence_update' }, ({ payload }) => {
+        if (payload && payload.email) {
+          setPartnerPresences(prev => {
+            const updated = {
+              ...prev,
+              [payload.email]: {
+                ...(prev[payload.email] || {}),
+                ...payload.data,
+                lastPing: Date.now()
+              }
+            };
+            try {
+              localStorage.setItem('seram_partners_presence', JSON.stringify(updated));
+            } catch (_) {}
+            return updated;
+          });
+        }
+      })
+      .on('broadcast', { event: 'partner_timer_tick' }, ({ payload }) => {
+        if (payload && payload.email) {
+          setPartnerPresences(prev => {
+            const current = prev[payload.email];
+            if (!current) return prev;
+            return {
+              ...prev,
+              [payload.email]: {
+                ...current,
+                isTimerRunning: payload.isTimerRunning,
+                timerSeconds: payload.timerSeconds,
+                lastPing: Date.now()
+              }
+            };
+          });
+        }
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED' && activeRole === 'AdminMod' && currentEmail) {
+          const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone/i.test(navigator.userAgent);
+          const initialData = {
+            email: currentEmail,
+            name: currentSocio?.name || 'Socio Directivo',
+            role: currentSocio?.role || 'Socio Fundador',
+            isOnline: true,
+            sessionStart: Date.now(),
+            lastPing: Date.now(),
+            currentRoomId: activeTimer.sectorId || 'direction',
+            currentSectorName: activeTimer.sectorName || '02. DIRECCIÓN',
+            roomCoords: DEFAULT_OFFICE_ROOMS[activeTimer.sectorId]?.coords || { x: 35, y: 35 },
+            isTimerRunning: activeTimer.isRunning,
+            timerSeconds: activeTimer.seconds,
+            timerStartedAt: activeTimer.startedAt,
+            activeTaskId: activeTimer.projectId,
+            activeTaskTitle: activeTimer.projectTitle,
+            device: isMobile ? 'Dispositivo Móvil (Android)' : 'Escritorio (Web)',
+            location: 'La Paz, Bolivia'
+          };
+          try {
+            await channel.track(initialData);
+          } catch (e) {
+            console.warn('[Supabase Presence Track Warning]:', e.message);
+          }
+        }
+      });
+
+    return () => {
+      if (channel) {
+        try {
+          channel.untrack();
+          supabase.removeChannel(channel);
+        } catch (_) {}
+      }
+      if (supabaseChannelRef.current === channel) {
+        supabaseChannelRef.current = null;
+      }
+    };
+  }, [activeRole, currentSocio?.email]);
+
+  // Mantener actualizado el estado del socio activo y heartbeat de presencia y timer
   useEffect(() => {
     if (activeRole === 'AdminMod') {
       const email = currentSocio?.email || 'barrientoso2401@gmail.com';
       const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone/i.test(navigator.userAgent);
+      
+      const payloadData = {
+        name: currentSocio?.name || 'Socio Directivo',
+        role: currentSocio?.role || 'Socio Fundador Directivo',
+        isOnline: true,
+        lastLogin: new Date().toISOString(),
+        sessionStart: Date.now(),
+        lastPing: Date.now(),
+        currentRoomId: activeTimer.sectorId || 'direction',
+        currentSectorName: activeTimer.sectorName || '02. DIRECCIÓN',
+        roomCoords: DEFAULT_OFFICE_ROOMS[activeTimer.sectorId]?.coords || { x: 35, y: 35 },
+        isTimerRunning: activeTimer.isRunning,
+        timerSeconds: activeTimer.seconds,
+        timerStartedAt: activeTimer.startedAt,
+        activeTaskId: activeTimer.projectId,
+        activeTaskTitle: activeTimer.projectTitle,
+        device: isMobile ? 'Dispositivo Móvil (Android)' : 'Escritorio (Web)',
+        location: 'Bolivia'
+      };
+
       setPartnerPresences(prev => {
         const entry = prev[email] || {};
         const updated = {
           ...prev,
           [email]: {
             ...entry,
-            name: currentSocio?.name || entry.name || 'Socio Directivo',
-            role: entry.role || 'Socio Fundador Directivo',
-            isOnline: true,
-            lastLogin: entry.lastLogin || new Date().toISOString(),
-            sessionStart: entry.sessionStart || Date.now(),
-            device: isMobile ? 'Dispositivo Móvil (Android)' : 'Escritorio (Web)',
-            location: entry.location || 'Bolivia'
+            ...payloadData
           }
         };
         try {
@@ -544,8 +1057,64 @@ export function AppProvider({ children }) {
         } catch (_) {}
         return updated;
       });
+
+      // Emitir por BroadcastChannel local multi-pestaña
+      if (broadcastChan) {
+        try {
+          broadcastChan.postMessage({
+            type: 'PARTNER_PRESENCE_UPDATE',
+            payload: { email, data: payloadData }
+          });
+        } catch (_) {}
+      }
+
+      // Emitir por Supabase Realtime a otros navegadores/dispositivos
+      if (supabaseChannelRef.current) {
+        try {
+          supabaseChannelRef.current.send({
+            type: 'broadcast',
+            event: 'partner_presence_update',
+            payload: { email, data: payloadData }
+          });
+          supabaseChannelRef.current.track({
+            ...payloadData,
+            email
+          });
+        } catch (_) {}
+      }
+
+      // Heartbeat periódico (cada 3s si el cronómetro está corriendo, cada 12s si no)
+      const heartbeatInterval = setInterval(() => {
+        if (broadcastChan) {
+          try {
+            broadcastChan.postMessage({
+              type: 'PARTNER_TIMER_TICK',
+              payload: {
+                email,
+                isTimerRunning: activeTimer.isRunning,
+                timerSeconds: activeTimer.seconds
+              }
+            });
+          } catch (_) {}
+        }
+        if (supabaseChannelRef.current) {
+          try {
+            supabaseChannelRef.current.send({
+              type: 'broadcast',
+              event: 'partner_timer_tick',
+              payload: {
+                email,
+                isTimerRunning: activeTimer.isRunning,
+                timerSeconds: activeTimer.seconds
+              }
+            });
+          } catch (_) {}
+        }
+      }, activeTimer.isRunning ? 3000 : 12000);
+
+      return () => clearInterval(heartbeatInterval);
     }
-  }, [activeRole, currentSocio]);
+  }, [activeRole, currentSocio, activeTimer.isRunning, activeTimer.sectorId, activeTimer.sectorName, broadcastChan]);
 
   // --- PRODUCTS (mutable) ---
   const [productList, setProductList] = useState([
@@ -645,7 +1214,7 @@ export function AppProvider({ children }) {
         const results = await Promise.race([fetchPromise, timeoutPromise]);
         const [coursesRes, projectsRes, productsRes, logsRes, clientsRes, activitiesRes] = results;
 
-        // 1. Courses
+        // 1. Courses (Fusión inteligente: nunca sobreescribir ni borrar cursos locales o subidos)
         if (coursesRes.status === 'fulfilled' && !coursesRes.value.error && coursesRes.value.data?.length > 0) {
           const mappedCourses = coursesRes.value.data.map(c => ({
             id: c.id,
@@ -655,14 +1224,60 @@ export function AppProvider({ children }) {
             status: c.status || 'Activo',
             isPremium: c.is_premium ?? false,
             type: c.type || 'mid_ticket',
+            format: c.format || (c.duration && /pdf|dossier|pág|pag/i.test(c.duration) ? 'pdf' : (c.has_video === false ? 'pdf' : undefined)),
+            hasVideo: c.has_video !== undefined ? c.has_video : (c.duration && /pdf|dossier|pág|pag/i.test(c.duration) ? false : undefined),
             price: parseFloat(c.price) || 0,
             image: c.image || '/assets/3d-backend/gis_satellite_mapping.webp',
             duration: c.duration || '10 horas',
             desc: c.desc || c.description || '',
             pdfUrl: c.pdf_url || c.pdfUrl || null,
-            pdfName: c.pdf_name || c.pdfName || null
+            pdfName: c.pdf_name || c.pdfName || null,
+            pages: c.pages || null,
+            version: c.version || null
           }));
-          setCourses(mappedCourses);
+          setCourses(prev => {
+            const map = new Map();
+            DEFAULT_COURSES_CATALOG.forEach(dc => map.set(dc.id, dc));
+            prev.forEach(p => map.set(p.id, { ...(map.get(p.id) || {}), ...p }));
+
+            mappedCourses.forEach(rc => {
+              // Buscar coincidencia por ID o por Título normalizado
+              let targetKey = rc.id;
+              for (const [key, val] of map.entries()) {
+                if (val.id === rc.id || (val.title && rc.title && val.title.trim().toLowerCase() === rc.title.trim().toLowerCase())) {
+                  targetKey = key;
+                  break;
+                }
+              }
+              const existing = map.get(targetKey) || {};
+              const resolvedFormat = rc.format || existing.format || (rc.hasVideo === false || existing.hasVideo === false ? 'pdf' : (rc.type === 'gratis' ? 'pdf' : 'video'));
+              const resolvedHasVideo = rc.hasVideo !== undefined ? rc.hasVideo : (existing.hasVideo !== undefined ? existing.hasVideo : resolvedFormat !== 'pdf');
+
+              const mergedCourse = {
+                ...existing,
+                ...rc,
+                id: targetKey,
+                // Preservar metadatos ricos locales si columnas de BD vienen vacías
+                format: resolvedFormat,
+                hasVideo: resolvedHasVideo,
+                pages: rc.pages || existing.pages || (resolvedFormat === 'pdf' ? 120 : null),
+                version: rc.version || existing.version || 'Edición 2026',
+                sections: existing.sections || rc.sections || [
+                  { title: 'Capítulo I: Marco Regulatorio General y Principios' },
+                  { title: 'Capítulo II: Instrumentos de Regulación de Alcance Particular' },
+                  { title: 'Capítulo III: Formularios Técnicos y Guías de Campo' },
+                  { title: 'Capítulo IV: Modelos de Declaración Jurada y Anexos' }
+                ],
+                pdfUrl: rc.pdfUrl || existing.pdfUrl || '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf',
+                pdfName: rc.pdfName || existing.pdfName || 'Documento_Oficial_SERAM.pdf'
+              };
+              map.set(targetKey, mergedCourse);
+            });
+
+            const merged = Array.from(map.values());
+            saveCoursesToStorage(merged);
+            return merged;
+          });
         }
 
         // 2. Projects
@@ -1151,26 +1766,45 @@ export function AppProvider({ children }) {
 
   const handleAddCourse = async (courseData) => {
     if (!courseData.title || !courseData.instructor) return;
+    const isPdfFormat = courseData.format === 'pdf' || courseData.hasVideo === false || (courseData.type === 'gratis' && !courseData.videoUrl);
     const newCourse = { 
-      id: Date.now(), 
+      id: courseData.id || Date.now(), 
       title: courseData.title, 
       instructor: courseData.instructor, 
-      students: 0, 
+      students: courseData.students || 0, 
       status: 'Activo', 
-      isPremium: courseData.isPremium || false,
-      type: courseData.type || 'curso_gratis',
+      isPremium: courseData.isPremium !== undefined ? courseData.isPremium : (courseData.type !== 'gratis'),
+      type: courseData.type || 'mid_ticket',
+      format: isPdfFormat ? 'pdf' : 'video',
+      hasVideo: !isPdfFormat,
       price: parseFloat(courseData.price) || 0,
-      image: courseData.image || 'https://images.unsplash.com/photo-1500485035595-cbe6f645feb1?auto=format&fit=crop&q=80&w=600',
-      duration: courseData.duration || '10 horas',
+      image: courseData.image || (isPdfFormat ? '/assets/covers/cover_ebook_ley1333.png' : '/assets/3d-backend/gis_satellite_mapping.webp'),
+      duration: courseData.duration || (isPdfFormat ? 'Dossier Descargable (PDF)' : '10 horas prácticas'),
       desc: courseData.desc || '',
-      pdfUrl: courseData.pdfUrl || null,
-      pdfName: courseData.pdfName || null
+      pdfUrl: courseData.pdfUrl || '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf',
+      pdfName: courseData.pdfName || 'Documento_Oficial_SERAM_2026.pdf',
+      pages: courseData.pages || (isPdfFormat ? 120 : null),
+      version: courseData.version || 'Norma 2026 Vigente',
+      sections: courseData.sections || [
+        { title: 'Módulo 1: Marco Conceptual y Normativa Vigente' },
+        { title: 'Módulo 2: Procedimiento Técnico y Metodología Aplicada' },
+        { title: 'Módulo 3: Formulación de Resultados y Casos Prácticos' },
+        { title: 'Módulo 4: Anexos y Guías de Implementación' }
+      ]
     };
 
-    setCourses(prev => [...prev, newCourse]);
-    triggerToast('Nuevo recurso registrado en SERAM ACADEMY', 'success');
+    setCourses(prev => {
+      const updated = [newCourse, ...prev.filter(c => c.id !== newCourse.id)];
+      saveCoursesToStorage(updated);
+      return updated;
+    });
+    triggerToast(`Recurso registrado (${isPdfFormat ? 'Modalidad Entregable PDF' : 'Modalidad Video HD'})`, 'success');
 
     try {
+      const dbPdfUrl = (typeof newCourse.pdfUrl === 'string' && newCourse.pdfUrl.startsWith('data:')) 
+        ? '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf' 
+        : newCourse.pdfUrl;
+
       const { data, error } = await supabase.from('courses').insert([{
         title: newCourse.title,
         instructor: newCourse.instructor,
@@ -1182,14 +1816,18 @@ export function AppProvider({ children }) {
         image: newCourse.image,
         duration: newCourse.duration,
         desc: newCourse.desc,
-        pdf_url: newCourse.pdfUrl,
+        pdf_url: dbPdfUrl,
         pdf_name: newCourse.pdfName
       }]).select();
 
       if (error && error.code !== 'PGRST205') {
         console.warn('[Supabase Insert Course Warning]:', error.message);
       } else if (data && data[0]?.id) {
-        setCourses(prev => prev.map(c => c.id === newCourse.id ? { ...c, id: data[0].id } : c));
+        setCourses(prev => {
+          const updated = prev.map(c => c.id === newCourse.id ? { ...c, id: data[0].id } : c);
+          saveCoursesToStorage(updated);
+          return updated;
+        });
       }
     } catch (err) {
       console.warn('[Supabase Sync Warning - AddCourse]:', err.message);
@@ -1197,7 +1835,11 @@ export function AppProvider({ children }) {
   };
 
   const handleUpdateCourse = async (id, fields) => {
-    setCourses(prev => prev.map(c => c.id === id ? { ...c, ...fields } : c));
+    setCourses(prev => {
+      const updated = prev.map(c => c.id === id ? { ...c, ...fields } : c);
+      saveCoursesToStorage(updated);
+      return updated;
+    });
     triggerToast('Recurso académico actualizado', 'success');
 
     try {
@@ -1210,7 +1852,11 @@ export function AppProvider({ children }) {
       if (fields.image !== undefined) dbFields.image = fields.image;
       if (fields.duration !== undefined) dbFields.duration = fields.duration;
       if (fields.desc !== undefined) dbFields.desc = fields.desc;
-      if (fields.pdfUrl !== undefined) dbFields.pdf_url = fields.pdfUrl;
+      if (fields.pdfUrl !== undefined) {
+        dbFields.pdf_url = (typeof fields.pdfUrl === 'string' && fields.pdfUrl.startsWith('data:'))
+          ? '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf'
+          : fields.pdfUrl;
+      }
       if (fields.pdfName !== undefined) dbFields.pdf_name = fields.pdfName;
 
       const { error } = await supabase.from('courses').update(dbFields).eq('id', id);
@@ -1223,7 +1869,11 @@ export function AppProvider({ children }) {
   };
 
   const handleDeleteCourse = async (id) => {
-    setCourses(prev => prev.filter(c => c.id !== id));
+    setCourses(prev => {
+      const updated = prev.filter(c => c.id !== id);
+      saveCoursesToStorage(updated);
+      return updated;
+    });
     triggerToast('Curso eliminado correctamente', 'info');
 
     try {
@@ -1238,23 +1888,26 @@ export function AppProvider({ children }) {
 
   const handleToggleCoursePremium = async (id) => {
     let updatedCourse = null;
-    setCourses(prev => prev.map(c => {
-      if (c.id === id) {
-        updatedCourse = { ...c, isPremium: !c.isPremium };
-        return updatedCourse;
-      }
-      return c;
-    }));
+    setCourses(prev => {
+      const updated = prev.map(c => {
+        if (c.id === id) {
+          updatedCourse = { ...c, isPremium: !c.isPremium };
+          return updatedCourse;
+        }
+        return c;
+      });
+      saveCoursesToStorage(updated);
+      return updated;
+    });
+    triggerToast(`Membresía ${updatedCourse?.isPremium ? 'habilitada' : 'deshabilitada'}`, 'info');
 
     try {
-      if (updatedCourse) {
-        const { error } = await supabase
-          .from('courses')
-          .update({ is_premium: updatedCourse.isPremium })
-          .eq('id', id);
-        if (error && error.code !== 'PGRST205') {
-          throw error;
-        }
+      const { error } = await supabase
+        .from('courses')
+        .update({ is_premium: updatedCourse?.isPremium })
+        .eq('id', id);
+      if (error && error.code !== 'PGRST205') {
+        console.warn('[Supabase Toggle Course Warning]:', error.message);
       }
     } catch (err) {
       console.warn('[Supabase Sync Warning - ToggleCoursePremium]:', err.message);
@@ -1682,6 +2335,43 @@ export function AppProvider({ children }) {
   };
 
   const handleLogoutPartner = () => {
+    const currentEmail = currentSocio?.email || 'barrientoso2401@gmail.com';
+
+    // Notificar desconexión a través de Supabase Realtime y BroadcastChannel
+    if (broadcastChan) {
+      try {
+        broadcastChan.postMessage({
+          type: 'PARTNER_PRESENCE_UPDATE',
+          payload: { email: currentEmail, data: { isOnline: false, isTimerRunning: false } }
+        });
+      } catch (_) {}
+    }
+    if (supabaseChannelRef.current) {
+      try {
+        supabaseChannelRef.current.send({
+          type: 'broadcast',
+          event: 'partner_presence_update',
+          payload: { email: currentEmail, data: { isOnline: false, isTimerRunning: false } }
+        });
+        supabaseChannelRef.current.untrack();
+      } catch (_) {}
+    }
+
+    setPartnerPresences(prev => {
+      const updated = {
+        ...prev,
+        [currentEmail]: {
+          ...(prev[currentEmail] || {}),
+          isOnline: false,
+          isTimerRunning: false
+        }
+      };
+      try {
+        localStorage.setItem('seram_partners_presence', JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
+
     setActiveRole('AccessLimit');
     setCurrentSocio(null);
     try {
@@ -1689,6 +2379,19 @@ export function AppProvider({ children }) {
       localStorage.removeItem('seram_current_socio');
     } catch (_) {}
     triggerToast('Sesión de Socio cerrada', 'info');
+  };
+
+  const handleSwitchPartner = (targetEmail) => {
+    const partner = registeredUsers.find(u => u.email.toLowerCase() === targetEmail.toLowerCase());
+    if (partner) {
+      setActiveRole('AdminMod');
+      setCurrentSocio(partner);
+      try {
+        localStorage.setItem('seram_partner_role', 'AdminMod');
+        localStorage.setItem('seram_current_socio', JSON.stringify(partner));
+      } catch (_) {}
+      triggerToast(`Sesión activa cambiada a ${partner.name}`, 'success');
+    }
   };
 
   // --- EXPERIENCE HANDLERS ---
@@ -1910,6 +2613,144 @@ export function AppProvider({ children }) {
     }
   };
 
+  // --- REAL-TIME TIME TRACKER & PARTNER PRESENCE METHODS ---
+  const updatePartnerPresence = (fields) => {
+    const currentEmail = currentSocio?.email || 'barrientoso2401@gmail.com';
+    let mergedEntry = null;
+
+    setPartnerPresences(prev => {
+      const entry = prev[currentEmail] || {};
+      mergedEntry = {
+        ...entry,
+        ...fields,
+        isOnline: true,
+        lastPing: Date.now()
+      };
+      const updated = {
+        ...prev,
+        [currentEmail]: mergedEntry
+      };
+      try {
+        localStorage.setItem('seram_partners_presence', JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
+
+    // 1. Emitir por BroadcastChannel local multi-pestaña
+    if (broadcastChan) {
+      try {
+        broadcastChan.postMessage({
+          type: 'PARTNER_PRESENCE_UPDATE',
+          payload: { email: currentEmail, data: fields }
+        });
+      } catch (_) {}
+    }
+
+    // 2. Emitir por Supabase Realtime a otros clientes / dispositivos
+    if (supabaseChannelRef.current) {
+      try {
+        supabaseChannelRef.current.send({
+          type: 'broadcast',
+          event: 'partner_presence_update',
+          payload: { email: currentEmail, data: fields }
+        });
+        if (activeRole === 'AdminMod' && mergedEntry) {
+          supabaseChannelRef.current.track({
+            ...mergedEntry,
+            email: currentEmail
+          });
+        }
+      } catch (err) {
+        console.warn('[Supabase Realtime Broadcast Warning]:', err.message);
+      }
+    }
+  };
+
+  const startPartnerTimer = (projectId = null, projectTitle = '') => {
+    const pId = projectId || activeTimer.projectId || (activeServices[0]?.id ?? 101);
+    const pTitle = projectTitle || activeTimer.projectTitle || activeServices.find(p => p.id === pId)?.client || 'Proyecto General';
+
+    const now = Date.now();
+    setActiveTimer(prev => ({
+      ...prev,
+      isRunning: true,
+      startedAt: prev.startedAt || now,
+      projectId: pId,
+      projectTitle: pTitle
+    }));
+
+    updatePartnerPresence({
+      isTimerRunning: true,
+      timerStartedAt: activeTimer.startedAt || now,
+      activeTaskId: pId,
+      activeTaskTitle: pTitle
+    });
+
+    triggerToast(`Sesión en vivo iniciada: ${pTitle}`, 'success');
+  };
+
+  const pausePartnerTimer = () => {
+    setActiveTimer(prev => ({
+      ...prev,
+      isRunning: false
+    }));
+
+    updatePartnerPresence({
+      isTimerRunning: false
+    });
+
+    triggerToast('Sesión de trabajo en pausa', 'info');
+  };
+
+  const resetPartnerTimer = () => {
+    setActiveTimer(prev => ({
+      ...prev,
+      isRunning: false,
+      seconds: 0,
+      startedAt: null
+    }));
+
+    updatePartnerPresence({
+      isTimerRunning: false,
+      timerSeconds: 0,
+      timerStartedAt: null
+    });
+  };
+
+  const savePartnerTimerLog = async (description, customHours = null) => {
+    const calculatedHours = customHours !== null 
+      ? parseFloat(customHours) 
+      : Math.max(0.1, parseFloat(((activeTimer.seconds || 0) / 3600).toFixed(2)));
+
+    if (!description || description.trim() === '') {
+      triggerToast('Ingresa una breve descripción de la actividad para registrar horas', 'error');
+      return false;
+    }
+
+    await handleAddTimeLog(activeTimer.projectId || 101, calculatedHours, description);
+    resetPartnerTimer();
+    triggerToast(`¡Tiempo de ${calculatedHours} hrs registrado exitosamente a proyecto!`, 'success');
+    return true;
+  };
+
+  const setPartnerSector = (sectorId, coords = null, sectorName = null) => {
+    const roomRef = DEFAULT_OFFICE_ROOMS[sectorId];
+    const finalCoords = coords || roomRef?.coords || { x: 35, y: 35 };
+    const finalName = sectorName || roomRef?.name || sectorId.toUpperCase();
+
+    setActiveTimer(prev => ({
+      ...prev,
+      sectorId,
+      sectorName: finalName
+    }));
+
+    updatePartnerPresence({
+      currentRoomId: sectorId,
+      currentSectorName: finalName,
+      roomCoords: finalCoords
+    });
+  };
+
   // --- MUNICIPAL PROPOSALS HANDLERS ---
   const handleAddMunicipalProposal = (newProposal) => {
     const newId = `prop-mun-${Date.now()}`;
@@ -2022,13 +2863,16 @@ export function AppProvider({ children }) {
       handleAddClient, handleEditClient, handleDeleteClient,
       handleUpdateProspect, handleConvertProspectToClient,
       handleAddMunicipalProposal, handleEditMunicipalProposal, handleDeleteMunicipalProposal,
-      handleToggleUserPremium, handleRevokeUserAccess, handleLogoutPartner,
+      handleToggleUserPremium, handleRevokeUserAccess, handleLogoutPartner, handleSwitchPartner,
       // Experience handlers
       handleAddExperience, handleEditExperience, handleDeleteExperience, handleEnrollExperience,
       // Product handlers
       handleAddProduct, handleEditProduct, handleDeleteProduct, handleToggleProductPremium,
-      // Time Tracker handlers
+      // Time Tracker handlers & Real-Time Live Session
       handleAddTimeLog, handleDeleteTimeLog,
+      activeTimer, setActiveTimer,
+      startPartnerTimer, pausePartnerTimer, resetPartnerTimer, savePartnerTimerLog,
+      setPartnerSector, updatePartnerPresence,
       // Public services dynamic handlers
       handleAddPublicService, handleEditPublicService, handleDeletePublicService,
       // Specialist handlers

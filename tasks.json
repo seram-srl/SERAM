@@ -1,10 +1,26 @@
 {
   "version": "1.0",
   "project": "SERAM",
-  "last_updated": "2026-10-03",
-  "tasks": [],
+  "last_updated": "2026-10-05",
+  "tasks": [
+    {
+      "id": "TASK-041",
+      "title": "Rediseño de ergonomía visual en PartnerDashboard: Header fijo traslúcido para aislar logo de SERAM ante scroll, segmentación lógica del sidebar en 4 categorías, desacoplamiento de Actividades y Directorio de Clientes, y aprovechamiento total del ancho de pantalla con mayor escala tipográfica",
+      "status": "pending",
+      "assigned_to": "Implementador",
+      "estimated_hours": 3.0
+    }
+  ],
   "in_progress": [],
   "completed": [
+    {
+      "id": "TASK-042",
+      "title": "Sincronización On-line en tiempo real de sesiones de socios, Time Tracker activo con cronómetro en vivo multi-usuario y posicionamiento dinámico de avatares en sectores de la Oficina Virtual",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-05",
+      "completed_at": "2026-10-05"
+    },
     {
       "id": "TASK-040",
       "title": "Conectar y blindar persistencia real en Supabase para Time Tracker (time_logs con not-null constraints), cursos de Academy y proyectos con Realtime; simplificar flujo de creación UX/UI para proyectos y cursos con PDFs, y depurar proyectos duplicados ficticios",

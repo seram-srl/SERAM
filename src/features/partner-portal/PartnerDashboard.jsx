@@ -10,7 +10,8 @@ import {
   Wallet, Target, Layers, ArrowRight, ArrowUpRight, ArrowDownRight, Percent,
   PieChart as LucidePie, Activity, CreditCard, Building2,
   FileText, Smartphone, Laptop, Radio, Wifi,
-  UploadCloud, ExternalLink, FileCheck, Paperclip, CheckSquare
+  UploadCloud, ExternalLink, FileCheck, Paperclip, CheckSquare,
+  Play, Pause, RotateCcw
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
@@ -128,7 +129,7 @@ function OverviewModule({ kpis, metrics, partnerPresences, timeLogs, onNavigate,
           activeServices={activeServices || []}
           courses={courses || []}
           timeLogs={timeLogs || []}
-          partnerPresences={partnerPresences || []}
+          partnerPresences={partnerPresences || {}}
           currentSocio={currentSocio}
           onNavigateModule={onNavigate}
         />
@@ -157,7 +158,17 @@ function OverviewModule({ kpis, metrics, partnerPresences, timeLogs, onNavigate,
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {Object.entries(partnerPresences || {}).map(([email, p]) => {
+          {[
+            { email: 'barrientoso2401@gmail.com', name: 'Ing. Diego Barrientos', role: 'Socio Fundador · Especialista SIG & Hidráulica', defaultSector: '02. DIRECCIÓN' },
+            { email: 'fernandoaraujo1912@gmail.com', name: 'Ing. Fernando Araujo', role: 'Socio Fundador · Especialista Ambiental & Legal', defaultSector: '03. OPERACIONES Y PLANIFICACIÓN' },
+            { email: 'sebastiansbs51@gmail.com', name: 'Ing. Fabricio Orosco', role: 'Socio Fundador · Especialista Residuos & Auditoría', defaultSector: '11. EXPERIENCIA Y CAMPO' },
+          ].map((def) => {
+            const email = def.email;
+            const presence = (partnerPresences || {})[email] || {};
+            const p = {
+              ...def,
+              ...presence
+            };
             const partnerLogs = (timeLogs || []).filter(l => l.partner_id === email || l.partner_name === p.name);
             const totalHours = partnerLogs.reduce((acc, curr) => acc + (curr.hours || 0), 0);
             const latestLog = partnerLogs[0] || (p.lastWork ? {
@@ -168,7 +179,8 @@ function OverviewModule({ kpis, metrics, partnerPresences, timeLogs, onNavigate,
             } : null);
 
             const initials = p.name ? p.name.replace('Ing. ', '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'SO';
-            const isOnline = p.isOnline;
+            const isCurrent = currentSocio?.email === email;
+            const isOnline = isCurrent ? true : (presence.isOnline === true);
 
             return (
               <div
@@ -193,14 +205,50 @@ function OverviewModule({ kpis, metrics, partnerPresences, timeLogs, onNavigate,
                       )}
                     </div>
                     <div>
-                      <p className="font-extrabold text-white text-xs leading-tight">{p.name}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="font-extrabold text-white text-xs leading-tight">{p.name}</p>
+                        {isCurrent && (
+                          <span className="text-[8px] font-black bg-amber-400/20 text-amber-300 border border-amber-400/30 px-1.5 py-0.2 rounded-full uppercase">
+                            Tú
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">{p.role}</p>
                     </div>
                   </div>
+                  {isOnline ? (
+                    <span className="text-[8px] font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#00e03c] animate-ping" /> Online
+                    </span>
+                  ) : (
+                    <span className="text-[8px] font-semibold text-slate-500 bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.06]">
+                      Offline
+                    </span>
+                  )}
                 </div>
 
-                {/* Connection Status & Device */}
+                {/* Sector en Oficina 2.5D & Sesión en Vivo */}
                 <div className="space-y-1.5 pt-1 border-t border-white/[0.04]">
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="text-slate-400">Sector Oficina:</span>
+                    <span className="font-extrabold text-amber-300 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-full text-[9px] truncate max-w-[140px] flex items-center gap-1">
+                      <Building2 className="w-2.5 h-2.5 shrink-0 text-amber-400" />
+                      {p.currentSectorName || '02. DIRECCIÓN'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="text-slate-400">Sesión en Curso:</span>
+                    {p.isTimerRunning ? (
+                      <span className="inline-flex items-center gap-1 font-mono font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-2 py-0.5 rounded-full text-[9px] animate-pulse">
+                        <Clock className="w-2.5 h-2.5 text-[#00e03c]" />
+                        {Math.floor((p.timerSeconds || 0) / 3600)}h {Math.floor(((p.timerSeconds || 0) % 3600) / 60)}m {((p.timerSeconds || 0) % 60)}s
+                      </span>
+                    ) : (
+                      <span className="text-slate-400 font-mono text-[9px] bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.06]">
+                        {p.timerSeconds ? `${(p.timerSeconds / 3600).toFixed(1)}h sesión previa` : 'En pausa'}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center justify-between text-[10px]">
                     <span className="text-slate-400">Estado de Conexión:</span>
                     {isOnline ? (
@@ -227,6 +275,16 @@ function OverviewModule({ kpis, metrics, partnerPresences, timeLogs, onNavigate,
                     </span>
                   </div>
                 </div>
+
+                {/* Botón para ubicar en maqueta 2.5D */}
+                <button
+                  type="button"
+                  onClick={() => onNavigate && onNavigate('office')}
+                  className="w-full py-1.5 px-2 bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/30 rounded-xl text-amber-300 font-black text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                >
+                  <MapPin className="w-3 h-3 text-amber-400" />
+                  <span>Ubicar en Oficina Virtual</span>
+                </button>
 
                 {/* Trabajo Realizado Reciente */}
                 <div className="bg-black/30 border border-white/[0.06] rounded-xl p-3 space-y-1.5">
@@ -1493,19 +1551,30 @@ function SpecialistManager({ specialists, handlers }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // MODULE: ACADEMY
 // ─────────────────────────────────────────────────────────────────────────────
-function AcademyModule({ courses, registeredEngineers, handlers }) {
+function AcademyModule({ courses, registeredEngineers, currentSocio, handlers }) {
   const { handleAddCourse, handleUpdateCourse, handleDeleteCourse, triggerToast } = handlers;
   
+  const defaultInstructor = currentSocio?.name || registeredEngineers[0]?.name || 'Ing. Fernando Araujo';
+
   // Create state
   const [form, setForm] = useState({
     title: '',
-    instructor: registeredEngineers[0]?.name || 'Ing. Diego Barrientos',
+    instructor: defaultInstructor,
     type: 'mid_ticket',
+    format: 'video', // 'video' | 'pdf'
+    pages: 120,
+    version: 'Edición 2026',
     price: 350,
     duration: '40 horas prácticas',
     desc: '',
     image: '/assets/3d-backend/gis_satellite_mapping.webp'
   });
+
+  useEffect(() => {
+    if (currentSocio?.name) {
+      setForm(prev => ({ ...prev, instructor: currentSocio.name }));
+    }
+  }, [currentSocio?.name]);
 
   const [coursePdfFile, setCoursePdfFile] = useState(null);
   const [coursePdfUploading, setCoursePdfUploading] = useState(false);
@@ -1517,6 +1586,9 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
     title: '',
     instructor: '',
     type: 'mid_ticket',
+    format: 'video',
+    pages: 120,
+    version: 'Edición 2026',
     price: 0,
     duration: '',
     desc: '',
@@ -1562,22 +1634,29 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
         const uploadRes = await uploadProjectDocument(coursePdfFile, Date.now(), 'academy');
         finalPdfUrl = uploadRes.url;
         finalPdfName = uploadRes.name;
-      } else if (useSampleCoursePdf) {
-        finalPdfUrl = '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf';
-        finalPdfName = 'Syllabus_Curso_Oficial_SERAM_2026.pdf';
+      } else if (useSampleCoursePdf || form.format === 'pdf') {
+        finalPdfUrl = '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf';
+        finalPdfName = form.format === 'pdf' ? `${form.title.slice(0, 30).replace(/\s+/g, '_')}_SERAM.pdf` : 'Syllabus_Curso_Oficial_SERAM_2026.pdf';
       }
 
       await handleAddCourse({
         ...form,
         isPremium: form.type !== 'gratis',
+        hasVideo: form.format === 'video',
+        format: form.format,
+        pages: form.format === 'pdf' ? (Number(form.pages) || 120) : undefined,
+        version: form.version || 'Edición 2026',
         pdfUrl: finalPdfUrl,
         pdfName: finalPdfName
       });
 
       setForm({
         title: '',
-        instructor: registeredEngineers[0]?.name || 'Ing. Diego Barrientos',
+        instructor: currentSocio?.name || registeredEngineers[0]?.name || 'Ing. Fernando Araujo',
         type: 'mid_ticket',
+        format: 'video',
+        pages: 120,
+        version: 'Edición 2026',
         price: 350,
         duration: '40 horas prácticas',
         desc: '',
@@ -1600,6 +1679,9 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
       title: course.title,
       instructor: course.instructor,
       type: course.type || 'mid_ticket',
+      format: course.format || (course.hasVideo === false ? 'pdf' : 'video'),
+      pages: course.pages || 120,
+      version: course.version || 'Edición 2026',
       price: course.price || 0,
       duration: course.duration || '10 horas',
       desc: course.desc || '',
@@ -1629,6 +1711,10 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
       await handleUpdateCourse(editingId, {
         ...editForm,
         isPremium: editForm.type !== 'gratis',
+        hasVideo: editForm.format === 'video',
+        format: editForm.format,
+        pages: editForm.format === 'pdf' ? (Number(editForm.pages) || 120) : undefined,
+        version: editForm.version || 'Edición 2026',
         pdfUrl: finalPdfUrl,
         pdfName: finalPdfName
       });
@@ -1664,6 +1750,48 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
                   <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Título del Documento / Curso *</label>
                   <input required className={inputCls} placeholder="Ej: Guía Técnica de Lombricultura Urbana" value={form.title} onChange={e => setForm(s => ({ ...s, title: e.target.value }))} />
                 </div>
+
+                {/* Selector de Modalidad */}
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Modalidad del Recurso *</label>
+                  <select
+                    className={selectCls}
+                    value={form.format}
+                    onChange={e => setForm(s => ({
+                      ...s,
+                      format: e.target.value,
+                      duration: e.target.value === 'pdf' ? `${s.pages || 120} págs. (PDF)` : '40 horas prácticas'
+                    }))}
+                  >
+                    <option value="video">🎥 Curso con Videos HD (Plataforma Multimedia)</option>
+                    <option value="pdf">📄 Documento Entregable / Guía Técnica (Modalidad PDF)</option>
+                  </select>
+                </div>
+
+                {form.format === 'pdf' && (
+                  <div className="grid grid-cols-2 gap-2.5 p-2.5 bg-emerald-500/[0.04] border border-emerald-500/20 rounded-xl">
+                    <div>
+                      <label className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider block mb-1">Páginas Técnicas</label>
+                      <input
+                        type="number"
+                        min={1}
+                        className={inputCls}
+                        placeholder="Ej: 180"
+                        value={form.pages}
+                        onChange={e => setForm(s => ({ ...s, pages: +e.target.value, duration: `${e.target.value} págs. (PDF)` }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider block mb-1">Versión / Edición</label>
+                      <input
+                        className={inputCls}
+                        placeholder="Ej: Edición 2026"
+                        value={form.version}
+                        onChange={e => setForm(s => ({ ...s, version: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-2.5">
                   <div>
@@ -1770,6 +1898,48 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
                   <input required className={inputCls} placeholder="Título" value={editForm.title} onChange={e => setEditForm(s => ({ ...s, title: e.target.value }))} />
                 </div>
 
+                {/* Selector de Modalidad Edit */}
+                <div>
+                  <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Modalidad del Recurso</label>
+                  <select
+                    className={selectCls}
+                    value={editForm.format}
+                    onChange={e => setEditForm(s => ({
+                      ...s,
+                      format: e.target.value,
+                      duration: e.target.value === 'pdf' ? `${s.pages || 120} págs. (PDF)` : s.duration
+                    }))}
+                  >
+                    <option value="video">🎥 Curso con Videos HD (Plataforma Multimedia)</option>
+                    <option value="pdf">📄 Documento Entregable / Guía Técnica (Modalidad PDF)</option>
+                  </select>
+                </div>
+
+                {editForm.format === 'pdf' && (
+                  <div className="grid grid-cols-2 gap-2 p-2.5 bg-emerald-500/[0.04] border border-emerald-500/20 rounded-xl">
+                    <div>
+                      <label className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider block mb-1">Páginas Técnicas</label>
+                      <input
+                        type="number"
+                        min={1}
+                        className={inputCls}
+                        placeholder="180"
+                        value={editForm.pages}
+                        onChange={e => setEditForm(s => ({ ...s, pages: +e.target.value, duration: `${e.target.value} págs. (PDF)` }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider block mb-1">Versión / Edición</label>
+                      <input
+                        className={inputCls}
+                        placeholder="Edición 2026"
+                        value={editForm.version}
+                        onChange={e => setEditForm(s => ({ ...s, version: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">Categoría</label>
@@ -1872,10 +2042,17 @@ function AcademyModule({ courses, registeredEngineers, handlers }) {
                     </div>
                     <div>
                       <h5 className="font-extrabold text-sm text-white">{c.title.replace(/\*/g, '')}</h5>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-500 mt-1 font-mono">
+                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10px] text-slate-500 mt-1 font-mono">
+                        <span className={`px-1.5 py-0.5 rounded font-bold text-[9px] ${
+                          c.format === 'pdf' || c.hasVideo === false
+                            ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                            : 'bg-blue-500/15 text-blue-300 border border-blue-500/30'
+                        }`}>
+                          {c.format === 'pdf' || c.hasVideo === false ? '📄 PDF Entregable' : '🎥 Video HD'}
+                        </span>
                         <span className="text-[#00e03c] font-semibold uppercase">{c.type?.replace('_', ' ')}</span>
                         <span>•</span>
-                        <span>Instructor: {c.instructor}</span>
+                        <span>{c.instructor}</span>
                         <span>•</span>
                         <span>{c.duration}</span>
                         <span>•</span>
@@ -2647,22 +2824,90 @@ function FinancesModule() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MODULE: TIME TRACKER
+// MODULE: TIME TRACKER (Sesión en Vivo, Cronómetro Multi-Socio y Horas Efectivas)
 // ─────────────────────────────────────────────────────────────────────────────
-function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers }) {
+function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, onNavigate }) {
   const { handleAddTimeLog, handleDeleteTimeLog, triggerToast } = handlers;
-  const [selectedProjectId, setSelectedProjectId] = useState(activeServices[0]?.id || '');
+  const {
+    activeTimer,
+    startPartnerTimer,
+    pausePartnerTimer,
+    resetPartnerTimer,
+    savePartnerTimerLog,
+    setPartnerSector,
+    partnerPresences
+  } = useApp();
+
+  const [selectedProjectId, setSelectedProjectId] = useState(() => activeTimer?.projectId || activeServices[0]?.id || 101);
   const [hours, setHours] = useState('');
   const [description, setDescription] = useState('');
+
+  // Modal / Inline Drawer para guardar la sesión activa
+  const [showSaveLogModal, setShowSaveLogModal] = useState(false);
+  const [saveLogDesc, setSaveLogDesc] = useState('');
+  const [customSaveHours, setCustomSaveHours] = useState('');
 
   const inputCls = "w-full text-xs px-3 py-2 bg-white/[0.08] border border-white/[0.15] rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-[#00e03c] transition-all";
   const selectCls = "w-full text-xs px-3 py-1.5 bg-white/[0.08] border border-white/[0.15] rounded-lg text-white focus:outline-none focus:border-[#00e03c] transition-all [&>option]:bg-[#0d1622] [&>option]:text-white";
 
-  // Partners list for meritocracy calculations
-  const partnersList = [
-    { email: 'barrientoso2401@gmail.com', name: 'Ing. Diego Barrientos' },
-    { email: 'fernandoaraujo1912@gmail.com', name: 'Ing. Fernando Araujo' },
-    { email: 'sebastiansbs51@gmail.com', name: 'Ing. Fabricio Orosco' }
+  // Despachos y Sectores disponibles en la Oficina 2.5D
+  const OFFICE_SECTORS_LIST = [
+    { id: 'direction', name: '02. DIRECCIÓN (Presidencia & Estrategia)', wing: 'Ala Ejecutiva' },
+    { id: 'operations', name: '03. OPERACIONES (Hidráulica, Riego & Obras)', wing: 'Ala Técnica' },
+    { id: 'experience', name: '11. EXPERIENCIA Y CAMPO (Drones & Monitoreo)', wing: 'Ala Operativa' },
+    { id: 'commercial', name: '04. COMERCIAL (Licitaciones & SICOES)', wing: 'Ala Comercial' },
+    { id: 'service', name: '07. SERVICE (Consultoría Ambiental & SIG)', wing: 'Núcleo Central' },
+    { id: 'research', name: '13. INVESTIGACIÓN (Laboratorio de Mercurio Hg)', wing: 'Ala Científica' },
+    { id: 'marketing', name: '06. MARKETING Y VENTAS (Growth & Pipeline)', wing: 'Núcleo Central' },
+    { id: 'finances', name: '05. FINANZAS (Flujo de Caja, VAN & TIR)', wing: 'Núcleo Central' },
+    { id: 'academy', name: '08. ACADEMY (Cursos & Capacitación)', wing: 'Ala Académica' },
+    { id: 'legal', name: '10. LEGAL (Ley 1333 & Minería 535)', wing: 'Ala Legal' },
+    { id: 'store', name: '09. STORE (Kits & Equipos Ambientales)', wing: 'Ala Comercial' },
+    { id: 'admin', name: '01. ADMINISTRACIÓN (Gobierno & Socios)', wing: 'Ala Ejecutiva' },
+    { id: 'social_media', name: '12. SOCIAL MEDIA (Estudio Audiovisual)', wing: 'Ala Creativa' },
+    { id: 'meeting', name: 'Sala de Directorio (Reunión General)', wing: 'Zona Central' },
+    { id: 'recreation', name: 'Área de Café & Descanso', wing: 'Zona Social' },
+  ];
+
+  const formatTimer = (totalSec) => {
+    const sec = Math.max(0, Math.floor(totalSec || 0));
+    const hrs = Math.floor(sec / 3600);
+    const mins = Math.floor((sec % 3600) / 60);
+    const secs = sec % 60;
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleStartTimer = () => {
+    const project = activeServices.find(p => p.id === parseInt(selectedProjectId) || p.id === selectedProjectId);
+    const pTitle = project ? (project.client || project.type || 'Proyecto Seleccionado') : 'Consultoría SERAM';
+    startPartnerTimer(selectedProjectId, pTitle);
+  };
+
+  const handleOpenSaveModal = () => {
+    const computedHours = Math.max(0.1, parseFloat(((activeTimer?.seconds || 0) / 3600).toFixed(2)));
+    setCustomSaveHours(computedHours.toString());
+    setSaveLogDesc('');
+    setShowSaveLogModal(true);
+  };
+
+  const handleConfirmSaveSession = async (e) => {
+    e.preventDefault();
+    if (!saveLogDesc || saveLogDesc.trim() === '') {
+      triggerToast('Ingresa una breve descripción de la actividad efectuada', 'error');
+      return;
+    }
+    const success = await savePartnerTimerLog(saveLogDesc, customSaveHours ? parseFloat(customSaveHours) : null);
+    if (success) {
+      setShowSaveLogModal(false);
+      setSaveLogDesc('');
+    }
+  };
+
+  // Partners list for meritocracy calculations & team live monitor
+  const partnersConfig = [
+    { email: 'barrientoso2401@gmail.com', name: 'Ing. Diego Barrientos', role: 'Socio Fundador · Presidencia & SIG', defaultRoom: '02. DIRECCIÓN' },
+    { email: 'fernandoaraujo1912@gmail.com', name: 'Ing. Fernando Araujo', role: 'Socio Fundador · Hidráulica & Obras', defaultRoom: '03. OPERACIONES' },
+    { email: 'sebastiansbs51@gmail.com', name: 'Ing. Fabricio Orosco', role: 'Socio Fundador · Residuos & Campo', defaultRoom: '11. EXPERIENCIA Y CAMPO' }
   ];
 
   // Calcular horas totales registradas por este socio
@@ -2681,11 +2926,11 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers })
       const labCosts = p.labCosts || 0;
       const subcontractorCosts = p.subcontractorCosts || 0;
       const isSiete = p.taxRegime === 'Régimen SIETE (5%)';
-      const taxes = isSiete ? budget * 0.05 : budget * 0.16; // SIETE 5%; General 16%
+      const taxes = isSiete ? budget * 0.05 : budget * 0.16;
       const UN = Math.max(0, budget - taxes - labCosts - subcontractorCosts);
 
       // Calcular participación por socio
-      const shares = partnersList.map(u => {
+      const shares = partnersConfig.map(u => {
         const partnerLogs = projectLogs.filter(l => l.partner_id === u.email || l.partner_name === u.name);
         const partnerH = partnerLogs.reduce((acc, curr) => acc + curr.hours, 0);
         const sharePct = HT > 0 ? (partnerH / HT) : 0;
@@ -2708,7 +2953,7 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers })
       };
     });
 
-  const handleSubmit = (e) => {
+  const handleManualSubmit = (e) => {
     e.preventDefault();
     if (!selectedProjectId || !hours || !description) {
       triggerToast('Completa todos los campos del registro', 'error');
@@ -2723,9 +2968,401 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers })
     setDescription('');
   };
 
+  const timerSec = activeTimer?.seconds || 0;
+  const isTimerRunning = activeTimer?.isRunning || false;
+  const dailyTargetHours = 4.5;
+  const progressPct = Math.min(100, Math.round(((timerSec / 3600) / dailyTargetHours) * 100));
+
   return (
-    <div className="space-y-6">
-      {/* Resumen de Horas */}
+    <div className="space-y-6 text-left">
+      
+      {/* ── PANEL PRINCIPAL: SESIÓN EN VIVO & CRONÓMETRO MULTI-SOCIO ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* COLUMNA 1: TU SESIÓN ACTIVA (TIME TRACKER EN TIEMPO REAL) (7 cols) */}
+        <div className="lg:col-span-7 bg-gradient-to-br from-[#0c1622]/95 via-[#0b131f]/95 to-[#080d16]/95 border border-[#00e03c]/30 rounded-3xl p-6 sm:p-7 backdrop-blur-xl shadow-2xl space-y-6 relative overflow-hidden">
+          {/* Luz de fondo ambiental */}
+          <div className="absolute -top-24 -left-24 w-60 h-60 bg-[#00e03c]/10 rounded-full blur-3xl pointer-events-none" />
+          
+          {/* Header de la Sesión */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] pb-4">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-xs ${
+                isTimerRunning
+                  ? 'bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/40 ring-4 ring-[#00e03c]/10 animate-pulse'
+                  : 'bg-white/[0.05] text-slate-400 border border-white/[0.10]'
+              }`}>
+                <Clock className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
+                  Time Tracker en Vivo · Intranet SERAM
+                </span>
+                <h3 className="text-base font-black text-white flex items-center gap-2">
+                  Sesión de Trabajo en Tiempo Real
+                  {isTimerRunning && (
+                    <span className="inline-flex items-center gap-1.5 text-[9px] font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#00e03c] animate-ping" /> Jornada Activa
+                    </span>
+                  )}
+                </h3>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-slate-400 font-mono">Meta Diaria: {dailyTargetHours}h</span>
+              <span className="text-xs font-black text-[#00e03c] bg-[#00e03c]/10 px-2.5 py-1 rounded-xl border border-[#00e03c]/20">
+                {progressPct}%
+              </span>
+            </div>
+          </div>
+
+          {/* Gran Display Cronómetro Digital */}
+          <div className="bg-black/50 border border-white/[0.08] rounded-2xl p-6 text-center space-y-3 relative overflow-hidden">
+            <div className="flex flex-col items-center justify-center">
+              <span className="text-[11px] font-mono text-slate-400 uppercase tracking-widest mb-1">
+                Tiempo Transcurrido (Horas : Minutos : Segundos)
+              </span>
+              <div className="font-mono text-4xl sm:text-6xl font-black text-[#00e03c] tracking-widest drop-shadow-[0_0_25px_rgba(0,224,60,0.35)] select-all">
+                {formatTimer(timerSec)}
+              </div>
+              <p className="text-xs text-slate-400 mt-2 font-mono">
+                Equivalente efectivo: <strong className="text-white">{((timerSec / 3600)).toFixed(2)} horas</strong> decimales
+              </p>
+            </div>
+
+            {/* Barra de Progreso Dinámica */}
+            <div className="w-full bg-white/[0.06] h-2 rounded-full overflow-hidden mt-3">
+              <div
+                className="h-full bg-gradient-to-r from-amber-400 via-[#00e03c] to-emerald-400 rounded-full transition-all duration-500 shadow-[0_0_12px_rgba(0,224,60,0.5)]"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Selectores de Contexto: Proyecto & Sector en Oficina 2.5D */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                <Briefcase className="w-3.5 h-3.5 text-[#00e03c]" /> Proyecto / Propuesta Asignada
+              </label>
+              <select
+                className={selectCls}
+                value={selectedProjectId}
+                onChange={e => {
+                  const val = e.target.value;
+                  setSelectedProjectId(val);
+                  const p = activeServices.find(item => item.id === parseInt(val) || item.id === val);
+                  if (p && isTimerRunning) {
+                    startPartnerTimer(val, p.client || p.type || 'Proyecto');
+                  }
+                }}
+              >
+                {activeServices.map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.isProposal || p.tag === 'Propuesta' ? '📋 [PROPUESTA] ' : '💼 '}
+                    {p.client} — {p.type.slice(0, 32)}...
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 text-amber-400" /> Sector Físico en Oficina 2.5D
+              </label>
+              <select
+                className={selectCls}
+                value={activeTimer?.sectorId || 'direction'}
+                onChange={e => {
+                  const sId = e.target.value;
+                  const item = OFFICE_SECTORS_LIST.find(s => s.id === sId);
+                  setPartnerSector(sId, null, item?.name);
+                  triggerToast(`Avatar reubicado en: ${item?.name}`, 'info');
+                }}
+              >
+                {OFFICE_SECTORS_LIST.map(sec => (
+                  <option key={sec.id} value={sec.id}>
+                    {sec.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Botonera de Acción en Vivo */}
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            {!isTimerRunning ? (
+              <button
+                type="button"
+                onClick={handleStartTimer}
+                className="flex-1 py-3 px-5 rounded-2xl bg-[#00e03c] hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(0,224,60,0.3)] transition-all active:scale-95"
+              >
+                <Play className="w-4 h-4 fill-current" />
+                <span>Iniciar Sesión en Vivo</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={pausePartnerTimer}
+                className="flex-1 py-3 px-5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(251,191,36,0.3)] transition-all active:scale-95"
+              >
+                <Pause className="w-4 h-4 fill-current" />
+                <span>Pausar Jornada</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={handleOpenSaveModal}
+              disabled={timerSec < 60}
+              className="py-3 px-4 rounded-2xl bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/30 text-blue-300 font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all disabled:opacity-40 disabled:pointer-events-none active:scale-95"
+              title="Registrar las horas efectivas directamente a la base de datos de proyectos"
+            >
+              <FileCheck className="w-4 h-4 text-blue-400" />
+              <span>Registrar a Proyecto</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (confirm('¿Reiniciar el cronómetro de la sesión a 00:00:00?')) {
+                  resetPartnerTimer();
+                  triggerToast('Cronómetro reiniciado a cero', 'info');
+                }
+              }}
+              className="py-3 px-3.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.10] text-slate-400 hover:text-white text-xs font-bold transition-all"
+              title="Reiniciar a cero"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* COLUMNA 2: MONITOR DEL EQUIPO DE SOCIOS EN TIEMPO REAL (5 cols) */}
+        <div className="lg:col-span-5 bg-gradient-to-br from-[#0c1622]/95 via-[#0b131f]/95 to-[#080d16]/95 border border-emerald-500/25 rounded-3xl p-6 sm:p-7 backdrop-blur-xl shadow-2xl flex flex-col justify-between space-y-4">
+          <div>
+            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3 mb-4">
+              <div className="flex items-center gap-2.5">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00e03c] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-[#00e03c]"></span>
+                </span>
+                <div>
+                  <h4 className="text-sm font-black text-white tracking-tight">Monitor del Equipo de Socios</h4>
+                  <p className="text-[10px] text-slate-400">Presencia en vivo, sector 2.5D y cronómetro activo</p>
+                </div>
+              </div>
+              <span className="text-[9px] font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-2.5 py-1 rounded-full uppercase tracking-widest">
+                En Vivo
+              </span>
+            </div>
+
+            {/* Listado de los 3 Socios con su estado en vivo */}
+            <div className="space-y-3.5">
+              {partnersConfig.map(partner => {
+                const presence = partnerPresences?.[partner.email] || {};
+                const isOnline = presence.isOnline ?? (partner.email === currentSocio?.email);
+                const isTimerOn = presence.isTimerRunning || false;
+                const pSecs = presence.timerSeconds || 0;
+                const initials = partner.name.replace('Ing. ', '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
+                return (
+                  <div
+                    key={partner.email}
+                    className={`p-3.5 rounded-2xl border transition-all ${
+                      isOnline
+                        ? 'bg-white/[0.03] border-[#00e03c]/35 shadow-md shadow-[#00e03c]/5'
+                        : 'bg-white/[0.015] border-white/[0.06]'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className={`relative w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs shrink-0 ${
+                          isOnline
+                            ? 'bg-[#00e03c]/15 text-[#00e03c] border border-[#00e03c]/30 ring-2 ring-[#00e03c]/20'
+                            : 'bg-white/[0.05] text-slate-400 border border-white/[0.08]'
+                        }`}>
+                          {initials}
+                          {isOnline && (
+                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#00e03c] rounded-full border-2 border-[#0c131f] animate-pulse" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-extrabold text-white text-xs leading-tight">{partner.name}</p>
+                          <span className="text-[9px] text-slate-400 block mt-0.5">{partner.role}</span>
+                        </div>
+                      </div>
+
+                      {/* Badge Online */}
+                      {isOnline ? (
+                        <span className="inline-flex items-center gap-1 text-[8px] font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-2 py-0.5 rounded-full uppercase">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#00e03c] animate-ping" /> Online
+                        </span>
+                      ) : (
+                        <span className="text-[8px] font-semibold text-slate-500 bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.06]">
+                          Offline
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Sector y Cronómetro */}
+                    <div className="mt-2.5 pt-2 border-t border-white/[0.04] grid grid-cols-2 gap-2 text-[10px]">
+                      <div>
+                        <span className="text-slate-500 block text-[9px] uppercase font-bold">Sector Oficina:</span>
+                        <span className="font-bold text-amber-300 flex items-center gap-1 truncate mt-0.5">
+                          <Building2 className="w-3 h-3 text-amber-400 shrink-0" />
+                          {presence.currentSectorName || partner.defaultRoom}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-slate-500 block text-[9px] uppercase font-bold">Cronómetro Sesión:</span>
+                        {isTimerOn ? (
+                          <span className="font-mono font-black text-[#00e03c] inline-flex items-center gap-1 animate-pulse mt-0.5">
+                            <Clock className="w-3 h-3 text-[#00e03c]" />
+                            {formatTimer(pSecs)}
+                          </span>
+                        ) : (
+                          <span className="font-mono text-slate-400 block mt-0.5">
+                            {pSecs ? `${(pSecs / 3600).toFixed(1)}h pausa` : 'En pausa'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Tarea / Actividad */}
+                    <div className="mt-2 bg-black/30 px-2.5 py-1.5 rounded-xl border border-white/[0.04] flex items-center justify-between text-[10px]">
+                      <span className="text-slate-400 truncate max-w-[200px]" title={presence.activeTaskTitle || 'Consultoría técnica'}>
+                        📌 {presence.activeTaskTitle || 'Consultoría ambiental & proyectos'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onNavigate && onNavigate('office')}
+                        className="text-[9px] font-black text-amber-400 hover:text-amber-200 underline ml-2 flex items-center gap-0.5 shrink-0"
+                      >
+                        Ubicar <ExternalLink className="w-2.5 h-2.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onNavigate && onNavigate('office')}
+            className="w-full py-2.5 px-4 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 hover:from-amber-500/30 hover:to-yellow-500/30 border border-amber-400/40 rounded-xl text-amber-300 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95"
+          >
+            <Building2 className="w-4 h-4 text-amber-400" />
+            <span>Abrir Oficina Virtual 2.5D (13 Despachos)</span>
+          </button>
+        </div>
+
+      </div>
+
+      {/* ── MODAL FLOTANTE: REGISTRAR SESIÓN ACTIVA A PROYECTO ── */}
+      <AnimatePresence>
+        {showSaveLogModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#0b131e] border border-[#00e03c]/40 rounded-3xl p-6 sm:p-7 max-w-lg w-full space-y-4 shadow-2xl text-left"
+            >
+              <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-[#00e03c]/20 text-[#00e03c] flex items-center justify-center">
+                    <FileCheck className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-white">Registrar Horas Efectivas</h3>
+                    <p className="text-[10px] text-slate-400">Asignar tiempo acumulado a la base de datos de proyectos</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowSaveLogModal(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleConfirmSaveSession} className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wider block mb-1">
+                    Proyecto / Propuesta de Destino
+                  </label>
+                  <select
+                    className={selectCls}
+                    value={activeTimer?.projectId || selectedProjectId}
+                    onChange={e => setSelectedProjectId(e.target.value)}
+                  >
+                    {activeServices.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.client} — {p.type.slice(0, 35)}...
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wider block mb-1">
+                    Horas Calculadas (Ajustables)
+                  </label>
+                  <input
+                    required
+                    type="number"
+                    step="0.1"
+                    min="0.1"
+                    className={inputCls}
+                    value={customSaveHours}
+                    onChange={e => setCustomSaveHours(e.target.value)}
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1 font-mono">
+                    Cronómetro actual: {formatTimer(timerSec)} ({((timerSec / 3600)).toFixed(2)}h)
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wider block mb-1">
+                    Descripción del Trabajo Realizado *
+                  </label>
+                  <textarea
+                    required
+                    rows={3}
+                    className={`${inputCls} resize-none`}
+                    placeholder="Ej: Modelación geoespacial de vulnerabilidad hídrica en ArcGIS Pro y redacción de informe pericial..."
+                    value={saveLogDesc}
+                    onChange={e => setSaveLogDesc(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex gap-2.5 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowSaveLogModal(false)}
+                    className="flex-1 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 font-bold text-xs"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-2.5 rounded-xl bg-[#00e03c] hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase flex items-center justify-center gap-1.5 shadow-lg shadow-[#00e03c]/20"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>Guardar y Resetear</span>
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── SECCIÓN INFERIOR: RESUMEN HISTÓRICO Y FORMULARIO MANUAL ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <GlassCard className="p-5 flex items-center justify-between">
           <div className="space-y-1">
@@ -2750,13 +3387,13 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers })
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Formulario de Registro */}
+        {/* Formulario de Registro Manual Retroactivo */}
         <GlassCard className="p-6 space-y-4 h-fit">
           <div className="flex items-center gap-2 border-b border-white/[0.06] pb-3">
             <Plus className="w-4 h-4 text-[#00e03c]" />
-            <h3 className="font-extrabold text-white text-sm">Registrar Tiempo</h3>
+            <h3 className="font-extrabold text-white text-sm">Registro Manual Retroactivo</h3>
           </div>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleManualSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Proyecto</label>
               <select
@@ -2803,9 +3440,9 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers })
 
             <button
               type="submit"
-              className="w-full bg-[#00e03c] text-slate-950 py-2.5 rounded-xl font-black text-xs uppercase hover:bg-emerald-400 flex items-center justify-center gap-1.5 transition-colors"
+              className="w-full bg-[#00e03c] text-slate-950 py-2.5 rounded-xl font-black text-xs uppercase hover:bg-emerald-400 flex items-center justify-center gap-1.5 transition-colors shadow-md"
             >
-              <Clock className="w-4 h-4" /> Registrar Horas
+              <Clock className="w-4 h-4" /> Registrar Horas Manualmente
             </button>
           </form>
         </GlassCard>
@@ -2848,17 +3485,21 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers })
                         <span className="font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-2 py-0.5 rounded-full text-[10px]">{l.hours}h</span>
                       </td>
                       <td className="p-3 text-[10px] text-slate-500 font-mono">
-                        {new Date(l.logged_at).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                        {new Date(l.logged_at).toLocaleDateString([], { day: '2-digit', month: 'short' })}
                       </td>
                       <td className="p-3">
-                        {(l.partner_id === currentSocio?.email || l.partner_id === currentSocio?.id || l.partner_name === currentSocio?.name) && (
-                          <button
-                            onClick={() => { if (confirm('¿Eliminar este registro de horas?')) handleDeleteTimeLog(l.id); }}
-                            className="p-1.5 bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (confirm('¿Eliminar este registro de tiempo?')) {
+                              handleDeleteTimeLog(l.id);
+                            }
+                          }}
+                          className="p-1.5 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                          title="Eliminar registro"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -2869,33 +3510,39 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers })
         </GlassCard>
       </div>
 
-      {/* Módulo Meritocrático */}
+      {/* ── CALCULADORA MERITOCRÁTICA DE HONORARIOS POR PROYECTO ── */}
       <GlassCard className="p-6 space-y-4">
-        <div className="flex items-center gap-2 border-b border-white/[0.06] pb-3">
-          <Award className="w-4 h-4 text-amber-400" />
+        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
           <div>
-            <h3 className="font-extrabold text-white text-sm">Distribución Meritocrática de Honorarios</h3>
-            <p className="text-[10px] text-slate-500 mt-0.5">La utilidad neta de cada proyecto se reparte proporcionalmente a las horas registradas por cada socio.</p>
+            <h3 className="font-extrabold text-white text-sm">Distribución Meritocrática de Utilidades</h3>
+            <p className="text-[10px] text-slate-500">Cálculo en base a Horas Efectivas Totales trabajadas por proyecto</p>
           </div>
+          <span className="text-[9px] font-black text-amber-400 bg-amber-400/10 border border-amber-400/20 px-3 py-1 rounded-full uppercase">
+            Estatutos SERAM SRL
+          </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {meritocraticShares.map(ms => (
-            <div key={ms.id} className="p-4 bg-white/[0.03] border border-white/[0.06] rounded-xl space-y-3">
-              <div>
-                <p className="font-extrabold text-xs text-white truncate">{ms.client}</p>
-                <p className="text-[9px] text-slate-500 truncate">{ms.type}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {meritocraticShares.map(p => (
+            <div key={p.id} className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] space-y-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h4 className="font-bold text-white text-xs">{p.client}</h4>
+                  <p className="text-[10px] text-slate-400 truncate max-w-xs">{p.type}</p>
+                </div>
+                <span className="font-mono text-xs font-black text-[#00e03c]">
+                  UN: Bs. {p.netProfit.toLocaleString()}
+                </span>
               </div>
-              <div className="flex justify-between text-[10px] text-slate-400">
-                <span>Utilidad Neta: <strong className="text-[#00e03c]">Bs. {ms.netProfit.toLocaleString()}</strong></span>
-                <span>Horas Totales: <strong>{ms.totalHours.toFixed(1)}h</strong></span>
-              </div>
-              <div className="space-y-1.5 border-t border-white/[0.04] pt-2">
-                {ms.shares.map(s => (
-                  <div key={s.name} className="flex justify-between items-center text-[10px]">
-                    <span className="text-slate-300 font-semibold">{s.name}</span>
-                    <span className="text-slate-500 font-mono">{s.hours.toFixed(1)}h ({s.percent}%)</span>
-                    <span className="font-bold text-white">Bs. {s.shareBs.toLocaleString()}</span>
+
+              <div className="space-y-2 pt-2 border-t border-white/[0.04]">
+                {p.shares.map(s => (
+                  <div key={s.name} className="flex items-center justify-between text-xs">
+                    <span className="text-slate-300 font-medium">{s.name}</span>
+                    <div className="flex items-center gap-3 font-mono">
+                      <span className="text-slate-400 text-[10px]">{s.hours}h ({s.percent}%)</span>
+                      <span className="font-bold text-white">Bs. {s.shareBs.toLocaleString()}</span>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -2903,6 +3550,7 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers })
           ))}
         </div>
       </GlassCard>
+
     </div>
   );
 }
@@ -3024,7 +3672,7 @@ function InlinePartnerLogin({ registeredEngineers, onLogin }) {
 // ─────────────────────────────────────────────────────────────────────────────
 export default function PartnerDashboard() {
   const {
-    activeRole, currentSocio, handleLogoutPartner, handlePartnerLogin,
+    activeRole, currentSocio, handleLogoutPartner, handlePartnerLogin, handleSwitchPartner,
     registeredUsers, courses, activeServices, experiences, productList,
     municipalProposals, handleAddMunicipalProposal, handleEditMunicipalProposal, handleDeleteMunicipalProposal,
     timeLogs, handleAddTimeLog, handleDeleteTimeLog,
@@ -3200,6 +3848,35 @@ export default function PartnerDashboard() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              {/* Selector Rápido de Perfil de Socio para Verificar Multisesión en Tiempo Real */}
+              <div className="flex items-center gap-1 bg-black/40 border border-white/10 rounded-full p-1 backdrop-blur-md">
+                <span className="text-[9px] font-bold text-slate-400 px-2 uppercase tracking-wider hidden sm:inline">
+                  Ver como:
+                </span>
+                {safeEngineers.map((eng) => {
+                  const isCurrent = activeSocio?.email === eng.email;
+                  const presence = partnerPresences?.[eng.email];
+                  const isOnline = isCurrent || (presence?.isOnline === true);
+                  const initials = eng.name?.replace('Ing. ', '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'SO';
+                  return (
+                    <button
+                      key={eng.email}
+                      type="button"
+                      onClick={() => handleSwitchPartner && handleSwitchPartner(eng.email)}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold transition-all cursor-pointer ${
+                        isCurrent
+                          ? 'bg-[#00e03c] text-slate-950 shadow-md shadow-[#00e03c]/20'
+                          : 'bg-white/[0.04] text-slate-300 hover:bg-white/[0.1] hover:text-white'
+                      }`}
+                      title={`${eng.name} · ${isOnline ? 'En línea' : 'Ausente'} (Haz clic para alternar)`}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? (isCurrent ? 'bg-slate-950' : 'bg-[#00e03c] animate-pulse') : 'bg-slate-500'}`} />
+                      <span>{initials}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
               <span className="text-[9px] font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-3 py-1.5 rounded-full uppercase tracking-widest flex items-center gap-1.5 shadow-sm shadow-[#00e03c]/5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#00e03c] animate-ping" />
                 <span className="w-1.5 h-1.5 rounded-full bg-[#00e03c]" />
@@ -3214,11 +3891,11 @@ export default function PartnerDashboard() {
           {/* Module Content — Permanente al 100% sin desvanecimiento */}
           <div key={activeModule} className="opacity-100 visible space-y-8">
             {activeModule === 'overview'    && <OverviewModule kpis={kpis} metrics={metrics} partnerPresences={partnerPresences} timeLogs={timeLogs || []} onNavigate={setActiveModule} activeServices={activeServices || []} courses={courses || []} currentSocio={activeSocio} />}
-            {activeModule === 'office'      && <VirtualOfficeView activeServices={activeServices || []} courses={courses || []} timeLogs={timeLogs || []} partnerPresences={partnerPresences || []} currentSocio={activeSocio} onNavigateModule={setActiveModule} />}
+            {activeModule === 'office'      && <VirtualOfficeView activeServices={activeServices || []} courses={courses || []} timeLogs={timeLogs || []} partnerPresences={partnerPresences || {}} currentSocio={activeSocio} onNavigateModule={setActiveModule} />}
             {activeModule === 'activities'  && <ActivitiesAndClientsModule currentSocio={activeSocio} />}
             {activeModule === 'services'    && <ServicesModule activeServices={activeServices || []} registeredEngineers={safeEngineers} handlers={handlers} publicServices={publicServices || []} specialists={specialists || []} municipalProposals={municipalProposals || []} />}
-            {activeModule === 'timetracker' && <TimeTrackerModule timeLogs={timeLogs || []} activeServices={activeServices || []} currentSocio={activeSocio} handlers={handlers} />}
-            {activeModule === 'academy'     && <AcademyModule courses={courses || []} registeredEngineers={safeEngineers} handlers={handlers} />}
+            {activeModule === 'timetracker' && <TimeTrackerModule timeLogs={timeLogs || []} activeServices={activeServices || []} currentSocio={activeSocio} handlers={handlers} onNavigate={setActiveModule} />}
+            {activeModule === 'academy'     && <AcademyModule courses={courses || []} registeredEngineers={safeEngineers} currentSocio={activeSocio} handlers={handlers} />}
             {activeModule === 'experience'  && <ExperienceModule experiences={experiences || []} handlers={handlers} />}
             {activeModule === 'store'       && <StoreModule productList={productList || []} handlers={handlers} />}
             {activeModule === 'users'       && <UsersModule registeredUsers={registeredUsers || []} handlers={handlers} partnerPresences={partnerPresences} />}

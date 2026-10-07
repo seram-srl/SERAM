@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import soundEngine from './OfficeSoundEngine';
 import officeHdImage from '../../assets/virtual-office/seram_isometric_office_hd.jpg';
+import { useApp } from '../../context/AppContext';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DATA: 13 DESPACHOS ISOMÉTRICOS 2.5D (CALIBRADOS EN COORDENADAS %)
@@ -304,11 +305,20 @@ export const OFFICE_ROOMS = [
 // ─────────────────────────────────────────────────────────────────────────────
 
 function HumanPartnerSprite({ partner, isWalking }) {
+  const isOnline = partner.isOnline;
+  const isCurrent = partner.isCurrent;
+
   return (
-    <div className="relative flex flex-col items-center group cursor-pointer">
-      {/* Halo de Presencia */}
-      <span className={`absolute -inset-1 rounded-full blur-sm opacity-75 ${
-        partner.isWorking ? 'bg-[#00e03c] animate-pulse' : 'bg-amber-400'
+    <div className={`relative flex flex-col items-center group cursor-pointer transition-opacity duration-300 ${
+      isOnline ? 'opacity-100' : 'opacity-60 hover:opacity-90'
+    }`}>
+      {/* Halo de Presencia en Tiempo Real */}
+      <span className={`absolute -inset-1 rounded-full blur-sm ${
+        isCurrent
+          ? 'bg-amber-400/80 animate-pulse ring-2 ring-amber-300'
+          : isOnline
+            ? (partner.isWorking ? 'bg-[#00e03c] animate-pulse opacity-90' : 'bg-emerald-500/80 opacity-70')
+            : 'bg-slate-700/40 opacity-40'
       }`} />
 
       {/* Miniatura Humana 2.5D Isométrica */}
@@ -321,7 +331,7 @@ function HumanPartnerSprite({ partner, isWalking }) {
         }`}
       >
         {/* Sombra proyectada sobre el parquet */}
-        <ellipse cx="17" cy="45" rx="10" ry="3.5" fill="rgba(0,0,0,0.4)" />
+        <ellipse cx="17" cy="45" rx="10" ry="3.5" fill={isOnline ? 'rgba(0,0,0,0.45)' : 'rgba(0,0,0,0.2)'} />
 
         {/* Piernas con pantalón de faena técnico oscuro */}
         <rect x="11" y="28" width="4.5" height="14" rx="2" fill="#1e293b" />
@@ -332,7 +342,7 @@ function HumanPartnerSprite({ partner, isWalking }) {
         <ellipse cx="21" cy="42" rx="3.5" ry="2" fill="#090d16" />
 
         {/* Torso: CHALECO INSTITUCIONAL SERAM (Azul Marino con ribetes dorados #c9a84c) */}
-        <path d="M 8 16 L 26 16 L 24 29 L 10 29 Z" fill="#0f172a" stroke="#c9a84c" strokeWidth="1.2" />
+        <path d="M 8 16 L 26 16 L 24 29 L 10 29 Z" fill="#0f172a" stroke={isCurrent ? '#fbbf24' : '#c9a84c'} strokeWidth={isCurrent ? '1.6' : '1.2'} />
 
         {/* Cuello de camisa ejecutiva interior */}
         <polygon points="14,16 17,21 20,16" fill="#f8fafc" />
@@ -349,7 +359,7 @@ function HumanPartnerSprite({ partner, isWalking }) {
         <circle cx="26.3" cy="27.5" r="2" fill="#fbcfe8" />
 
         {/* Cabeza */}
-        <ellipse cx="17" cy="10" rx="6" ry="6.5" fill="#fcd34d" />
+        <ellipse cx="17" cy="10" rx="6" ry="6.5" fill={isOnline ? '#fcd34d' : '#e2e8f0'} />
 
         {/* Cabello humano detallado */}
         <path
@@ -363,12 +373,38 @@ function HumanPartnerSprite({ partner, isWalking }) {
         </text>
       </svg>
 
-      {/* Rótulo de Identificación Flotante con Cargo */}
-      <div className="mt-1 px-2.5 py-0.5 rounded-full bg-slate-950/95 border border-amber-400/50 text-[9px] font-black text-white shadow-2xl whitespace-nowrap flex items-center gap-1.5 backdrop-blur-md">
-        <span className={`w-1.5 h-1.5 rounded-full ${partner.isWorking ? 'bg-[#00e03c] animate-ping' : 'bg-amber-400'}`} />
-        <span>{partner.shortName}</span>
-        <span className="text-[8px] text-amber-300 font-semibold">
-          {partner.isWorking ? '· Estación' : partner.status === 'meeting' ? '· Reunión' : '· En Café'}
+      {/* Rótulo de Identificación Flotante con Estado en Tiempo Real */}
+      <div className={`mt-1 px-2.5 py-0.5 rounded-full text-[9px] font-black shadow-2xl whitespace-nowrap flex items-center gap-1.5 backdrop-blur-md border ${
+        isCurrent
+          ? 'bg-slate-950/95 border-amber-400 text-amber-300 ring-1 ring-amber-400/40'
+          : isOnline
+            ? 'bg-slate-950/95 border-[#00e03c]/60 text-white'
+            : 'bg-slate-950/80 border-white/10 text-slate-400'
+      }`}>
+        {/* Punto de estado en vivo */}
+        {isOnline ? (
+          <span className="relative flex h-2 w-2 shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00e03c] opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00e03c]"></span>
+          </span>
+        ) : (
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-500 shrink-0" />
+        )}
+
+        <span>
+          {isCurrent ? `👑 TÚ (${partner.shortName})` : partner.shortName}
+        </span>
+
+        {isOnline && partner.isTimerRunning && (
+          <span className="font-mono text-[#00e03c] text-[8px] bg-[#00e03c]/20 border border-[#00e03c]/30 px-1 py-0.2 rounded font-black animate-pulse">
+            ⏱️ {Math.floor((partner.timerSeconds || 0) / 3600)}:{Math.floor(((partner.timerSeconds || 0) % 3600) / 60).toString().padStart(2, '0')}:{((partner.timerSeconds || 0) % 60).toString().padStart(2, '0')}
+          </span>
+        )}
+
+        <span className={`text-[8px] truncate max-w-[85px] font-semibold ${isOnline ? 'text-slate-300' : 'text-slate-500'}`}>
+          {isOnline
+            ? `· ${partner.currentSectorName ? partner.currentSectorName.split(' ')[0] : 'En Línea'}`
+            : '· Ausente'}
         </span>
       </div>
     </div>
@@ -387,58 +423,58 @@ export default function VirtualOfficeView({
   currentSocio,
   onNavigateModule
 }) {
-  const [selectedRoomId, setSelectedRoomId] = useState('direction');
+  const {
+    activeTimer,
+    startPartnerTimer,
+    pausePartnerTimer,
+    setPartnerSector,
+    partnerPresences: globalPresences
+  } = useApp();
+
+  const [selectedRoomId, setSelectedRoomId] = useState(() => activeTimer?.sectorId || 'direction');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isSoundMuted, setIsSoundMuted] = useState(() => soundEngine.isMuted());
   const [clickEffect, setClickEffect] = useState(null);
 
-  // Time Tracker Flotante (PiP)
-  const [timerSeconds, setTimerSeconds] = useState(13320); // 3.7 horas acumuladas por defecto
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  // Time Tracker Flotante (PiP) sincronizado con el cronómetro global de AppContext
   const [isPipMinimized, setIsPipMinimized] = useState(false);
 
   // Posición del avatar del usuario interactivo (Point & Click) en %
-  const [userAvatarPos, setUserAvatarPos] = useState({ x: 35, y: 35 });
+  const [userAvatarPos, setUserAvatarPos] = useState(() => {
+    const currentEmail = currentSocio?.email || 'barrientoso2401@gmail.com';
+    const presence = (globalPresences || partnerPresences || {})[currentEmail];
+    return presence?.roomCoords || { x: 35, y: 35 };
+  });
   const [isWalking, setIsWalking] = useState(false);
 
   // Estado operativo seleccionado por el socio activo
   const [partnerActiveStatus, setPartnerActiveStatus] = useState(() => {
     try {
-      return localStorage.getItem('seram_partner_visual_status') || 'recreation';
+      return localStorage.getItem('seram_partner_visual_status') || 'working';
     } catch (_) {
-      return 'recreation';
+      return 'working';
     }
   });
 
-  // Ticker de segundos para el cronómetro del Time Tracker
-  useEffect(() => {
-    let interval = null;
-    if (isTimerRunning) {
-      interval = setInterval(() => {
-        setTimerSeconds(s => s + 1);
-      }, 1000);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isTimerRunning]);
+  const timerSeconds = activeTimer?.seconds || 0;
+  const isTimerRunning = activeTimer?.isRunning || false;
 
   const formatTimer = (totalSec) => {
-    const hrs = Math.floor(totalSec / 3600);
-    const mins = Math.floor((totalSec % 3600) / 60);
-    const secs = totalSec % 60;
+    const sec = Math.max(0, Math.floor(totalSec || 0));
+    const hrs = Math.floor(sec / 3600);
+    const mins = Math.floor((sec % 3600) / 60);
+    const secs = sec % 60;
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   const handleToggleTimer = () => {
-    const nextRunning = !isTimerRunning;
-    setIsTimerRunning(nextRunning);
     soundEngine.playDeskClick();
-
-    if (nextRunning) {
-      handleSetPartnerStatus('working');
-    } else {
+    if (isTimerRunning) {
+      pausePartnerTimer();
       handleSetPartnerStatus('recreation');
+    } else {
+      startPartnerTimer();
+      handleSetPartnerStatus('working');
     }
   };
 
@@ -458,20 +494,53 @@ export default function VirtualOfficeView({
       // Ignorar si el almacenamiento local está restringido
     }
 
-    if (status === 'recreation' || status === 'commission') {
+    if (status === 'recreation') {
       soundEngine.playCoffeeBrew();
       setUserAvatarPos({ x: 49, y: 82 });
       setSelectedRoomId('recreation');
-      setIsTimerRunning(false);
+      if (setPartnerSector) {
+        setPartnerSector('recreation', { x: 49, y: 82 }, 'Área de Café & Descanso');
+      }
+      if (isTimerRunning) pausePartnerTimer();
+    } else if (status === 'commission') {
+      soundEngine.playCoffeeBrew();
+      setUserAvatarPos({ x: 44, y: 81 });
+      setSelectedRoomId('recreation');
+      if (setPartnerSector) {
+        setPartnerSector('commission', { x: 44, y: 81 }, 'De Comisión Externa');
+      }
+      if (isTimerRunning) pausePartnerTimer();
     } else if (status === 'meeting') {
       soundEngine.playDeskClick();
       setUserAvatarPos({ x: 52, y: 52 });
       setSelectedRoomId('meeting');
+      if (setPartnerSector) {
+        setPartnerSector('meeting', { x: 52, y: 52 }, 'Sala de Directorio');
+      }
     } else if (status === 'working') {
       soundEngine.playDeskClick();
-      setUserAvatarPos({ x: 35, y: 35 });
-      setSelectedRoomId('direction');
-      setIsTimerRunning(true);
+      const defaultCoords = currentSocio?.email === 'fernandoaraujo1912@gmail.com'
+        ? { x: 53, y: 17 }
+        : currentSocio?.email === 'sebastiansbs51@gmail.com'
+        ? { x: 12, y: 55 }
+        : { x: 35, y: 35 };
+      const defaultRoomId = currentSocio?.email === 'fernandoaraujo1912@gmail.com'
+        ? 'operations'
+        : currentSocio?.email === 'sebastiansbs51@gmail.com'
+        ? 'experience'
+        : 'direction';
+      const defaultName = currentSocio?.email === 'fernandoaraujo1912@gmail.com'
+        ? '03. OPERACIONES Y PLANIFICACIÓN'
+        : currentSocio?.email === 'sebastiansbs51@gmail.com'
+        ? '11. EXPERIENCIA Y CAMPO'
+        : '02. DIRECCIÓN';
+
+      setUserAvatarPos(defaultCoords);
+      setSelectedRoomId(defaultRoomId);
+      if (setPartnerSector) {
+        setPartnerSector(defaultRoomId, defaultCoords, defaultName);
+      }
+      if (!isTimerRunning) startPartnerTimer();
     }
   };
 
@@ -493,7 +562,7 @@ export default function VirtualOfficeView({
     return OFFICE_ROOMS.find(r => r.id === selectedRoomId) || OFFICE_ROOMS[1];
   }, [selectedRoomId]);
 
-  // Lista de los 3 socios humanos con chalecos SERAM y ubicación dinámica
+  // Lista de los 3 socios humanos con chalecos SERAM y ubicación dinámica en tiempo real
   const partnerAvatars = useMemo(() => {
     const list = [
       {
@@ -531,39 +600,27 @@ export default function VirtualOfficeView({
       { x: 54, y: 81 }
     ];
 
-    const meetingSpots = [
-      { x: 49, y: 50 },
-      { x: 52, y: 48 },
-      { x: 55, y: 53 }
-    ];
+    const effectivePresences = globalPresences || partnerPresences || {};
 
     return list.map((partner, idx) => {
-      const presence = partnerPresences[partner.email] || {};
-      const isOnline = presence.isOnline ?? true;
+      const presence = effectivePresences[partner.email] || {};
       const isCurrent = currentSocio?.email === partner.email;
+      const isOnline = isCurrent ? true : (presence.isOnline === true);
 
-      let status = 'recreation';
-      let isWorking = false;
+      const partnerTimerRunning = isCurrent
+        ? (activeTimer?.isRunning || false)
+        : (presence.isTimerRunning || false);
 
-      if (isCurrent) {
-        status = partnerActiveStatus;
-      } else if (presence.lastWork && (Date.now() - new Date(presence.lastWork.loggedAt).getTime()) < 3600000) {
-        status = 'working';
-      }
+      const partnerTimerSecs = isCurrent
+        ? (activeTimer?.seconds || 0)
+        : (presence.timerSeconds || 0);
 
-      let coords = recreationSpots[idx % recreationSpots.length];
+      const sectorName = isCurrent
+        ? (activeTimer?.sectorName || presence.currentSectorName || '02. DIRECCIÓN')
+        : (presence.currentSectorName || 'Oficina');
 
-      if (status === 'meeting') {
-        coords = meetingSpots[idx % meetingSpots.length];
-      } else if (status === 'working') {
-        coords = partner.homeCoords;
-        isWorking = true;
-      } else if (status === 'commission') {
-        coords = recreationSpots[idx % recreationSpots.length];
-      } else {
-        coords = recreationSpots[idx % recreationSpots.length];
-      }
-
+      // Coordenadas dinámicas sincronizadas en tiempo real
+      let coords = presence.roomCoords || partner.homeCoords || recreationSpots[idx % recreationSpots.length];
       if (isCurrent && userAvatarPos) {
         coords = userAvatarPos;
       }
@@ -572,13 +629,15 @@ export default function VirtualOfficeView({
         ...partner,
         isOnline,
         isCurrent,
-        status,
-        isWorking,
+        isWorking: partnerTimerRunning || partnerActiveStatus === 'working',
+        isTimerRunning: partnerTimerRunning,
+        timerSeconds: partnerTimerSecs,
+        currentSectorName: sectorName,
         x: coords.x,
         y: coords.y
       };
     });
-  }, [partnerPresences, currentSocio, partnerActiveStatus, userAvatarPos]);
+  }, [globalPresences, partnerPresences, currentSocio, activeTimer, partnerActiveStatus, userAvatarPos]);
 
   // Manejador de navegación Point & Click al hacer clic en el suelo de la oficina
   const handleFloorClick = (e) => {
@@ -617,6 +676,15 @@ export default function VirtualOfficeView({
       setSelectedRoomId(closestRoom.id);
       soundEngine.playDeskClick();
     }
+
+    // Sincronización en tiempo real vía Supabase Realtime y BroadcastChannel para todos los socios
+    if (setPartnerSector) {
+      setPartnerSector(
+        closestRoom ? closestRoom.id : 'corridor',
+        { x: targetX, y: targetY },
+        closestRoom ? closestRoom.name : 'Pasillo Central'
+      );
+    }
   };
 
   const handleSelectRoom = (roomId) => {
@@ -626,6 +694,9 @@ export default function VirtualOfficeView({
     const room = OFFICE_ROOMS.find(r => r.id === roomId);
     if (room) {
       setUserAvatarPos({ x: room.xPercent, y: room.yPercent });
+      if (setPartnerSector) {
+        setPartnerSector(roomId, { x: room.xPercent, y: room.yPercent }, room.name);
+      }
     }
   };
 
