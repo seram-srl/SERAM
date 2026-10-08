@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   MessageCircle, X, ArrowLeft, Zap, BookOpen, Briefcase,
   Send, CheckCircle2, Phone, Mail, ExternalLink,
-  ChevronRight, Leaf, CornerDownLeft,
+  ChevronRight, CornerDownLeft,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
@@ -125,8 +125,12 @@ const SERVICES = {
 
 function BotAvatar() {
   return (
-    <div className="w-8 h-8 rounded-xl bg-[#126c0f] border border-[#00e03c]/40 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-[0_0_10px_rgba(0,224,60,0.2)]">
-      <Leaf className="w-4 h-4 text-white" />
+    <div className="w-8 h-8 rounded-xl bg-[#061e0c] border border-[#00e03c]/40 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-[0_0_10px_rgba(0,224,60,0.25)] p-1.5">
+      <img
+        src="/assets/brand/ícono_logo.png"
+        alt="SERAM"
+        className="w-full h-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]"
+      />
     </div>
   );
 }
@@ -281,8 +285,12 @@ export default function ChatbotFAB() {
               className="fixed top-[80px] right-3 sm:right-6 z-[113] w-[calc(100vw-1.5rem)] sm:w-[390px] max-h-[calc(100vh-6.5rem)] flex flex-col rounded-3xl bg-[#080f08]/98 backdrop-blur-2xl border border-[#1a3a1a]/50 shadow-2xl shadow-black/80 overflow-hidden"
             >
               <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[#1a3a1a]/60 bg-[#05100a]/60 flex-shrink-0">
-                <div className="relative w-9 h-9 rounded-xl bg-[#126c0f] border border-[#00e03c]/40 flex items-center justify-center flex-shrink-0 shadow-[0_0_12px_rgba(0,224,60,0.2)]">
-                  <Leaf className="w-4.5 h-4.5 text-white" style={{ width: '1.1rem', height: '1.1rem' }} />
+                <div className="relative w-9 h-9 rounded-xl bg-[#061e0c] border border-[#00e03c]/40 flex items-center justify-center flex-shrink-0 shadow-[0_0_12px_rgba(0,224,60,0.25)] p-1.5">
+                  <img
+                    src="/assets/brand/ícono_logo.png"
+                    alt="Isotipo SERAM"
+                    className="w-full h-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]"
+                  />
                   <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[#00e03c] rounded-full border-2 border-[#080f08]" />
                 </div>
                 <div className="flex-1 min-w-0">
