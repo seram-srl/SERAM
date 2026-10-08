@@ -436,7 +436,7 @@ function DeliverablePdfView({ course, navigate, triggerToast, currentSocio }) {
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                transition={{ duration: 0.38, ease: [0.25, 0.1, 0.25, 1.0] }}
                 className="col-start-1 row-start-1 w-full"
               >
                 {/* CONTENIDO PESTAÑA 1: VISOR INTERACTIVO DEL DOCUMENTO */}

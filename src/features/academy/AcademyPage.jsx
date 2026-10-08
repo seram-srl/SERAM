@@ -91,10 +91,10 @@ export default function AcademyPage() {
                 <AnimatePresence initial={false} mode="sync">
                     <motion.div
                         key={activeTab}
-                        initial={{ opacity: 0, y: 8 }}
+                        initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        transition={{ duration: 0.32, ease: 'easeInOut' }}
+                        exit={{ opacity: 0, y: -6 }}
+                        transition={{ duration: 0.38, ease: [0.25, 0.1, 0.25, 1.0] }}
                         className="col-start-1 row-start-1 w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pointer-events-none"
                     >
                         {filteredCourses.length === 0 ? (

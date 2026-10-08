@@ -376,10 +376,10 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         <AnimatePresence initial={false} mode="sync">
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.38, ease: [0.25, 0.1, 0.25, 1.0] }}
             className="col-start-1 row-start-1 w-full"
           >
             {/* ── VISTA 1: TABLERO KANBAN (CENTRAL DE ACTIVIDADES) ── */}

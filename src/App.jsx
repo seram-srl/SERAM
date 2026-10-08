@@ -32,6 +32,7 @@ import ProtectedRoute   from './components/shared/ProtectedRoute';
 import ContactPage      from './features/contact/ContactPage';
 import LegalPage        from './features/legal/LegalPage';
 import CookieBanner     from './components/ui/CookieBanner';
+import ScrollToTop      from './components/shared/ScrollToTop';
 
 
 export default function App() {
@@ -40,6 +41,10 @@ export default function App() {
   // Estado del menú fullscreen — compartido entre FullscreenMenu y MovieCredits
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const toggleMenu = () => setIsMenuOpen(prev => !prev);
+
+  // Agrupar rutas legales para permitir crossfade in-place entre pestañas sin desmontar LegalPage
+  const isLegalRoute = ['/privacidad', '/terminos', '/cookies', '/reembolsos'].includes(location.pathname);
+  const routeKey = isLegalRoute ? '/legal' : location.pathname;
 
   return (
     /*
@@ -57,6 +62,9 @@ export default function App() {
       className={`min-h-screen text-slate-100 font-sans ${location.pathname === '/' ? 'cinematic-bg' : 'neuform-bg'}`}
       style={{ position: 'relative' }}
     >
+      {/* ── Control de Scroll a cabecera en navegación independiente ────── */}
+      <ScrollToTop />
+
       {/* ── CAPA z-0: Fondo WebGL tridimensional ─────────────────────────── */}
       {location.pathname !== '/' && location.pathname !== '/dashboard' && <EnvironmentalCanvas />}
 
@@ -100,7 +108,7 @@ export default function App() {
       */}
       <main style={{ position: 'relative', zIndex: 10 }}>
         <AnimatePresence mode="wait">
-          <Routes location={location} key={location.pathname}>
+          <Routes location={location} key={routeKey}>
             <Route path="/"           element={<HomePage />}         />
             <Route path="/login"      element={<LoginPage />}        />
             <Route path="/register"   element={<RegisterPage />}     />

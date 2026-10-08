@@ -3,7 +3,7 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShieldCheck, FileText, Cookie, RefreshCw, Lock, ArrowLeft,
-  Building2, MapPin, Mail, MessageSquare, ChevronRight
+  MapPin, Mail, MessageSquare, ChevronRight
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -109,10 +109,10 @@ export default function LegalPage() {
             <AnimatePresence initial={false} mode="sync">
               <motion.div
                 key={activeTab}
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.32, ease: 'easeInOut' }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.38, ease: [0.25, 0.1, 0.25, 1.0] }}
                 className="col-start-1 row-start-1 w-full space-y-8"
               >
           {/* TAB 1: POLÍTICA DE PRIVACIDAD Y CONFIDENCIALIDAD */}
@@ -390,18 +390,23 @@ export default function LegalPage() {
 
           {/* Pie del Documento con Denominación Oficial y Botón de Contacto Directo */}
           <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-5 text-sm sm:text-base font-mono">
-            <span className="flex items-center gap-2 text-slate-300 font-semibold">
-              <Building2 className="w-4 h-4 text-[#00e03c]" /> SERAM S.R.L.
+            <span className="flex items-center gap-2.5 text-slate-300 font-semibold tracking-wide">
+              <img
+                src="/assets/brand/ícono_logo.png"
+                alt="SERAM"
+                className="w-5 h-5 object-contain shrink-0"
+              />
+              <span className="tracking-wider">SERAM S.R.L.</span>
             </span>
             <button
               type="button"
               onClick={() => setIsChatbotOpen(true)}
-              className="inline-flex items-center gap-2.5 px-4 sm:px-5 py-2.5 rounded-xl bg-[#00e03c]/15 hover:bg-[#00e03c]/25 border border-[#00e03c]/40 hover:border-[#00e03c] text-[#00e03c] text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-lg shadow-[#00e03c]/10 hover:shadow-[#00e03c]/20 hover:scale-[1.02] active:scale-[0.98]"
+              className="group inline-flex items-center gap-2.5 px-4 sm:px-5 py-2.5 rounded-xl bg-[#00e03c]/15 hover:bg-[#00e03c] active:bg-[#00cc37] border border-[#00e03c]/40 hover:border-[#00e03c] text-[#00e03c] hover:text-[#010409] active:text-[#010409] text-xs sm:text-sm font-black uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-lg shadow-[#00e03c]/10 hover:shadow-[0_0_24px_rgba(0,224,60,0.5)] hover:scale-[1.02] active:scale-[0.97]"
               title="Abrir Asistente Digital y Canal de Contacto Directo"
             >
-              <Mail className="w-4 h-4 text-[#00e03c]" />
-              <span>consultoraseram@gmail.com · Abrir Contacto</span>
-              <ChevronRight className="w-3.5 h-3.5 text-[#00e03c]" />
+              <Mail className="w-4 h-4 transition-colors text-[#00e03c] group-hover:text-[#010409] group-active:text-[#010409]" />
+              <span className="transition-colors">consultoraseram@gmail.com · Abrir Contacto</span>
+              <ChevronRight className="w-3.5 h-3.5 transition-colors text-[#00e03c] group-hover:text-[#010409] group-active:text-[#010409] group-hover:translate-x-0.5" />
             </button>
           </div>
         </div>

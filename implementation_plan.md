@@ -1,31 +1,24 @@
-# Implementation Plan - Legal, Privacidad, Cookies, Confidencialidad y Accesibilidad SERAM
+# Implementation Plan — Scroll to Top en Navegación, Isotipo Oficial en LegalPage, Alto Contraste en Botón de Contacto y Calibración Fina de Crossfade
 
 ## 1. Contexto y Objetivos
-Implementar la infraestructura legal, de privacidad, de cookies y accesibilidad para la plataforma web de SERAM conforme a las leyes de Bolivia (CPE Art. 21/130, Ley 164, Ley 1333, Ley 1182 Escazú, Ley 453 de Consumo):
-1. **Páginas Legales:**
-   - `/privacidad` (`PrivacyPolicyPage.jsx`): Política de Privacidad, Derechos ARCO y Cláusula de Confidencialidad Técnica / Secreto Industrial (Escazú y Ley 1333).
-   - `/terminos` (`TermsOfServicePage.jsx`): Términos de Servicio, descargo de responsabilidad para diagnósticos online y propiedad intelectual.
-   - `/cookies` (`CookiePolicyPage.jsx`): Transparencia de almacenamiento técnico esencial vs analíticas.
-   - `/reembolsos` (`RefundPolicyPage.jsx`): Política de devoluciones conforme a la Ley 453 para productos digitales y servicios.
-2. **Banner de Cookies Neuform (`CookieBanner.jsx`):**
-   - Aviso informativo flotante con persistencia en localStorage para no molestar tras aceptar.
-3. **Formularios con Consentimiento Obligatorio y Mayoría de Edad (+18):**
-   - `ContactPage.jsx` y `QuotePage.jsx` incorporando checkbox obligatorio: *"Soy mayor de 18 años y acepto la Política de Privacidad, Términos y Condiciones y el Acuerdo de Confidencialidad Técnica de SERAM."*
-   - Accesibilidad por teclado (eliminando `cursor-none` en inputs y añadiendo `focus:ring-2 focus:ring-[#00e03c]`, labels accesibles).
-4. **Datos del Negocio:**
-   - Mostrar únicamente la dirección física: *"Calle Presbítero Medina N° 2026, Sopocachi, La Paz, Bolivia"* sin publicar NIT o datos en tramitación.
-   - Enlazar rutas legales en el Footer y Menú Fullscreen.
-5. **Auditoría de Reseñas y Veracidad:**
-   - Eliminar comentarios simulados en `CoursePlayerPage.jsx`.
-   - Reemplazar métricas de alumnos estáticas en catálogo por datos de modalidad verificables.
-   - Mejorar textos alternativos (`alt`) en imágenes clave de `HomePage.jsx`.
+1. **Restablecimiento de Scroll a Cabecera (Scroll to Top):**
+   Al navegar a cualquier página independiente (Servicios, Academy, Legalidad, etc.) desde enlaces situados en zonas inferiores o footers, el navegador preservaba la posición vertical previa, haciendo que el usuario apareciera al fondo de la nueva pantalla. Se debe garantizar que toda navegación entre páginas inicie siempre en la parte superior (`top: 0`).
+2. **Sustitución de Ícono por Isotipo Oficial de la Hoja:**
+   En el pie del documento legal (`LegalPage.jsx`), sustituir el ícono de edificio (`Building2`) junto a "SERAM S.R.L." por el isotipo oficial de SERAM (`/assets/brand/ícono_logo.png`) de manera sobria, estática y formal.
+3. **Alto Contraste en Hover/Touch del Botón de Contacto:**
+   En el botón `consultoraseram@gmail.com · Abrir Contacto`, aplicar un cambio drástico de contraste visual en `hover` (escritorio) y `active` (mobile), mutando a fondo sólido esmeralda vibrante `#00e03c` con texto e íconos oscuros `#010409`.
+4. **Calibración Fina del Crossfade Simultáneo:**
+   Ajustar unas milésimas la duración (`0.32s` -> `0.40s`) y curva de aceleración para lograr un desvanecimiento más sedoso y orgánico, sin ralentizar la respuesta táctil.
+5. **Mantener Entorno Local Activo:**
+   Confirmar ejecución de servidor de desarrollo en `http://localhost:5173/` y build limpio.
+
+---
 
 ## 2. Archivos Afectados
-1. `src/features/legal/LegalPage.jsx` (Componente unificado con pestañas y subrutas para Privacidad, Términos, Cookies y Reembolsos).
-2. `src/components/ui/CookieBanner.jsx` (Banner flotante Neuform).
-3. `src/App.jsx` (Rutas `/privacidad`, `/terminos`, `/cookies`, `/reembolsos` y montaje de `CookieBanner`).
-4. `src/features/contact/ContactPage.jsx` (Consentimiento +18 y accesibilidad con teclado).
-5. `src/features/services/QuotePage.jsx` (Consentimiento +18 y accesibilidad con teclado).
-6. `src/features/home/HomePage.jsx` (Footer con enlaces legales, dirección física y alts de imágenes).
-7. `src/features/academy/CoursePlayerPage.jsx` (Limpieza de comentario simulado).
-8. `src/context/AppContext.jsx` (Ajuste veraz de métricas de cursos).
+1. `src/components/shared/ScrollToTop.jsx` (Nuevo componente de escucha de rutas y control de scroll).
+2. `src/App.jsx` (Montaje de `ScrollToTop` y unificación de clave de ruta para pestañas legales).
+3. `src/features/legal/LegalPage.jsx` (Isotipo de la hojita, alto contraste en botón de contacto y calibración de crossfade).
+4. `src/features/academy/CoursePlayerPage.jsx` (Calibración fina de crossfade a 0.40s).
+5. `src/features/academy/AcademyPage.jsx` (Calibración fina de crossfade a 0.40s).
+6. `src/features/shop/ShopPage.jsx` (Calibración fina de crossfade a 0.40s).
+7. `src/features/partner-portal/ActivitiesAndClientsModule.jsx` (Calibración fina de crossfade a 0.40s).
