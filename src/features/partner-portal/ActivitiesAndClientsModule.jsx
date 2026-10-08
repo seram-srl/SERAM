@@ -371,9 +371,20 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         </div>
       )}
 
-      {/* ── VISTA 1: TABLERO KANBAN (CENTRAL DE ACTIVIDADES) ── */}
-      {activeTab === 'kanban' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      {/* ── CONTENEDOR DE VISTAS CON CROSSFADE SIMULTÁNEO ── */}
+      <div className="grid grid-cols-1 items-start relative min-h-[500px]">
+        <AnimatePresence initial={false} mode="sync">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="col-start-1 row-start-1 w-full"
+          >
+            {/* ── VISTA 1: TABLERO KANBAN (CENTRAL DE ACTIVIDADES) ── */}
+            {activeTab === 'kanban' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           {STATUS_COLUMNS.map((col) => {
             const colActivities = filteredActivities.filter((a) => a.status === col.id);
             return (
@@ -631,7 +642,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
 
                     {cl.notes && (
                       <p className="text-[10px] text-slate-400 bg-white/[0.04] p-2 rounded-lg border border-white/[0.06] italic">
-                        "{cl.notes}"
+                        &ldquo;{cl.notes}&rdquo;
                       </p>
                     )}
                   </div>
@@ -916,6 +927,9 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
           </div>
         </div>
       )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
 
       {/* ── MODAL: REGISTRAR / EDITAR ACTIVIDAD CLAVE ── */}
       <AnimatePresence>

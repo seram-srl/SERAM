@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShieldCheck, FileText, Cookie, RefreshCw, Lock, ArrowLeft,
   Building2, MapPin, Mail, MessageSquare, ChevronRight
@@ -24,7 +24,6 @@ export default function LegalPage() {
 
   useEffect(() => {
     setActiveTab(getTabFromPath(location.pathname));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [location.pathname]);
 
   const handleTabChange = (tabId) => {
@@ -103,14 +102,19 @@ export default function LegalPage() {
           })}
         </nav>
 
-        {/* Contenido del Documento con Escala Tipográfica Aumentada */}
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="neuform-card !p-8 sm:!p-12 md:!p-14 space-y-10 leading-relaxed text-base sm:text-lg text-slate-200 font-light border border-white/10 bg-slate-950/75 backdrop-blur-2xl shadow-2xl rounded-3xl"
-        >
+        {/* Contenedor del Documento con Escala Tipográfica Aumentada */}
+        <div className="neuform-card !p-8 sm:!p-12 md:!p-14 space-y-10 leading-relaxed text-base sm:text-lg text-slate-200 font-light border border-white/10 bg-slate-950/75 backdrop-blur-2xl shadow-2xl rounded-3xl relative overflow-hidden">
+          {/* Contenedor Grid para Crossfade Simultáneo entre Pestañas */}
+          <div className="grid grid-cols-1 items-start relative">
+            <AnimatePresence initial={false} mode="sync">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.32, ease: 'easeInOut' }}
+                className="col-start-1 row-start-1 w-full space-y-8"
+              >
           {/* TAB 1: POLÍTICA DE PRIVACIDAD Y CONFIDENCIALIDAD */}
           {activeTab === 'privacidad' && (
             <section className="space-y-8">
@@ -380,6 +384,9 @@ export default function LegalPage() {
               </div>
             </section>
           )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
           {/* Pie del Documento con Denominación Oficial y Botón de Contacto Directo */}
           <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-5 text-sm sm:text-base font-mono">
@@ -397,7 +404,7 @@ export default function LegalPage() {
               <ChevronRight className="w-3.5 h-3.5 text-[#00e03c]" />
             </button>
           </div>
-        </motion.div>
+        </div>
 
       </div>
     </div>

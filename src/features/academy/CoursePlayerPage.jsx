@@ -427,14 +427,21 @@ function DeliverablePdfView({ course, navigate, triggerToast, currentSocio }) {
           </div>
 
           {/* ================================================================= */}
-          {/* CONTENIDO PESTAÑA 1: VISOR INTERACTIVO DEL DOCUMENTO              */}
+          {/* CONTENEDOR DE PESTAÑAS CON CROSSFADE SIMULTÁNEO                   */}
           {/* ================================================================= */}
-          {activeTab === 'visor' && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-4"
-            >
+          <div className="grid grid-cols-1 items-start relative">
+            <AnimatePresence initial={false} mode="sync">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                className="col-start-1 row-start-1 w-full"
+              >
+                {/* CONTENIDO PESTAÑA 1: VISOR INTERACTIVO DEL DOCUMENTO */}
+                {activeTab === 'visor' && (
+                  <div className="space-y-4">
               {/* Barra de Herramientas del Visor */}
               <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2 text-xs">
@@ -492,18 +499,14 @@ function DeliverablePdfView({ course, navigate, triggerToast, currentSocio }) {
                   Descargar archivo directo (.PDF) →
                 </a>
               </div>
-            </motion.div>
+            </div>
           )}
 
           {/* ================================================================= */}
           {/* CONTENIDO PESTAÑA 2: ÍNDICE Y ESTRUCTURA CAPITULAR                */}
           {/* ================================================================= */}
           {activeTab === 'indice' && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-6"
-            >
+            <div className="space-y-6">
               <div className="space-y-1">
                 <h3 className="text-lg font-black text-white">Tabla de Contenidos & Esquema Técnico</h3>
                 <p className="text-xs text-slate-400">Desglose analítico de los capítulos, normativas y anexos incluidos en el documento descargable.</p>
@@ -546,18 +549,14 @@ function DeliverablePdfView({ course, navigate, triggerToast, currentSocio }) {
                   </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
           )}
 
           {/* ================================================================= */}
           {/* CONTENIDO PESTAÑA 3: CONSULTAS TÉCNICAS CON EL AUTOR              */}
           {/* ================================================================= */}
           {activeTab === 'consultas' && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-8"
-            >
+            <div className="space-y-8">
               <div className="space-y-1">
                 <h3 className="text-lg font-black text-white">Foro de Aplicación Práctica & Dudas Normativas</h3>
                 <p className="text-xs text-slate-400">Espacio de consulta directa con {course.instructor || 'los especialistas de SERAM SRL'} para resolver inquietudes sobre el uso de este documento en trámites reales.</p>
@@ -618,18 +617,14 @@ function DeliverablePdfView({ course, navigate, triggerToast, currentSocio }) {
                   </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
           )}
 
           {/* ================================================================= */}
           {/* CONTENIDO PESTAÑA 4: FICHA TÉCNICA Y RESPALDO LEGAL               */}
           {/* ================================================================= */}
           {activeTab === 'licencia' && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-6"
-            >
+            <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
                 {/* Cuadro de Validez Jurídica */}
@@ -664,7 +659,7 @@ function DeliverablePdfView({ course, navigate, triggerToast, currentSocio }) {
                     <h4 className="text-sm font-black text-white uppercase tracking-wider">Licencia y Derechos de Uso</h4>
                   </div>
                   <p className="text-xs text-slate-300 leading-relaxed">
-                    El usuario adquiere el derecho de utilizar las plantillas, matrices y contenidos para la formulación de estudios de impacto ambiental (EEIA), fichas FNCA, auditorías periciales y trámites ante la AAC.
+                    El usuario adquiere el derecho de utilizar las plantillas, matrices y contenidos para la formulación de estudios de impacto ambiental (EEIA), fichas FNCA, auditorías ambientales especializadas y trámites ante la AAC.
                   </p>
                   <div className="space-y-2 text-xs text-slate-400 pt-2 border-t border-white/5">
                     <div className="flex justify-between">
@@ -683,8 +678,11 @@ function DeliverablePdfView({ course, navigate, triggerToast, currentSocio }) {
                 </div>
 
               </div>
-            </motion.div>
+            </div>
           )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
         </section>
 

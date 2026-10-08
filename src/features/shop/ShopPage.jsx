@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, Lock, Shield, Sparkles, BookOpen, Star, HelpCircle, ArrowRight, Tag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
@@ -129,12 +129,22 @@ export default function ShopPage() {
         </div>
         <div className="neuform-divider mt-2 mb-6" />
 
-        {filteredProducts.length === 0 ? (
-          <div className="neuform-card p-10 text-center text-slate-500 text-xs">
-            No hay productos cargados en esta categoría actualmente.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 items-start relative min-h-[350px]">
+          <AnimatePresence initial={false} mode="sync">
+            <motion.div
+              key={activeCategory}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.32, ease: 'easeInOut' }}
+              className="col-start-1 row-start-1 w-full"
+            >
+              {filteredProducts.length === 0 ? (
+                <div className="neuform-card p-10 text-center text-slate-500 text-xs">
+                  No hay productos cargados en esta categoría actualmente.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProducts.map(product => {
               const isEbook = product.category === 'E-Books';
               return (
@@ -221,6 +231,9 @@ export default function ShopPage() {
             })}
           </div>
         )}
+          </motion.div>
+        </AnimatePresence>
+        </div>
       </div>
 
       {/* ── 4. BRAND ACCREDITATION BAR (Disney+ Style bottom banner) ── */}

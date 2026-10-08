@@ -86,32 +86,31 @@ export default function AcademyPage() {
                 })}
             </nav>
 
-            {/* Grid de Cursos e Info-productos */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-7xl px-4 pointer-events-none">
-                <AnimatePresence mode="wait">
-                    {filteredCourses.length === 0 ? (
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
-                            className="col-span-full academy-glass-card p-12 text-center text-gray-500 text-sm pointer-events-auto border border-white/5"
-                        >
-                            No hay recursos registrados en esta categoría actualmente.
-                        </motion.div>
-                    ) : (
-                        filteredCourses.map((course) => {
-                            const isPdf = course.format === 'pdf' || course.hasVideo === false;
-                            return (
-                                <motion.article
-                                    key={course.id}
-                                    initial={{ opacity: 0, y: 15 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -15 }}
-                                    transition={{ duration: 0.4 }}
-                                    className={`academy-glass-card overflow-hidden flex flex-col justify-between pointer-events-auto h-full transition-all ${
-                                        isPdf ? 'hover:border-amber-400/40' : 'hover:border-[#00e03c]/40'
-                                    }`}
-                                >
+            {/* Grid de Cursos e Info-productos con Crossfade Simultáneo */}
+            <div className="w-full max-w-7xl px-4 grid grid-cols-1 items-start relative min-h-[350px]">
+                <AnimatePresence initial={false} mode="sync">
+                    <motion.div
+                        key={activeTab}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.32, ease: 'easeInOut' }}
+                        className="col-start-1 row-start-1 w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pointer-events-none"
+                    >
+                        {filteredCourses.length === 0 ? (
+                            <div className="col-span-full academy-glass-card p-12 text-center text-gray-500 text-sm pointer-events-auto border border-white/5">
+                                No hay recursos registrados en esta categoría actualmente.
+                            </div>
+                        ) : (
+                            filteredCourses.map((course) => {
+                                const isPdf = course.format === 'pdf' || course.hasVideo === false;
+                                return (
+                                    <article
+                                        key={course.id}
+                                        className={`academy-glass-card overflow-hidden flex flex-col justify-between pointer-events-auto h-full transition-all ${
+                                            isPdf ? 'hover:border-amber-400/40' : 'hover:border-[#00e03c]/40'
+                                        }`}
+                                    >
                                     {/* Cover Image */}
                                     <div className="relative aspect-video bg-[#050505] overflow-hidden border-b border-white/5">
                                         <img
@@ -187,10 +186,11 @@ export default function AcademyPage() {
                                             </div>
                                         </div>
                                     </div>
-                                </motion.article>
+                                </article>
                             );
                         })
                     )}
+                    </motion.div>
                 </AnimatePresence>
             </div>
         </main>

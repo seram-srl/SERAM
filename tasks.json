@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "project": "SERAM",
-  "last_updated": "2026-10-05",
+  "last_updated": "2026-10-08",
   "tasks": [
     {
       "id": "TASK-041",
@@ -13,6 +13,14 @@
   ],
   "in_progress": [],
   "completed": [
+    {
+      "id": "TASK-045",
+      "title": "Transiciones de crossfade simultáneo con Framer Motion mode='sync' y CSS Grid superpuesto en pestañas y tarjetas horizontales (LegalPage, CoursePlayerPage, AcademyPage, ShopPage, ActivitiesAndClientsModule), protegiendo la arquitectura intacta de HomePage",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-08",
+      "completed_at": "2026-10-08"
+    },
     {
       "id": "TASK-044",
       "title": "Depuración terminológica ('perito' por ingenieros especialistas con registro RENCA), normalización de razón social a 'SERAM S.R.L.', documentación de Gobierno de IA y Ciberseguridad, y rediseño de LegalPage con tipografía aumentada, fondo hero ambiental y botón directo al asistente de contacto",
