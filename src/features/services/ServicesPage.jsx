@@ -245,7 +245,7 @@ export default function ServicesPage() {
                 <span className="text-[#029907]">Asegura Tu Cumplimiento</span>
               </h1>
               <p className="text-sm sm:text-base text-slate-100 leading-relaxed max-w-xl bg-black/45 backdrop-blur-md border border-white/10 p-5 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] font-light">
-                El incumplimiento de la Ley 1333 puede paralizar tu industria u obra civil. Nuestro equipo de ingenieros peritos diseña y gestiona licencias, registros y cartografía oficial para blindar legal y técnicamente tu inversión en Bolivia.
+                El incumplimiento de la Ley 1333 puede paralizar tu industria u obra civil. Nuestro equipo de ingenieros especialistas diseña y gestiona licencias, registros y cartografía oficial para blindar legal y técnicamente tu inversión en Bolivia.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-2">
                 <button
@@ -517,7 +517,7 @@ export default function ServicesPage() {
                     Evita Clausuras y Sanciones Administrativas
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-                    Analizamos la viabilidad técnica y legal de tu proyecto frente a las exigencias ambientales vigentes en Bolivia. Obtén tu cotización presupuestaria hoy mismo de la mano de ingenieros peritos acreditados.
+                    Analizamos la viabilidad técnica y legal de tu proyecto frente a las exigencias ambientales vigentes en Bolivia. Obtén tu cotización presupuestaria hoy mismo de la mano de ingenieros especialistas con registro RENCA.
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 shrink-0 w-full lg:w-auto">

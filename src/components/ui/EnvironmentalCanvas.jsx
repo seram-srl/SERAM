@@ -461,6 +461,7 @@ function BackgroundScene({ pathname }) {
   const currentScroll = useRef(0);
 
   // Texturas
+  const heroBgTexture = useTexture(landscapeBg);
   const academyBgTexture = useTexture(academyBg);
   const expBgTexture = useTexture(expBg);
   const servicesBg1Texture = useTexture(fondo2doPanel);
@@ -483,7 +484,7 @@ function BackgroundScene({ pathname }) {
   }, []);
 
   useEffect(() => {
-    [academyBgTexture, expBgTexture, servicesBg1Texture, servicesBg2Texture, shopBgTexture].forEach((t) => {
+    [heroBgTexture, academyBgTexture, expBgTexture, servicesBg1Texture, servicesBg2Texture, shopBgTexture].forEach((t) => {
       if (t) {
         t.colorSpace = THREE.SRGBColorSpace;
         t.minFilter = THREE.LinearFilter;
@@ -491,7 +492,7 @@ function BackgroundScene({ pathname }) {
         t.needsUpdate = true;
       }
     });
-  }, [academyBgTexture, expBgTexture, servicesBg1Texture, servicesBg2Texture, shopBgTexture]);
+  }, [heroBgTexture, academyBgTexture, expBgTexture, servicesBg1Texture, servicesBg2Texture, shopBgTexture]);
 
   useFrame((state) => {
     const bgMesh1 = bgMesh1Ref.current;
@@ -537,6 +538,14 @@ function BackgroundScene({ pathname }) {
     texture2 = servicesBg2Texture;
   } else if (pathname === '/shop') {
     texture1 = shopBgTexture;
+  } else if (
+    pathname.startsWith('/privacidad') ||
+    pathname.startsWith('/terminos') ||
+    pathname.startsWith('/cookies') ||
+    pathname.startsWith('/reembolsos') ||
+    pathname.startsWith('/contact')
+  ) {
+    texture1 = heroBgTexture;
   }
 
   // Fallback si no es una ruta mapeada

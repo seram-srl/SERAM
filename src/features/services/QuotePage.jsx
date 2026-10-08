@@ -63,7 +63,7 @@ const QUESTIONS = [
   {
     id: 'timeframe',
     title: '¿Cuál es el plazo estimado para iniciar la consultoría?',
-    desc: 'Mapeamos tu urgencia con la disponibilidad de nuestros peritos técnicos y laboratorios.',
+    desc: 'Mapeamos tu urgencia con la disponibilidad de nuestros ingenieros especialistas y laboratorios.',
     options: [
       { id: 'inmediato', label: 'De inmediato (Menos de 30 días)', icon: <CheckCircle className="w-5 h-5" />, desc: 'Firma y movilización inmediata de cuadrillas.' },
       { id: 'corto', label: 'Corto plazo (1 a 3 meses)', icon: <Calendar className="w-5 h-5" />, desc: 'Planificación de campañas de muestreo estacionales.' },

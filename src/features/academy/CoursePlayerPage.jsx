@@ -83,7 +83,7 @@ function DeliverablePdfView({ course, navigate, triggerToast, currentSocio }) {
     {
       id: 2,
       author: 'Lic. Mariana Siles',
-      role: 'Auditora Ambiental y Perito',
+      role: 'Auditora Ambiental Especialista',
       date: 'Ayer',
       text: '¿Los carimbos y matrices de mitigación vienen en vectores editables compatibles con AutoCAD y QGIS para adjuntar directamente a los informes técnicos?',
       answer: 'Efectivamente. Todas las plantillas y carimbos incluidos en los anexos cumplen con la normalización de capas y formatos estándar A3/A4 requeridos por la Autoridad Ambiental Competente.',
