@@ -78,9 +78,9 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
         }
       );
 
-      // 3. Aparición suave de la metadata a la derecha
-      gsap.fromTo('.fullscreen-menu__meta',
-        { y: 30, opacity: 0 },
+      // 3. Aparición suave de la metadata y legalidad inferior
+      gsap.fromTo(['.fullscreen-menu__meta', '.fullscreen-menu__legal'],
+        { y: 25, opacity: 0 },
         {
           y: 0,
           opacity: 1,
@@ -104,20 +104,15 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
         ease: 'power3.in',
         overwrite: 'auto'
       });
-      gsap.to('.fullscreen-menu__meta', {
-        y: 20,
+      gsap.to(['.fullscreen-menu__meta', '.fullscreen-menu__legal'], {
+        y: 15,
         opacity: 0,
-        duration: 0.4,
+        duration: 0.35,
         ease: 'power3.in',
         overwrite: 'auto'
       });
     }
   }, [isOpen]);
-
-  const getActiveLabel = () => {
-    const match = NAV_ITEMS.find(n => n.to === location.pathname);
-    return match?.label ?? 'Inicio';
-  };
 
   return (
     <>
@@ -189,28 +184,53 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
             )}
           </ul>
 
-          {/* Metadata de apoyo lateral */}
-          <div className="fullscreen-menu__meta" aria-hidden="true">
+          {/* Enlaces de legalidad al costado inferior izquierdo con interlinking */}
+          <div className="fullscreen-menu__legal">
+            <p className="fullscreen-menu__meta-label">Legalidad</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.25rem' }}>
+              <NavLink
+                to="/privacidad"
+                onClick={onToggle}
+                style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', textDecoration: 'none' }}
+                className="hover:text-[#00e03c] transition-colors font-medium cursor-pointer"
+              >
+                Privacidad
+              </NavLink>
+              <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.65rem' }}>•</span>
+              <NavLink
+                to="/terminos"
+                onClick={onToggle}
+                style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', textDecoration: 'none' }}
+                className="hover:text-[#00e03c] transition-colors font-medium cursor-pointer"
+              >
+                Términos
+              </NavLink>
+            </div>
+          </div>
+
+          {/* Metadata de usuario al costado inferior derecho (posicionado abajo) */}
+          <div className="fullscreen-menu__meta">
             {activeRole === 'AdminMod' && currentSocio ? (
-              <div style={{ marginBottom: '1.5rem' }}>
+              <div>
                 <p className="fullscreen-menu__meta-label">Socio Activo</p>
-                <p className="fullscreen-menu__meta-value" style={{ color: '#00e03c' }}>
+                <p className="fullscreen-menu__meta-value" style={{ color: '#00e03c', fontWeight: 700 }}>
                   {currentSocio.name}
                 </p>
                 <button
+                  type="button"
                   onClick={handleLogoutPartner}
-                  className="fullscreen-menu__meta-value"
+                  className="fullscreen-menu__meta-value cursor-pointer hover:text-red-400 transition-colors"
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: 'rgba(239, 68, 68, 0.7)',
-                    cursor: 'none',
+                    color: 'rgba(239, 68, 68, 0.85)',
                     padding: 0,
                     fontSize: '0.75rem',
                     fontWeight: 600,
                     textDecoration: 'underline',
-                    marginTop: '0.25rem',
+                    marginTop: '0.35rem',
                     display: 'block',
+                    marginLeft: 'auto',
                     textAlign: 'right',
                   }}
                 >
@@ -218,25 +238,30 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
                 </button>
               </div>
             ) : supabaseUser ? (
-              <div style={{ marginBottom: '1.5rem' }}>
+              <div>
                 <p className="fullscreen-menu__meta-label">Usuario Conectado</p>
-                <p className="fullscreen-menu__meta-value text-ellipsis overflow-hidden" style={{ color: '#00e03c', fontSize: '0.75rem' }}>
+                <p
+                  className="fullscreen-menu__meta-value text-ellipsis overflow-hidden"
+                  style={{ color: '#00e03c', fontSize: '0.75rem', fontWeight: 700, maxWidth: '240px' }}
+                  title={supabaseUser.email}
+                >
                   {supabaseUser.email}
                 </p>
                 <button
+                  type="button"
                   onClick={handleLogoutPublic}
-                  className="fullscreen-menu__meta-value"
+                  className="fullscreen-menu__meta-value cursor-pointer hover:text-red-400 transition-colors"
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: 'rgba(239, 68, 68, 0.7)',
-                    cursor: 'none',
+                    color: 'rgba(239, 68, 68, 0.85)',
                     padding: 0,
                     fontSize: '0.75rem',
                     fontWeight: 600,
                     textDecoration: 'underline',
-                    marginTop: '0.25rem',
+                    marginTop: '0.35rem',
                     display: 'block',
+                    marginLeft: 'auto',
                     textAlign: 'right',
                   }}
                 >
@@ -244,17 +269,17 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
                 </button>
               </div>
             ) : (
-              <div style={{ marginBottom: '1.5rem' }}>
+              <div>
                 <p className="fullscreen-menu__meta-label">Mi Cuenta</p>
                 <NavLink
                   to="/login"
-                  className="fullscreen-menu__meta-value"
+                  onClick={onToggle}
+                  className="fullscreen-menu__meta-value hover:text-[#00ff44] transition-colors cursor-pointer"
                   style={{
                     color: '#00e03c',
                     textDecoration: 'none',
-                    cursor: 'none',
                     fontSize: '0.75rem',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     display: 'block',
                     textAlign: 'right',
                   }}
@@ -263,19 +288,6 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
                 </NavLink>
               </div>
             )}
-
-            <p className="fullscreen-menu__meta-label" style={{ marginTop: '1.25rem' }}>
-              Sección Activa
-            </p>
-            <p className="fullscreen-menu__meta-value">{getActiveLabel()}</p>
-
-            <div style={{ marginTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '0.75rem' }}>
-              <p className="fullscreen-menu__meta-label" style={{ fontSize: '0.65rem' }}>Legalidad</p>
-              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.25rem' }}>
-                <NavLink to="/privacidad" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.7rem', textDecoration: 'none' }} className="hover:text-white transition-colors">Privacidad</NavLink>
-                <NavLink to="/terminos" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.7rem', textDecoration: 'none' }} className="hover:text-white transition-colors">Términos</NavLink>
-              </div>
-            </div>
           </div>
         </div>
       </nav>
