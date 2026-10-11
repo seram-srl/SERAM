@@ -1,25 +1,33 @@
+name: seram-automation
+
 version: '3.8'
 
 services:
-  n8n:
+  seram_n8n:
     image: docker.n8n.io/n8nio/n8n:latest
-    container_name: n8n_app
+    container_name: seram_n8n_app
+    restart: unless-stopped
     ports:
-      - "5678:5678"
+      # Puerto 5679 en tu máquina física (deja el 5678 100% intacto y exclusivo para tu uso personal)
+      - "${N8N_HOST_PORT:-5679}:5678"
+    env_file:
+      - .env
     environment:
       - N8N_PORT=5678
-      - N8N_SECURE_COOKIE=false
+      - N8N_SECURE_COOKIE=${N8N_SECURE_COOKIE:-false}
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE:-America/La_Paz}
+      - TZ=${TZ:-America/La_Paz}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
     volumes:
-      - n8n_data:/home/node/.local/share/n8n
-    restart: unless-stopped
+      # Carpeta local 'data' en tu disco D:\SERAM\n8n\data: Todos los datos, usuarios y credenciales viven aquí
+      - ./data:/home/node/.local/share/n8n
+      # Carpeta para exportar o importar workflows en formato JSON
+      - ./workflows:/home/node/workflows
 
-  cloudflared:
+  seram_cloudflared:
     image: cloudflare/cloudflared:latest
-    container_name: cloudflared_tunnel
-    command: tunnel --no-autoupdate --url http://n8n:5678
+    container_name: seram_cloudflared_tunnel
     restart: unless-stopped
+    command: tunnel --no-autoupdate --url http://seram_n8n:5678
     depends_on:
-      - n8n
-
-volumes:
-  n8n_data:
+      - seram_n8n

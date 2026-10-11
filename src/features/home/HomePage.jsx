@@ -347,6 +347,21 @@ function HeroSection() {
   );
 }
 
+function ServicesScrollIndicator() {
+  return (
+    <div className="absolute bottom-6 left-0 right-0 hidden sm:flex flex-col items-center justify-center pointer-events-none z-20">
+      <div className="flex flex-col items-center gap-2 pointer-events-auto">
+        <div className="flex w-[24px] h-[40px] border-2 border-white/50 rounded-full justify-center p-1.5 shadow-[0_0_10px_rgba(255,255,255,0.1)]">
+          <div className="w-[3px] h-[7px] bg-[#00e03c] rounded-full animate-scrollIndicator" />
+        </div>
+        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-tech select-none">
+          Desliza para explorar
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // ─── GSAP SERVICES SCALE-ON-SCROLL ──────────────────────────────────────────────────────
 function ServicesHorizontalSection() {
   const triggerRef = useRef(null);
@@ -670,6 +685,7 @@ function ServicesHorizontalSection() {
               Ver Servicios y Asegurar Cumplimiento
             </button>
           </div>
+          <ServicesScrollIndicator />
         </div>
 
         {/* Tarjeta 1: Regularización y Licencias Ambientales (FNCA) — z-20 */}
@@ -691,6 +707,7 @@ function ServicesHorizontalSection() {
               <button onClick={() => openChatbot('q2_civil')} className="neuform-btn-primary pointer-events-auto px-6 py-3.5 text-[11px]">Categorizar Mi Proyecto y Cotizar Gratis</button>
 
             </div>
+            <ServicesScrollIndicator />
           </div>
         </div>
 
@@ -745,6 +762,7 @@ function ServicesHorizontalSection() {
               <button onClick={() => openChatbot('q2_industrial')} className="neuform-btn-primary pointer-events-auto px-8 py-3.5">Obtener RAI y Blindar Fábrica</button>
 
             </div>
+            <ServicesScrollIndicator />
           </div>
         </div>
 
@@ -762,6 +780,7 @@ function ServicesHorizontalSection() {
               <button onClick={() => openChatbot('q2_mining')} className="neuform-btn-primary pointer-events-auto px-8 py-3.5">Aprobar Trámite Minero y Explotar</button>
 
             </div>
+            <ServicesScrollIndicator />
           </div>
         </div>
 
@@ -794,17 +813,7 @@ function ServicesHorizontalSection() {
               </div>
             </div>
             
-            {/* Indicador DESLIZA — Desktop centrado en la parte inferior (afuera de la tarjeta de cristal) */}
-            <div className="absolute bottom-6 left-0 right-0 hidden sm:flex flex-col items-center justify-center pointer-events-none z-20">
-              <div className="flex flex-col items-center gap-2 pointer-events-auto">
-                <div className="flex w-[24px] h-[40px] border-2 border-white/50 rounded-full justify-center p-1.5 shadow-[0_0_10px_rgba(255,255,255,0.1)]">
-                  <div className="w-[3px] h-[7px] bg-[#00e03c] rounded-full animate-scrollIndicator" />
-                </div>
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-tech select-none">
-                  Desliza para explorar
-                </span>
-              </div>
-            </div>
+            <ServicesScrollIndicator />
           </div>
         </div>
       </div>

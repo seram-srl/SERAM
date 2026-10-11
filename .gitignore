@@ -72,3 +72,6 @@ render_pdf.js
 remotion-video/public/*.mp4
 remotion-video/public/video1/
 
+# SERAM n8n local runtime database
+n8n/data/
+

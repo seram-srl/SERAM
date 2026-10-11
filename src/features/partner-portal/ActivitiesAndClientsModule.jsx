@@ -5,9 +5,11 @@ import {
   Calendar, AlertCircle, ArrowRight, Trash2, Edit2, Check,
   X, Search, Briefcase, FileText, ChevronDown, CheckCircle2,
   ListFilter, Sparkles, Phone, Mail, MapPin, ExternalLink,
-  Layers, BarChart2, TrendingUp
+  Layers, BarChart2, TrendingUp, ChevronRight, PanelRightClose,
+  ShieldCheck, Award, Scale
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { calculateTaskXP, validateCrossApproval } from './gamification/xpEngine';
 
 // ── COMPONENTE TARJETA DE CRISTAL ──────────────────────────────────────────
 const GlassCard = ({ children, className = '' }) => (
@@ -15,6 +17,15 @@ const GlassCard = ({ children, className = '' }) => (
     {children}
   </div>
 );
+
+// ── 5 HITOS ESTÁNDAR DE EJECUCIÓN (NOTION STYLE) ───────────────────────────
+const STANDARD_MILESTONES = [
+  { step: 1, label: 'Levantamiento & Datos', short: '1. Datos' },
+  { step: 2, label: 'Diagnóstico & SIG', short: '2. SIG' },
+  { step: 3, label: 'Redacción Técnica', short: '3. Redacción' },
+  { step: 4, label: 'Control Calidad / Firma', short: '4. Calidad' },
+  { step: 5, label: 'Trámite & Entrega', short: '5. Entrega' },
+];
 
 // ── BADGES DE ESTADO Y PRIORIDAD ────────────────────────────────────────────
 const PRIORITY_STYLES = {
@@ -64,6 +75,169 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
   const [showNewActivityModal, setShowNewActivityModal] = useState(false);
   const [showNewClientModal, setShowNewClientModal] = useState(false);
   const [editingActivity, setEditingActivity] = useState(null);
+
+  // Slide-over Drawer lateral (Ficha detallada sin modales invasivos)
+  const [drawerActivity, setDrawerActivity] = useState(null);
+  const [drawerData, setDrawerData] = useState(null);
+
+  const getMilestoneStep = (act) => {
+    if (!act) return 0;
+    if (act.milestoneStep !== undefined && act.milestoneStep !== null) return Number(act.milestoneStep);
+    if (act.status === 'Concluido') return 5;
+    if (act.status === 'En revisión') return 4;
+    if (act.status === 'En curso') return 2;
+    return 0;
+  };
+
+  // Sync drawer form state when an activity is selected
+  React.useEffect(() => {
+    if (drawerActivity) {
+      setDrawerData({
+        ...drawerActivity,
+        milestoneStep: getMilestoneStep(drawerActivity)
+      });
+    } else {
+      setDrawerData(null);
+    }
+  }, [drawerActivity]);
+
+  const handleApproveActivity = (act) => {
+    const validation = validateCrossApproval(currentSocio, act);
+    if (!validation.canApprove) {
+      triggerToast(validation.reason, 'error');
+      return;
+    }
+
+    const hours = Number(act.actualHours) || Number(act.estimatedHours) || 2;
+    const diff = act.priority === 'Alta' ? 'Alta' : (act.priority === 'Urgente' ? 'Critica' : 'Media');
+    const xpResult = calculateTaskXP({
+      hours,
+      difficulty: diff,
+      deadline: act.dueDate,
+      completedAt: new Date(),
+    });
+
+    handleEditActivity(act.id, {
+      status: 'Concluido',
+      milestoneStep: 5,
+      approved_by: currentSocio.name,
+      approved_at: new Date().toISOString(),
+      xp_awarded: xpResult.finalXP,
+    });
+
+    if (drawerActivity && drawerActivity.id === act.id) {
+      setDrawerData(prev => ({
+        ...prev,
+        status: 'Concluido',
+        milestoneStep: 5,
+        approved_by: currentSocio.name,
+        approved_at: new Date().toISOString(),
+        xp_awarded: xpResult.finalXP,
+      }));
+    }
+
+    triggerToast(
+      `¡Entregable aprobado por ${currentSocio.name}! Se otorgaron +${xpResult.finalXP} XP a ${act.assignedPartner}.`,
+      'success'
+    );
+  };
+
+  const handleRejectActivity = (act, reason = 'Requiere ajustes técnicos en gabinete') => {
+    const validation = validateCrossApproval(currentSocio, act);
+    if (!validation.canApprove) {
+      triggerToast(validation.reason, 'error');
+      return;
+    }
+
+    handleEditActivity(act.id, {
+      status: 'En curso',
+      milestoneStep: 3,
+      reviewNotes: reason,
+    });
+
+    if (drawerActivity && drawerActivity.id === act.id) {
+      setDrawerData(prev => ({
+        ...prev,
+        status: 'En curso',
+        milestoneStep: 3,
+        reviewNotes: reason,
+      }));
+    }
+
+    triggerToast(`Entregable devuelto a "En curso" para corrección de observaciones`, 'info');
+  };
+
+  const handleRequestStatusChange = (act, targetStatus) => {
+    if (targetStatus === 'Concluido') {
+      if (currentSocio?.name === act.assignedPartner) {
+        handleEditActivity(act.id, {
+          status: 'En revisión',
+          milestoneStep: 4,
+        });
+        triggerToast('Entregable enviado a "En revisión". Para garantizar equidad imparcial, otro socio debe auditar y aprobar el trabajo.', 'info');
+        return;
+      }
+      handleApproveActivity(act);
+      return;
+    }
+
+    if (targetStatus === 'En revisión') {
+      handleEditActivity(act.id, {
+        status: 'En revisión',
+        milestoneStep: 4,
+      });
+      triggerToast('Actividad movida a "En revisión" pericial', 'info');
+      return;
+    }
+
+    handleUpdateActivityStatus(act.id, targetStatus);
+  };
+
+  const handleMilestoneClick = (act, targetStep) => {
+    const currentStep = getMilestoneStep(act);
+    const newStep = currentStep === targetStep ? Math.max(0, targetStep - 1) : targetStep;
+
+    if (newStep === 5) {
+      if (currentSocio?.name === act.assignedPartner) {
+        handleEditActivity(act.id, {
+          milestoneStep: 4,
+          status: 'En revisión',
+        });
+        if (drawerActivity && drawerActivity.id === act.id) {
+          setDrawerData(prev => ({ ...prev, milestoneStep: 4, status: 'En revisión' }));
+        }
+        triggerToast('Hito 4 completado. Entregable enviado a "En revisión". Requiere auditoría de otro socio para completar el Hito 5.', 'info');
+        return;
+      }
+      handleApproveActivity(act);
+      return;
+    }
+
+    let newStatus = act.status;
+    if (newStep === 4) newStatus = 'En revisión';
+    else if (newStep >= 1) newStatus = 'En curso';
+    else newStatus = 'Pendiente';
+
+    handleEditActivity(act.id, {
+      milestoneStep: newStep,
+      status: newStatus
+    });
+
+    if (drawerActivity && drawerActivity.id === act.id) {
+      setDrawerData(prev => ({
+        ...prev,
+        milestoneStep: newStep,
+        status: newStatus
+      }));
+    }
+  };
+
+  const saveDrawerData = () => {
+    if (!drawerData) return;
+    handleEditActivity(drawerData.id, drawerData);
+    setDrawerActivity(null);
+    triggerToast('Ficha de actividad actualizada correctamente', 'success');
+  };
 
   // Form State Actividad
   const [actTitle, setActTitle] = useState('');
@@ -443,6 +617,46 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                           </p>
                         )}
 
+                        {/* Validación Cruzada / XP Status */}
+                        {act.status === 'En revisión' && (
+                          <div className="pt-1.5 pb-0.5">
+                            {currentSocio?.name !== act.assignedPartner ? (
+                              <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-1">
+                                <span className="text-[9px] font-black text-amber-300 flex items-center gap-1">
+                                  <Scale className="w-2.5 h-2.5 text-amber-400 animate-pulse" /> Auditoría
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleApproveActivity(act);
+                                  }}
+                                  className="px-2 py-0.5 rounded-md bg-[#00e03c] text-slate-950 font-black text-[9px] hover:bg-[#00e03c]/90 transition-all flex items-center gap-1 cursor-pointer"
+                                  title="Aprobar entregable y asignar XP"
+                                >
+                                  <ShieldCheck className="w-2.5 h-2.5" /> Aprobar (+XP)
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="p-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-center text-[8px] font-bold text-amber-300 flex items-center justify-center gap-1">
+                                <Clock className="w-2.5 h-2.5" /> En espera de auditoría par
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {act.status === 'Concluido' && (
+                          <div className="pt-1 pb-0.5 flex items-center justify-between text-[9px] text-[#00e03c]">
+                            <span className="font-semibold flex items-center gap-1">
+                              <CheckCircle2 className="w-2.5 h-2.5" />
+                              {act.approved_by ? `Validado (${act.approved_by.replace('Ing. ', '')})` : 'Auditado'}
+                            </span>
+                            {act.xp_awarded ? (
+                              <span className="font-black font-mono">+{act.xp_awarded} XP</span>
+                            ) : null}
+                          </div>
+                        )}
+
                         {/* Pie de Tarjeta: Socio Asignado, Fecha y Horas */}
                         <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-[10px] text-slate-400">
                           <div className="flex items-center gap-1 font-bold text-slate-300">
@@ -465,7 +679,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                               <button
                                 key={sc.id}
                                 title={`Mover a ${sc.label}`}
-                                onClick={() => handleUpdateActivityStatus(act.id, sc.id)}
+                                onClick={() => handleRequestStatusChange(act, sc.id)}
                                 className={`w-4 h-4 rounded-full text-[8px] flex items-center justify-center transition-all ${
                                   act.status === sc.id
                                     ? 'bg-[#00e03c] text-slate-950 font-black ring-2 ring-white/20'
@@ -479,6 +693,15 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
 
                           <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                             <button
+                              type="button"
+                              onClick={() => setDrawerActivity(act)}
+                              className="p-1 rounded hover:bg-[#00e03c]/20 text-slate-400 hover:text-[#00e03c] transition-colors"
+                              title="Abrir Ficha Técnica (Drawer)"
+                            >
+                              <FileText className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
                               onClick={() => openEditActivity(act)}
                               className="p-1 rounded hover:bg-white/[0.1] text-slate-400 hover:text-white"
                               title="Editar actividad"
@@ -486,6 +709,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                               <Edit2 className="w-3 h-3" />
                             </button>
                             <button
+                              type="button"
                               onClick={() => handleDeleteActivity(act.id)}
                               className="p-1 rounded hover:bg-rose-500/20 text-slate-500 hover:text-rose-400"
                               title="Eliminar actividad"
@@ -504,7 +728,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         </div>
       )}
 
-      {/* ── VISTA 2: TABLA TIPO NOTION (LISTA DETALLADA) ── */}
+      {/* ── VISTA 2: TABLA TIPO NOTION (LISTA DETALLADA & ERGONÓMICA) ── */}
       {activeTab === 'table' && (
         <GlassCard className="p-0 overflow-hidden">
           <div className="overflow-x-auto">
@@ -514,74 +738,163 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                   <th className="p-3.5">Actividad Clave / Entregable</th>
                   <th className="p-3.5">Proyecto / Cliente</th>
                   <th className="p-3.5">Socio Asignado</th>
+                  <th className="p-3.5">Hitos de Ejecución (5 Fases)</th>
                   <th className="p-3.5">Estado</th>
                   <th className="p-3.5">Prioridad</th>
                   <th className="p-3.5">Fecha Límite</th>
                   <th className="p-3.5">Horas</th>
-                  <th className="p-3.5 text-right">Acciones</th>
+                  <th className="p-3.5 text-right">Ficha / Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.06]">
                 {filteredActivities.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="p-8 text-center text-slate-500">
+                    <td colSpan="9" className="p-8 text-center text-slate-500">
                       No se encontraron actividades con los filtros seleccionados.
                     </td>
                   </tr>
                 ) : (
-                  filteredActivities.map((act) => (
-                    <tr key={act.id} className="hover:bg-white/[0.03] transition-colors">
-                      <td className="p-3.5 font-bold text-white max-w-xs">
-                        <div className="line-clamp-1">{act.title}</div>
-                        {act.description && <div className="text-[10px] text-slate-400 font-normal line-clamp-1">{act.description}</div>}
-                      </td>
-                      <td className="p-3.5 text-emerald-400 font-medium">
-                        {act.projectTitle || 'General'}
-                      </td>
-                      <td className="p-3.5">
-                        <span className="flex items-center gap-1.5 font-bold text-slate-300">
-                          <User className="w-3 h-3 text-[#00e03c]" />
-                          {act.assignedPartner}
-                        </span>
-                      </td>
-                      <td className="p-3.5">
-                        <select
-                          value={act.status}
-                          onChange={(e) => handleUpdateActivityStatus(act.id, e.target.value)}
-                          className="text-[11px] font-bold px-2 py-1 rounded-lg bg-white/[0.08] border border-white/[0.12] text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white"
-                        >
-                          {STATUS_COLUMNS.map((s) => (
-                            <option key={s.id} value={s.id}>{s.label}</option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="p-3.5">
-                        <span className={`text-[10px] font-black px-2 py-0.5 rounded border ${PRIORITY_STYLES[act.priority] || PRIORITY_STYLES.Media}`}>
-                          {act.priority}
-                        </span>
-                      </td>
-                      <td className="p-3.5 text-slate-400 font-mono">
-                        {act.dueDate || 'Sin fecha'}
-                      </td>
-                      <td className="p-3.5 text-slate-300 font-mono">
-                        {act.actualHours > 0 ? `${act.actualHours}h / ` : ''}{act.estimatedHours || 0}h
-                      </td>
-                      <td className="p-3.5 text-right space-x-1">
-                        <button
-                          onClick={() => openEditActivity(act)}
-                          className="p-1 rounded hover:bg-white/[0.1] text-slate-400 hover:text-white"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteActivity(act.id)}
-                          className="p-1 rounded hover:bg-rose-500/20 text-slate-500 hover:text-rose-400"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                  filteredActivities.map((act) => {
+                    const currentStep = getMilestoneStep(act);
+                    return (
+                      <tr
+                        key={act.id}
+                        className="hover:bg-white/[0.04] transition-colors group cursor-pointer"
+                        onClick={(e) => {
+                          if (e.target.closest('button') || e.target.closest('select') || e.target.closest('input')) return;
+                          setDrawerActivity(act);
+                        }}
+                      >
+                        <td className="p-3.5 font-bold text-white max-w-xs">
+                          <div className="flex items-center gap-1.5 line-clamp-1 group-hover:text-[#00e03c] transition-colors">
+                            <span>{act.title}</span>
+                            <ChevronRight className="w-3 h-3 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                          </div>
+                          {act.description && <div className="text-[10px] text-slate-400 font-normal line-clamp-1">{act.description}</div>}
+                        </td>
+                        <td className="p-3.5 text-emerald-400 font-medium whitespace-nowrap">
+                          {act.projectTitle || 'General'}
+                        </td>
+                        <td className="p-3.5 whitespace-nowrap">
+                          <span className="flex items-center gap-1.5 font-bold text-slate-300">
+                            <User className="w-3 h-3 text-[#00e03c]" />
+                            {act.assignedPartner}
+                          </span>
+                        </td>
+
+                        {/* Hitos Interactivos Notion-Style (5 Fases) */}
+                        <td className="p-3.5">
+                          <div className="flex items-center gap-1">
+                            {STANDARD_MILESTONES.map((m) => {
+                              const isCompleted = currentStep >= m.step;
+                              return (
+                                <button
+                                  key={m.step}
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleMilestoneClick(act, m.step);
+                                  }}
+                                  className={`px-1.5 py-0.5 rounded text-[9px] font-black transition-all flex items-center gap-0.5 cursor-pointer ${
+                                    isCompleted
+                                      ? 'bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/40 shadow-sm shadow-[#00e03c]/10'
+                                      : 'bg-white/[0.04] text-slate-500 hover:text-slate-300 hover:bg-white/[0.08] border border-white/[0.06]'
+                                  }`}
+                                  title={`Hito ${m.step}: ${m.label} (Clic para marcar/desmarcar)`}
+                                >
+                                  {isCompleted && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                                  <span>{m.step}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </td>
+
+                        <td className="p-3.5">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <select
+                              value={act.status}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                handleRequestStatusChange(act, e.target.value);
+                              }}
+                              className="text-[11px] font-bold px-2 py-1 rounded-lg bg-white/[0.08] border border-white/[0.12] text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white"
+                            >
+                              {STATUS_COLUMNS.map((s) => (
+                                <option key={s.id} value={s.id}>{s.label}</option>
+                              ))}
+                            </select>
+
+                            {act.status === 'En revisión' && currentSocio?.name !== act.assignedPartner && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleApproveActivity(act);
+                                }}
+                                className="px-2 py-1 rounded-md bg-[#00e03c] text-slate-950 font-black text-[9px] hover:bg-[#00e03c]/90 transition-all cursor-pointer inline-flex items-center gap-1 shadow-sm"
+                                title="Aprobar entregable y asignar XP"
+                              >
+                                <ShieldCheck className="w-2.5 h-2.5" /> Aprobar (+XP)
+                              </button>
+                            )}
+
+                            {act.status === 'Concluido' && act.xp_awarded ? (
+                              <span className="text-[9px] font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-1.5 py-0.5 rounded font-mono">
+                                +{act.xp_awarded} XP
+                              </span>
+                            ) : null}
+                          </div>
+                        </td>
+                        <td className="p-3.5 whitespace-nowrap">
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded border ${PRIORITY_STYLES[act.priority] || PRIORITY_STYLES.Media}`}>
+                            {act.priority}
+                          </span>
+                        </td>
+                        <td className="p-3.5 text-slate-400 font-mono whitespace-nowrap">
+                          {act.dueDate || 'Sin fecha'}
+                        </td>
+                        <td className="p-3.5 text-slate-300 font-mono whitespace-nowrap">
+                          {act.actualHours > 0 ? `${act.actualHours}h / ` : ''}{act.estimatedHours || 0}h
+                        </td>
+                        <td className="p-3.5 text-right space-x-1 whitespace-nowrap">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDrawerActivity(act);
+                            }}
+                            className="p-1 rounded hover:bg-[#00e03c]/10 text-slate-400 hover:text-[#00e03c] transition-colors"
+                            title="Abrir ficha detallada (Slide-over lateral)"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openEditActivity(act);
+                            }}
+                            className="p-1 rounded hover:bg-white/[0.1] text-slate-400 hover:text-white"
+                            title="Editar en formulario modal"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteActivity(act.id);
+                            }}
+                            className="p-1 rounded hover:bg-rose-500/20 text-slate-500 hover:text-rose-400"
+                            title="Eliminar actividad"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -1010,6 +1323,9 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                       className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white"
                     >
                       <option value="SIG / Cartografía">SIG / Cartografía</option>
+                      <option value="Desarrollo Web & Sistemas">Desarrollo Web & Sistemas</option>
+                      <option value="Propuestas Técnicas & Proyectos">Propuestas Técnicas & Proyectos</option>
+                      <option value="Legal & Corporativo">Legal & Corporativo</option>
                       <option value="Trámite Ambiental FNCA/RAI">Trámite Ambiental FNCA/RAI</option>
                       <option value="Trabajo de Campo / Muestreo">Trabajo de Campo / Muestreo</option>
                       <option value="Elaboración Informe / TDR">Elaboración Informe / TDR</option>
@@ -1218,6 +1534,334 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                 </div>
               </form>
             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── SLIDE-OVER DRAWER LATERAL: FICHA TÉCNICA NOTION-STYLE ── */}
+      <AnimatePresence>
+        {drawerActivity && drawerData && (
+          <div className="fixed inset-0 z-50 overflow-hidden">
+            {/* Backdrop oscuro translúcido */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDrawerActivity(null)}
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            />
+
+            <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+              <motion.div
+                initial={{ x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+                className="w-screen max-w-xl bg-[#0c141f] border-l border-white/[0.12] p-6 sm:p-8 flex flex-col justify-between shadow-2xl relative z-10 overflow-y-auto space-y-6"
+              >
+                {/* Header del Drawer */}
+                <div className="space-y-4 border-b border-white/[0.08] pb-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-white/[0.08] text-slate-300">
+                        {drawerData.category || 'General'}
+                      </span>
+                      <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${PRIORITY_STYLES[drawerData.priority] || PRIORITY_STYLES.Media}`}>
+                        Prioridad {drawerData.priority}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setDrawerActivity(null)}
+                      className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors"
+                      title="Cerrar ficha"
+                    >
+                      <PanelRightClose className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Input Título editable directamente */}
+                  <input
+                    type="text"
+                    value={drawerData.title || ''}
+                    onChange={(e) => setDrawerData(prev => ({ ...prev, title: e.target.value }))}
+                    className="w-full text-lg sm:text-xl font-black text-white bg-transparent border-b border-transparent hover:border-white/20 focus:border-[#00e03c] focus:outline-none transition-colors px-1 py-0.5"
+                    placeholder="Título de la actividad..."
+                  />
+
+                  {/* Proyecto Vinculado */}
+                  <div className="flex items-center gap-2 text-xs text-emerald-400 font-semibold">
+                    <Briefcase className="w-4 h-4 shrink-0" />
+                    <span>{drawerData.projectTitle || 'Proyecto General'}</span>
+                  </div>
+                </div>
+
+                {/* Sección de 5 Hitos Interactivos */}
+                <div className="space-y-3 bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4">
+                  <div className="flex items-center justify-between">
+                    <h5 className="text-xs font-black uppercase text-slate-300 tracking-wider flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#00e03c]" /> Hitos de Ejecución Técnica (5 Fases)
+                    </h5>
+                    <span className="text-[11px] font-black text-[#00e03c] bg-[#00e03c]/10 px-2 py-0.5 rounded-full border border-[#00e03c]/20">
+                      {Math.round(((drawerData.milestoneStep || 0) / 5) * 100)}% Completado
+                    </span>
+                  </div>
+
+                  {/* Barra de progreso */}
+                  <div className="w-full bg-white/[0.06] rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className="bg-[#00e03c] h-full transition-all duration-300 shadow-sm shadow-[#00e03c]"
+                      style={{ width: `${((drawerData.milestoneStep || 0) / 5) * 100}%` }}
+                    />
+                  </div>
+
+                  {/* Lista de hitos interactivos */}
+                  <div className="space-y-2 pt-1">
+                    {STANDARD_MILESTONES.map((m) => {
+                      const isDone = (drawerData.milestoneStep || 0) >= m.step;
+                      return (
+                        <div
+                          key={m.step}
+                          onClick={() => handleMilestoneClick(drawerActivity, m.step)}
+                          className={`flex items-center justify-between p-2.5 rounded-xl border text-xs cursor-pointer transition-all ${
+                            isDone
+                              ? 'bg-[#00e03c]/10 border-[#00e03c]/30 text-white'
+                              : 'bg-white/[0.02] border-white/[0.06] text-slate-400 hover:bg-white/[0.05]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className={`w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-black transition-all ${
+                              isDone ? 'bg-[#00e03c] text-slate-950 font-black' : 'border border-white/20 text-slate-500'
+                            }`}>
+                              {isDone ? <Check className="w-3 h-3 stroke-[3]" /> : m.step}
+                            </div>
+                            <span className={isDone ? 'font-bold text-white' : 'font-medium'}>
+                              {m.label}
+                            </span>
+                          </div>
+                          <span className={`text-[10px] font-bold ${isDone ? 'text-[#00e03c]' : 'text-slate-500'}`}>
+                            {isDone ? 'Completado' : 'Pendiente'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Panel de Auditoría Pericial y Validación Cruzada (Anti-Cheat) */}
+                <div className="p-4 rounded-2xl bg-white/[0.03] border border-amber-500/25 space-y-3">
+                  <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+                    <div className="flex items-center gap-2">
+                      <Scale className="w-4 h-4 text-amber-400" />
+                      <span className="text-xs font-black uppercase tracking-wider text-white">
+                        Auditoría Societaria & Validación Cruzada
+                      </span>
+                    </div>
+                    <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+                      drawerData.status === 'Concluido' ? 'bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/30' :
+                      drawerData.status === 'En revisión' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
+                      'bg-slate-500/20 text-slate-400 border border-slate-500/30'
+                    }`}>
+                      {drawerData.status}
+                    </span>
+                  </div>
+
+                  {drawerData.status === 'En revisión' && (
+                    <div className="space-y-3">
+                      {currentSocio?.name === drawerData.assignedPartner ? (
+                        <div className="p-3 rounded-xl bg-amber-950/30 border border-amber-500/30 text-xs text-amber-200 space-y-1">
+                          <p className="font-bold flex items-center gap-1.5 text-amber-300">
+                            <Clock className="w-3.5 h-3.5" /> Entregable a la espera de auditoría técnica
+                          </p>
+                          <p className="text-[11px] text-slate-300 leading-relaxed">
+                            Principio Anti-Cheat: Como autor responsable no puedes auto-aprobarte esta actividad. Requiere que Fernando, Fabricio o Diego revisen el entregable para acreditarte los puntos de XP.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="p-3.5 rounded-xl bg-gradient-to-r from-emerald-500/[0.08] to-transparent border border-emerald-500/30 space-y-2.5">
+                          <div className="text-xs text-slate-200">
+                            <span className="font-bold text-white">{drawerData.assignedPartner}</span> ha marcado este entregable como concluido y solicita tu validación pericial.
+                          </div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <button
+                              type="button"
+                              onClick={() => handleApproveActivity(drawerData)}
+                              className="px-3.5 py-1.5 rounded-xl bg-[#00e03c] hover:bg-[#00e03c]/90 text-slate-950 font-black text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-md shadow-[#00e03c]/20"
+                            >
+                              <ShieldCheck className="w-4 h-4" /> Aprobar y Acreditar XP
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRejectActivity(drawerData)}
+                              className="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold text-xs transition-all cursor-pointer"
+                            >
+                              Solicitar Corrección
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {drawerData.status === 'Concluido' && (
+                    <div className="p-3 rounded-xl bg-[#00e03c]/10 border border-[#00e03c]/20 flex items-center justify-between text-xs text-white">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-[#00e03c]" />
+                        <div>
+                          <span className="font-bold text-white block">Aprobado y Auditado</span>
+                          <span className="text-[10px] text-slate-400">
+                            Por {drawerData.approved_by || 'Directorio SERAM'} {drawerData.approved_at && `· ${new Date(drawerData.approved_at).toLocaleDateString()}`}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase block">XP Acreditado</span>
+                        <span className="text-sm font-black text-[#00e03c] font-mono">+{drawerData.xp_awarded || 200} XP</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {drawerData.status !== 'En revisión' && drawerData.status !== 'Concluido' && (
+                    <p className="text-[11px] text-slate-400 italic">
+                      Cuando se concluyan los 4 primeros hitos técnicos, la tarea pasará a revisión y otro socio validará la calidad técnica antes del cierre.
+                    </p>
+                  )}
+                </div>
+
+                {/* Formulario en línea de Propiedades y Metadatos */}
+                <div className="space-y-4 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Estado */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-slate-400">Estado de Flujo</label>
+                      <select
+                        value={drawerData.status || 'Pendiente'}
+                        onChange={(e) => setDrawerData(prev => ({ ...prev, status: e.target.value }))}
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white"
+                      >
+                        {STATUS_COLUMNS.map((s) => (
+                          <option key={s.id} value={s.id}>{s.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Prioridad */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-slate-400">Prioridad</label>
+                      <select
+                        value={drawerData.priority || 'Media'}
+                        onChange={(e) => setDrawerData(prev => ({ ...prev, priority: e.target.value }))}
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white"
+                      >
+                        <option value="Baja">Baja</option>
+                        <option value="Media">Media</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Urgente">Urgente</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Socio Asignado */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-slate-400">Socio Responsable</label>
+                      <select
+                        value={drawerData.assignedPartner || ''}
+                        onChange={(e) => setDrawerData(prev => ({ ...prev, assignedPartner: e.target.value }))}
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white"
+                      >
+                        {partnersList.map((p) => (
+                          <option key={p.name} value={p.name}>{p.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Fecha Límite */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-slate-400">Fecha Límite</label>
+                      <input
+                        type="date"
+                        value={drawerData.dueDate || ''}
+                        onChange={(e) => setDrawerData(prev => ({ ...prev, dueDate: e.target.value }))}
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-mono focus:outline-none focus:border-[#00e03c]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Horas Estimadas */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-slate-400">Horas Estimadas</label>
+                      <input
+                        type="number"
+                        step="0.5"
+                        value={drawerData.estimatedHours || 0}
+                        onChange={(e) => setDrawerData(prev => ({ ...prev, estimatedHours: parseFloat(e.target.value) || 0 }))}
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-mono focus:outline-none focus:border-[#00e03c]"
+                      />
+                    </div>
+
+                    {/* Horas Ejecutadas */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-slate-400">Horas Reales Ejecutadas</label>
+                      <input
+                        type="number"
+                        step="0.5"
+                        value={drawerData.actualHours || 0}
+                        onChange={(e) => setDrawerData(prev => ({ ...prev, actualHours: parseFloat(e.target.value) || 0 }))}
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-[#00e03c] font-black font-mono focus:outline-none focus:border-[#00e03c]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Descripción / Entregable */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-slate-400">Detalles Técnicos & Requerimientos del Entregable</label>
+                    <textarea
+                      rows="4"
+                      value={drawerData.description || ''}
+                      onChange={(e) => setDrawerData(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Escribe notas, especificaciones o enlaces a los entregables..."
+                      className="w-full px-3.5 py-2.5 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#00e03c] resize-none leading-relaxed"
+                    />
+                  </div>
+                </div>
+
+                {/* Pie del Drawer con Acciones */}
+                <div className="pt-4 border-t border-white/[0.08] flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm('¿Seguro que deseas eliminar esta actividad?')) {
+                        handleDeleteActivity(drawerData.id);
+                        setDrawerActivity(null);
+                      }
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Eliminar
+                  </button>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setDrawerActivity(null)}
+                      className="px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-slate-300 font-bold text-xs transition-colors cursor-pointer"
+                    >
+                      Cerrar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={saveDrawerData}
+                      className="px-5 py-2 rounded-xl bg-[#00e03c] hover:bg-[#00e03c]/90 text-slate-950 font-black text-xs shadow-lg shadow-[#00e03c]/20 transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Check className="w-4 h-4 stroke-[3]" /> Guardar Ficha
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
           </div>
         )}
       </AnimatePresence>

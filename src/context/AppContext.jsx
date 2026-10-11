@@ -78,134 +78,8 @@ export function AppProvider({ children }) {
 
 
   // --- DEFAULT MULTI-CATEGORY COURSES & DELIVERABLES CATALOG (SERAM ACADEMY) ---
-  const DEFAULT_COURSES_CATALOG = [
-    {
-      id: 101,
-      title: 'E-Book & Compendio Normativo: Ley 1333, D.S. 3549 y Guía de Mitigación Ambiental en Bolivia',
-      instructor: 'Ing. Fernando Araujo',
-      students: 142,
-      status: 'Activo',
-      isPremium: false,
-      type: 'gratis',
-      format: 'pdf',
-      hasVideo: false,
-      price: 0,
-      image: '/assets/covers/cover_ebook_ley1333.png',
-      duration: 'Dossier Técnico Descargable (180 págs.)',
-      desc: 'Compendio interpretado de la legislación ambiental boliviana (Ley 1333, D.S. 3549, RMCH y RASIM). Incluye carimbos editables, matrices de dispersión y diagrama de flujo de licencias ambientales descargable en PDF de alta resolución.',
-      pdfName: 'Compendio_Normativo_Gestion_Ambiental_SERAM_2026.pdf',
-      pdfUrl: '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf',
-      pages: 180,
-      version: 'Edición 2026 Revisada',
-      sections: [
-        { title: 'Capítulo I: Marco Regulatorio General y Jerarquía Normativa (Ley 1333)' },
-        { title: 'Capítulo II: D.S. 3549 y Procedimientos Administrativos de Licenciamiento' },
-        { title: 'Capítulo III: Reglamento en Materia de Contaminación Hídrica (RMCH)' },
-        { title: 'Capítulo IV: Carimbos, Matrices de Mitigación y Anexos Oficiales' }
-      ]
-    },
-    {
-      id: 102,
-      title: 'Guía Metodológica & Plantillas SIG: Delimitación de Microcuencas y Mapas Temáticos en QGIS',
-      instructor: 'Ing. Diego Barrientos',
-      students: 87,
-      status: 'Activo',
-      isPremium: true,
-      type: 'low_ticket',
-      format: 'pdf',
-      hasVideo: false,
-      price: 45.00,
-      image: '/assets/covers/cover_qgis_basico.png',
-      duration: 'Dossier Práctico + Modelos QGIS (95 págs.)',
-      desc: 'Manual técnico paso a paso para la delimitación automatizada de cuencas hidrográficas con modelos digitales de elevación (DEM SRTM 30m). Incluye archivos de proyecto QGIS (.qgz), paletas de colores normativas y carimbos vectoriales oficiales listos para impresión.',
-      pdfName: 'Guia_Metodologica_SIG_Cuencas_SERAM.pdf',
-      pdfUrl: '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf',
-      pages: 95,
-      version: 'Versión 3.28 LTR',
-      sections: [
-        { title: 'Sección 1: Preparación y Corrección Hidrológica del DEM (Fill Sinks)' },
-        { title: 'Sección 2: Determinación de Direcciones de Flujo y Acumulación' },
-        { title: 'Sección 3: Vectorización de Cuenca y Orden de Drenaje (Strahler)' },
-        { title: 'Sección 4: Simbología y Maquetación Cartográfica para Presentación Municipal' }
-      ]
-    },
-    {
-      id: 1,
-      title: 'Sistemas de Información Geográfica (SIG) Aplicado a la Gestión y Fiscalización Ambiental en Bolivia',
-      instructor: 'Ing. Diego Barrientos',
-      students: 54,
-      status: 'Activo',
-      isPremium: true,
-      type: 'mid_ticket',
-      format: 'video',
-      hasVideo: true,
-      price: 180.00,
-      image: '/assets/3d-backend/gis_satellite_mapping.webp',
-      duration: '40 horas prácticas (QGIS & ArcGIS Pro)',
-      desc: 'Capacitación profesional intensiva con datos satelitales bolivianos: delimitación de microcuencas, mapas temáticos para categorización FNCA y licencias ambientales, análisis multitemporal de deforestación y fiscalización pericial.',
-      pdfName: 'Syllabus_Curso_SIG_Ambiental_SERAM_2026.pdf',
-      pdfUrl: '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf'
-    },
-    {
-      id: 103,
-      title: 'Taller Especializado: Formulación de Fichas Ambientales y Categorización FNCA para Proyectos Mineros y Civiles',
-      instructor: 'Ing. Fabricio Orosco',
-      students: 41,
-      status: 'Activo',
-      isPremium: true,
-      type: 'mid_ticket',
-      format: 'video',
-      hasVideo: true,
-      price: 150.00,
-      image: '/assets/covers/cover_taller_fichas.png',
-      duration: '25 horas prácticas',
-      desc: 'Taller intensivo en video y talleres sincrónicos de llenado pericial de formularios FNCA (Categorías 1, 2, 3 y 4) ante la Autoridad Ambiental Competente. Estudio de casos mineros auríferos y plantas de tratamiento.',
-      pdfName: 'Plantillas_FNCA_IRAP_Oficial_2026.pdf',
-      pdfUrl: '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf'
-    },
-    {
-      id: 104,
-      title: 'Programa Directivo & Mentoría 1-on-1: Consultoría Ambiental Estratégica, Defensa Legal y Proyectos Municipales',
-      instructor: 'Ing. Diego Barrientos & Ing. Fernando Araujo',
-      students: 12,
-      status: 'Activo',
-      isPremium: true,
-      type: 'high_ticket',
-      format: 'video',
-      hasVideo: true,
-      price: 480.00,
-      image: '/assets/covers/cover_mentoria_consultoria.png',
-      duration: '60 horas + 4 sesiones 1-on-1',
-      desc: 'Programa de mentoría avanzada para directores ambientales, consultores senior y líderes técnicos. Acompañamiento personalizado en la estructuración de propuestas B2B, licitaciones municipales y defensa pericial ante contingencias ambientales.',
-      pdfName: 'Dossier_Mentoria_Consultoria_SERAM_2026.pdf',
-      pdfUrl: '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf'
-    },
-    {
-      id: 105,
-      title: 'Dossier Pericial & Protocolo de Monitoreo Hidrogeoquímico de Mercurio (Hg) en Fuentes de Agua',
-      instructor: 'Ing. Diego Barrientos',
-      students: 19,
-      status: 'Activo',
-      isPremium: true,
-      type: 'high_ticket',
-      format: 'pdf',
-      hasVideo: false,
-      price: 250.00,
-      image: '/assets/3d-backend/gis_satellite_mapping.webp',
-      duration: 'Protocolo Pericial Descargable (140 págs. + Planillas)',
-      desc: 'Dossier técnico estandarizado de monitoreo pericial para cuencas afectadas por minería aluvial. Incluye protocolos de cadena de custodia, planillas de cálculo de incertidumbre analítica y plantillas de informes legales para municipios.',
-      pdfName: 'Protocolo_Pericial_Monitoreo_Mercurio_SERAM.pdf',
-      pdfUrl: '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf',
-      pages: 140,
-      version: 'Norma NB 512 & EPA Met. 1631',
-      sections: [
-        { title: 'Fase I: Diseño de Red de Monitoreo y Selección de Estaciones Geoespaciales' },
-        { title: 'Fase II: Protocolo de Muestreo Ultra-Limpio y Preservación de Muestras' },
-        { title: 'Fase III: Análisis por Espectrometría de Fluorescencia Atómica (AFS)' },
-        { title: 'Fase IV: Modelo de Informe Pericial con Validez Forense y Municipal' }
-      ]
-    }
-  ];
+  // Datos fantasma eliminados: El catálogo arranca limpio para registros reales
+  const DEFAULT_COURSES_CATALOG = [];
 
   // Helper resiliente para guardar catálogo en localStorage sin fallos por exceso de cuota
   const saveCoursesToStorage = (list) => {
@@ -225,60 +99,59 @@ export function AppProvider({ children }) {
 
   // --- COURSES STATE (Catálogo Oficial Persistente de SERAM ACADEMY) ---
   const [courses, setCourses] = useState(() => {
-    let initialList = DEFAULT_COURSES_CATALOG;
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem('seram_courses');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            const map = new Map();
-            DEFAULT_COURSES_CATALOG.forEach(c => map.set(c.id, c));
-            parsed.forEach(c => {
-              const existing = map.get(c.id) || {};
-              map.set(c.id, { ...existing, ...c });
-            });
-            initialList = Array.from(map.values());
+          // Purgar cursos demo/ficticios antiguos si existen (ids 101 a 105 o id 1 antiguo)
+          const filtered = Array.isArray(parsed) ? parsed.filter(c => c.id !== 101 && c.id !== 102 && c.id !== 103 && c.id !== 104 && c.id !== 105 && c.id !== 1) : [];
+          if (filtered.length !== (parsed?.length || 0)) {
+            localStorage.setItem('seram_courses', JSON.stringify(filtered));
           }
+          return filtered;
         }
       } catch (e) {}
     }
-    return initialList;
+    return [];
   });
 
   // --- PROJECTS (Proyectos B2B y Consultorías Ambientales Oficiales de SERAM SRL) ---
+  // --- PROJECTS (Proyectos B2B y Consultorías Ambientales Oficiales de SERAM SRL) ---
+  // Datos fantasma depurados: Únicamente el proyecto interno real
   const [activeServices, setActiveServices] = useState(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('seram_active_services') : null;
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {}
-    }
-    return [
+    const realInternalProject = [
       {
-        id: 101,
-        code: 'SRM-2026-B2B-01',
-        client: 'Gobierno Autónomo Municipal de Palos Blancos',
-        type: 'Línea Base: Monitoreo Hidrogeoquímico de Mercurio (Hg) y Fuentes de Agua por Minería Aurífera',
+        id: 2,
+        code: 'SRM-INT-WEB-01',
+        client: 'SERAM S.R.L. (Interno)',
+        type: 'Plataforma Digital & Ecosistema SERAM',
         lead: 'Ing. Diego Barrientos',
-        involved: ['Ing. Fernando Araujo', 'Ing. Fabricio Orosco'],
-        location: 'Palos Blancos, Alto Beni - La Paz',
-        startDate: '2026-06-01',
-        endDate: '2026-10-31',
-        progress: 35,
-        budget: 68000,
-        labCosts: 12000,
-        subcontractorCosts: 8000,
+        involved: ['Ing. Diego Barrientos', 'Ing. Fernando Araujo', 'Ing. Fabricio Orosco'],
+        location: 'La Paz - Remoto',
+        startDate: '2026-05-01',
+        endDate: '2026-12-31',
+        progress: 85,
+        budget: 0,
+        labCosts: 0,
+        subcontractorCosts: 0,
         taxRegime: 'Régimen General',
-        description: 'Monitoreo hidrogeoquímico pericial de mercurio total en tomas de agua potable comunales y afluentes mineros del Río Kaka. Incluye mapas de vulnerabilidad geoespacial en ArcGIS Pro, informe pericial y TDRs oficiales.',
-        pdfName: 'SERAM_TDR_Monitoreo_Palos_Blancos_2026.pdf',
-        pdfUrl: '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf',
-        tag: 'Proyecto B2B Oficial',
-        isProposal: true,
-        proposalId: 'prop-mun-01'
+        description: 'Desarrollo de la plataforma web corporativa, aula virtual, portal de socios, simulador gamificado y automatizaciones.',
+        tag: 'Proyecto Interno Real',
+        isProposal: false
       }
     ];
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('seram_active_services');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          const filtered = Array.isArray(parsed) ? parsed.filter(p => p.id !== 101 && p.id !== 1) : [];
+          if (filtered.length > 0) return filtered;
+        }
+      } catch (e) {}
+    }
+    return realInternalProject;
   });
 
   // --- CLIENTS (Directorio de Clientes e Instituciones de SERAM) ---
@@ -324,68 +197,232 @@ export function AppProvider({ children }) {
     ];
   });
 
-  // --- ACTIVITIES (Central de Actividades Claves de Socios - Migrada de Notion) ---
+  // --- ACTIVITIES (Central de Actividades Claves de Socios - 100% Verificadas) ---
   const [activities, setActivities] = useState(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('seram_activities') : null;
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {}
-    }
-    return [
+    const verifiedActivities = [
       {
         id: 1,
-        title: 'Procesamiento cartográfico y mapa de isolíneas de mercurio en ArcGIS Pro',
-        description: 'Generación de la capa raster de concentración de mercurio en puntos de toma comunal en Palos Blancos.',
-        projectId: 101,
-        projectTitle: 'Línea Base: Monitoreo Hidrogeoquímico de Mercurio (Hg) y Fuentes de Agua por Minería Aurífera',
-        assignedPartner: 'Ing. Diego Barrientos',
-        assignedPartnerEmail: 'barrientoso2401@gmail.com',
-        category: 'SIG / Cartografía',
-        status: 'En curso',
+        title: 'Contenido Técnico (F)',
+        description: 'Contenido técnico y estructuración de servicios especializados de SERAM.',
+        projectId: 2,
+        projectTitle: 'Plataforma Digital & Ecosistema SERAM',
+        assignedPartner: 'Ing. Fernando Araujo',
+        assignedPartnerEmail: 'fernandoaraujo1912@gmail.com',
+        category: 'Elaboración Informe / TDR',
+        status: 'Concluido',
         priority: 'Alta',
-        dueDate: '2026-10-15',
-        estimatedHours: 18.00,
-        actualHours: 12.50,
+        dueDate: '2026-08-14',
+        estimatedHours: 15.00,
+        actualHours: 15.00,
         deliverableUrl: null,
         deliverableName: null
       },
       {
         id: 2,
-        title: 'Revisión legal de TDRs y adecuación a Ley 1333 y Ley de Minería 535',
-        description: 'Armado de la carpeta legal para presentación ante la comisión del Concejo Municipal.',
-        projectId: 101,
-        projectTitle: 'Línea Base: Monitoreo Hidrogeoquímico de Mercurio (Hg) y Fuentes de Agua por Minería Aurífera',
-        assignedPartner: 'Ing. Fernando Araujo',
-        assignedPartnerEmail: 'fernandoaraujo1912@gmail.com',
-        category: 'Elaboración Informe / TDR',
-        status: 'En curso',
+        title: 'Video publicado en redes',
+        description: 'Producción, edición y publicación de video divulgativo para redes sociales oficiales de SERAM.',
+        projectId: 2,
+        projectTitle: 'Plataforma Digital & Ecosistema SERAM',
+        assignedPartner: 'Ing. Diego Barrientos',
+        assignedPartnerEmail: 'barrientoso2401@gmail.com',
+        category: 'Contenido & Redes',
+        status: 'Concluido',
         priority: 'Alta',
-        dueDate: '2026-10-18',
-        estimatedHours: 14.00,
-        actualHours: 8.00,
+        dueDate: '2026-08-14',
+        estimatedHours: 15.00,
+        actualHours: 15.00,
         deliverableUrl: null,
         deliverableName: null
       },
       {
         id: 3,
-        title: 'Logística y coordinación de reactivos para segunda campaña de muestreo de agua',
-        description: 'Cotización de espectrometría con generador de hidruros y frascos de preservación.',
-        projectId: 101,
-        projectTitle: 'Línea Base: Monitoreo Hidrogeoquímico de Mercurio (Hg) y Fuentes de Agua por Minería Aurífera',
+        title: 'Propuestas de proyectos (F)',
+        description: 'Propuestas técnicas municipales y expedientes ambientales de SERAM.',
+        projectId: 2,
+        projectTitle: 'Plataforma Digital & Ecosistema SERAM',
+        assignedPartner: 'Ing. Fernando Araujo',
+        assignedPartnerEmail: 'fernandoaraujo1912@gmail.com',
+        category: 'Elaboración Informe / TDR',
+        status: 'Concluido',
+        priority: 'Alta',
+        dueDate: '2026-09-04',
+        estimatedHours: 18.00,
+        actualHours: 18.00,
+        deliverableUrl: null,
+        deliverableName: null
+      },
+      {
+        id: 4,
+        title: 'Propuestas de proyectos (D)',
+        description: 'Creación y formulación de propuestas técnicas para gobiernos municipales y cuencas auríferas.',
+        projectId: 2,
+        projectTitle: 'Plataforma Digital & Ecosistema SERAM',
+        assignedPartner: 'Ing. Diego Barrientos',
+        assignedPartnerEmail: 'barrientoso2401@gmail.com',
+        category: 'Propuestas Técnicas & Proyectos',
+        status: 'En curso',
+        priority: 'Alta',
+        dueDate: '2026-09-04',
+        estimatedHours: 20.00,
+        actualHours: 16.00,
+        deliverableUrl: null,
+        deliverableName: null
+      },
+      {
+        id: 5,
+        title: 'Propuestas de proyectos (S)',
+        description: 'Estructuración operativa y logística de propuestas de proyectos.',
+        projectId: 2,
+        projectTitle: 'Plataforma Digital & Ecosistema SERAM',
         assignedPartner: 'Ing. Fabricio Orosco',
         assignedPartnerEmail: 'sebastiansbs51@gmail.com',
         category: 'Trabajo de Campo / Muestreo',
-        status: 'Pendiente',
+        status: 'Concluido',
         priority: 'Media',
-        dueDate: '2026-10-22',
-        estimatedHours: 10.00,
-        actualHours: 3.00,
+        dueDate: '2026-09-04',
+        estimatedHours: 12.00,
+        actualHours: 12.00,
+        deliverableUrl: null,
+        deliverableName: null
+      },
+      {
+        id: 7,
+        title: 'Avance (2) en Página Web',
+        description: 'Terminar maquetación, arquitectura de la plataforma y módulos principales.',
+        projectId: 2,
+        projectTitle: 'Plataforma Digital & Ecosistema SERAM',
+        assignedPartner: 'Ing. Diego Barrientos',
+        assignedPartnerEmail: 'barrientoso2401@gmail.com',
+        category: 'Desarrollo Web & Sistemas',
+        status: 'Concluido',
+        priority: 'Urgente',
+        dueDate: '2026-09-04',
+        estimatedHours: 25.00,
+        actualHours: 20.00,
+        deliverableUrl: null,
+        deliverableName: null
+      },
+      {
+        id: 8,
+        title: 'Avance 2 Acuerdo Privado de Socios',
+        description: 'Plantilla del acuerdo privado de socios y estatutos fundacionales.',
+        projectId: 2,
+        projectTitle: 'Estructura Corporativa & Gobernanza SERAM',
+        assignedPartner: 'Ing. Fabricio Orosco',
+        assignedPartnerEmail: 'sebastiansbs51@gmail.com',
+        category: 'Legal & Corporativo',
+        status: 'Concluido',
+        priority: 'Alta',
+        dueDate: '2026-09-04',
+        estimatedHours: 15.00,
+        actualHours: 15.00,
+        deliverableUrl: null,
+        deliverableName: null
+      },
+      {
+        id: 10,
+        title: 'Avance (3) en Página Web',
+        description: 'Creación y desarrollo web: interactividad, componentes Neuform y catálogo de servicios.',
+        projectId: 2,
+        projectTitle: 'Plataforma Digital & Ecosistema SERAM',
+        assignedPartner: 'Ing. Diego Barrientos',
+        assignedPartnerEmail: 'barrientoso2401@gmail.com',
+        category: 'Desarrollo Web & Sistemas',
+        status: 'Concluido',
+        priority: 'Alta',
+        dueDate: '2026-09-11',
+        estimatedHours: 25.00,
+        actualHours: 25.00,
+        deliverableUrl: null,
+        deliverableName: null
+      },
+      {
+        id: 11,
+        title: 'Avance (4) en Página Web',
+        description: 'Creación y desarrollo web: Hero 3D cinemático, WebGL e integración responsiva.',
+        projectId: 2,
+        projectTitle: 'Plataforma Digital & Ecosistema SERAM',
+        assignedPartner: 'Ing. Diego Barrientos',
+        assignedPartnerEmail: 'barrientoso2401@gmail.com',
+        category: 'Desarrollo Web & Sistemas',
+        status: 'Concluido',
+        priority: 'Alta',
+        dueDate: '2026-09-18',
+        estimatedHours: 30.00,
+        actualHours: 30.00,
+        deliverableUrl: null,
+        deliverableName: null
+      },
+      {
+        id: 12,
+        title: 'Avance (5) en Página Web',
+        description: 'Creación y desarrollo web: PartnerDashboard, Time Tracker y módulos de gobernanza.',
+        projectId: 2,
+        projectTitle: 'Plataforma Digital & Ecosistema SERAM',
+        assignedPartner: 'Ing. Diego Barrientos',
+        assignedPartnerEmail: 'barrientoso2401@gmail.com',
+        category: 'Desarrollo Web & Sistemas',
+        status: 'Concluido',
+        priority: 'Alta',
+        dueDate: '2026-09-25',
+        estimatedHours: 35.00,
+        actualHours: 35.00,
+        deliverableUrl: null,
+        deliverableName: null
+      },
+      {
+        id: 13,
+        title: 'Avance (6) en Página Web',
+        description: 'Creación y desarrollo web: Miniverso interactivo de oficina, sincronización en tiempo real.',
+        projectId: 2,
+        projectTitle: 'Plataforma Digital & Ecosistema SERAM',
+        assignedPartner: 'Ing. Diego Barrientos',
+        assignedPartnerEmail: 'barrientoso2401@gmail.com',
+        category: 'Desarrollo Web & Sistemas',
+        status: 'Concluido',
+        priority: 'Alta',
+        dueDate: '2026-10-02',
+        estimatedHours: 35.00,
+        actualHours: 35.00,
+        deliverableUrl: null,
+        deliverableName: null
+      },
+      {
+        id: 14,
+        title: 'Avance (7) en Página Web',
+        description: 'Creación y desarrollo web: Persistencia en Supabase, marco legal, avisos corporativos y optimización UX.',
+        projectId: 2,
+        projectTitle: 'Plataforma Digital & Ecosistema SERAM',
+        assignedPartner: 'Ing. Diego Barrientos',
+        assignedPartnerEmail: 'barrientoso2401@gmail.com',
+        category: 'Desarrollo Web & Sistemas',
+        status: 'Concluido',
+        priority: 'Alta',
+        dueDate: '2026-10-09',
+        estimatedHours: 40.00,
+        actualHours: 40.00,
         deliverableUrl: null,
         deliverableName: null
       }
     ];
+
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('seram_activities');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          // Purgar id 6 y 9 si estuvieran en caché y unificar Fabricio
+          const filtered = Array.isArray(parsed)
+            ? parsed
+                .filter(a => a.id !== 6 && a.id !== 9)
+                .map(a => a.id === 2 && a.title.includes('Contenido') ? { ...a, title: 'Video publicado en redes', category: 'Contenido & Redes' } : a)
+                .map(a => a.assignedPartner === 'Ing. Sebastian Orosco' ? { ...a, assignedPartner: 'Ing. Fabricio Orosco' } : a)
+            : [];
+          if (filtered.length > 0) return filtered;
+        }
+      } catch (e) {}
+    }
+    return verifiedActivities;
   });
 
   // --- B2B PROSPECTS (Base Global de Empresas de Bolivia para Captación Comercial) ---
@@ -2202,6 +2239,11 @@ export function AppProvider({ children }) {
       if (updatedFields.assignedPartner !== undefined) dbFields.assigned_partner = updatedFields.assignedPartner;
       if (updatedFields.actualHours !== undefined) dbFields.actual_hours = parseFloat(updatedFields.actualHours);
       if (updatedFields.estimatedHours !== undefined) dbFields.estimated_hours = parseFloat(updatedFields.estimatedHours);
+      if (updatedFields.xp_awarded !== undefined) dbFields.xp_awarded = updatedFields.xp_awarded;
+      if (updatedFields.approved_by !== undefined) dbFields.approved_by = updatedFields.approved_by;
+      if (updatedFields.approved_at !== undefined) dbFields.approved_at = updatedFields.approved_at;
+      if (updatedFields.reviewNotes !== undefined) dbFields.review_notes = updatedFields.reviewNotes;
+      if (updatedFields.milestoneStep !== undefined) dbFields.milestone_step = updatedFields.milestoneStep;
 
       const { error } = await supabase
         .from('activities')

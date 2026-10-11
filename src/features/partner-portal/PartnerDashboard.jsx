@@ -11,7 +11,7 @@ import {
   PieChart as LucidePie, Activity, CreditCard, Building2,
   FileText, Smartphone, Laptop, Radio, Wifi,
   UploadCloud, ExternalLink, FileCheck, Paperclip, CheckSquare,
-  Play, Pause, RotateCcw
+  Play, Pause, RotateCcw, Scale, Menu
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
@@ -25,6 +25,7 @@ import { uploadProjectDocument } from '../../services/projectStorageService';
 import MunicipalProposalsView, { MunicipalProposalModal } from './MunicipalProposalsView';
 import VirtualOfficeView from './VirtualOfficeView';
 import ActivitiesAndClientsModule from './ActivitiesAndClientsModule';
+import PartnerProfileRPGModule from './PartnerProfileRPGModule';
 
 // ── ANIMATION VARIANTS ─────────────────────────────────────────────────────
 const pageVariants = {
@@ -38,19 +39,42 @@ const fadeUp = {
 };
 const stagger = { animate: { transition: { staggerChildren: 0.07 } } };
 
-// ── SIDEBAR CONFIG ─────────────────────────────────────────────────────────
-const SIDEBAR_MODULES = [
-  { id: 'overview',    icon: <BarChart2 className="w-5 h-5" />,    label: 'Resumen General' },
-  { id: 'office',      icon: <Building2 className="w-5 h-5" />,    label: 'Oficina Virtual · Metaverso' },
-  { id: 'activities',  icon: <CheckSquare className="w-5 h-5" />,  label: 'Central de Actividades & Clientes' },
-  { id: 'services',   icon: <Briefcase className="w-5 h-5" />,    label: 'SERAM SERVICES' },
-  { id: 'timetracker', icon: <Clock className="w-5 h-5" />,        label: 'Time Tracker' },
-  { id: 'academy',    icon: <BookOpenCheck className="w-5 h-5" />, label: 'Gestión de Info-productos y Oferta Académica' },
-  { id: 'experience', icon: <Globe className="w-5 h-5" />,         label: 'SERAM EXPERIENCE' },
-  { id: 'store',      icon: <ShoppingBag className="w-5 h-5" />,   label: 'SERAM STORE' },
-  { id: 'users',      icon: <Users className="w-5 h-5" />,         label: 'Socios & Usuarios' },
-  { id: 'finances',   icon: <DollarSign className="w-5 h-5" />,    label: 'Finanzas' },
+// ── SIDEBAR CONFIG (ESTRUCTURA BUSINESS MODEL CANVAS) ──────────────────────
+const SIDEBAR_MODULE_GROUPS = [
+  {
+    category: '1. Actividades Clave',
+    modules: [
+      { id: 'activities',  icon: <CheckSquare className="w-4 h-4" />,  label: 'Actividades & Clientes', badge: 'BMC' },
+      { id: 'timetracker', icon: <Clock className="w-4 h-4" />,        label: 'Control de Horas (Time Tracker)' },
+    ]
+  },
+  {
+    category: '2. Propuesta de Valor & Servicios',
+    modules: [
+      { id: 'services',   icon: <Briefcase className="w-4 h-4" />,    label: 'SERAM Services (B2B)' },
+      { id: 'academy',    icon: <BookOpenCheck className="w-4 h-4" />, label: 'Gestión Cursos & Dossiers' },
+      { id: 'store',      icon: <ShoppingBag className="w-4 h-4" />,   label: 'SERAM Store' },
+      { id: 'experience', icon: <Globe className="w-4 h-4" />,         label: 'SERAM Experience' },
+    ]
+  },
+  {
+    category: '3. Socios & Recursos Clave',
+    modules: [
+      { id: 'profiles',   icon: <Award className="w-4 h-4 text-amber-400" />, label: 'Perfil RPG & Habilidades', badge: 'Nuevo' },
+      { id: 'office',     icon: <Building2 className="w-4 h-4" />,    label: 'Oficina Virtual · Metaverso' },
+      { id: 'users',      icon: <Users className="w-4 h-4" />,         label: 'Socios & Accesos' },
+    ]
+  },
+  {
+    category: '4. Estructura Financiera',
+    modules: [
+      { id: 'overview',   icon: <BarChart2 className="w-4 h-4" />,    label: 'Resumen Ejecutivo & KPIs' },
+      { id: 'finances',   icon: <DollarSign className="w-4 h-4" />,    label: 'Finanzas & Liquidación' },
+    ]
+  }
 ];
+
+const SIDEBAR_MODULES = SIDEBAR_MODULE_GROUPS.flatMap(g => g.modules);
 
 // ── RECHARTS CUSTOM TOOLTIP ────────────────────────────────────────────────
 const DarkTooltip = ({ active, payload, label }) => {
@@ -69,21 +93,21 @@ const DarkTooltip = ({ active, payload, label }) => {
   );
 };
 
-// ── CHART DATA ─────────────────────────────────────────────────────────────
+// ── CHART DATA (DATOS REALES: INICIALIZADOS EN 0) ──────────────────────────
 const studentGrowthData = [
-  { month: 'Ene', Estudiantes: 45 },
-  { month: 'Feb', Estudiantes: 72 },
-  { month: 'Mar', Estudiantes: 98 },
-  { month: 'Abr', Estudiantes: 125 },
-  { month: 'May', Estudiantes: 143 },
-  { month: 'Jun', Estudiantes: 162 },
+  { month: 'Ene', Estudiantes: 0 },
+  { month: 'Feb', Estudiantes: 0 },
+  { month: 'Mar', Estudiantes: 0 },
+  { month: 'Abr', Estudiantes: 0 },
+  { month: 'May', Estudiantes: 0 },
+  { month: 'Jun', Estudiantes: 0 },
 ];
 
 const revenueByPillarData = [
-  { pilar: 'ACADEMY',    'Bs. Ingresos': 11500 },
-  { pilar: 'SERVICES',   'Bs. Ingresos': 9850 },
-  { pilar: 'EXPERIENCE', 'Bs. Ingresos': 3500 },
-  { pilar: 'STORE',      'Bs. Ingresos': 2100 },
+  { pilar: 'ACADEMY',    'Bs. Ingresos': 0 },
+  { pilar: 'SERVICES',   'Bs. Ingresos': 0 },
+  { pilar: 'EXPERIENCE', 'Bs. Ingresos': 0 },
+  { pilar: 'STORE',      'Bs. Ingresos': 0 },
 ];
 
 // ── GLASS CARD ─────────────────────────────────────────────────────────────
@@ -93,6 +117,233 @@ const GlassCard = ({ children, className = '' }) => (
   </div>
 );
 
+// ── NOTA DE GOBIERNO CORPORATIVO Y LIQUIDACIÓN MERITOCRÁTICA ──────────────────
+function MeritocraticGovernanceBanner() {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/[0.08] via-amber-400/[0.03] to-transparent p-5 sm:p-6 backdrop-blur-md shadow-xl shadow-amber-950/20">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-500/20 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 shadow-sm shadow-amber-500/20">
+            <Scale className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                Aviso Corporativo Vinculante
+              </span>
+              <span className="text-[10px] text-slate-400 font-bold hidden sm:inline">
+                · Semestre 2026
+              </span>
+            </div>
+            <h2 className="text-base sm:text-lg font-black text-white tracking-tight mt-0.5 flex flex-wrap items-center gap-2">
+              Fórmula de Liquidación Semestral Meritocrática <span className="text-amber-400 font-bold text-xs sm:text-sm">(Slicing Pie Adaptado)</span>
+            </h2>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="self-start sm:self-center px-3.5 py-1.5 rounded-xl text-xs font-bold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all flex items-center gap-1.5 cursor-pointer"
+        >
+          {isExpanded ? 'Ocultar detalles' : 'Ver directriz completa'}
+        </button>
+      </div>
+
+      {isExpanded && (
+        <div className="mt-4 space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed">
+          <p className="text-slate-300">
+            Para garantizar la <strong className="text-white">estricta equidad entre socios</strong> y neutralizar desbalances operativos, el Directorio de SERAM ratifica que antes de repartir un solo peso a los socios, el flujo de ingresos cumplirá este orden obligatorio:
+          </p>
+
+          {/* Fórmula Visual */}
+          <div className="p-3.5 rounded-xl bg-black/60 border border-amber-500/30 font-mono text-center sm:text-left text-xs sm:text-sm text-amber-200 shadow-inner flex flex-wrap items-center justify-center sm:justify-start gap-2">
+            <span className="font-black text-white">Ingresos Totales</span>
+            <span className="text-amber-400 font-black">−</span>
+            <span className="text-slate-300 font-medium">Costos Operativos y Fondo de Reserva (20%)</span>
+            <span className="text-amber-400 font-black">=</span>
+            <span className="font-extrabold text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-2.5 py-1 rounded-lg">
+              Bolsa de Compensación Operativa
+            </span>
+          </div>
+
+          {/* Fases Explicadas */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.08] space-y-2">
+              <div className="flex items-center gap-2 text-amber-400 font-black text-xs uppercase tracking-wider">
+                <span className="w-5 h-5 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-[11px]">1</span>
+                Fase 1: Compensación por Trabajo Real
+              </div>
+              <p className="text-xs text-slate-300 leading-normal">
+                Cada socio cobra una tarifa horaria o por entregable técnico <strong className="text-white">proporcional al esfuerzo medido por el Time Tracker</strong> y los entregables auditados en el PartnerDashboard.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.08] space-y-2">
+              <div className="flex items-center gap-2 text-[#00e03c] font-black text-xs uppercase tracking-wider">
+                <span className="w-5 h-5 rounded-full bg-[#00e03c]/20 border border-[#00e03c]/30 flex items-center justify-center text-[11px]">2</span>
+                Fase 2: Utilidad Neta Residual (Dividendos)
+              </div>
+              <p className="text-xs text-slate-300 leading-normal">
+                Si tras pagar el trabajo real de quienes trabajaron sobra utilidad neta, <strong className="text-white">esa utilidad remanente recién se reparte</strong> según el porcentaje accionario registrado de cada socio.
+              </p>
+            </div>
+          </div>
+
+          {/* Dictamen de Equidad */}
+          <div className="p-3.5 rounded-xl bg-amber-950/40 border border-amber-500/30 flex items-start gap-2.5 text-xs text-amber-200">
+            <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <p>
+              <strong className="text-white">Resultado Imparcial:</strong> El socio que no haya trabajado operativamente o cuyo aporte se haya limitado a una lista o activo no tratado <strong className="text-amber-300 font-bold">no cobra compensación operativa</strong>. Solo recibirá su fracción del dividendo residual (si lo hubiere a fin de semestre).
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── PANEL PERSONAL DEL SOCIO CONECTADO ────────────────────────────────────────
+function MyPersonalPartnerPanel({ currentSocio, activities = [], timeLogs = [], onNavigate }) {
+  const myActivities = (activities || []).filter(a => a.assignedPartner === currentSocio?.name);
+  const myPendingTasks = myActivities.filter(a => a.status !== 'Concluido');
+  const myCompletedTasks = myActivities.filter(a => a.status === 'Concluido');
+
+  const myLogs = (timeLogs || []).filter(
+    l => l.partner_id === currentSocio?.email || l.partner_name === currentSocio?.name
+  );
+  const totalHours = myLogs.reduce((acc, curr) => acc + (curr.hours || 0), 0);
+
+  const initials = currentSocio?.name
+    ? currentSocio.name.replace('Ing. ', '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+    : 'SO';
+
+  return (
+    <GlassCard className="p-5 sm:p-6 border-amber-500/20 bg-gradient-to-r from-amber-500/[0.04] to-transparent space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.06] pb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center font-black text-amber-300 text-sm shadow-md">
+            {initials}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                Mi Panel Personal
+              </span>
+              <span className="text-[10px] text-slate-400 font-bold hidden sm:inline">
+                {currentSocio?.email}
+              </span>
+            </div>
+            <h3 className="text-base sm:text-lg font-black text-white tracking-tight mt-0.5">
+              {currentSocio?.name || 'Socio Directivo'}
+            </h3>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => onNavigate('activities')}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold text-[#00e03c] bg-[#00e03c]/10 hover:bg-[#00e03c]/20 border border-[#00e03c]/30 transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <CheckSquare className="w-3.5 h-3.5" /> Mis Tareas
+          </button>
+          <button
+            onClick={() => onNavigate('timetracker')}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <Clock className="w-3.5 h-3.5" /> Registrar Horas
+          </button>
+          <button
+            onClick={() => onNavigate('profiles')}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <Award className="w-3.5 h-3.5" /> Perfil RPG
+          </button>
+        </div>
+      </div>
+
+      {/* Métricas Personales */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Horas Auditadas</span>
+          <span className="text-lg font-black text-[#00e03c] mt-0.5 block">{totalHours.toFixed(1)} hrs</span>
+          <span className="text-[9px] text-slate-500">Registradas en Time Tracker</span>
+        </div>
+        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Tareas Asignadas</span>
+          <span className="text-lg font-black text-white mt-0.5 block">{myActivities.length}</span>
+          <span className="text-[9px] text-slate-500">Total en cartera</span>
+        </div>
+        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Entregables Hechos</span>
+          <span className="text-lg font-black text-[#00e03c] mt-0.5 block">{myCompletedTasks.length}</span>
+          <span className="text-[9px] text-slate-500">Concluidos</span>
+        </div>
+        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">En Progreso</span>
+          <span className="text-lg font-black text-amber-400 mt-0.5 block">{myPendingTasks.length}</span>
+          <span className="text-[9px] text-slate-500">Pendientes</span>
+        </div>
+      </div>
+
+      {/* Tareas Claves del Socio */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-black text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+            <Target className="w-3.5 h-3.5 text-amber-400" /> Mis Pendientes & Entregables Clave
+          </span>
+          <span className="text-[10px] text-slate-500 font-bold">
+            {myPendingTasks.length} activos
+          </span>
+        </div>
+
+        {myPendingTasks.length === 0 ? (
+          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] text-center text-xs text-slate-400">
+            No tienes tareas pendientes activas en este momento. Puedes registrar un nuevo entregable técnico en Actividades o iniciar una sesión en Time Tracker.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            {myPendingTasks.map(task => (
+              <div
+                key={task.id}
+                className="p-3 rounded-xl bg-black/30 border border-white/[0.06] hover:border-amber-500/30 transition-all flex items-start justify-between gap-3"
+              >
+                <div className="min-w-0 space-y-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-amber-400/10 text-amber-300 border border-amber-400/20">
+                      {task.category || 'General'}
+                    </span>
+                    <span className={`text-[8px] font-black uppercase px-1.5 py-0.2 rounded ${
+                      task.priority === 'Alta' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' :
+                      task.priority === 'Media' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
+                      'bg-slate-500/20 text-slate-300 border border-slate-500/30'
+                    }`}>
+                      {task.priority || 'Normal'}
+                    </span>
+                  </div>
+                  <p className="text-xs font-bold text-white leading-tight truncate">
+                    {task.title}
+                  </p>
+                  {task.deadline && (
+                    <span className="text-[9px] text-slate-400 flex items-center gap-1">
+                      <Calendar className="w-2.5 h-2.5" /> Límite: {task.deadline}
+                    </span>
+                  )}
+                </div>
+                <span className="shrink-0 text-[9px] font-black text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-full">
+                  {task.status || 'En curso'}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </GlassCard>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // MODULE: OVERVIEW
 // ─────────────────────────────────────────────────────────────────────────────
@@ -100,6 +351,17 @@ function OverviewModule({ kpis, metrics, partnerPresences, timeLogs, onNavigate,
   const { activities = [] } = useApp();
   return (
     <div className="space-y-8">
+      {/* ── NOTA DE GOBIERNO CORPORATIVO Y LIQUIDACIÓN MERITOCRÁTICA ── */}
+      <MeritocraticGovernanceBanner />
+
+      {/* ── MI PANEL PERSONAL: TAREAS, ENTREGABLES & HORAS DEL SOCIO ── */}
+      <MyPersonalPartnerPanel
+        currentSocio={currentSocio}
+        activities={activities}
+        timeLogs={timeLogs}
+        onNavigate={onNavigate}
+      />
+
       {/* KPI Cards — Visibles Permanentemente al 100% */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         {kpis.map((kpi) => (
@@ -3691,6 +3953,7 @@ export default function PartnerDashboard() {
 
   const [activeModule, setActiveModule] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [metrics, setMetrics] = useState(() => {
     try {
@@ -3755,11 +4018,11 @@ export default function PartnerDashboard() {
   };
 
   const kpis = [
-    { label: 'Ingresos Totales', value: metrics?.total_revenue ? `Bs. ${metrics.total_revenue.toLocaleString()}` : 'Bs. 24,850', unit: '', trend: metrics?.revenue_trend || '↑ +12.4% este mes', icon: <DollarSign className="w-5 h-5" />, color: 'bg-[#00e03c]/10 text-[#00e03c] border border-[#00e03c]/20' },
-    { label: 'Alumnos Directos', value: metrics?.total_students ? metrics.total_students.toString() : '143', unit: '', trend: '↑ +18 desde abril', icon: <BookOpenCheck className="w-5 h-5" />, color: 'bg-blue-500/10 text-blue-400 border border-blue-500/20' },
-    { label: 'Proyectos Activos', value: (activeServices || []).filter(p => (p.progress || 0) < 100).length.toString(), unit: '', trend: `${(activeServices || []).filter(p => (p.progress || 0) === 100).length} Completados`, icon: <Briefcase className="w-5 h-5" />, color: 'bg-purple-500/10 text-purple-400 border border-purple-500/20' },
-    { label: 'Propuestas Municipales', value: (municipalProposals || []).length.toString(), unit: 'Líneas Base', trend: 'Líder: Ing. Diego Barrientos', icon: <Building2 className="w-5 h-5" />, color: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' },
-    { label: 'CO₂ Compensado', value: metrics?.co2_compensated ? metrics.co2_compensated.toLocaleString() : '1,240', unit: 'Tons', trend: 'Meta: 1,500T anuales', icon: <Leaf className="w-5 h-5" />, color: 'bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/30' },
+    { label: 'Ingresos Totales', value: metrics?.total_revenue ? `Bs. ${metrics.total_revenue.toLocaleString()}` : 'Bs. 0', unit: '', trend: metrics?.revenue_trend || 'Sin registros aún', icon: <DollarSign className="w-5 h-5" />, color: 'bg-[#00e03c]/10 text-[#00e03c] border border-[#00e03c]/20' },
+    { label: 'Alumnos Directos', value: metrics?.total_students ? metrics.total_students.toString() : '0', unit: '', trend: 'Sin alumnos registrados', icon: <BookOpenCheck className="w-5 h-5" />, color: 'bg-blue-500/10 text-blue-400 border border-blue-500/20' },
+    { label: 'Proyectos Activos', value: (activeServices || []).filter(p => (p.progress || 0) < 100).length.toString(), unit: '', trend: (activeServices || []).length > 0 ? `${(activeServices || []).filter(p => (p.progress || 0) === 100).length} Completados` : 'Sin proyectos', icon: <Briefcase className="w-5 h-5" />, color: 'bg-purple-500/10 text-purple-400 border border-purple-500/20' },
+    { label: 'Propuestas Municipales', value: (municipalProposals || []).length.toString(), unit: 'Líneas Base', trend: (municipalProposals || []).length > 0 ? 'Líder: Ing. Diego Barrientos' : '0 presentadas', icon: <Building2 className="w-5 h-5" />, color: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' },
+    { label: 'CO₂ Compensado', value: metrics?.co2_compensated ? `${metrics.co2_compensated.toLocaleString()} Tons` : '0 Tons', unit: '', trend: 'Meta: 1,500T anuales', icon: <Leaf className="w-5 h-5" />, color: 'bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/30' },
   ];
 
   if (activeRole !== 'AdminMod') {
@@ -3769,14 +4032,14 @@ export default function PartnerDashboard() {
   return (
     <div className="min-h-screen neuform-bg text-slate-100 flex relative z-10">
 
-      {/* ── SIDEBAR ───────────────────────────────────────────────────── */}
+      {/* ── DESKTOP SIDEBAR ─────────────────────────────────────────────── */}
       <motion.aside
         animate={{ width: sidebarOpen ? 240 : 64 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="flex-shrink-0 h-screen sticky top-0 bg-white/[0.03] backdrop-blur-md border-r border-white/[0.12] flex flex-col z-20 overflow-hidden"
+        className="hidden md:flex flex-shrink-0 h-screen sticky top-0 bg-white/[0.03] backdrop-blur-md border-r border-white/[0.12] flex-col z-20 overflow-hidden pt-20"
       >
         {/* Sidebar Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/[0.06] h-16">
+        <div className="flex items-center justify-between p-4 border-b border-white/[0.06] h-14">
           <AnimatePresence>
             {sidebarOpen && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
@@ -3785,7 +4048,12 @@ export default function PartnerDashboard() {
               </motion.div>
             )}
           </AnimatePresence>
-          <button onClick={() => setSidebarOpen(p => !p)} className="p-1.5 rounded-lg hover:bg-white/[0.06] text-slate-500 hover:text-white transition-colors shrink-0 ml-auto">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(p => !p)}
+            className="p-1.5 rounded-lg hover:bg-white/[0.06] text-slate-400 hover:text-white transition-colors shrink-0 ml-auto cursor-pointer"
+            title={sidebarOpen ? 'Minimizar barra lateral' : 'Desplegar barra lateral'}
+          >
             {sidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
           </button>
         </div>
@@ -3800,83 +4068,198 @@ export default function PartnerDashboard() {
           )}
         </AnimatePresence>
 
-        {/* Nav Items */}
-        <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
-          {SIDEBAR_MODULES.map(mod => (
-            <button
-              key={mod.id}
-              onClick={() => setActiveModule(mod.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left ${
-                activeModule === mod.id
-                  ? 'bg-[#00e03c]/10 border border-[#00e03c]/20 text-[#00e03c]'
-                  : 'text-slate-500 hover:bg-white/[0.04] hover:text-slate-300'
-              }`}
-            >
-              <span className="shrink-0">{mod.icon}</span>
-              <AnimatePresence>
-                {sidebarOpen && (
-                  <motion.span initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }} exit={{ opacity: 0, width: 0 }} className="text-xs font-bold whitespace-nowrap overflow-hidden">
-                    {mod.label}
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </button>
+        {/* Nav Items Grouped by Business Model Canvas */}
+        <nav className="flex-1 p-2 space-y-3 overflow-y-auto">
+          {SIDEBAR_MODULE_GROUPS.map((group) => (
+            <div key={group.category} className="space-y-0.5">
+              {sidebarOpen && (
+                <div className="px-3 pt-2 pb-1">
+                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">
+                    {group.category}
+                  </span>
+                </div>
+              )}
+              {group.modules.map((mod) => (
+                <button
+                  key={mod.id}
+                  onClick={() => setActiveModule(mod.id)}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all text-left cursor-pointer ${
+                    activeModule === mod.id
+                      ? 'bg-[#00e03c]/10 border border-[#00e03c]/20 text-[#00e03c] font-black shadow-sm shadow-[#00e03c]/5'
+                      : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-200 font-medium'
+                  }`}
+                  title={mod.label}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="shrink-0">{mod.icon}</span>
+                    <AnimatePresence>
+                      {sidebarOpen && (
+                        <motion.span
+                          initial={{ opacity: 0, width: 0 }}
+                          animate={{ opacity: 1, width: 'auto' }}
+                          exit={{ opacity: 0, width: 0 }}
+                          className="text-xs truncate"
+                        >
+                          {mod.label}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                  {sidebarOpen && mod.badge && (
+                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0 ${
+                      mod.badge === 'Nuevo' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                    }`}>
+                      {mod.badge}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
           ))}
         </nav>
 
         {/* Logout */}
         <div className="p-2 border-t border-white/[0.06]">
-          <button onClick={handleLogoutPartner} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-rose-500 hover:bg-rose-500/10 transition-all">
+          <button onClick={handleLogoutPartner} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer">
             <X className="w-5 h-5 shrink-0" />
             <AnimatePresence>{sidebarOpen && <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-xs font-bold whitespace-nowrap">Cerrar Sesión</motion.span>}</AnimatePresence>
           </button>
         </div>
       </motion.aside>
 
-      {/* ── MAIN CONTENT ─────────────────────────────────────────────── */}
-      <main ref={mainRef} className="flex-1 overflow-y-auto">
-        <div className="px-6 py-8 pt-20 max-w-7xl mx-auto space-y-8">
-
-          {/* Page Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-black text-white tracking-tight">
-                {SIDEBAR_MODULES.find(m => m.id === activeModule)?.label}
-              </h1>
-              <p className="text-xs text-slate-500 mt-1 font-medium">
-                Panel Directivo SERAM · Bienvenido, <span className="text-[#00e03c] font-bold">{activeSocio?.name}</span>
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Selector Rápido de Perfil de Socio para Verificar Multisesión en Tiempo Real */}
-              <div className="flex items-center gap-1 bg-black/40 border border-white/10 rounded-full p-1 backdrop-blur-md">
-                <span className="text-[9px] font-bold text-slate-400 px-2 uppercase tracking-wider hidden sm:inline">
-                  Ver como:
-                </span>
-                {safeEngineers.map((eng) => {
-                  const isCurrent = activeSocio?.email === eng.email;
-                  const presence = partnerPresences?.[eng.email];
-                  const isOnline = isCurrent || (presence?.isOnline === true);
-                  const initials = eng.name?.replace('Ing. ', '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'SO';
-                  return (
-                    <button
-                      key={eng.email}
-                      type="button"
-                      onClick={() => handleSwitchPartner && handleSwitchPartner(eng.email)}
-                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold transition-all cursor-pointer ${
-                        isCurrent
-                          ? 'bg-[#00e03c] text-slate-950 shadow-md shadow-[#00e03c]/20'
-                          : 'bg-white/[0.04] text-slate-300 hover:bg-white/[0.1] hover:text-white'
-                      }`}
-                      title={`${eng.name} · ${isOnline ? 'En línea' : 'Ausente'} (Haz clic para alternar)`}
-                    >
-                      <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? (isCurrent ? 'bg-slate-950' : 'bg-[#00e03c] animate-pulse') : 'bg-slate-500'}`} />
-                      <span>{initials}</span>
-                    </button>
-                  );
-                })}
+      {/* ── MOBILE DRAWER NAVIGATION ───────────────────────────────────── */}
+      <AnimatePresence>
+        {mobileDrawerOpen && (
+          <div className="fixed inset-0 z-[120] md:hidden flex">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileDrawerOpen(false)}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            {/* Drawer */}
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="relative w-4/5 max-w-xs bg-[#0b1322] border-r border-white/10 h-full flex flex-col p-4 shadow-2xl z-10 pt-20 overflow-y-auto"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-[#00e03c]" />
+                  <span className="text-xs font-black text-white uppercase tracking-widest">Módulos SERAM</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMobileDrawerOpen(false)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
+              {/* Socio info */}
+              <div className="px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 mb-4">
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Socio Activo</p>
+                <p className="text-xs font-extrabold text-[#00e03c] truncate">{activeSocio?.name}</p>
+                <p className="text-[10px] text-slate-400 truncate">{activeSocio?.email}</p>
+              </div>
+
+              {/* Navigation list */}
+              <nav className="flex-1 space-y-4">
+                {SIDEBAR_MODULE_GROUPS.map((group) => (
+                  <div key={group.category} className="space-y-1">
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block px-2">
+                      {group.category}
+                    </span>
+                    {group.modules.map((mod) => (
+                      <button
+                        key={mod.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveModule(mod.id);
+                          setMobileDrawerOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-left ${
+                          activeModule === mod.id
+                            ? 'bg-[#00e03c]/15 border border-[#00e03c]/30 text-[#00e03c] font-black'
+                            : 'text-slate-300 hover:bg-white/[0.04]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          {mod.icon}
+                          <span className="text-xs">{mod.label}</span>
+                        </div>
+                        {mod.badge && (
+                          <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase">
+                            {mod.badge}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </nav>
+
+              {/* Logout */}
+              <div className="pt-4 border-t border-white/10 mt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileDrawerOpen(false);
+                    handleLogoutPartner();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-rose-400 hover:bg-rose-500/10 text-xs font-bold"
+                >
+                  <X className="w-4 h-4" /> Cerrar Sesión
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── MAIN CONTENT ─────────────────────────────────────────────── */}
+      <main ref={mainRef} className="flex-1 overflow-y-auto">
+        <div className="px-6 py-8 pt-6 max-w-7xl mx-auto space-y-8">
+
+          {/* Sticky Translucent Page Header */}
+          <div className="sticky top-0 z-30 bg-[#070d17]/85 backdrop-blur-md -mx-6 px-6 py-4 border-b border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
+            <div className="flex items-center gap-3">
+              {/* Botón Desktop para alternar barra lateral */}
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(p => !p)}
+                className="hidden md:flex p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-300 hover:text-white transition-all cursor-pointer items-center justify-center shrink-0"
+                title={sidebarOpen ? 'Minimizar menú lateral' : 'Desplegar menú lateral'}
+              >
+                <Menu className="w-4 h-4 text-[#00e03c]" />
+              </button>
+
+              {/* Botón Mobile para abrir Drawer */}
+              <button
+                type="button"
+                onClick={() => setMobileDrawerOpen(true)}
+                className="md:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.06] border border-white/10 text-xs font-bold text-white hover:bg-white/[0.1] transition-all cursor-pointer shrink-0"
+              >
+                <Layers className="w-4 h-4 text-[#00e03c]" />
+                <span>Módulos</span>
+              </button>
+
+              <div>
+                <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                  {SIDEBAR_MODULES.find(m => m.id === activeModule)?.label}
+                </h1>
+                <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                  Panel Directivo SERAM · Bienvenido, <span className="text-[#00e03c] font-bold">{activeSocio?.name}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-[9px] font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-3 py-1.5 rounded-full uppercase tracking-widest flex items-center gap-1.5 shadow-sm shadow-[#00e03c]/5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#00e03c] animate-ping" />
                 <span className="w-1.5 h-1.5 rounded-full bg-[#00e03c]" />
@@ -3893,6 +4276,7 @@ export default function PartnerDashboard() {
             {activeModule === 'overview'    && <OverviewModule kpis={kpis} metrics={metrics} partnerPresences={partnerPresences} timeLogs={timeLogs || []} onNavigate={setActiveModule} activeServices={activeServices || []} courses={courses || []} currentSocio={activeSocio} />}
             {activeModule === 'office'      && <VirtualOfficeView activeServices={activeServices || []} courses={courses || []} timeLogs={timeLogs || []} partnerPresences={partnerPresences || {}} currentSocio={activeSocio} onNavigateModule={setActiveModule} />}
             {activeModule === 'activities'  && <ActivitiesAndClientsModule currentSocio={activeSocio} />}
+            {activeModule === 'profiles'    && <PartnerProfileRPGModule currentSocio={activeSocio} timeLogs={timeLogs || []} />}
             {activeModule === 'services'    && <ServicesModule activeServices={activeServices || []} registeredEngineers={safeEngineers} handlers={handlers} publicServices={publicServices || []} specialists={specialists || []} municipalProposals={municipalProposals || []} />}
             {activeModule === 'timetracker' && <TimeTrackerModule timeLogs={timeLogs || []} activeServices={activeServices || []} currentSocio={activeSocio} handlers={handlers} onNavigate={setActiveModule} />}
             {activeModule === 'academy'     && <AcademyModule courses={courses || []} registeredEngineers={safeEngineers} currentSocio={activeSocio} handlers={handlers} />}
