@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 import { useApp } from '../../context/AppContext';
 import { calculatePartnerTotalXP, TIERS } from './gamification/xpEngine';
-import TalentTreeRadial from './gamification/TalentTreeRadial';
+import TalentTreeStructured from './gamification/TalentTreeStructured';
 
 // ── PERFILES BASE OFICIALES DE LOS TRES SOCIOS ──────────────────────────────
 const DEFAULT_PROFILES = {
@@ -115,7 +115,7 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
   const [matricula, setMatricula] = useState(activeProfile.matricula);
   const [bio, setBio] = useState(activeProfile.bio);
   const [toastMessage, setToastMessage] = useState('');
-  const [subTab, setSubTab] = useState('radar'); // 'radar' | 'talent_tree'
+  const [analysisView, setAnalysisView] = useState('radar'); // 'radar' | 'tree' | 'both'
 
   // Sincronizar formulario al cambiar de socio
   useEffect(() => {
@@ -252,7 +252,7 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       {/* Toast Notification */}
       <AnimatePresence>
         {toastMessage && (
@@ -271,15 +271,7 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
       {/* ── HEADER DEL MÓDULO & SELECTOR DE SOCIOS ── */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white/[0.03] border border-white/[0.08] p-5 sm:p-6 rounded-2xl backdrop-blur-sm">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 flex items-center gap-1.5">
-              <Trophy className="w-3 h-3 text-amber-400" /> Sistema RPG Meritocrático
-            </span>
-            <span className="text-[10px] text-slate-400 font-bold">
-              · Business Model Canvas
-            </span>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-1 flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
             Perfiles de Socios & Personajes Virtuales
           </h1>
           <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
@@ -310,39 +302,8 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
         </div>
       </div>
 
-      {/* ── NAVEGACIÓN DE SUB-PESTAÑAS: RADAR vs ÁRBOL RADIAL 360° ── */}
-      <div className="flex items-center gap-2 border-b border-white/[0.08] pb-4">
-        <button
-          type="button"
-          onClick={() => setSubTab('radar')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-            subTab === 'radar'
-              ? 'bg-[#00e03c] text-slate-950 shadow-md shadow-[#00e03c]/20'
-              : 'bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/[0.08]'
-          }`}
-        >
-          <Scale className="w-3.5 h-3.5" />
-          <span>Radar Pentagonal & Expediente</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setSubTab('talent_tree')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-            subTab === 'talent_tree'
-              ? 'bg-amber-400 text-slate-950 shadow-md shadow-amber-400/20'
-              : 'bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/[0.08]'
-          }`}
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Árbol de Talentos Radial 360°</span>
-        </button>
-      </div>
-
-      {subTab === 'talent_tree' ? (
-        <TalentTreeRadial currentSocio={activeProfile} />
-      ) : (
-        /* ── CUADRÍCULA PRINCIPAL: PERSONAJE RPG & RADAR PENTAGONAL ── */
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* ── CUADRÍCULA PRINCIPAL: PERSONAJE RPG & RADAR PENTAGONAL ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         {/* ── COLUMNA IZQUIERDA: TARJETA DEL PERSONAJE VIRTUAL (RPG CARD) ── */}
         <div className="lg:col-span-5 space-y-6">
@@ -554,7 +515,7 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
             </div>
 
             <p className="text-[10px] text-slate-500 italic">
-              "Lo que se ve se anota": El sistema no inventa credenciales. Si no subiste tu CV o no tienes RENCA/SIB, el radar reflejará la realidad con transparencia absoluta.
+              &quot;Lo que se ve se anota&quot;: El sistema no inventa credenciales. Si no subiste tu CV o no tienes RENCA/SIB, el radar reflejará la realidad con transparencia absoluta.
             </p>
           </div>
         </div>
@@ -563,99 +524,142 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
         <div className="lg:col-span-7 space-y-6">
           <div className="bg-gradient-to-b from-white/[0.06] to-white/[0.02] border border-white/[0.1] rounded-2xl p-6 backdrop-blur-md shadow-2xl space-y-6">
 
-            {/* Encabezado del Radar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
+            {/* Encabezado del Análisis Multidimensional */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-4">
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                    Cálculo Automático Imparcial
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-bold">
-                    Sin Sliders Manuales
-                  </span>
-                </div>
-                <h3 className="text-lg font-black text-white tracking-tight mt-1 flex items-center gap-2">
-                  Radar Pentagonal de Fortalezas & Debilidades
+                <h3 className="text-lg font-black text-white tracking-tight flex items-center gap-2">
+                  Análisis Multidimensional
                 </h3>
               </div>
 
-              {/* Score General */}
-              <div className="flex items-center gap-3 self-start sm:self-center">
-                <div className="text-right">
-                  <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">Aptitud Global</span>
-                  <span className="text-2xl font-black text-[#00e03c] leading-none">{overallAptitudeScore}%</span>
+              {/* Selector de Vista & Score General */}
+              <div className="flex items-center gap-3 self-start sm:self-center flex-wrap">
+                {/* Selector de Modo: Radar vs Árbol de Talentos vs Ambos */}
+                <div className="flex items-center bg-black/40 border border-white/10 rounded-xl p-1 gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setAnalysisView('radar')}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      analysisView === 'radar'
+                        ? 'bg-[#00e03c] text-slate-950 font-black shadow-sm shadow-[#00e03c]/20'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Radar Pentagonal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAnalysisView('tree')}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      analysisView === 'tree'
+                        ? 'bg-[#00e03c] text-slate-950 font-black shadow-sm shadow-[#00e03c]/20'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Árbol de Talentos
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAnalysisView('both')}
+                    className={`hidden sm:block px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      analysisView === 'both'
+                        ? 'bg-amber-400 text-slate-950 font-black shadow-sm'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                    title="Ver Radar y Árbol juntos"
+                  >
+                    Ambos
+                  </button>
                 </div>
-                <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#00e03c]/10 text-[#00e03c] border border-[#00e03c]/20">
-                  Auditado en Vivo
-                </span>
+
+                <div className="text-right pl-2 border-l border-white/10">
+                  <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">Aptitud Global</span>
+                  <span className="text-xl font-black text-[#00e03c] leading-none">{overallAptitudeScore}%</span>
+                </div>
               </div>
             </div>
 
-            {/* Gráfico Radar Pentagonal (Recharts) */}
-            <div className="h-80 w-full flex items-center justify-center relative">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarAxes}>
-                  <PolarGrid stroke="rgba(255, 255, 255, 0.12)" />
-                  <PolarAngleAxis
-                    dataKey="subject"
-                    stroke="#94a3b8"
-                    tick={{ fill: '#cbd5e1', fontSize: 11, fontWeight: 700 }}
-                  />
-                  <PolarRadiusAxis
-                    angle={30}
-                    domain={[0, 100]}
-                    stroke="rgba(255, 255, 255, 0.2)"
-                    tick={{ fill: '#64748b', fontSize: 9 }}
-                  />
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (!active || !payload?.length) return null;
-                      const d = payload[0].payload;
-                      return (
-                        <div className="bg-slate-900/95 border border-white/20 rounded-xl px-3 py-2 text-xs backdrop-blur-md shadow-2xl">
-                          <p className="font-extrabold text-white">{d.subject}</p>
-                          <p className="text-[#00e03c] font-black text-sm">{d.score} / 100 pts</p>
-                          <p className="text-[10px] text-slate-400 mt-0.5">{d.desc}</p>
-                        </div>
-                      );
-                    }}
-                  />
-                  <Radar
-                    name={activeProfile.name}
-                    dataKey="score"
-                    stroke="#00e03c"
-                    fill="#00e03c"
-                    fillOpacity={0.35}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
+            {/* ── VISTA 1: RADAR PENTAGONAL DE COMPETENCIAS ── */}
+            {(analysisView === 'radar' || analysisView === 'both') && (
+              <div className="space-y-6">
+                {/* Gráfico Radar Pentagonal (Recharts - Estable, sin parpadeo y eje 90°) */}
+                <div className="w-full h-80 relative">
+                  <ResponsiveContainer width="100%" height={320} minWidth={0} minHeight={280}>
+                    <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarAxes}>
+                      <PolarGrid stroke="rgba(255, 255, 255, 0.12)" />
+                      <PolarAngleAxis
+                        dataKey="subject"
+                        stroke="#94a3b8"
+                        tick={{ fill: '#cbd5e1', fontSize: 11, fontWeight: 700 }}
+                      />
+                      <PolarRadiusAxis
+                        angle={90}
+                        domain={[0, 100]}
+                        stroke="rgba(255, 255, 255, 0.4)"
+                        tick={{ fill: '#e2e8f0', fontSize: 10, fontWeight: 700 }}
+                      />
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (!active || !payload?.length) return null;
+                          const d = payload[0].payload;
+                          return (
+                            <div className="bg-slate-900/95 border border-white/20 rounded-xl px-3 py-2 text-xs backdrop-blur-md shadow-2xl">
+                              <p className="font-extrabold text-white">{d.subject}</p>
+                              <p className="text-[#00e03c] font-black text-sm">{d.score} / 100 pts</p>
+                              <p className="text-[10px] text-slate-400 mt-0.5">{d.desc}</p>
+                            </div>
+                          );
+                        }}
+                      />
+                      <Radar
+                        name={activeProfile.name}
+                        dataKey="score"
+                        stroke="#00e03c"
+                        fill="#00e03c"
+                        fillOpacity={0.35}
+                        isAnimationActive={false}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
 
-            {/* Desglose Pedagógico de los 5 Ejes Universales */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
-                <span className="text-xs font-black text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <Scale className="w-3.5 h-3.5 text-amber-400" />
-                  Desglose de Calibración Automática Mensual
-                </span>
-                <span className="text-[10px] text-slate-500 font-bold">Fluctuación Real</span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {radarAxes.map(ax => (
-                  <div key={ax.subject} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1">
-                    <div className="flex items-center justify-between text-xs font-bold">
-                      <span className="text-white">{ax.subject}</span>
-                      <span className="text-[#00e03c] font-mono font-black">{ax.score} / 100</span>
-                    </div>
-                    <div className="w-full bg-black/40 rounded-full h-1.5 overflow-hidden">
-                      <div className="bg-[#00e03c] h-full rounded-full transition-all duration-500" style={{ width: `${ax.score}%` }} />
-                    </div>
-                    <p className="text-[10px] text-slate-400 leading-snug">{ax.desc}</p>
+                {/* Desglose Pedagógico de los 5 Ejes Universales */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+                    <span className="text-xs font-black text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <Scale className="w-3.5 h-3.5 text-amber-400" />
+                      Desglose de Calibración Automática Mensual
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-bold">Fluctuación Real</span>
                   </div>
-                ))}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {radarAxes.map(ax => (
+                      <div key={ax.subject} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1">
+                        <div className="flex items-center justify-between text-xs font-bold">
+                          <span className="text-white">{ax.subject}</span>
+                          <span className="text-[#00e03c] font-mono font-black">{ax.score} / 100</span>
+                        </div>
+                        <div className="w-full bg-black/40 rounded-full h-1.5 overflow-hidden">
+                          <div className="bg-[#00e03c] h-full rounded-full transition-all duration-500" style={{ width: `${ax.score}%` }} />
+                        </div>
+                        <p className="text-[10px] text-slate-400 leading-snug">{ax.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* ── VISTA 2: ÁRBOL DE TALENTOS (TRONCO COMÚN & 5 RAMAS) ── */}
+            {(analysisView === 'tree' || analysisView === 'both') && (
+              <div className="pt-2">
+                <TalentTreeStructured
+                  activePartnerEmail={selectedEmail}
+                  activePartnerName={activeProfile.name}
+                />
+              </div>
+            )}
 
             {/* Dictamen de Idoneidad para Asignación de Proyectos */}
             <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] space-y-2 text-xs">
@@ -716,8 +720,7 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
           </div>
         </div>
 
-        </div>
-      )}
+      </div>
     </div>
   );
 }

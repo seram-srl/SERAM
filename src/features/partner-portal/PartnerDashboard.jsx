@@ -44,7 +44,7 @@ const SIDEBAR_MODULE_GROUPS = [
   {
     category: '1. Actividades Clave',
     modules: [
-      { id: 'activities',  icon: <CheckSquare className="w-4 h-4" />,  label: 'Actividades & Clientes', badge: 'BMC' },
+      { id: 'activities',  icon: <CheckSquare className="w-4 h-4" />,  label: 'Actividades & Clientes' },
       { id: 'timetracker', icon: <Clock className="w-4 h-4" />,        label: 'Control de Horas (Time Tracker)' },
     ]
   },
@@ -60,7 +60,7 @@ const SIDEBAR_MODULE_GROUPS = [
   {
     category: '3. Socios & Recursos Clave',
     modules: [
-      { id: 'profiles',   icon: <Award className="w-4 h-4 text-amber-400" />, label: 'Perfil RPG & Habilidades', badge: 'Nuevo' },
+      { id: 'profiles',   icon: <Award className="w-4 h-4 text-amber-400" />, label: 'Perfil y Habilidades' },
       { id: 'office',     icon: <Building2 className="w-4 h-4" />,    label: 'Oficina Virtual · Metaverso' },
       { id: 'users',      icon: <Users className="w-4 h-4" />,         label: 'Socios & Accesos' },
     ]
@@ -4229,16 +4229,6 @@ export default function PartnerDashboard() {
           {/* Sticky Translucent Page Header */}
           <div className="sticky top-0 z-30 bg-[#070d17]/85 backdrop-blur-md -mx-6 px-6 py-4 border-b border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
             <div className="flex items-center gap-3">
-              {/* Botón Desktop para alternar barra lateral */}
-              <button
-                type="button"
-                onClick={() => setSidebarOpen(p => !p)}
-                className="hidden md:flex p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-300 hover:text-white transition-all cursor-pointer items-center justify-center shrink-0"
-                title={sidebarOpen ? 'Minimizar menú lateral' : 'Desplegar menú lateral'}
-              >
-                <Menu className="w-4 h-4 text-[#00e03c]" />
-              </button>
-
               {/* Botón Mobile para abrir Drawer */}
               <button
                 type="button"
