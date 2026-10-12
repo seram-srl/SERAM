@@ -12,6 +12,8 @@ import {
   generateFlashMission,
   FLASH_CONTINGENCY_TEMPLATES,
 } from './FlashMissionsEngine';
+import { calculateBiophysicalImpact } from './BiophysicalImpactEngine';
+import BiophysicalImpactPanel from './BiophysicalImpactPanel';
 
 // ── DEFINICIÓN DE TIERS DE COFRES & RESPLANDOR ─────────────────────────────
 export const CHEST_TIERS = {
@@ -125,7 +127,7 @@ const INITIAL_SPECIAL_MISSIONS = [
 ];
 
 export default function SpecialMissionsModule({ currentSocio }) {
-  const { activities = [], triggerToast } = useApp();
+  const { activities = [], timeLogs = [], triggerToast } = useApp();
 
   // Estado de misiones especiales
   const [missions, setMissions] = useState(() => {
@@ -178,24 +180,12 @@ export default function SpecialMissionsModule({ currentSocio }) {
     }
   }, [missions]);
 
-  // ── CÁLCULO DE PUNTOS DE IMPACTO PLANETARIO (PIP) - "DEJAR EL MUNDO MEJOR" ──
-  const collectivePIP = useMemo(() => {
-    const baseCompletedActivitiesXP = activities
-      .filter(a => a.status === 'Concluido')
-      .reduce((acc, curr) => acc + (Number(curr.hours) || 1) * 120, 0);
+  // ── CÁLCULO BIOFÍSICO REAL & PUNTOS DE IMPACTO PLANETARIO (PIP) - "DEJAR EL MUNDO MEJOR" ──
+  const biophysicalData = useMemo(() => {
+    return calculateBiophysicalImpact({ activities, timeLogs, missions });
+  }, [activities, timeLogs, missions]);
 
-    const claimedBonusPIP = missions
-      .filter(m => m.status === 'claimed')
-      .reduce((acc, curr) => {
-        if (curr.chestTier === 'gold') return acc + 1500;
-        if (curr.chestTier === 'blue') return acc + 650;
-        if (curr.chestTier === 'purple') return acc + 350;
-        return acc + (curr.basePIP || 150);
-      }, 0);
-
-    return Math.max(1250, baseCompletedActivitiesXP + claimedBonusPIP);
-  }, [activities, missions]);
-
+  const collectivePIP = biophysicalData.totalPIP;
   const PIP_GOAL = 10000;
   const pipPercentage = Math.min(100, Math.round((collectivePIP / PIP_GOAL) * 100));
 
@@ -316,6 +306,9 @@ export default function SpecialMissionsModule({ currentSocio }) {
           </div>
         </div>
       </div>
+
+      {/* ── PANEL DE IMPACTO BIOFÍSICO PARAMÉTRICO (OCTALYSIS CD1 - DEJAR EL MUNDO MEJOR) ── */}
+      <BiophysicalImpactPanel biophysicalData={biophysicalData} />
 
       {/* ── RADAR DE CONTINGENCIAS FLASH EN VIVO (72 - 96H) (OCTALYSIS CD6 & CD7) ── */}
       <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-950 via-emerald-950/20 to-slate-950 border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xl relative overflow-hidden backdrop-blur-md">
