@@ -70,3 +70,27 @@ Alineado con las directrices directivas, principios de gamificación RPG y la re
 3. **Ficha Técnica en Modal Centrado:**
    - Modal flotante centrado (`z-[160]`) con backdrop blur para consultar o gestionar evidencia sin estorbar la navegación visual del mapa estelar.
    - Tooltip calibrado en espacio de coordenadas SVG que se desplaza y escala milimétricamente junto al lienzo.
+
+---
+
+## 6. Ampliación de Espaciado, Fondo Galáctico Animado, Tipografía Aumentada y Carga de Certificados en PDF (Fase 3)
+1. **Separación Generosa de Nodos y Ramas (`1500x950`):**
+   - Sistema de coordenadas ampliado a `viewBox="0 0 1500 950"` en `talentTreeData.js`.
+   - Distribución horizontal desahogada de las 5 ramas principales a lo largo de 1500px, eliminando cualquier estrechez o solapamiento entre nodos contiguos (distancia mínima > 100px-200px entre nodos de la misma rama).
+   - Tronco común `TRONCO-00` reubicado y centrado en `(750, 840)`.
+
+2. **Fondo Galáctico Dinámico y Sutil:**
+   - Tres nebulosas profundas con gradientes radiales difusos (esmeralda, oro y cian) con animación suave de respiración (`nebulaBreathe`).
+   - Dos galaxias espirales lejanas con rotación ultra lenta (`galaxySpinSlow` a 180s y 220s).
+   - 85 estrellas cósmicas deterministas con centelleo orgánico desfasado (`starTwinkle`) que no interfieren con la legibilidad técnica de los nodos.
+
+3. **Tipografía Aumentada y Alta Legibilidad en la Ficha Técnica:**
+   - Escala tipográfica incrementada en badges, título principal (`text-2xl sm:text-3xl font-black`), descripciones técnicas (`text-base leading-relaxed`) y módulos de formación.
+   - Alto contraste garantizado bajo la paleta Neuform.
+
+4. **Vincular Certificados y Diplomas en Formato PDF:**
+   - Integración de zona de subida drag-and-drop para archivos `.pdf` (hasta 8 MB).
+   - Conversión y almacenamiento local seguro mediante DataURL (`FileReader`), extrayendo el nombre del archivo y tamaño formateado (KB/MB).
+   - Acciones interactivas para "Ver PDF" en nueva pestaña del navegador y "Quitar archivo".
+   - Persistencia vinculada a la clave del socio en `localStorage`.
+
