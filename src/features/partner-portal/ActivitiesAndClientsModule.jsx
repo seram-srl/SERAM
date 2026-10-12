@@ -6,10 +6,11 @@ import {
   X, Search, Briefcase, FileText, ChevronDown, CheckCircle2,
   ListFilter, Sparkles, Phone, Mail, MapPin, ExternalLink,
   Layers, BarChart2, TrendingUp, ChevronRight, PanelRightClose,
-  ShieldCheck, Award, Scale
+  ShieldCheck, Award, Scale, Gift
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { calculateTaskXP, validateCrossApproval } from './gamification/xpEngine';
+import SpecialMissionsModule from './gamification/SpecialMissionsModule';
 
 // ── COMPONENTE TARJETA DE CRISTAL ──────────────────────────────────────────
 const GlassCard = ({ children, className = '' }) => (
@@ -472,6 +473,16 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
             }`}
           >
             <BarChart2 className="w-3.5 h-3.5" /> Progreso de Socios
+          </button>
+          <button
+            onClick={() => setActiveTab('missions')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+              activeTab === 'missions'
+                ? 'bg-amber-400 text-slate-950 shadow-md font-black'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
+            }`}
+          >
+            <Gift className="w-3.5 h-3.5 text-amber-400" /> Misiones Especiales
           </button>
         </div>
 
@@ -1239,6 +1250,11 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
             })}
           </div>
         </div>
+      )}
+
+      {/* ── VISTA 6: MISIONES ESPECIALES & COFRES DE RESPLANDOR (OCTALYSIS) ── */}
+      {activeTab === 'missions' && (
+        <SpecialMissionsModule currentSocio={currentSocio} />
       )}
           </motion.div>
         </AnimatePresence>

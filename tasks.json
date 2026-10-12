@@ -2,9 +2,50 @@
   "version": "1.0",
   "project": "SERAM",
   "last_updated": "2026-10-11",
-  "tasks": [],
+  "tasks": [
+    {
+      "id": "TASK-055",
+      "title": "Motor de Sinergias y Combos Interdisciplinarios entre Ramas (Core Drive 3 & 5): Detección automática de complementariedad entre socios (SIG + Monitoreo + Compliance), multiplicadores de XP sinérgico y bonus de colaboración en actividades clave",
+      "status": "pending",
+      "priority": "medium",
+      "assigned_to": "gamification_master",
+      "core_drive": "CD3 - Empowerment of Creativity & CD5 - Social Influence"
+    },
+    {
+      "id": "TASK-056",
+      "title": "Módulo de Misiones Flash Coyunturales Dinámicas en Tiempo Real (Core Drive 6 & 7): Generador de alertas y misiones relámpago con ventanas de tiempo limitado (72-96h) vinculadas a eventos ambientales o normativos reales, recompensas sorpresa y prestigio pericial",
+      "status": "pending",
+      "priority": "high",
+      "assigned_to": "gamification_master",
+      "core_drive": "CD6 - Scarcity & CD7 - Unpredictability"
+    },
+    {
+      "id": "TASK-057",
+      "title": "Onboarding Progresivo de Nuevos Consultores y Bucle de Endgame para Nivel 5 (Player Journey): Guía de primer entregable verificado (First Win) y mecánicas de maestría/tutoría, cátedra en Academy y proyectos de legado para socios veteranos",
+      "status": "pending",
+      "priority": "medium",
+      "assigned_to": "gamification_master",
+      "core_drive": "Player Journey - Onboarding & Endgame"
+    }
+  ],
   "in_progress": [],
   "completed": [
+    {
+      "id": "TASK-054",
+      "title": "Módulo de Misiones Especiales, Cofres de Resplandor y Motor de Impacto Planetario PIP 'Dejar el Mundo Mejor' (Octalysis Core Drives 1, 6, 7 & Raid Trinitario)",
+      "status": "completed",
+      "assigned_to": "gamification_master",
+      "started_at": "2026-10-11",
+      "completed_at": "2026-10-11"
+    },
+    {
+      "id": "TASK-053",
+      "title": "Árbol de Talentos Gamificado tipo Constelación RPG (TalentTreeConstellation.jsx): 5 Ramas Canónicas no restrictivas, SIG Instrumental transversal, Acreditación por Evidencias y Certificados Reales (EDGE, Carbono, RENCA), y Canvas SVG Interactivo con HUD de Puntos de Talento",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-11",
+      "completed_at": "2026-10-11"
+    },
     {
       "id": "TASK-052",
       "title": "Depuración Ergonómica de Dashboard, Análisis Multidimensional y Árbol de Talentos Estructurado (Tronco Común y 5 Ramas)",
