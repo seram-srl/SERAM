@@ -46,6 +46,27 @@ Alineado con las directrices directivas, principios de gamificación RPG y la re
 ---
 
 ## 4. Verificación y Resultados
-- **Build de producción:** `npm run build` ejecutado exitosamente con 0 errores (2906 módulos transformados, `built in 2m 9s`).
+- **Build de producción:** `npm run build` ejecutado exitosamente con 0 errores (2907 módulos transformados).
 - **Verificación Live DevTools:** Validado en `http://localhost:5173/dashboard` en la pestaña *Perfil y Habilidades*, comprobando la nitidez de etiquetas, el botón de Pantalla Completa y el dictamen bajo el radar.
 - **Integridad:** Compatibilidad con Neuform Tokens, paleta de colores oficial y preservación total de la arquitectura de la aplicación.
+
+---
+
+## 5. Refinamiento Interactivo de Navegación, Pan, Zoom y Modo Pantalla Completa (Fase 2)
+1. **Navegación Pan & Zoom Fluida:**
+   - Arrastre interactivo (`isDragging`, `cursor-grab` / `cursor-grabbing`) para explorar libremente el mapa estelar.
+   - Zoom con rueda del ratón (`wheel`) y soporte multitáctil (pinch-to-zoom en móviles/tablets), acotado entre 0.5x y 2.4x con animación suave.
+   - Dock flotante de navegación (inferior derecho): controles de `+`, `-`, indicador de escala (`%`), botón **Centrar** (`RotateCcw`), botón de autoenfoque a la base **Raíz / TRONCO-00** (`Crosshair`), y maximizar/minimizar.
+   - Enfoque cinemático automático al pulsar cualquiera de las 5 constelaciones en la barra de filtros (pan y zoom a 1.35x centrado en la constelación seleccionada).
+   - Discriminación entre arrastre y clic: el desplazamiento durante el paneo no dispara accidentalmente la apertura de fichas técnicas.
+
+2. **Modo Pantalla Completa 100% Inmersivo (Lienzo Limpio):**
+   - Implementado mediante `ReactDOM.createPortal(..., document.body)` con capa superior `z-[150]`, evitando que stacking contexts intermedios del dashboard recorten o sobrepongan elementos.
+   - Bloqueo automático del scroll de fondo (`document.body.style.overflow = 'hidden'`).
+   - Ocultamiento de tarjetas voluminosas superiores en modo fullscreen para maximizar el lienzo estelar (`100vw x 100vh`).
+   - HUD superior flotante translúcido con badge del socio, puntos de talento (TP), selector rápido de constelaciones y botón para salir de pantalla completa.
+   - Atajos de teclado: tecla `Escape` cierra primero cualquier modal abierto, o sale limpiamente del modo pantalla completa.
+
+3. **Ficha Técnica en Modal Centrado:**
+   - Modal flotante centrado (`z-[160]`) con backdrop blur para consultar o gestionar evidencia sin estorbar la navegación visual del mapa estelar.
+   - Tooltip calibrado en espacio de coordenadas SVG que se desplaza y escala milimétricamente junto al lienzo.

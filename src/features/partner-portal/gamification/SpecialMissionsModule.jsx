@@ -3,9 +3,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles, Trophy, Users, Zap, Clock, Shield,
   Award, CheckCircle2, ChevronRight, Gift, Flame,
-  Globe2, Lock, ArrowUpRight, Plus, RefreshCw, X
+  Globe2, Lock, ArrowUpRight, Plus, RefreshCw, X,
+  Timer, Radio, AlertTriangle
 } from 'lucide-react';
 import { useApp } from '../../../context/AppContext';
+import {
+  calculateTimeRemaining,
+  generateFlashMission,
+  FLASH_CONTINGENCY_TEMPLATES,
+} from './FlashMissionsEngine';
 
 // ── DEFINICIÓN DE TIERS DE COFRES & RESPLANDOR ─────────────────────────────
 export const CHEST_TIERS = {
@@ -85,6 +91,8 @@ const INITIAL_SPECIAL_MISSIONS = [
     assignedPartners: ['Ing. Fernando Araujo', 'Ing. Diego Barrientos'],
     chestTier: 'green',
     deadline: '2026-10-14T18:00:00Z',
+    expiresAt: new Date(Date.now() + 68 * 3600 * 1000).toISOString(),
+    totalDurationHours: 72,
     hoursRemaining: 68,
     status: 'in_progress',
     progress: 30,
@@ -125,7 +133,18 @@ export default function SpecialMissionsModule({ currentSocio }) {
       const saved = localStorage.getItem('seram_special_missions_v1');
       if (saved) {
         try {
-          return JSON.parse(saved);
+          const parsed = JSON.parse(saved);
+          // Asegurar que las misiones flash tengan expiresAt si venían de versiones anteriores
+          return parsed.map((m) => {
+            if (m.type === 'flash' && !m.expiresAt) {
+              return {
+                ...m,
+                expiresAt: new Date(Date.now() + (m.hoursRemaining || 48) * 3600 * 1000).toISOString(),
+                totalDurationHours: m.totalDurationHours || 72,
+              };
+            }
+            return m;
+          });
         } catch (e) {
           console.error(e);
         }
@@ -137,10 +156,20 @@ export default function SpecialMissionsModule({ currentSocio }) {
   // Estado de filtros
   const [categoryFilter, setCategoryFilter] = useState('all'); // 'all' | 'group' | 'flash' | 'secondary' | 'complex'
 
-  // Modal de apertura de cofre
+  // Modal de contingencias y apertura de cofre
+  const [showContingencyMenu, setShowContingencyMenu] = useState(false);
   const [openingMission, setOpeningMission] = useState(null);
   const [isChestOpening, setIsChestOpening] = useState(false);
   const [claimedReward, setClaimedReward] = useState(null);
+
+  // Tick reactivo en tiempo real cada segundo (Octalysis CD6 & Live Countdown)
+  const [, setClockTick] = useState(Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setClockTick(Date.now());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Guardar en localStorage
   useEffect(() => {
@@ -151,19 +180,17 @@ export default function SpecialMissionsModule({ currentSocio }) {
 
   // ── CÁLCULO DE PUNTOS DE IMPACTO PLANETARIO (PIP) - "DEJAR EL MUNDO MEJOR" ──
   const collectivePIP = useMemo(() => {
-    // PIP base derivado del XP de actividades concluidas en la plataforma
     const baseCompletedActivitiesXP = activities
       .filter(a => a.status === 'Concluido')
       .reduce((acc, curr) => acc + (Number(curr.hours) || 1) * 120, 0);
 
-    // PIP extra por misiones especiales reclamadas
     const claimedBonusPIP = missions
       .filter(m => m.status === 'claimed')
       .reduce((acc, curr) => {
         if (curr.chestTier === 'gold') return acc + 1500;
         if (curr.chestTier === 'blue') return acc + 650;
         if (curr.chestTier === 'purple') return acc + 350;
-        return acc + 150;
+        return acc + (curr.basePIP || 150);
       }, 0);
 
     return Math.max(1250, baseCompletedActivitiesXP + claimedBonusPIP);
@@ -178,6 +205,14 @@ export default function SpecialMissionsModule({ currentSocio }) {
     return missions.filter(m => m.type === categoryFilter);
   }, [missions, categoryFilter]);
 
+  // Manejar creación/disparo de nueva misión flash (Octalysis CD6 & CD7)
+  const handleTriggerFlashMission = (templateIndex = null) => {
+    const newMission = generateFlashMission(templateIndex, currentSocio?.name);
+    setMissions(prev => [newMission, ...prev]);
+    setShowContingencyMenu(false);
+    triggerToast?.(`⚡ ¡Nueva Alerta Flash activada: ${newMission.title}! Temporizador iniciado.`);
+  };
+
   // Manejar completar misión
   const handleMarkAsReady = (missionId) => {
     setMissions(prev => prev.map(m => {
@@ -186,7 +221,7 @@ export default function SpecialMissionsModule({ currentSocio }) {
       }
       return m;
     }));
-    triggerToast?.('¡Misión completada! El Cofre de Resplandor está listo para abrirse.');
+    triggerToast?.('¡Misión completada dentro de plazo! El Cofre de Resplandor está listo para abrirse.');
   };
 
   // Abrir cofre
@@ -199,11 +234,11 @@ export default function SpecialMissionsModule({ currentSocio }) {
     setTimeout(() => {
       const tierConfig = CHEST_TIERS[mission.chestTier] || CHEST_TIERS.green;
       const randomXPBonus = Math.floor(Math.random() * (tierConfig.xpMax - tierConfig.xpMin + 1)) + tierConfig.xpMin;
-      
+
       const reward = {
         tierName: tierConfig.name,
         xpBonus: `+${randomXPBonus}% XP Aumentado`,
-        pipAwarded: mission.chestTier === 'gold' ? 1500 : mission.chestTier === 'blue' ? 650 : mission.chestTier === 'purple' ? 350 : 150,
+        pipAwarded: mission.chestTier === 'gold' ? 1500 : mission.chestTier === 'blue' ? 650 : mission.chestTier === 'purple' ? 350 : (mission.basePIP || 150),
         perk: tierConfig.perks[1] || 'Privilegio de Racha Activo',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
@@ -282,6 +317,37 @@ export default function SpecialMissionsModule({ currentSocio }) {
         </div>
       </div>
 
+      {/* ── RADAR DE CONTINGENCIAS FLASH EN VIVO (72 - 96H) (OCTALYSIS CD6 & CD7) ── */}
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-950 via-emerald-950/20 to-slate-950 border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xl relative overflow-hidden backdrop-blur-md">
+        <div className="flex items-center gap-3 relative z-10">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/35 flex items-center justify-center text-emerald-400 shrink-0 shadow-inner">
+            <Radio className="w-5 h-5 animate-pulse text-[#00e03c]" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400">
+                Radar de Contingencias Flash en Vivo (72 - 96h)
+              </span>
+              <span className="w-2 h-2 rounded-full bg-[#00e03c] animate-ping inline-block" />
+            </div>
+            <p className="text-xs text-slate-300">
+              Escaneo dinámico de decretos ministeriales, licitaciones express SICOES y alertas hidrológicas críticas.
+            </p>
+          </div>
+        </div>
+
+        <div className="relative z-10 flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => setShowContingencyMenu(true)}
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-[#00e03c] hover:brightness-110 text-slate-950 font-black text-xs transition-all shadow-lg shadow-[#00e03c]/20 flex items-center gap-1.5 cursor-pointer"
+          >
+            <Zap className="w-4 h-4 fill-slate-950" />
+            <span>Disparar Alerta Flash</span>
+          </button>
+        </div>
+      </div>
+
       {/* ── BARRA DE CATEGORÍAS & FILTROS DE MISIONES ── */}
       <div className="flex items-center justify-between gap-3 flex-wrap border-b border-white/[0.08] pb-4">
         <div className="flex items-center gap-1.5 bg-black/40 border border-white/10 rounded-xl p-1 flex-wrap">
@@ -353,14 +419,24 @@ export default function SpecialMissionsModule({ currentSocio }) {
           const tier = CHEST_TIERS[mission.chestTier] || CHEST_TIERS.green;
           const isReady = mission.status === 'ready_to_open';
           const isClaimed = mission.status === 'claimed';
+          const isFlash = mission.type === 'flash';
+
+          // Temporizador regresivo en vivo
+          const timer = isFlash && mission.expiresAt
+            ? calculateTimeRemaining(mission.expiresAt, mission.totalDurationHours || 72)
+            : null;
+
+          const isExpired = timer?.isExpired && !isReady && !isClaimed;
 
           return (
             <motion.div
               key={mission.id}
-              whileHover={{ y: -3 }}
+              whileHover={{ y: isExpired ? 0 : -3 }}
               transition={{ duration: 0.2 }}
               className={`rounded-2xl border p-5 relative overflow-hidden flex flex-col justify-between transition-all backdrop-blur-sm ${
-                isReady
+                isExpired
+                  ? 'border-rose-500/30 bg-rose-950/10 opacity-75'
+                  : isReady
                   ? `${tier.border} bg-gradient-to-br ${tier.bg} shadow-xl`
                   : isClaimed
                   ? 'border-white/[0.06] bg-white/[0.01] opacity-75'
@@ -383,7 +459,7 @@ export default function SpecialMissionsModule({ currentSocio }) {
               {/* Cabecera de la Misión */}
               <div className="space-y-3 relative z-10">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span
                       className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md flex items-center gap-1"
                       style={{
@@ -392,9 +468,28 @@ export default function SpecialMissionsModule({ currentSocio }) {
                         border: `1px solid ${tier.border}`
                       }}
                     >
-                      {tier.icon} {mission.type === 'group' ? 'GRUPAL TRINITARIA' : mission.type === 'flash' ? 'FLASH (72-96h)' : mission.type === 'secondary' ? 'SECUNDARIA' : 'PERICIAL COMPLEJA'}
+                      {tier.icon} {mission.type === 'group' ? 'GRUPAL TRINITARIA' : isFlash ? 'FLASH (72-96h)' : mission.type === 'secondary' ? 'SECUNDARIA' : 'PERICIAL COMPLEJA'}
                     </span>
-                    {mission.hoursRemaining && !isClaimed && (
+
+                    {/* Badge de Temporizador Digital en Vivo */}
+                    {isFlash && timer && !isClaimed && (
+                      <span
+                        className={`text-[9px] font-black font-mono px-2 py-0.5 rounded border flex items-center gap-1 ${
+                          isExpired
+                            ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                            : timer.isCritical
+                            ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse'
+                            : timer.isUrgent
+                            ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                            : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                        }`}
+                      >
+                        <Timer className="w-3 h-3" />
+                        {isExpired ? 'EXPIRADA · PLAZO VENCIDO' : `${timer.formattedTime} restantes`}
+                      </span>
+                    )}
+
+                    {!isFlash && mission.hoursRemaining && !isClaimed && (
                       <span className="text-[9px] font-black font-mono text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 flex items-center gap-1">
                         <Clock className="w-3 h-3" /> {mission.hoursRemaining}h restantes
                       </span>
@@ -413,6 +508,24 @@ export default function SpecialMissionsModule({ currentSocio }) {
                 <p className="text-xs text-slate-300 leading-relaxed">
                   {mission.desc}
                 </p>
+
+                {/* Barra de Tiempo Decreciente para Misiones Flash */}
+                {isFlash && timer && !isClaimed && !isExpired && (
+                  <div className="space-y-1 pt-1">
+                    <div className="w-full bg-slate-950/80 rounded-full h-1.5 border border-white/10 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-1000 ${
+                          timer.isCritical ? 'bg-rose-500' : timer.isUrgent ? 'bg-amber-400' : 'bg-[#00e03c]'
+                        }`}
+                        style={{ width: `${timer.progressPercent}%` }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
+                      <span>Ventana de Oportunidad</span>
+                      <span className="font-bold text-slate-300">{timer.progressPercent}% restante</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Socios Asignados */}
                 <div className="pt-2 flex items-center gap-2 flex-wrap">
@@ -441,19 +554,19 @@ export default function SpecialMissionsModule({ currentSocio }) {
                     }`}
                     style={{
                       background: `linear-gradient(135deg, rgba(255,255,255,0.06), rgba(0,0,0,0.5))`,
-                      border: `1.5px solid ${isReady ? tier.glowColor : 'rgba(255,255,255,0.1)'}`,
+                      border: `1.5px solid ${isExpired ? 'rgba(239,68,68,0.3)' : isReady ? tier.glowColor : 'rgba(255,255,255,0.1)'}`,
                       boxShadow: isReady ? `0 0 20px ${tier.glowColor}` : 'none'
                     }}
                   >
-                    <span>{tier.icon}</span>
+                    <span>{isExpired ? '🔒' : tier.icon}</span>
                   </div>
 
                   <div>
                     <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">
-                      Recompensa Potencial
+                      {isExpired ? 'Cofre Sellado' : 'Recompensa Potencial'}
                     </span>
                     <span className="text-xs font-mono font-bold text-white">
-                      {mission.streakBonus}
+                      {isExpired ? 'Expiró el plazo de contingencia' : mission.streakBonus}
                     </span>
                   </div>
                 </div>
@@ -464,6 +577,11 @@ export default function SpecialMissionsModule({ currentSocio }) {
                     <div className="px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-bold text-slate-400 flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-[#00e03c]" />
                       Reclamado
+                    </div>
+                  ) : isExpired ? (
+                    <div className="px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs font-bold text-rose-300 flex items-center gap-1.5">
+                      <AlertTriangle className="w-4 h-4 text-rose-400" />
+                      Oportunidad Perdida
                     </div>
                   ) : isReady ? (
                     <button
@@ -491,6 +609,83 @@ export default function SpecialMissionsModule({ currentSocio }) {
         })}
       </div>
 
+      {/* ── MODAL: DISPARADOR DE CONTINGENCIAS AMBIENTALES (OCTALYSIS CD7) ── */}
+      <AnimatePresence>
+        {showContingencyMenu && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-slate-950 border border-emerald-500/30 rounded-3xl p-6 max-w-xl w-full text-left relative overflow-hidden shadow-2xl space-y-5"
+            >
+              <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#00e03c] flex items-center gap-1.5">
+                    <Radio className="w-3.5 h-3.5 text-[#00e03c] animate-pulse" />
+                    Disparador de Contingencias Dinámicas
+                  </span>
+                  <h3 className="text-xl font-black text-white">
+                    Activar Nueva Misión Flash (72 - 96h)
+                  </h3>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Selecciona un escenario de coyuntura ambiental real en Bolivia o activa un evento aleatorio para simular la respuesta pericial de SERAM.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowContingencyMenu(false)}
+                  className="w-8 h-8 rounded-xl bg-white/[0.05] hover:bg-white/10 flex items-center justify-center text-slate-300 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Lista de Plantillas */}
+              <div className="space-y-2.5 max-h-[55vh] overflow-y-auto pr-1">
+                {FLASH_CONTINGENCY_TEMPLATES.map((tpl, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleTriggerFlashMission(idx)}
+                    className="w-full p-3.5 rounded-xl border border-white/[0.08] bg-white/[0.02] hover:border-[#00e03c]/40 hover:bg-[#00e03c]/5 text-left transition-all cursor-pointer space-y-1 group"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[9px] font-black uppercase text-[#00e03c] font-mono">
+                        {tpl.context} · {tpl.durationHours}h
+                      </span>
+                      <span className="text-[10px] font-black text-amber-300 font-mono">
+                        +{tpl.basePIP} PIP
+                      </span>
+                    </div>
+                    <h4 className="text-xs font-black text-white group-hover:text-[#00e03c] transition-colors">
+                      {tpl.title}
+                    </h4>
+                    <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+                      {tpl.desc}
+                    </p>
+                  </button>
+                ))}
+              </div>
+
+              {/* Botón Contingencia Aleatoria */}
+              <div className="pt-2 border-t border-white/10 flex items-center justify-between gap-3">
+                <span className="text-[10px] text-slate-400 font-mono">
+                  5 Escenarios Estandarizados Disponibles
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleTriggerFlashMission(null)}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-[#00e03c] text-slate-950 font-black text-xs hover:brightness-110 transition-all cursor-pointer shadow-lg shadow-[#00e03c]/20"
+                >
+                  Generar Evento Sorpresa
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* ── MODAL DE APERTURA DE COFRE CON RESPLANDOR (OCTALYSIS CD7) ── */}
       <AnimatePresence>
         {openingMission && (
@@ -504,7 +699,6 @@ export default function SpecialMissionsModule({ currentSocio }) {
                 boxShadow: `0 0 50px ${CHEST_TIERS[openingMission.chestTier]?.glowColor || 'rgba(0,224,60,0.3)'}`
               }}
             >
-              {/* Botón Cerrar */}
               <button
                 type="button"
                 onClick={() => setOpeningMission(null)}
