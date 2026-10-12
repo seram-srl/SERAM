@@ -4,16 +4,23 @@ import {
   Shield, Award, User, Clock, Star, Sparkles, UploadCloud,
   FileText, CheckCircle2, ChevronRight, Zap, Trophy,
   BookOpen, Layers, Target, FileCheck, Save, Scale, Info,
-  Check, X, AlertCircle
+  Check, X, AlertCircle, Gamepad2
 } from 'lucide-react';
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   ResponsiveContainer, Tooltip
 } from 'recharts';
 import { useApp } from '../../context/AppContext';
-import { calculatePartnerTotalXP, TIERS, LEVELS_33, MASTERY_ORDERS } from './gamification/xpEngine';
+import {
+  calculatePartnerTotalXP,
+  TIERS,
+  LEVELS_33,
+  MASTERY_ORDERS,
+  GRADUATION_REQUIREMENTS,
+} from './gamification/xpEngine';
 import TalentTreeConstellation from './gamification/TalentTreeConstellation';
 import PlayerJourneyModule from './gamification/PlayerJourneyModule';
+import InteractiveGameTourModal from './gamification/InteractiveGameTourModal';
 
 // ── PERFILES BASE OFICIALES DE LOS TRES SOCIOS ──────────────────────────────
 const DEFAULT_PROFILES = {
@@ -118,6 +125,7 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
   const [toastMessage, setToastMessage] = useState('');
   const [analysisView, setAnalysisView] = useState('radar'); // 'radar' | 'tree' | 'both'
   const [showDegreesModal, setShowDegreesModal] = useState(false);
+  const [showTourModal, setShowTourModal] = useState(false);
 
   // Sincronizar formulario al cambiar de socio
   useEffect(() => {
@@ -382,7 +390,14 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
                 <span>{rpgStats.totalHours.toFixed(1)} hrs auditadas</span>
                 <span>{rpgStats.nextTier ? `${rpgStats.xpForNext.toLocaleString()} XP para Nivel ${rpgStats.level + 1}` : 'Cénit · Nivel 33'}</span>
               </div>
-              <div className="pt-1.5 flex justify-end">
+              <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.04] mt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowTourModal(true)}
+                  className="text-[10px] text-[#00e03c] hover:text-[#00ff44] font-bold underline flex items-center gap-1 cursor-pointer transition-colors"
+                >
+                  <Gamepad2 className="w-3 h-3 text-[#00e03c]" /> 🎮 ¿Cómo Jugar? (Guía de Reglas)
+                </button>
                 <button
                   type="button"
                   onClick={() => setShowDegreesModal(true)}
@@ -716,23 +731,7 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
       />
 
       {/* ── SECCIÓN COMPLETA INFERIOR: ÁRBOL DE TALENTOS GAMIFICADO (CONSTELACIONES RPG) ── */}
-      <div id="arbol-talentos-full" className="w-full pt-4 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#00e03c]/15 text-[#00e03c] border border-[#00e03c]/30">
-                Especialización & Carrera Directiva
-              </span>
-              <span className="text-[10px] text-slate-400 font-bold">
-                5 Constelaciones · Progresión No Restrictiva
-              </span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2 mt-1">
-              Árbol de Talentos & Acreditación de Habilidades
-            </h2>
-          </div>
-        </div>
-
+      <div id="arbol-talentos-full" className="w-full pt-1">
         <TalentTreeConstellation
           activePartnerEmail={selectedEmail}
           activePartnerName={activeProfile.name}
@@ -814,16 +813,20 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
                           className={`p-3.5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
                             isCurrent
                               ? 'border-amber-400 bg-amber-500/15 shadow-lg shadow-amber-500/10'
+                              : lvl.isGraduation
+                              ? 'border-amber-400/50 bg-gradient-to-r from-amber-500/[0.08] via-purple-500/[0.04] to-black/40 ring-1 ring-amber-400/30'
                               : isPast
                               ? 'border-white/[0.06] bg-white/[0.01] opacity-75'
                               : 'border-white/[0.04] bg-black/40 opacity-90'
                           }`}
                         >
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-start gap-3">
                             <div
                               className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black shrink-0 border ${
                                 isCurrent
                                   ? 'bg-amber-400 text-slate-950 border-amber-300 font-mono shadow-md'
+                                  : lvl.isGraduation
+                                  ? 'bg-gradient-to-tr from-amber-500 to-yellow-300 text-slate-950 border-amber-200 font-mono font-black shadow-sm'
                                   : isPast
                                   ? 'bg-[#00e03c]/20 text-[#00e03c] border-[#00e03c]/30 font-mono'
                                   : 'bg-white/[0.04] text-slate-400 border-white/10 font-mono'
@@ -832,11 +835,16 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
                               {lvl.level}
                             </div>
 
-                            <div className="space-y-0.5">
-                              <div className="flex items-center gap-2">
-                                <h5 className={`text-xs font-black ${isCurrent ? 'text-amber-300' : 'text-white'}`}>
+                            <div className="space-y-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h5 className={`text-xs font-black ${isCurrent ? 'text-amber-300' : lvl.isGraduation ? 'text-amber-200' : 'text-white'}`}>
                                   {lvl.title}
                                 </h5>
+                                {lvl.isGraduation && (
+                                  <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                                    ⭐ NIVEL TRONCAL DE GRADUACIÓN
+                                  </span>
+                                )}
                                 {isCurrent && (
                                   <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-amber-400 text-slate-950">
                                     Nivel Actual
@@ -851,6 +859,12 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
                               <p className="text-[10px] text-slate-400 leading-relaxed">
                                 {lvl.description}
                               </p>
+                              {lvl.isGraduation && GRADUATION_REQUIREMENTS[lvl.graduationKey] && (
+                                <div className="p-2 rounded-lg bg-black/50 border border-amber-500/20 text-[9px] text-amber-200/90 font-mono space-y-0.5">
+                                  <span className="font-bold text-amber-300 block">Requisitos de Graduación Obligatorios:</span>
+                                  <span>{GRADUATION_REQUIREMENTS[lvl.graduationKey].description}</span>
+                                </div>
+                              )}
                               <span className="text-[9px] text-slate-500 font-medium">
                                 {lvl.orderName}
                               </span>
@@ -891,6 +905,13 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
           </div>
         )}
       </AnimatePresence>
+
+      {/* ── MODAL: TOUR INTERACTIVO CÓMO JUGAR A LA CONSULTORA ── */}
+      <InteractiveGameTourModal
+        isOpen={showTourModal}
+        onClose={() => setShowTourModal(false)}
+        currentSocio={currentSocio}
+      />
 
     </div>
   );

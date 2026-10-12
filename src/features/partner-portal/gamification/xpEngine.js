@@ -24,21 +24,21 @@ export const DIFFICULTY_MULTIPLIERS = {
 export const MASTERY_ORDERS = [
   {
     id: 'orden-1',
-    name: 'Orden I: Semillero & Aspirantía',
+    name: 'Orden I: Semillero & Heraldo',
     minLevel: 1,
-    maxLevel: 5,
+    maxLevel: 6,
     color: '#94a3b8',
     badgeColor: 'border-slate-500/30 text-slate-300 bg-slate-500/10',
-    description: 'Fase de iniciación técnica, primeros muestreos en campo y gabinete.',
+    description: 'Iniciación profesional, primeros registros en Time Tracker y tareas de gabinete.',
   },
   {
     id: 'orden-2',
-    name: 'Orden II: Especialización & Autonomía',
-    minLevel: 6,
+    name: 'Orden II: Consultoría Técnica & Junior',
+    minLevel: 7,
     maxLevel: 11,
     color: '#00e03c',
     badgeColor: 'border-emerald-500/30 text-emerald-300 bg-emerald-500/10',
-    description: 'Autonomía pericial, SIG sectorial y fiscalización de cumplimiento normativo.',
+    description: 'Tarifa base estándar (1.00x en Nvl 7), expedientes sectoriales y primera graduación troncal (1.55x en Nvl 11).',
   },
   {
     id: 'orden-3',
@@ -51,21 +51,21 @@ export const MASTERY_ORDERS = [
   },
   {
     id: 'orden-4',
-    name: 'Orden IV: Dirección & Estrategia Societaria',
+    name: 'Orden IV: Dirección & Consultoría Ejecutiva',
     minLevel: 18,
-    maxLevel: 23,
+    maxLevel: 22,
     color: '#a855f7',
     badgeColor: 'border-purple-500/30 text-purple-300 bg-purple-500/10',
-    description: 'Licitaciones estratégicas B2B, defensa jurídica y arbitraje técnico de cuencas.',
+    description: 'Licitaciones estratégicas B2B, defensa jurídica y graduación troncal ejecutiva (2.00x en Nvl 22).',
   },
   {
     id: 'orden-5',
-    name: 'Orden V: Consejo de Sabios & Maestría',
-    minLevel: 24,
+    name: 'Orden V: Consultoría Nominal & Sabios',
+    minLevel: 23,
     maxLevel: 28,
     color: '#f43f5e',
     badgeColor: 'border-rose-500/30 text-rose-300 bg-rose-500/10',
-    description: 'Cátedra en SERAM Academy, creación de metodologías y auditorías cumbre.',
+    description: 'Consultoría nominal de autor (2.25x en Nvl 25), cátedra en Academy y arbitraje.',
   },
   {
     id: 'orden-6',
@@ -83,364 +83,411 @@ export const MASTERY_ORDERS = [
     maxLevel: 33,
     color: '#fbbf24',
     badgeColor: 'border-amber-300/40 text-amber-200 bg-gradient-to-r from-amber-500/20 via-yellow-400/20 to-amber-500/20',
-    description: 'Máximo cenit de la carrera pericial. Impacto planetario y legado vitalicio en SERAM.',
+    description: 'Consultor Ingeniero Senior. Máximo cenit de la carrera pericial (2.50x). Impacto planetario y legado vitalicio.',
   },
 ];
 
+export const GRADUATION_REQUIREMENTS = {
+  11: {
+    level: 11,
+    title: 'Consultor Junior',
+    badge: 'Graduación Troncal I',
+    feeMultiplier: 1.55,
+    individualProjects: 3,
+    groupProjects: 3,
+    prospects: 3,
+    clientsClosed: 0,
+    newClients: 0,
+    padawans: 0,
+    description: 'Para ser Nivel 11 el consultor deberá tener a su favor mínimamente 3 proyectos concluidos individuales, 3 grupales y 3 prospectos registrados.',
+  },
+  22: {
+    level: 22,
+    title: 'Consultor Ejecutivo',
+    badge: 'Graduación Troncal II',
+    feeMultiplier: 2.00,
+    individualProjects: 5,
+    groupProjects: 5,
+    prospects: 5,
+    clientsClosed: 5,
+    newClients: 5,
+    padawans: 1,
+    description: 'Para consagrar el Nivel 22 deberá tener 5 proyectos concluidos individuales, 5 grupales, 5 clientes cerrados, 5 clientes nuevos y 1 aprendiz tutelado (Padawan).',
+  },
+  33: {
+    level: 33,
+    title: 'Consultor Ingeniero Senior',
+    badge: 'Consagración Troncal III (Cénit Supremo)',
+    feeMultiplier: 2.50,
+    individualProjects: 10,
+    groupProjects: 10,
+    prospects: 10,
+    clientsClosed: 10,
+    newClients: 10,
+    juniorMentees: 1, // 1 aprendiz Nivel 11
+    aspirantMentees: 2, // 2 aprendices Nivel 7 o menor
+    description: 'Para consagrar el Nivel 33 deberá tener 10 proyectos concluidos individuales, 10 grupales, 10 clientes cerrados, 10 clientes nuevos, 1 aprendiz Nivel 11 y 2 aprendices del Nivel 7 para abajo.',
+  },
+};
+
 export const LEVELS_33 = [
-  // ── ORDEN I: SEMILLERO & ASPIRANTÍA (1 - 5) ──
+  // ── ORDEN I: SEMILLERO & HERALDO (1 - 6) ──
   {
     level: 1,
-    title: 'Novicio Técnico',
+    title: 'Heraldo',
     minXP: 0,
     maxXP: 300,
-    feeMultiplier: 1.00,
+    feeMultiplier: 0.70,
     orderId: 'orden-1',
-    orderName: 'Orden I: Semillero & Aspirantía',
+    orderName: 'Orden I: Semillero & Heraldo',
     color: '#94a3b8',
     badgeColor: 'border-slate-500/30 text-slate-300 bg-slate-500/10',
-    description: 'Inducción institucional y primeros registros de horas en la oficina virtual.',
+    description: 'Iniciación en SERAM, primeros registros en Time Tracker y familiarización del entorno.',
   },
   {
     level: 2,
-    title: 'Asistente de Gabinete',
+    title: 'Heraldo de Gabinete',
     minXP: 301,
     maxXP: 700,
-    feeMultiplier: 1.03,
+    feeMultiplier: 0.80,
     orderId: 'orden-1',
-    orderName: 'Orden I: Semillero & Aspirantía',
+    orderName: 'Orden I: Semillero & Heraldo',
     color: '#94a3b8',
     badgeColor: 'border-slate-500/30 text-slate-300 bg-slate-500/10',
-    description: 'Procesamiento de datos hidroquímicos y asistencia en matrices de impacto.',
+    description: 'Procesamiento de datos hidroquímicos y asistencia en matrices preliminares.',
   },
   {
     level: 3,
-    title: 'Operador de Muestreo en Campo',
+    title: 'Técnico',
     minXP: 701,
     maxXP: 1200,
-    feeMultiplier: 1.06,
+    feeMultiplier: 0.85,
     orderId: 'orden-1',
-    orderName: 'Orden I: Semillero & Aspirantía',
+    orderName: 'Orden I: Semillero & Heraldo',
     color: '#94a3b8',
     badgeColor: 'border-slate-500/30 text-slate-300 bg-slate-500/10',
-    description: 'Toma de muestras de agua y sedimentos bajo cadena de custodia certificada.',
+    description: 'Toma de muestras bajo cadena de custodia y soporte instrumental.',
   },
   {
     level: 4,
-    title: 'Analista de Líneas Base',
+    title: 'Técnico Especialista',
     minXP: 1201,
     maxXP: 1900,
-    feeMultiplier: 1.09,
+    feeMultiplier: 0.90,
     orderId: 'orden-1',
-    orderName: 'Orden I: Semillero & Aspirantía',
+    orderName: 'Orden I: Semillero & Heraldo',
     color: '#94a3b8',
     badgeColor: 'border-slate-500/30 text-slate-300 bg-slate-500/10',
-    description: 'Consolidación de factores bióticos, abióticos y socioambientales preliminares.',
+    description: 'Consolidación de factores bióticos, abióticos y soporte en terreno.',
   },
   {
     level: 5,
-    title: 'Consultor Acreditado Junior',
+    title: 'Consultor',
     minXP: 1901,
     maxXP: 2800,
-    feeMultiplier: 1.12,
+    feeMultiplier: 0.95,
     orderId: 'orden-1',
-    orderName: 'Orden I: Semillero & Aspirantía',
+    orderName: 'Orden I: Semillero & Heraldo',
     color: '#94a3b8',
     badgeColor: 'border-slate-500/30 text-slate-300 bg-slate-500/10',
-    description: 'Primer entregable técnico formal validado por pares sin observaciones.',
+    description: 'Primeros entregables técnicos autónomos aprobados sin observaciones.',
   },
-
-  // ── ORDEN II: ESPECIALIZACIÓN & AUTONOMÍA (6 - 11) ──
   {
     level: 6,
-    title: 'Especialista de Campo',
+    title: 'Consultor de Campo',
     minXP: 2801,
     maxXP: 4000,
-    feeMultiplier: 1.15,
-    orderId: 'orden-2',
-    orderName: 'Orden II: Especialización & Autonomía',
-    color: '#00e03c',
-    badgeColor: 'border-emerald-500/30 text-emerald-300 bg-emerald-500/10',
-    description: 'Autonomía de despliegue en cuencas y relacionamiento institucional en faena.',
+    feeMultiplier: 0.98,
+    orderId: 'orden-1',
+    orderName: 'Orden I: Semillero & Heraldo',
+    color: '#94a3b8',
+    badgeColor: 'border-slate-500/30 text-slate-300 bg-slate-500/10',
+    description: 'Autonomía de despliegue en cuencas e informes de monitoreo biofísico.',
   },
+
+  // ── ORDEN II: CONSULTORÍA TÉCNICA & JUNIOR (7 - 11) ──
   {
     level: 7,
-    title: 'Modelador Biofísico & SIG',
+    title: 'Consultor Técnico',
     minXP: 4001,
     maxXP: 5500,
-    feeMultiplier: 1.18,
+    feeMultiplier: 1.00,
     orderId: 'orden-2',
-    orderName: 'Orden II: Especialización & Autonomía',
+    orderName: 'Orden II: Consultoría Técnica & Junior',
     color: '#00e03c',
     badgeColor: 'border-emerald-500/30 text-emerald-300 bg-emerald-500/10',
-    description: 'Cartografía predictiva en ArcGIS/QGIS y teledetección de pasivos mineros.',
+    description: 'Tarifa Base Estándar (1.00x). Modelación biofísica, cartografía SIG y líneas base completas.',
   },
   {
     level: 8,
-    title: 'Evaluador de Cumplimiento Normativo',
+    title: 'Consultor Técnico Sectorial',
     minXP: 5501,
     maxXP: 7300,
-    feeMultiplier: 1.21,
+    feeMultiplier: 1.12,
     orderId: 'orden-2',
-    orderName: 'Orden II: Especialización & Autonomía',
+    orderName: 'Orden II: Consultoría Técnica & Junior',
     color: '#00e03c',
     badgeColor: 'border-emerald-500/30 text-emerald-300 bg-emerald-500/10',
-    description: 'Auditorías de resoluciones administrativas, licencias RENCA y RAI.',
+    description: 'Evaluación de cumplimiento normativo, registros RENCA y licencias ambientales RAI.',
   },
   {
     level: 9,
-    title: 'Auditor Ambiental Operativo',
+    title: 'Consultor Técnico de Cuencas',
     minXP: 7301,
     maxXP: 9500,
-    feeMultiplier: 1.24,
+    feeMultiplier: 1.25,
     orderId: 'orden-2',
-    orderName: 'Orden II: Especialización & Autonomía',
+    orderName: 'Orden II: Consultoría Técnica & Junior',
     color: '#00e03c',
     badgeColor: 'border-emerald-500/30 text-emerald-300 bg-emerald-500/10',
-    description: 'Fiscalización en terreno y emisión de planes de adecuación y seguimiento (PASA).',
+    description: 'Auditorías de campo y planes de adecuación y seguimiento ambiental (PASA).',
   },
   {
     level: 10,
-    title: 'Consultor Sectorial Senior',
+    title: 'Consultor Técnico Avanzado',
     minXP: 9501,
     maxXP: 12200,
-    feeMultiplier: 1.27,
+    feeMultiplier: 1.40,
     orderId: 'orden-2',
-    orderName: 'Orden II: Especialización & Autonomía',
+    orderName: 'Orden II: Consultoría Técnica & Junior',
     color: '#00e03c',
     badgeColor: 'border-emerald-500/30 text-emerald-300 bg-emerald-500/10',
-    description: 'Dominio de estudios de impacto ambiental en minería, energía e industria.',
+    description: 'Estudios de impacto ambiental complejos en minería, industria y recursos hídricos.',
   },
   {
     level: 11,
-    title: 'Coordinador de Expedientes Periciales',
+    title: 'Consultor Junior',
     minXP: 12201,
     maxXP: 15500,
-    feeMultiplier: 1.30,
+    feeMultiplier: 1.55,
     orderId: 'orden-2',
-    orderName: 'Orden II: Especialización & Autonomía',
+    orderName: 'Orden II: Consultoría Técnica & Junior',
     color: '#00e03c',
-    badgeColor: 'border-emerald-500/30 text-emerald-300 bg-emerald-500/10',
-    description: 'Articulación integral de carpetas periciales para juzgados agroambientales.',
+    badgeColor: 'border-emerald-400 text-emerald-200 bg-emerald-500/20 font-black ring-1 ring-emerald-400/50',
+    description: '⭐ GRADUACIÓN TRONCAL I (1.55x). Requiere ≥3 proyectos individuales, ≥3 grupales y ≥3 prospectos.',
+    isGraduation: true,
+    graduationKey: 11,
   },
 
   // ── ORDEN III: LIDERAZGO PERICIAL & DICTAMEN (12 - 17) ──
   {
     level: 12,
-    title: 'Perito Judicial Acreditado',
+    title: 'Consultor Junior de Proyectos',
     minXP: 15501,
     maxXP: 19500,
-    feeMultiplier: 1.35,
-    orderId: 'orden-3',
-    orderName: 'Orden III: Liderazgo Pericial & Dictamen',
-    color: '#3b82f6',
-    badgeColor: 'border-blue-500/30 text-blue-300 bg-blue-500/10',
-    description: 'Comparecencia y sustentación de dictámenes periciales en estrados judiciales.',
-  },
-  {
-    level: 13,
-    title: 'Especialista en Pasivos Críticos',
-    minXP: 19501,
-    maxXP: 24500,
-    feeMultiplier: 1.40,
-    orderId: 'orden-3',
-    orderName: 'Orden III: Liderazgo Pericial & Dictamen',
-    color: '#3b82f6',
-    badgeColor: 'border-blue-500/30 text-blue-300 bg-blue-500/10',
-    description: 'Neutralización de drenajes ácidos de roca (DAR) y relaves pesados en cabeceras.',
-  },
-  {
-    level: 14,
-    title: 'Diseñador de Soluciones NbS',
-    minXP: 24501,
-    maxXP: 30500,
-    feeMultiplier: 1.45,
-    orderId: 'orden-3',
-    orderName: 'Orden III: Liderazgo Pericial & Dictamen',
-    color: '#3b82f6',
-    badgeColor: 'border-blue-500/30 text-blue-300 bg-blue-500/10',
-    description: 'Estructuración de Soluciones Basadas en la Naturaleza y corredores biofísicos.',
-  },
-  {
-    level: 15,
-    title: 'Arquitecto de Economía Circular',
-    minXP: 30501,
-    maxXP: 37500,
-    feeMultiplier: 1.50,
-    orderId: 'orden-3',
-    orderName: 'Orden III: Liderazgo Pericial & Dictamen',
-    color: '#3b82f6',
-    badgeColor: 'border-blue-500/30 text-blue-300 bg-blue-500/10',
-    description: 'Transformación de cadenas industriales y gestión integral según Ley 755.',
-  },
-  {
-    level: 16,
-    title: 'Gestor de Finanzas Climáticas',
-    minXP: 37501,
-    maxXP: 46000,
-    feeMultiplier: 1.55,
-    orderId: 'orden-3',
-    orderName: 'Orden III: Liderazgo Pericial & Dictamen',
-    color: '#3b82f6',
-    badgeColor: 'border-blue-500/30 text-blue-300 bg-blue-500/10',
-    description: 'Formulación de proyectos Verra, Gold Standard y contabilidad de carbono GHG.',
-  },
-  {
-    level: 17,
-    title: 'Perito Dictaminador de Élite',
-    minXP: 46001,
-    maxXP: 56000,
     feeMultiplier: 1.60,
     orderId: 'orden-3',
     orderName: 'Orden III: Liderazgo Pericial & Dictamen',
     color: '#3b82f6',
     badgeColor: 'border-blue-500/30 text-blue-300 bg-blue-500/10',
-    description: 'Máxima idoneidad probatoria en disputas ambientales de envergadura nacional.',
+    description: 'Comparecencia y sustentación de informes periciales en juzgados agroambientales.',
+  },
+  {
+    level: 13,
+    title: 'Consultor Pericial Junior',
+    minXP: 19501,
+    maxXP: 24500,
+    feeMultiplier: 1.65,
+    orderId: 'orden-3',
+    orderName: 'Orden III: Liderazgo Pericial & Dictamen',
+    color: '#3b82f6',
+    badgeColor: 'border-blue-500/30 text-blue-300 bg-blue-500/10',
+    description: 'Diagnóstico de drenajes ácidos de roca (DAR), relaves mineros y metales pesados.',
+  },
+  {
+    level: 14,
+    title: 'Consultor Diseñador NbS',
+    minXP: 24501,
+    maxXP: 30500,
+    feeMultiplier: 1.70,
+    orderId: 'orden-3',
+    orderName: 'Orden III: Liderazgo Pericial & Dictamen',
+    color: '#3b82f6',
+    badgeColor: 'border-blue-500/30 text-blue-300 bg-blue-500/10',
+    description: 'Soluciones Basadas en la Naturaleza y corredores de recarga acuífera.',
+  },
+  {
+    level: 15,
+    title: 'Consultor en Economía Circular',
+    minXP: 30501,
+    maxXP: 37500,
+    feeMultiplier: 1.75,
+    orderId: 'orden-3',
+    orderName: 'Orden III: Liderazgo Pericial & Dictamen',
+    color: '#3b82f6',
+    badgeColor: 'border-blue-500/30 text-blue-300 bg-blue-500/10',
+    description: 'Transformación de cadenas industriales de residuos (Ley 755).',
+  },
+  {
+    level: 16,
+    title: 'Consultor en Finanzas Climáticas',
+    minXP: 37501,
+    maxXP: 46000,
+    feeMultiplier: 1.80,
+    orderId: 'orden-3',
+    orderName: 'Orden III: Liderazgo Pericial & Dictamen',
+    color: '#3b82f6',
+    badgeColor: 'border-blue-500/30 text-blue-300 bg-blue-500/10',
+    description: 'Formulación de proyectos de carbono GHG Protocol y estándares EDGE de construcción.',
+  },
+  {
+    level: 17,
+    title: 'Consultor Perito Judicial',
+    minXP: 46001,
+    maxXP: 56000,
+    feeMultiplier: 1.84,
+    orderId: 'orden-3',
+    orderName: 'Orden III: Liderazgo Pericial & Dictamen',
+    color: '#3b82f6',
+    badgeColor: 'border-blue-500/30 text-blue-300 bg-blue-500/10',
+    description: 'Máxima idoneidad probatoria en litigios ambientales de impacto regional.',
   },
 
-  // ── ORDEN IV: DIRECCIÓN & ESTRATEGIA SOCIETARIA (18 - 23) ──
+  // ── ORDEN IV: DIRECCIÓN & CONSULTORÍA EJECUTIVA (18 - 22) ──
   {
     level: 18,
-    title: 'Director de Operaciones Ambientales',
+    title: 'Consultor Director de Operaciones',
     minXP: 56001,
     maxXP: 68000,
-    feeMultiplier: 1.65,
+    feeMultiplier: 1.88,
     orderId: 'orden-4',
-    orderName: 'Orden IV: Dirección & Estrategia Societaria',
+    orderName: 'Orden IV: Dirección & Consultoría Ejecutiva',
     color: '#a855f7',
     badgeColor: 'border-purple-500/30 text-purple-300 bg-purple-500/10',
     description: 'Supervisión simultánea de expedientes de campo, laboratorio y gabinete.',
   },
   {
     level: 19,
-    title: 'Licitador Estratégico B2B',
+    title: 'Consultor Licitador B2B',
     minXP: 68001,
     maxXP: 82000,
-    feeMultiplier: 1.70,
+    feeMultiplier: 1.91,
     orderId: 'orden-4',
-    orderName: 'Orden IV: Dirección & Estrategia Societaria',
+    orderName: 'Orden IV: Dirección & Consultoría Ejecutiva',
     color: '#a855f7',
     badgeColor: 'border-purple-500/30 text-purple-300 bg-purple-500/10',
-    description: 'Adjudicación de contratos multilaterales (BID, CAF, Banco Mundial).',
+    description: 'Licitaciones estratégicas SICOES y adjudicación de contratos multilaterales.',
   },
   {
     level: 20,
-    title: 'Custodio de Calidad Técnica',
+    title: 'Consultor de Calidad & Normas',
     minXP: 82001,
     maxXP: 98000,
-    feeMultiplier: 1.75,
+    feeMultiplier: 1.94,
     orderId: 'orden-4',
-    orderName: 'Orden IV: Dirección & Estrategia Societaria',
+    orderName: 'Orden IV: Dirección & Consultoría Ejecutiva',
     color: '#a855f7',
     badgeColor: 'border-purple-500/30 text-purple-300 bg-purple-500/10',
-    description: 'Aprobación definitiva de sellos institucionales y certificaciones EDGE.',
+    description: 'Aprobación definitiva de sellos institucionales y matrices de riesgo.',
   },
   {
     level: 21,
-    title: 'Director de Cartera Estratégica',
+    title: 'Consultor Director de Cartera',
     minXP: 98001,
     maxXP: 117000,
-    feeMultiplier: 1.80,
+    feeMultiplier: 1.97,
     orderId: 'orden-4',
-    orderName: 'Orden IV: Dirección & Estrategia Societaria',
+    orderName: 'Orden IV: Dirección & Consultoría Ejecutiva',
     color: '#a855f7',
     badgeColor: 'border-purple-500/30 text-purple-300 bg-purple-500/10',
-    description: 'Crecimiento de cartera recurrente corporativa y relaciones con ministerios.',
+    description: 'Expansión de cartera recurrente y convenios interinstitucionales.',
   },
   {
     level: 22,
-    title: 'Líder de Defensa Jurídico-Ambiental',
+    title: 'Consultor Ejecutivo',
     minXP: 117001,
     maxXP: 139000,
-    feeMultiplier: 1.85,
+    feeMultiplier: 2.00,
     orderId: 'orden-4',
-    orderName: 'Orden IV: Dirección & Estrategia Societaria',
+    orderName: 'Orden IV: Dirección & Consultoría Ejecutiva',
     color: '#a855f7',
-    badgeColor: 'border-purple-500/30 text-purple-300 bg-purple-500/10',
-    description: 'Blindaje ante resoluciones revocatorias y multas de alta cuantía.',
-  },
-  {
-    level: 23,
-    title: 'Magistrado Técnico Institucional',
-    minXP: 139001,
-    maxXP: 165000,
-    feeMultiplier: 1.90,
-    orderId: 'orden-4',
-    orderName: 'Orden IV: Dirección & Estrategia Societaria',
-    color: '#a855f7',
-    badgeColor: 'border-purple-500/30 text-purple-300 bg-purple-500/10',
-    description: 'Árbitro técnico de consenso en controversias periciales de alta complejidad.',
+    badgeColor: 'border-purple-400 text-purple-200 bg-purple-500/20 font-black ring-1 ring-purple-400/50',
+    description: '⭐ GRADUACIÓN TRONCAL II (2.00x). Requiere ≥5 individuales, ≥5 grupales, ≥5 cerrados, ≥5 nuevos y 1 Padawan.',
+    isGraduation: true,
+    graduationKey: 22,
   },
 
-  // ── ORDEN V: CONSEJO DE SABIOS & MAESTRÍA (24 - 28) ──
+  // ── ORDEN V: CONSULTORÍA NOMINAL & SABIOS (23 - 28) ──
   {
-    level: 24,
-    title: 'Socio Consejero de SERAM',
-    minXP: 165001,
-    maxXP: 195000,
-    feeMultiplier: 1.95,
+    level: 23,
+    title: 'Consultor Ejecutivo de Arbitraje',
+    minXP: 139001,
+    maxXP: 165000,
+    feeMultiplier: 2.08,
     orderId: 'orden-5',
-    orderName: 'Orden V: Consejo de Sabios & Maestría',
+    orderName: 'Orden V: Consultoría Nominal & Sabios',
     color: '#f43f5e',
     badgeColor: 'border-rose-500/30 text-rose-300 bg-rose-500/10',
-    description: 'Voz directiva con potestad de veto y lineamiento estratégico corporativo.',
+    description: 'Árbitro técnico de consenso en controversias de alta cuantía jurídica.',
+  },
+  {
+    level: 24,
+    title: 'Consultor Consejero Directivo',
+    minXP: 165001,
+    maxXP: 195000,
+    feeMultiplier: 2.16,
+    orderId: 'orden-5',
+    orderName: 'Orden V: Consultoría Nominal & Sabios',
+    color: '#f43f5e',
+    badgeColor: 'border-rose-500/30 text-rose-300 bg-rose-500/10',
+    description: 'Voz directiva con potestad de lineamiento estratégico corporativo.',
   },
   {
     level: 25,
-    title: 'Catedrático de SERAM Academy',
+    title: 'Consultor Nominal',
     minXP: 195001,
     maxXP: 230000,
-    feeMultiplier: 2.00,
+    feeMultiplier: 2.25,
     orderId: 'orden-5',
-    orderName: 'Orden V: Consejo de Sabios & Maestría',
+    orderName: 'Orden V: Consultoría Nominal & Sabios',
     color: '#f43f5e',
-    badgeColor: 'border-rose-500/30 text-rose-300 bg-rose-500/10',
-    description: 'Transmisión de conocimiento y formación de la nueva generación de consultores.',
+    badgeColor: 'border-rose-400 text-rose-200 bg-rose-500/20 font-black',
+    description: 'Consultoría Nominal de Firma (2.25x). Cátedra en Academy y autoría de metodologías periciales.',
   },
   {
     level: 26,
-    title: 'Diseñador de Metodologías de Autor',
+    title: 'Consultor Nominal Metodólogo',
     minXP: 230001,
     maxXP: 270000,
-    feeMultiplier: 2.05,
+    feeMultiplier: 2.28,
     orderId: 'orden-5',
-    orderName: 'Orden V: Consejo de Sabios & Maestría',
+    orderName: 'Orden V: Consultoría Nominal & Sabios',
     color: '#f43f5e',
     badgeColor: 'border-rose-500/30 text-rose-300 bg-rose-500/10',
-    description: 'Patente y formalización de protocolos periciales propios de SERAM.',
+    description: 'Patente y estandarización de protocolos metodológicos registrados.',
   },
   {
     level: 27,
-    title: 'Auditor Cumbre de Cuencas',
+    title: 'Consultor Nominal de Cuencas',
     minXP: 270001,
     maxXP: 315000,
-    feeMultiplier: 2.10,
+    feeMultiplier: 2.31,
     orderId: 'orden-5',
-    orderName: 'Orden V: Consejo de Sabios & Maestría',
+    orderName: 'Orden V: Consultoría Nominal & Sabios',
     color: '#f43f5e',
     badgeColor: 'border-rose-500/30 text-rose-300 bg-rose-500/10',
-    description: 'Monitoreo macroscópico de cuencas binacionales y sistemas hídricos.',
+    description: 'Auditoría cumbre de cuencas transfronterizas y macro-sistemas hídricos.',
   },
   {
     level: 28,
-    title: 'Gran Estratega Societario',
+    title: 'Consultor Magistrado Institucional',
     minXP: 315001,
     maxXP: 365000,
-    feeMultiplier: 2.15,
+    feeMultiplier: 2.35,
     orderId: 'orden-5',
-    orderName: 'Orden V: Consejo de Sabios & Maestría',
+    orderName: 'Orden V: Consultoría Nominal & Sabios',
     color: '#f43f5e',
     badgeColor: 'border-rose-500/30 text-rose-300 bg-rose-500/10',
-    description: 'Estructuración societaria patrimonial y expansión regional.',
+    description: 'Estructuración societaria patrimonial y expansión internacional.',
   },
 
   // ── ORDEN VI: CONSEJO SUPREMO & LEGADO (29 - 32) ──
   {
     level: 29,
-    title: 'Patriarca del Consejo Directivo',
+    title: 'Consultor Patriarca Societario',
     minXP: 365001,
     maxXP: 420000,
-    feeMultiplier: 2.20,
+    feeMultiplier: 2.38,
     orderId: 'orden-6',
     orderName: 'Orden VI: Consejo Supremo & Legado',
     color: '#f59e0b',
@@ -449,10 +496,10 @@ export const LEVELS_33 = [
   },
   {
     level: 30,
-    title: 'Guardián del Impacto Planetario',
+    title: 'Consultor Guardián Planetario',
     minXP: 420001,
     maxXP: 480000,
-    feeMultiplier: 2.25,
+    feeMultiplier: 2.42,
     orderId: 'orden-6',
     orderName: 'Orden VI: Consejo Supremo & Legado',
     color: '#f59e0b',
@@ -461,22 +508,22 @@ export const LEVELS_33 = [
   },
   {
     level: 31,
-    title: 'Canciller Técnico Honorífico',
+    title: 'Consultor Canciller Internacional',
     minXP: 480001,
     maxXP: 545000,
-    feeMultiplier: 2.30,
+    feeMultiplier: 2.45,
     orderId: 'orden-6',
     orderName: 'Orden VI: Consejo Supremo & Legado',
     color: '#f59e0b',
     badgeColor: 'border-amber-500/30 text-amber-300 bg-amber-500/10',
-    description: 'Representación pericial ante organismos internacionales y foros COP.',
+    description: 'Representación pericial ante foros COP, organismos multilaterales y cumbres.',
   },
   {
     level: 32,
-    title: 'Maestro Supremo de la Orden Pericial',
+    title: 'Consultor Maestro de la Orden',
     minXP: 545001,
     maxXP: 615000,
-    feeMultiplier: 2.40,
+    feeMultiplier: 2.48,
     orderId: 'orden-6',
     orderName: 'Orden VI: Consejo Supremo & Legado',
     color: '#f59e0b',
@@ -487,17 +534,116 @@ export const LEVELS_33 = [
   // ── CÉNIT SUPREMO: GRADO 33 ──
   {
     level: 33,
-    title: 'Grado 33 · Arquitecto Planetario & Socio Emérito',
+    title: 'Consultor Ingeniero Senior',
     minXP: 615001,
     maxXP: Infinity,
     feeMultiplier: 2.50,
     orderId: 'orden-7',
     orderName: 'Cénit Supremo: Grado 33',
     color: '#fbbf24',
-    badgeColor: 'border-amber-300/40 text-amber-200 bg-gradient-to-r from-amber-500/20 via-yellow-400/20 to-amber-500/20',
-    description: 'El cenit absoluto de la trayectoria profesional en SERAM. Sabiduría pericial acumulada durante años, impacto biofísico planetario y liderazgo societario vitalicio.',
+    badgeColor: 'border-amber-300/60 text-amber-100 bg-gradient-to-r from-amber-500/30 via-yellow-400/30 to-amber-500/30 font-black ring-2 ring-amber-400/50',
+    description: '👑 CONSAGRACIÓN TRONCAL III (2.50x). Nivel Cénit. Requiere ≥10 individuales, ≥10 grupales, ≥10 cerrados, ≥10 nuevos, 1 aprendiz Nivel 11 y 2 aprendices Nivel ≤7.',
+    isGraduation: true,
+    graduationKey: 33,
   },
 ];
+
+/**
+ * Valida los requisitos troncales de graduación para niveles clave (11, 22, 33).
+ */
+export function checkGraduationStatus(level, partnerMetrics = {}) {
+  const req = GRADUATION_REQUIREMENTS[level];
+  if (!req) return { isGraduationLevel: false, isEligible: true, req: null, checks: [] };
+
+  const {
+    individualProjects = 0,
+    groupProjects = 0,
+    prospects = 0,
+    clientsClosed = 0,
+    newClients = 0,
+    padawans = 0,
+    juniorMentees = 0,
+    aspirantMentees = 0,
+  } = partnerMetrics;
+
+  const checks = [];
+
+  if (req.individualProjects > 0) {
+    checks.push({
+      label: `Proyectos Individuales (${req.individualProjects} mín.)`,
+      current: individualProjects,
+      required: req.individualProjects,
+      passed: individualProjects >= req.individualProjects,
+    });
+  }
+  if (req.groupProjects > 0) {
+    checks.push({
+      label: `Proyectos Grupales (${req.groupProjects} mín.)`,
+      current: groupProjects,
+      required: req.groupProjects,
+      passed: groupProjects >= req.groupProjects,
+    });
+  }
+  if (req.prospects > 0) {
+    checks.push({
+      label: `Prospectos B2B (${req.prospects} mín.)`,
+      current: prospects,
+      required: req.prospects,
+      passed: prospects >= req.prospects,
+    });
+  }
+  if (req.clientsClosed > 0) {
+    checks.push({
+      label: `Clientes Cerrados (${req.clientsClosed} mín.)`,
+      current: clientsClosed,
+      required: req.clientsClosed,
+      passed: clientsClosed >= req.clientsClosed,
+    });
+  }
+  if (req.newClients > 0) {
+    checks.push({
+      label: `Clientes Nuevos (${req.newClients} mín.)`,
+      current: newClients,
+      required: req.newClients,
+      passed: newClients >= req.newClients,
+    });
+  }
+  if (req.padawans > 0) {
+    checks.push({
+      label: `Aprendiz Tutelado Padawan (${req.padawans} mín.)`,
+      current: padawans,
+      required: req.padawans,
+      passed: padawans >= req.padawans,
+    });
+  }
+  if (req.juniorMentees > 0) {
+    checks.push({
+      label: `Aprendiz Nvl 11 Formado (${req.juniorMentees} mín.)`,
+      current: juniorMentees,
+      required: req.juniorMentees,
+      passed: juniorMentees >= req.juniorMentees,
+    });
+  }
+  if (req.aspirantMentees > 0) {
+    checks.push({
+      label: `Aprendices Nvl ≤ 7 (${req.aspirantMentees} mín.)`,
+      current: aspirantMentees,
+      required: req.aspirantMentees,
+      passed: aspirantMentees >= req.aspirantMentees,
+    });
+  }
+
+  const allPassed = checks.every(c => c.passed);
+
+  return {
+    isGraduationLevel: true,
+    req,
+    checks,
+    isEligible: allPassed,
+    passedCount: checks.filter(c => c.passed).length,
+    totalCount: checks.length,
+  };
+}
 
 // Compatibilidad hacia atrás con referencias previas a TIERS
 export const TIERS = MASTERY_ORDERS.map((order, idx) => ({
@@ -644,20 +790,45 @@ export function calculatePartnerTotalXP(partnerName, activities = [], timeLogs =
   const timeTrackerHours = partnerLogs.reduce((acc, curr) => acc + (Number(curr.hours) || 0), 0);
   const timeTrackerXP = Math.round(timeTrackerHours * 50);
 
-  const totalXP = activitiesXP + timeTrackerXP;
+  // 3. Black Hat Penalización Severa: deducción por tareas vencidas no entregadas (Meritocracia)
+  const pendingOverdue = (activities || []).filter(a => {
+    if (a.assignedPartner !== partnerName) return false;
+    if (a.status === 'Concluido' || a.status === 'Aprobado') return false;
+    if (!a.deadline) return false;
+    const d = new Date(a.deadline);
+    return !isNaN(d.getTime()) && d.getTime() < Date.now();
+  });
+
+  let blackHatPenaltyXP = 0;
+  pendingOverdue.forEach(act => {
+    const diffMs = Date.now() - new Date(act.deadline).getTime();
+    const daysLate = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Number(act.estimatedHours) || Number(act.hours) || 2;
+    const taskCap = hours * 150;
+    // 75 XP de castigo por día de mora por tarea, hasta el tope del valor de la tarea
+    const penalty = Math.min(taskCap, daysLate * 75);
+    blackHatPenaltyXP += penalty;
+  });
+
+  const rawTotalXP = activitiesXP + timeTrackerXP - blackHatPenaltyXP;
+  const totalXP = Math.max(0, rawTotalXP);
 
   return {
     ...getPartnerTier(totalXP),
+    rawTotalXP,
     activitiesXP,
     timeTrackerXP,
+    blackHatPenaltyXP,
+    pendingOverdueCount: pendingOverdue.length,
     totalHours: timeTrackerHours,
     completedTasksCount: partnerActs.length,
   };
 }
 
 /**
- * Valida si un socio tiene permiso para aprobar una tarea (Anti-Cheat).
- * Regla de Oro: Nadie puede auto-aprobarse sus propias tareas.
+ * Valida si un socio tiene permiso para aprobar una tarea (Anti-Cheat Segmentado).
+ * - Proyectos grandes / peritajes / presupuesto formal / alta prioridad: Obligatoria validación cruzada entre pares.
+ * - Tareas clave menores, operacionales, rutinarias o propuestas: Auto-aprobación ágil permitida.
  */
 export function validateCrossApproval(currentSocio, task) {
   if (!currentSocio || !currentSocio.name) {
@@ -667,15 +838,39 @@ export function validateCrossApproval(currentSocio, task) {
     };
   }
 
-  if (task.assignedPartner === currentSocio.name) {
+  // Detectar si la tarea es de alta jerarquía / proyecto grande / peritaje / presupuesto formal
+  const isMajor =
+    task?.isMajorProject === true ||
+    (Number(task?.budget) || 0) > 0 ||
+    task?.priority === 'Alta' ||
+    task?.priority === 'Critica' ||
+    task?.priority === 'Urgente' ||
+    task?.category === 'Peritaje' ||
+    task?.category === 'Auditoría' ||
+    (Number(task?.estimatedHours) || Number(task?.hours) || 0) >= 6;
+
+  // Si es una tarea pequeña, rutinaria, propuesta o repetitiva: permitir auto-aprobación ágil
+  if (!isMajor) {
+    return {
+      canApprove: true,
+      isAutoApproved: task?.assignedPartner === currentSocio.name,
+      isMajorProject: false,
+      reason: 'Aprobación directa autorizada para entregables operacionales menores, propuestas o tareas repetitivas.',
+    };
+  }
+
+  // Si es proyecto grande o peritaje de envergadura: regla anti-cheat estricta
+  if (task?.assignedPartner === currentSocio.name) {
     return {
       canApprove: false,
-      reason: 'Principio Anti-Cheat: No puedes auto-aprobar tus propias tareas. La validación debe ser efectuada por otro socio directivo.',
+      isMajorProject: true,
+      reason: 'Principio Anti-Cheat (Proyecto Mayor): Al tratarse de un peritaje o proyecto de alta envergadura, se requiere validación cruzada y firma de otro socio directivo.',
     };
   }
 
   return {
     canApprove: true,
-    reason: 'Validación entre pares autorizada.',
+    isMajorProject: true,
+    reason: 'Validación cruzada entre pares autorizada.',
   };
 }

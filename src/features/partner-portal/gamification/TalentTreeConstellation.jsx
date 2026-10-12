@@ -84,7 +84,23 @@ const ICON_MAP = {
   Factory
 };
 
-function RenderTalentIcon({ iconName, className = 'w-4 h-4' }) {
+const TALENT_ICONS = import.meta.glob('/src/assets/talents/*.png', { eager: true, import: 'default' });
+
+function RenderTalentIcon({ nodeId, iconName, className = 'w-4 h-4' }) {
+  const iconKey = Object.keys(TALENT_ICONS).find((k) => k.includes(`${nodeId}.png`));
+  const pngSrc = iconKey ? TALENT_ICONS[iconKey] : null;
+
+  if (pngSrc) {
+    return (
+      <img
+        src={pngSrc}
+        alt={nodeId || 'talent'}
+        className={`${className} object-contain select-none pointer-events-none drop-shadow-md`}
+        loading="lazy"
+        draggable={false}
+      />
+    );
+  }
   const IconComp = ICON_MAP[iconName] || Sparkles;
   return <IconComp className={className} />;
 }
@@ -503,7 +519,7 @@ export default function TalentTreeConstellation({
       className={
         isFullscreen
           ? 'fixed inset-0 z-[150] bg-[#030712] overflow-hidden flex flex-col select-none'
-          : 'space-y-6'
+          : 'space-y-3'
       }
     >
       {/* ── ALERTA TOAST FLOTANTE ── */}
@@ -707,67 +723,6 @@ export default function TalentTreeConstellation({
       </div>
       )}
 
-      {/* ── SELECTOR DE FILTRO DE VISTA (Oculto en pantalla completa) ── */}
-      {!isFullscreen && (
-        <div className="flex items-center justify-between gap-3 flex-wrap bg-slate-900/40 p-2 rounded-xl border border-white/5">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-xs font-bold text-slate-400 flex items-center gap-1 px-2">
-              <Filter className="w-3.5 h-3.5 text-amber-400" />
-              Filtrar Rama:
-            </span>
-            <button
-              type="button"
-              onClick={() => handleFocusConstellation('all')}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                selectedConstellationId === 'all'
-                  ? 'bg-amber-400 text-slate-950 font-black shadow-sm'
-                  : 'bg-white/5 text-slate-400 hover:text-white'
-              }`}
-            >
-              Ver Todas las Constelaciones
-            </button>
-            {CONSTELLATIONS.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => handleFocusConstellation(c.id)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                  selectedConstellationId === c.id
-                    ? 'bg-white text-slate-950 font-black shadow-sm'
-                    : 'bg-white/5 text-slate-400 hover:text-white'
-                }`}
-              >
-                <span
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: c.color }}
-                />
-                {c.shortName}
-              </button>
-            ))}
-          </div>
-
-          {/* Leyenda interactiva */}
-          <div className="flex items-center gap-3 text-[10px] text-slate-400 px-2 flex-wrap">
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#00e03c] inline-block shadow-sm shadow-[#00e03c]" />
-              Desbloqueado
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-slate-700 border border-slate-500 inline-block" />
-              Por Desbloquear
-            </span>
-            <span className="flex items-center gap-1">
-              <Satellite className="w-3 h-3 text-cyan-400" />
-              SIG Instrumental
-            </span>
-            <span className="flex items-center gap-1">
-              <Crown className="w-3 h-3 text-yellow-400" />
-              Tier IV Apex
-            </span>
-          </div>
-        </div>
-      )}
-
       {/* ── LIENZO INTERACTIVO SVG: MAPA ESTELAR DEL ÁRBOL DE TALENTOS ── */}
       <div
         className={
@@ -955,52 +910,9 @@ export default function TalentTreeConstellation({
                 transition: isDragging ? 'none' : 'transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1)'
               }}
             >
-              {/* ── FONDO CÓSMICO DE GALAXIAS Y ESTRELLAS VIVAS ── */}
+              {/* ── FONDO CÓSMICO DE ESTRELLAS NÍTIDAS ── */}
               <g className="galaxy-background pointer-events-none select-none">
-                {/* Nebulosas pulsantes difusas */}
-                <circle
-                  cx="750"
-                  cy="840"
-                  r="380"
-                  fill="url(#grad-nebula-emerald)"
-                  style={{ transformOrigin: '750px 840px', animation: 'nebulaBreathe 12s ease-in-out infinite' }}
-                />
-                <circle
-                  cx="470"
-                  cy="380"
-                  r="340"
-                  fill="url(#grad-nebula-gold)"
-                  style={{ transformOrigin: '470px 380px', animation: 'nebulaBreathe 16s ease-in-out infinite 2s' }}
-                />
-                <circle
-                  cx="1030"
-                  cy="380"
-                  r="340"
-                  fill="url(#grad-nebula-cyan)"
-                  style={{ transformOrigin: '1030px 380px', animation: 'nebulaBreathe 15s ease-in-out infinite 5s' }}
-                />
-
-                {/* Galaxia Espiral Lejana 1 (Noroeste) */}
-                <g
-                  transform="translate(240, 240) rotate(-22)"
-                  style={{ transformOrigin: '240px 240px', animation: 'galaxySpinSlow 180s linear infinite' }}
-                >
-                  <ellipse cx="240" cy="240" rx="190" ry="70" fill="url(#grad-galaxy-1)" />
-                  <ellipse cx="240" cy="240" rx="95" ry="30" fill="#38bdf8" opacity="0.16" filter="url(#glow-node)" />
-                  <circle cx="240" cy="240" r="14" fill="#ffffff" opacity="0.32" filter="url(#glow-node)" />
-                </g>
-
-                {/* Galaxia Espiral Lejana 2 (Noreste) */}
-                <g
-                  transform="translate(1260, 280) rotate(32)"
-                  style={{ transformOrigin: '1260px 280px', animation: 'galaxySpinSlow 220s linear infinite reverse' }}
-                >
-                  <ellipse cx="1260" cy="280" rx="200" ry="75" fill="url(#grad-galaxy-2)" />
-                  <ellipse cx="1260" cy="280" rx="100" ry="32" fill="#c084fc" opacity="0.16" filter="url(#glow-node)" />
-                  <circle cx="1260" cy="280" r="15" fill="#ffffff" opacity="0.28" filter="url(#glow-node)" />
-                </g>
-
-                {/* Enjambre de 85 estrellas titilantes */}
+                {/* Enjambre de 85 estrellas titilantes limpias */}
                 {COSMIC_STARS.map((star) => (
                   <circle
                     key={`star-${star.id}`}
@@ -1020,11 +932,11 @@ export default function TalentTreeConstellation({
               <g className="constellation-zenith-headers pointer-events-none select-none">
                 {CONSTELLATIONS.map((c) => {
                   const positions = {
-                    eia: { x: 220, y: 110 },
-                    esg_edge: { x: 470, y: 110 },
-                    climate_carbon: { x: 750, y: 70 },
-                    biodiversity_nbs: { x: 1030, y: 110 },
-                    circular_bio: { x: 1280, y: 110 }
+                    eia: { x: 210, y: 90 },
+                    esg_edge: { x: 470, y: 90 },
+                    climate_carbon: { x: 750, y: 90 },
+                    biodiversity_nbs: { x: 1030, y: 90 },
+                    circular_bio: { x: 1290, y: 90 }
                   };
                   const pos = positions[c.id] || { x: 750, y: 100 };
                   const isFiltered = selectedConstellationId !== 'all' && selectedConstellationId !== c.id;
@@ -1241,25 +1153,26 @@ export default function TalentTreeConstellation({
 
                     {/* Icono central SVG */}
                     <foreignObject
-                      x={-radius + 4}
-                      y={-radius + 4}
-                      width={(radius - 4) * 2}
-                      height={(radius - 4) * 2}
+                      x={-radius + 2}
+                      y={-radius + 2}
+                      width={(radius - 2) * 2}
+                      height={(radius - 2) * 2}
                       className="pointer-events-none"
                     >
-                      <div className="w-full h-full flex items-center justify-center text-white">
+                      <div className="w-full h-full flex items-center justify-center">
                         <RenderTalentIcon
+                          nodeId={node.id}
                           iconName={node.icon}
                           className={`${
                             isRoot
-                              ? 'w-7 h-7 text-[#00e03c]'
+                              ? 'w-10 h-10'
                               : isApex
-                              ? 'w-6 h-6 text-yellow-300'
+                              ? 'w-9 h-9'
                               : isInstrumental
-                              ? 'w-4 h-4 text-cyan-300'
+                              ? 'w-7 h-7'
                               : unlocked
-                              ? 'w-4 h-4'
-                              : 'w-3.5 h-3.5 text-slate-500'
+                              ? 'w-7 h-7'
+                              : 'w-6 h-6 opacity-65'
                           }`}
                         />
                       </div>
@@ -1368,12 +1281,12 @@ export default function TalentTreeConstellation({
       {/* ── MODAL DRAWER LATERAL: DETALLES DEL NODO & GESTIÓN DE EVIDENCIA ── */}
       <AnimatePresence>
         {selectedNode && (
-          <div className="fixed inset-0 z-[160] flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md">
+          <div className="fixed inset-0 z-[160] flex items-center justify-center p-3 sm:p-5 bg-black/35 backdrop-blur-[2px]">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-3xl bg-[#090f1e]/98 border border-white/20 shadow-2xl p-6 sm:p-8 text-slate-200 space-y-6"
+              className="relative w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-3xl bg-gradient-to-b from-[#0a2318]/95 via-[#061811]/95 to-[#020d09]/98 border border-[#00e03c]/40 shadow-2xl shadow-[#00e03c]/15 p-6 sm:p-8 text-slate-100 space-y-5"
             >
               {/* Botón cerrar */}
               <button
@@ -1424,15 +1337,9 @@ export default function TalentTreeConstellation({
 
                 <div className="flex items-center gap-3.5 pt-1">
                   <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/20 shadow-lg"
-                    style={{
-                      backgroundColor: `${
-                        CONSTELLATIONS.find((c) => c.id === selectedNode.constellationId)?.color ||
-                        '#00e03c'
-                      }30`
-                    }}
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border border-[#00e03c]/30 bg-emerald-950/40 shadow-lg shadow-[#00e03c]/10"
                   >
-                    <RenderTalentIcon iconName={selectedNode.icon} className="w-7 h-7 text-white" />
+                    <RenderTalentIcon nodeId={selectedNode.id} iconName={selectedNode.icon} className="w-12 h-12" />
                   </div>
                   <div>
                     <span className="font-mono text-sm sm:text-base text-slate-300 font-bold block mb-0.5">

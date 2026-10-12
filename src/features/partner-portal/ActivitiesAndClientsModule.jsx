@@ -119,12 +119,15 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
       completedAt: new Date(),
     });
 
+    const comboMultiplier = act.coPartner ? 1.35 : 1.0;
+    const finalAwardedXP = Math.round(xpResult.finalXP * comboMultiplier);
+
     handleEditActivity(act.id, {
       status: 'Concluido',
       milestoneStep: 5,
       approved_by: currentSocio.name,
       approved_at: new Date().toISOString(),
-      xp_awarded: xpResult.finalXP,
+      xp_awarded: finalAwardedXP,
     });
 
     if (drawerActivity && drawerActivity.id === act.id) {
@@ -134,12 +137,12 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         milestoneStep: 5,
         approved_by: currentSocio.name,
         approved_at: new Date().toISOString(),
-        xp_awarded: xpResult.finalXP,
+        xp_awarded: finalAwardedXP,
       }));
     }
 
     triggerToast(
-      `¡Entregable aprobado por ${currentSocio.name}! Se otorgaron +${xpResult.finalXP} XP a ${act.assignedPartner}.`,
+      `¡Entregable aprobado por ${currentSocio.name}! Se otorgaron +${finalAwardedXP} XP a ${act.assignedPartner}${act.coPartner ? ` y a su co-ejecutor ${act.coPartner} (Bono Combo +35%)` : ''}.`,
       'success'
     );
   };
@@ -246,6 +249,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
   const [actDesc, setActDesc] = useState('');
   const [actProjectId, setActProjectId] = useState('');
   const [actPartner, setActPartner] = useState(currentSocio?.name || 'Ing. Diego Barrientos');
+  const [actCoPartner, setActCoPartner] = useState('');
   const [actCategory, setActCategory] = useState('SIG / Cartografía');
   const [actPriority, setActPriority] = useState('Media');
   const [actDueDate, setActDueDate] = useState('');
@@ -297,6 +301,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         projectId: actProjectId ? (isNaN(actProjectId) ? actProjectId : parseInt(actProjectId)) : null,
         projectTitle: selectedProj ? selectedProj.client || selectedProj.type : 'Proyecto General',
         assignedPartner: actPartner,
+        coPartner: actCoPartner || null,
         category: actCategory,
         priority: actPriority,
         dueDate: actDueDate,
@@ -310,6 +315,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         projectId: actProjectId ? (isNaN(actProjectId) ? actProjectId : parseInt(actProjectId)) : null,
         projectTitle: selectedProj ? selectedProj.client || selectedProj.type : 'Proyecto General',
         assignedPartner: actPartner,
+        coPartner: actCoPartner || null,
         category: actCategory,
         priority: actPriority,
         dueDate: actDueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -323,6 +329,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     setActTitle('');
     setActDesc('');
     setActProjectId('');
+    setActCoPartner('');
     setActEstHours('');
     setShowNewActivityModal(false);
   };
@@ -358,6 +365,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     setActDesc(act.description || '');
     setActProjectId(act.projectId || '');
     setActPartner(act.assignedPartner || 'Ing. Diego Barrientos');
+    setActCoPartner(act.coPartner || '');
     setActCategory(act.category || 'SIG / Cartografía');
     setActPriority(act.priority || 'Media');
     setActDueDate(act.dueDate || '');
@@ -693,6 +701,16 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                             </div>
                           )}
                         </div>
+
+                        {/* Indicador de Combo Interdisciplinario */}
+                        {act.coPartner && (
+                          <div className="pt-1.5 pb-0.5">
+                            <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full shadow-sm">
+                              <Zap className="w-2.5 h-2.5 text-amber-400" />
+                              Combo: {act.coPartner.replace('Ing. ', '')} (+35% XP)
+                            </span>
+                          </div>
+                        )}
 
                         {/* Acciones Rápidas de Cambio de Estado y Edición */}
                         <div className="pt-1.5 flex items-center justify-between border-t border-white/[0.04]">
@@ -1340,6 +1358,29 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                     >
                       {partnersList.map((p) => (
                         <option key={p.name} value={p.name}>{p.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Co-Ejecutor / Combo Interdisciplinario */}
+                  <div className="space-y-1 sm:col-span-2">
+                    <label className="text-[10px] font-black uppercase text-amber-400 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <Zap className="w-3.5 h-3.5 text-amber-400" />
+                        Socio Co-Ejecutor (Combo Interdisciplinario)
+                      </span>
+                      <span className="text-[9px] text-amber-300 font-mono font-bold bg-amber-500/15 px-2 py-0.5 rounded border border-amber-500/30">
+                        +35% XP & Consorcio
+                      </span>
+                    </label>
+                    <select
+                      value={actCoPartner}
+                      onChange={(e) => setActCoPartner(e.target.value)}
+                      className="w-full px-3 py-2 bg-white/[0.06] border border-amber-500/30 rounded-xl text-white focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white"
+                    >
+                      <option value="">-- Sin Co-ejecutor (Misión Individual) --</option>
+                      {partnersList.filter(p => p.name !== actPartner).map((p) => (
+                        <option key={p.name} value={p.name}>⚡ Combo Interdisciplinario con {p.name}</option>
                       ))}
                     </select>
                   </div>

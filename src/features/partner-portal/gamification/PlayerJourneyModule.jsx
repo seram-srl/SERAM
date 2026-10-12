@@ -67,7 +67,7 @@ export default function PlayerJourneyModule({
       },
       {
         id: 'step_4',
-        title: 'Primer Entregable Técnico Validado (First Win)',
+        title: 'Primer Entregable Técnico Validado',
         desc: 'Concluir y recibir aprobación cruzada sin observaciones de un entregable en Actividades Clave.',
         completed: hasCompletedTask,
         xpReward: 250,
@@ -130,31 +130,23 @@ export default function PlayerJourneyModule({
   ];
 
   return (
-    <div className="bg-gradient-to-b from-white/[0.05] via-slate-900/60 to-black/80 border border-white/[0.1] rounded-2xl p-6 relative overflow-hidden backdrop-blur-md shadow-2xl space-y-6">
+    <div className="bg-gradient-to-b from-white/[0.05] via-slate-900/60 to-black/80 border border-white/[0.1] rounded-2xl p-5 relative overflow-hidden backdrop-blur-md shadow-2xl space-y-4">
       <div className="absolute top-0 right-1/4 -mt-16 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-10 -mb-16 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* ── HEADER DEL PLAYER JOURNEY ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-5 relative z-10">
+      {/* ── HEADER DEL CICLO PROFESIONAL ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-4 relative z-10">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1.5">
-              <Compass className="w-3 h-3 text-indigo-400" /> Player Journey Octalysis
-            </span>
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-              Onboarding & Endgame
-            </span>
-          </div>
           <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
-            Ciclo de Vida Profesional del Consultor
+            Ciclo Profesional del Consultor
           </h3>
           <p className="text-xs text-slate-300 leading-relaxed max-w-2xl">
-            Desde la inducción inicial y la primera victoria técnica (First Win), hasta el bucle de maestría,
-            cátedra universitaria y proyectos de legado societario en el Grado 33.
+            Desde la inducción inicial y la primera acreditación técnica, hasta el desarrollo de cátedra,
+            peritaje dirimente y proyectos de legado societario en el Grado 33.
           </p>
         </div>
 
-        {/* Selector de Pestañas Onboarding vs Endgame */}
+        {/* Selector de Pestañas Inducción vs Maestría */}
         <div className="flex items-center gap-1.5 bg-black/50 border border-white/10 rounded-xl p-1 shrink-0 self-start sm:self-center">
           <button
             type="button"
@@ -166,7 +158,7 @@ export default function PlayerJourneyModule({
             }`}
           >
             <Award className="w-3.5 h-3.5" />
-            <span>Onboarding (First Win)</span>
+            <span>Inducción Profesional</span>
           </button>
           <button
             type="button"
@@ -178,7 +170,7 @@ export default function PlayerJourneyModule({
             }`}
           >
             <Crown className="w-3.5 h-3.5" />
-            <span>Endgame (Nivel 33)</span>
+            <span>Maestría Superior (Nivel 33)</span>
           </button>
         </div>
       </div>
@@ -297,23 +289,20 @@ export default function PlayerJourneyModule({
           <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-950/30 via-slate-900 to-slate-950 border border-amber-500/30 flex flex-col md:flex-row md:items-center justify-between gap-5">
             <div className="space-y-1.5 max-w-lg">
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
-                  <Crown className="w-3 h-3 text-amber-400" /> Cénit Societario & Maestría
-                </span>
-                <span className="text-[10px] text-slate-400 font-mono">
+                <span className="text-xs text-amber-400 font-mono font-bold">
                   Nivel Actual: {rpgStats.level} / 33
                 </span>
               </div>
               <h4 className="text-base font-black text-white">
                 {isApex33
-                  ? '¡Has Alcanzado el Grado 33: Socio Emérito & Arquitecto Planetario!'
+                  ? '¡Has Alcanzado el Grado 33: Consultor Ingeniero Senior!'
                   : isEndgameActive
                   ? 'Fase de Consejo Supremo Activa (Nivel 29 - 32)'
-                  : 'Proyección de Carrera hacia los Grados de Cénit (29 a 33)'}
+                  : 'Proyección de Carrera (Grados 29 a 33)'}
               </h4>
               <p className="text-xs text-slate-400 leading-relaxed">
-                El bucle de Endgame asegura que los socios de mayor experiencia permanezcan activos
-                y motivados mediante cátedra, regalías académicas, arbitraje de alta cuantía y legado institucional.
+                La fase superior asegura que los socios de mayor experiencia permanezcan activos
+                y motivados mediante cátedra, regalías académicas, arbitraje pericial y legado institucional.
               </p>
             </div>
 

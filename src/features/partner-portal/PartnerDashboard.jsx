@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Navigate, useNavigate } from 'react-router-dom';
 import {
@@ -11,7 +11,7 @@ import {
   PieChart as LucidePie, Activity, CreditCard, Building2,
   FileText, Smartphone, Laptop, Radio, Wifi,
   UploadCloud, ExternalLink, FileCheck, Paperclip, CheckSquare,
-  Play, Pause, RotateCcw, Scale, Menu
+  Play, Pause, RotateCcw, Scale, Menu, Flame
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
@@ -26,6 +26,7 @@ import MunicipalProposalsView, { MunicipalProposalModal } from './MunicipalPropo
 import VirtualOfficeView from './VirtualOfficeView';
 import ActivitiesAndClientsModule from './ActivitiesAndClientsModule';
 import PartnerProfileRPGModule from './PartnerProfileRPGModule';
+import { calculatePartnerTotalXP } from './gamification/xpEngine';
 
 // ── ANIMATION VARIANTS ─────────────────────────────────────────────────────
 const pageVariants = {
@@ -3097,7 +3098,8 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
     resetPartnerTimer,
     savePartnerTimerLog,
     setPartnerSector,
-    partnerPresences
+    partnerPresences,
+    activities = []
   } = useApp();
 
   const [selectedProjectId, setSelectedProjectId] = useState(() => activeTimer?.projectId || activeServices[0]?.id || 101);
@@ -3176,7 +3178,68 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
   const myLogs = timeLogs.filter(l => l.partner_id === currentSocio?.email || l.partner_id === currentSocio?.id || l.partner_name === currentSocio?.name);
   const totalHours = myLogs.reduce((acc, curr) => acc + curr.hours, 0);
 
-  // Calcular honorarios meritocráticos por proyecto
+  // Calcular racha de días activos consecutivos (Core Drive 8: Aversión a la Pérdida)
+  const streakData = useMemo(() => {
+    if (!myLogs || myLogs.length === 0) {
+      return { streakDays: 0, isAtRisk: true, hoursSinceLastLog: Infinity };
+    }
+    const logTimestamps = myLogs
+      .map(l => new Date(l.logged_at || l.created_at || Date.now()).getTime())
+      .filter(t => !isNaN(t))
+      .sort((a, b) => b - a);
+
+    if (logTimestamps.length === 0) {
+      return { streakDays: 0, isAtRisk: true, hoursSinceLastLog: Infinity };
+    }
+
+    const latest = logTimestamps[0];
+    const msSince = Date.now() - latest;
+    const hoursSince = Math.floor(msSince / (1000 * 60 * 60));
+    const isAtRisk = hoursSince >= 48;
+
+    const uniqueDays = new Set(
+      logTimestamps.map(t => new Date(t).toISOString().split('T')[0])
+    );
+    const sortedDays = Array.from(uniqueDays).sort().reverse();
+
+    let streak = 0;
+    let checkDate = new Date();
+    checkDate.setHours(0, 0, 0, 0);
+
+    for (const dayStr of sortedDays) {
+      const d = new Date(dayStr);
+      d.setHours(0, 0, 0, 0);
+      const diffDays = Math.round((checkDate - d) / (1000 * 60 * 60 * 24));
+      if (diffDays <= 1) {
+        streak++;
+        checkDate = d;
+      } else {
+        break;
+      }
+    }
+
+    return {
+      streakDays: Math.max(1, streak),
+      isAtRisk,
+      hoursSinceLastLog: hoursSince,
+      latestDate: new Date(latest).toLocaleDateString([], { day: '2-digit', month: 'short' }),
+    };
+  }, [myLogs]);
+
+  // Partners config con cálculo dinámico de nivel RPG y multiplicador de tarifa
+  const partnersWithRPG = useMemo(() => {
+    return partnersConfig.map(u => {
+      const rpg = calculatePartnerTotalXP(u.name, activities, timeLogs);
+      return {
+        ...u,
+        rpgLevel: rpg.level,
+        rpgTitle: rpg.title,
+        feeMultiplier: rpg.feeMultiplier || 1.0,
+      };
+    });
+  }, [activities, timeLogs]);
+
+  // Calcular honorarios meritocráticos por proyecto con horas ponderadas por feeMultiplier
   const meritocraticShares = activeServices
     .filter(p => (p.budget || 0) > 0)
     .map(p => {
@@ -3191,18 +3254,30 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
       const taxes = isSiete ? budget * 0.05 : budget * 0.16;
       const UN = Math.max(0, budget - taxes - labCosts - subcontractorCosts);
 
-      // Calcular participación por socio
-      const shares = partnersConfig.map(u => {
+      // Ponderación meritocrática de horas según nivel (feeMultiplier)
+      const shares = partnersWithRPG.map(u => {
         const partnerLogs = projectLogs.filter(l => l.partner_id === u.email || l.partner_name === u.name);
         const partnerH = partnerLogs.reduce((acc, curr) => acc + curr.hours, 0);
-        const sharePct = HT > 0 ? (partnerH / HT) : 0;
-        const shareVal = UN * sharePct;
+        const weightedH = partnerH * u.feeMultiplier;
         return {
           name: u.name,
+          rpgLevel: u.rpgLevel,
+          rpgTitle: u.rpgTitle,
+          feeMultiplier: u.feeMultiplier,
           hours: partnerH,
-          percent: Math.round(sharePct * 100),
-          shareBs: Math.round(shareVal)
+          weightedHours: parseFloat(weightedH.toFixed(2)),
+          sharePct: 0,
+          shareBs: 0,
         };
+      });
+
+      const totalWeightedHours = shares.reduce((acc, s) => acc + s.weightedHours, 0);
+
+      // Distribuir en base a horas ponderadas
+      shares.forEach(s => {
+        const pct = totalWeightedHours > 0 ? (s.weightedHours / totalWeightedHours) : 0;
+        s.percent = Math.round(pct * 100);
+        s.shareBs = Math.round(UN * pct);
       });
 
       return {
@@ -3210,6 +3285,7 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
         client: p.client,
         type: p.type,
         totalHours: HT,
+        totalWeightedHours,
         netProfit: UN,
         shares
       };
@@ -3271,8 +3347,19 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] text-slate-400 font-mono">Meta Diaria: {dailyTargetHours}h</span>
+            <div className="flex flex-wrap items-center gap-2">
+              {streakData.isAtRisk ? (
+                <span className="text-[10px] font-black text-rose-300 bg-rose-500/15 border border-rose-500/30 px-2.5 py-1 rounded-xl flex items-center gap-1.5 animate-pulse" title="Más de 48 horas sin registrar actividad en Time Tracker. Riesgo de penalización Black Hat de XP.">
+                  <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                  Racha en Riesgo (&gt;48h)
+                </span>
+              ) : (
+                <span className="text-[10px] font-black text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2.5 py-1 rounded-xl flex items-center gap-1.5 shadow-sm shadow-amber-500/10" title="Días consecutivos de actividad operativa registrada">
+                  <Flame className="w-3.5 h-3.5 text-amber-400" />
+                  Racha: {streakData.streakDays}d Activos
+                </span>
+              )}
+              <span className="text-[10px] text-slate-400 font-mono">Meta: {dailyTargetHours}h</span>
               <span className="text-xs font-black text-[#00e03c] bg-[#00e03c]/10 px-2.5 py-1 rounded-xl border border-[#00e03c]/20">
                 {progressPct}%
               </span>
@@ -3799,11 +3886,26 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
 
               <div className="space-y-2 pt-2 border-t border-white/[0.04]">
                 {p.shares.map(s => (
-                  <div key={s.name} className="flex items-center justify-between text-xs">
-                    <span className="text-slate-300 font-medium">{s.name}</span>
-                    <div className="flex items-center gap-3 font-mono">
-                      <span className="text-slate-400 text-[10px]">{s.hours}h ({s.percent}%)</span>
-                      <span className="font-bold text-white">Bs. {s.shareBs.toLocaleString()}</span>
+                  <div key={s.name} className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs p-2 rounded-xl bg-black/30 border border-white/[0.04]">
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-200 font-bold">{s.name}</span>
+                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/25 font-bold" title={`Multiplicador de Nivel ${s.rpgLevel}: ${s.feeMultiplier}x`}>
+                        Nvl {s.rpgLevel} ({s.feeMultiplier.toFixed(2)}x)
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between sm:justify-end gap-3 font-mono">
+                      <span className="text-slate-400 text-[10px]">
+                        {s.hours}h ({s.percent}%)
+                      </span>
+                      {s.hours === 0 ? (
+                        <span className="text-[9px] font-bold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20" title="Retención de dividendos según cláusula de inacción operativa del estatuto">
+                          0 Bs · Inacción (Retención)
+                        </span>
+                      ) : (
+                        <span className="font-bold text-[#00e03c]">
+                          Bs. {s.shareBs.toLocaleString()}
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}
