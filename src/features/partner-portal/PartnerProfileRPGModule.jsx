@@ -11,7 +11,7 @@ import {
   ResponsiveContainer, Tooltip
 } from 'recharts';
 import { useApp } from '../../context/AppContext';
-import { calculatePartnerTotalXP, TIERS } from './gamification/xpEngine';
+import { calculatePartnerTotalXP, TIERS, LEVELS_33, MASTERY_ORDERS } from './gamification/xpEngine';
 import TalentTreeConstellation from './gamification/TalentTreeConstellation';
 
 // ── PERFILES BASE OFICIALES DE LOS TRES SOCIOS ──────────────────────────────
@@ -116,6 +116,7 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
   const [bio, setBio] = useState(activeProfile.bio);
   const [toastMessage, setToastMessage] = useState('');
   const [analysisView, setAnalysisView] = useState('radar'); // 'radar' | 'tree' | 'both'
+  const [showDegreesModal, setShowDegreesModal] = useState(false);
 
   // Sincronizar formulario al cambiar de socio
   useEffect(() => {
@@ -316,18 +317,28 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
               <div className="space-y-1">
                 <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
                   <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                  NIVEL {rpgStats.level} · {rpgStats.title}
+                  NIVEL {rpgStats.level} / 33 · {rpgStats.title}
                 </span>
                 <h2 className="text-xl font-black text-white">{activeProfile.name}</h2>
-                <p className="text-xs font-semibold text-emerald-400">{activeProfile.role}</p>
+                <div className="flex items-center gap-2 pt-0.5">
+                  <p className="text-xs font-semibold text-emerald-400">{activeProfile.role}</p>
+                  <span className="text-[9px] px-2 py-0.5 rounded-full bg-white/[0.06] text-slate-300 font-bold border border-white/10">
+                    {rpgStats.orderName || rpgStats.order?.name}
+                  </span>
+                </div>
               </div>
 
-              {/* Badge de Nivel Hexagonal con Multiplicador */}
-              <div className="w-16 h-16 rounded-2xl bg-amber-500/20 border-2 border-amber-400 flex flex-col items-center justify-center text-amber-300 shrink-0 shadow-lg shadow-amber-500/20">
-                <span className="text-[9px] font-black tracking-widest text-slate-300">NIVEL</span>
+              {/* Badge de Nivel Hexagonal con Multiplicador (Clickable a Modal 33 Grados) */}
+              <button
+                type="button"
+                onClick={() => setShowDegreesModal(true)}
+                title="Haz clic para ver los 33 Grados de Maestría de SERAM"
+                className="w-16 h-16 rounded-2xl bg-amber-500/20 border-2 border-amber-400 flex flex-col items-center justify-center text-amber-300 shrink-0 shadow-lg shadow-amber-500/20 hover:scale-105 hover:border-amber-300 transition-all cursor-pointer group"
+              >
+                <span className="text-[9px] font-black tracking-widest text-slate-300 group-hover:text-amber-200">NIVEL</span>
                 <span className="text-lg font-black text-white leading-none">{rpgStats.level}</span>
-                <span className="text-[8px] font-extrabold text-amber-300 font-mono mt-0.5">{rpgStats.feeMultiplier}x Tarifa</span>
-              </div>
+                <span className="text-[8px] font-extrabold text-amber-300 font-mono mt-0.5">{rpgStats.feeMultiplier}x</span>
+              </button>
             </div>
 
             {/* Avatar / Skin del Personaje */}
@@ -356,7 +367,7 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
                 <span className="font-bold text-slate-300 flex items-center gap-1.5">
                   <Zap className="w-3.5 h-3.5 text-amber-400" /> Experiencia Acumulada
                 </span>
-                <span className="font-mono font-bold text-amber-300">{rpgStats.currentXP} XP</span>
+                <span className="font-mono font-bold text-amber-300">{rpgStats.currentXP.toLocaleString()} XP</span>
               </div>
               <div className="w-full bg-slate-950/80 rounded-full h-3 p-0.5 border border-white/10 overflow-hidden">
                 <motion.div
@@ -368,7 +379,16 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
               </div>
               <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
                 <span>{rpgStats.totalHours.toFixed(1)} hrs auditadas</span>
-                <span>{rpgStats.nextTier ? `${rpgStats.xpForNext} XP para Nivel ${rpgStats.level + 1}` : 'Nivel Máximo'}</span>
+                <span>{rpgStats.nextTier ? `${rpgStats.xpForNext.toLocaleString()} XP para Nivel ${rpgStats.level + 1}` : 'Cénit · Nivel 33'}</span>
+              </div>
+              <div className="pt-1.5 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowDegreesModal(true)}
+                  className="text-[10px] text-amber-400 hover:text-amber-300 font-bold underline flex items-center gap-1 cursor-pointer transition-colors"
+                >
+                  <Sparkles className="w-3 h-3" /> Ver la Escala de los 33 Grados
+                </button>
               </div>
             </div>
 
@@ -707,6 +727,159 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
           activePartnerName={activeProfile.name}
         />
       </div>
+
+      {/* ── MODAL: LA ESCALA DE LOS 33 GRADOS DE MAESTRÍA DE SERAM ── */}
+      <AnimatePresence>
+        {showDegreesModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="w-full max-w-4xl max-h-[90vh] bg-slate-950 border border-amber-500/30 rounded-3xl shadow-2xl flex flex-col overflow-hidden relative"
+            >
+              {/* Header del Modal */}
+              <div className="p-6 border-b border-white/10 flex items-start justify-between gap-4 bg-gradient-to-r from-slate-900 via-amber-950/20 to-slate-900">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                      Cénit Profesional · Grado 33
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      Progreso de {activeProfile.name}: Nivel {rpgStats.level} / 33
+                    </span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
+                    <Award className="w-6 h-6 text-amber-400" /> La Escala de los 33 Grados de Maestría
+                  </h3>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Diseñada para años de dedicación e impacto real. Cada grado incrementa la tarifa pericial societaria y la jerarquía de dictamen en litigios y megaproyectos.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowDegreesModal(false)}
+                  className="w-9 h-9 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-all cursor-pointer shrink-0"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Contenido con Scroll de los 33 Niveles */}
+              <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
+                {/* Resumen de los 6 Órdenes */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {MASTERY_ORDERS.map((ord) => (
+                    <div
+                      key={ord.id}
+                      className="p-2.5 rounded-xl border border-white/[0.06] bg-white/[0.02] space-y-1"
+                    >
+                      <span className="text-[9px] font-black uppercase block truncate" style={{ color: ord.color }}>
+                        {ord.name.split(':')[0]}
+                      </span>
+                      <span className="text-[11px] font-extrabold text-white">
+                        Niveles {ord.minLevel} - {ord.maxLevel}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Listado Completo de los 33 Grados */}
+                <div className="space-y-2">
+                  <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-400">
+                    Progresión Detallada por Niveles (1 a 33)
+                  </h4>
+
+                  <div className="space-y-2">
+                    {LEVELS_33.map((lvl) => {
+                      const isCurrent = lvl.level === rpgStats.level;
+                      const isPast = lvl.level < rpgStats.level;
+                      const isFuture = lvl.level > rpgStats.level;
+
+                      return (
+                        <div
+                          key={lvl.level}
+                          className={`p-3.5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                            isCurrent
+                              ? 'border-amber-400 bg-amber-500/15 shadow-lg shadow-amber-500/10'
+                              : isPast
+                              ? 'border-white/[0.06] bg-white/[0.01] opacity-75'
+                              : 'border-white/[0.04] bg-black/40 opacity-90'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black shrink-0 border ${
+                                isCurrent
+                                  ? 'bg-amber-400 text-slate-950 border-amber-300 font-mono shadow-md'
+                                  : isPast
+                                  ? 'bg-[#00e03c]/20 text-[#00e03c] border-[#00e03c]/30 font-mono'
+                                  : 'bg-white/[0.04] text-slate-400 border-white/10 font-mono'
+                              }`}
+                            >
+                              {lvl.level}
+                            </div>
+
+                            <div className="space-y-0.5">
+                              <div className="flex items-center gap-2">
+                                <h5 className={`text-xs font-black ${isCurrent ? 'text-amber-300' : 'text-white'}`}>
+                                  {lvl.title}
+                                </h5>
+                                {isCurrent && (
+                                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-amber-400 text-slate-950">
+                                    Nivel Actual
+                                  </span>
+                                )}
+                                {isPast && (
+                                  <span className="text-[10px] text-[#00e03c] font-black">
+                                    ✓ Superado
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[10px] text-slate-400 leading-relaxed">
+                                {lvl.description}
+                              </p>
+                              <span className="text-[9px] text-slate-500 font-medium">
+                                {lvl.orderName}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex sm:flex-col items-end justify-between sm:justify-center gap-1 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/[0.06]">
+                            <span className="text-[10px] font-mono text-amber-300 font-bold">
+                              {lvl.feeMultiplier.toFixed(2)}x Tarifa
+                            </span>
+                            <span className="text-[9px] font-mono text-slate-400">
+                              {lvl.maxXP === Infinity
+                                ? `> ${lvl.minXP.toLocaleString()} XP`
+                                : `${lvl.minXP.toLocaleString()} - ${lvl.maxXP.toLocaleString()} XP`}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer del Modal */}
+              <div className="p-4 border-t border-white/10 bg-slate-900/60 flex items-center justify-between">
+                <span className="text-[10px] text-slate-400 font-mono">
+                  SERAM Meritocratic Engine v33 · 615,000 XP Cénit
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowDegreesModal(false)}
+                  className="px-4 py-2 rounded-xl bg-amber-400 text-slate-950 font-black text-xs hover:bg-amber-300 transition-all cursor-pointer"
+                >
+                  Entendido y Continuar
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

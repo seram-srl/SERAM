@@ -11,6 +11,7 @@ import {
 import { useApp } from '../../context/AppContext';
 import { calculateTaskXP, validateCrossApproval } from './gamification/xpEngine';
 import SpecialMissionsModule from './gamification/SpecialMissionsModule';
+import InterdisciplinarySynergies from './gamification/InterdisciplinarySynergies';
 
 // ── COMPONENTE TARJETA DE CRISTAL ──────────────────────────────────────────
 const GlassCard = ({ children, className = '' }) => (
@@ -483,6 +484,16 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
             }`}
           >
             <Gift className="w-3.5 h-3.5 text-amber-400" /> Misiones Especiales
+          </button>
+          <button
+            onClick={() => setActiveTab('synergies')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+              activeTab === 'synergies'
+                ? 'bg-purple-500 text-white shadow-md font-black'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-purple-400" /> Sinergias & Combos
           </button>
         </div>
 
@@ -1255,6 +1266,11 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
       {/* ── VISTA 6: MISIONES ESPECIALES & COFRES DE RESPLANDOR (OCTALYSIS) ── */}
       {activeTab === 'missions' && (
         <SpecialMissionsModule currentSocio={currentSocio} />
+      )}
+
+      {/* ── VISTA 7: SINERGIAS & COMBOS INTERDISCIPLINARIOS (OCTALYSIS CD3 & CD5) ── */}
+      {activeTab === 'synergies' && (
+        <InterdisciplinarySynergies currentSocio={currentSocio} />
       )}
           </motion.div>
         </AnimatePresence>

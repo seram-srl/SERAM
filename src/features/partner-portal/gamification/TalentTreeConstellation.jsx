@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Leaf,
@@ -42,7 +43,11 @@ import {
   Eye,
   HelpCircle,
   Maximize2,
-  Minimize2
+  Minimize2,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Crosshair
 } from 'lucide-react';
 import {
   CONSTELLATIONS,
@@ -123,6 +128,126 @@ export default function TalentTreeConstellation({
 
   const [toastMsg, setToastMsg] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // ── ESTADOS DE NAVEGACIÓN PAN & ZOOM ──
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const hasMovedRef = useRef(false);
+  const touchStartRef = useRef({ x: 0, y: 0, dist: 0 });
+
+  // Controles de zoom
+  const handleZoomIn = () => {
+    setZoom((prev) => Math.min(2.4, +(prev + 0.2).toFixed(2)));
+  };
+
+  const handleZoomOut = () => {
+    setZoom((prev) => Math.max(0.5, +(prev - 0.2).toFixed(2)));
+  };
+
+  const handleResetView = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+  const handleFocusRoot = () => {
+    setZoom(1.25);
+    setPan({ x: 0, y: -220 });
+  };
+
+  // Auto-enfoque suave hacia una constelación específica
+  const handleFocusConstellation = (constellationId) => {
+    setSelectedConstellationId(constellationId);
+    if (constellationId === 'all') {
+      handleResetView();
+      return;
+    }
+    const offsets = {
+      eia: { x: 300, y: 60 },
+      esg_edge: { x: 160, y: 150 },
+      climate_carbon: { x: 0, y: 220 },
+      biodiversity_nbs: { x: -160, y: 150 },
+      circular_bio: { x: -300, y: 60 }
+    };
+    const target = offsets[constellationId] || { x: 0, y: 0 };
+    setZoom(1.35);
+    setPan(target);
+  };
+
+  const handleMouseDown = (e) => {
+    if (e.button !== 0) return;
+    setIsDragging(true);
+    hasMovedRef.current = false;
+    dragStartRef.current = {
+      x: e.clientX - pan.x,
+      y: e.clientY - pan.y
+    };
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - dragStartRef.current.x;
+    const dy = e.clientY - dragStartRef.current.y;
+    if (Math.hypot(dx - pan.x, dy - pan.y) > 5) {
+      hasMovedRef.current = true;
+    }
+    setPan({ x: dx, y: dy });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleWheel = (e) => {
+    e.preventDefault();
+    const zoomDelta = e.deltaY < 0 ? 0.12 : -0.12;
+    setZoom((prev) => Math.max(0.5, Math.min(2.4, +(prev + zoomDelta).toFixed(2))));
+  };
+
+  const handleTouchStart = (e) => {
+    if (e.touches.length === 1) {
+      setIsDragging(true);
+      hasMovedRef.current = false;
+      dragStartRef.current = {
+        x: e.touches[0].clientX - pan.x,
+        y: e.touches[0].clientY - pan.y
+      };
+    } else if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      touchStartRef.current.dist = dist;
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (e.touches.length === 1 && isDragging) {
+      const dx = e.touches[0].clientX - dragStartRef.current.x;
+      const dy = e.touches[0].clientY - dragStartRef.current.y;
+      hasMovedRef.current = true;
+      setPan({ x: dx, y: dy });
+    } else if (e.touches.length === 2 && touchStartRef.current.dist > 0) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const factor = dist / touchStartRef.current.dist;
+      touchStartRef.current.dist = dist;
+      setZoom((prev) => Math.max(0.5, Math.min(2.4, +(prev * factor).toFixed(2))));
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    touchStartRef.current.dist = 0;
+  };
+
+  const handleNodeClick = (node) => {
+    if (hasMovedRef.current) return;
+    setSelectedNode(node);
+  };
 
   // Sincronizar lectura de localStorage si cambia el socio
   useEffect(() => {
@@ -256,6 +381,33 @@ export default function TalentTreeConstellation({
     }
   }, [selectedNode, partnerData]);
 
+  // Atajo de teclado: Escape cierra modal o sale de pantalla completa
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (selectedNode) {
+          setSelectedNode(null);
+        } else if (isFullscreen) {
+          setIsFullscreen(false);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedNode, isFullscreen]);
+
+  // Bloquear scroll de la página de fondo en modo pantalla completa
+  useEffect(() => {
+    if (isFullscreen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isFullscreen]);
+
   // Mapa rápido de nodos por ID para cálculo de líneas SVG
   const nodeMap = useMemo(() => {
     const m = {};
@@ -265,11 +417,11 @@ export default function TalentTreeConstellation({
     return m;
   }, []);
 
-  return (
+  const treeContent = (
     <div
       className={
         isFullscreen
-          ? 'fixed inset-0 z-50 p-4 sm:p-6 bg-[#030712]/98 backdrop-blur-2xl overflow-y-auto space-y-5 flex flex-col'
+          ? 'fixed inset-0 z-[150] bg-[#030712] overflow-hidden flex flex-col select-none'
           : 'space-y-6'
       }
     >
@@ -288,8 +440,74 @@ export default function TalentTreeConstellation({
         )}
       </AnimatePresence>
 
-      {/* ── PANEL DE CABECERA: HUD GAMIFICADO DEL SOCIO ── */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-white/10 p-5 shadow-2xl">
+      {/* ── TOP BAR FLOTANTE EN PANTALLA COMPLETA (HUD MINIMALISTA) ── */}
+      {isFullscreen && (
+        <div className="absolute top-4 left-4 right-4 z-40 flex items-center justify-between gap-3 pointer-events-none">
+          {/* Badge del Socio y Arquetipo */}
+          <div className="pointer-events-auto flex items-center gap-2.5 px-4 py-2 rounded-xl bg-slate-950/80 border border-white/15 backdrop-blur-md shadow-2xl">
+            <div className="w-2.5 h-2.5 rounded-full bg-[#00e03c] animate-pulse" />
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black text-white">{activePartnerName}</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300 font-bold">
+                  {stats.totalTP} TP
+                </span>
+              </div>
+              <p className="text-[10px] text-slate-400 font-medium">
+                {stats.archetype} · {stats.unlockedCount}/{stats.totalNodes} activos
+              </p>
+            </div>
+          </div>
+
+          {/* Selector de Constelaciones Rápido */}
+          <div className="pointer-events-auto hidden md:flex items-center gap-1.5 p-1 rounded-xl bg-slate-950/80 border border-white/15 backdrop-blur-md shadow-2xl">
+            <button
+              type="button"
+              onClick={() => handleFocusConstellation('all')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                selectedConstellationId === 'all'
+                  ? 'bg-amber-400 text-slate-950 font-black shadow-sm'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              Todo
+            </button>
+            {CONSTELLATIONS.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => handleFocusConstellation(c.id)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  selectedConstellationId === c.id
+                    ? 'bg-white text-slate-950 font-black shadow-sm'
+                    : 'text-slate-300 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: c.color }} />
+                <span>{c.shortName}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Botón Salir de Pantalla Completa */}
+          <div className="pointer-events-auto flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsFullscreen(false)}
+              className="px-3.5 py-2 rounded-xl bg-slate-950/80 border border-white/15 hover:border-amber-400 text-slate-200 hover:text-white flex items-center gap-1.5 text-xs font-bold backdrop-blur-md shadow-2xl transition-all cursor-pointer group"
+              title="Presiona Esc para salir"
+            >
+              <Minimize2 className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
+              <span>Salir de Pantalla Completa</span>
+              <kbd className="hidden sm:inline-block ml-1 text-[9px] px-1.5 py-0.5 rounded bg-white/10 text-slate-400 border border-white/10">Esc</kbd>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── PANEL DE CABECERA: HUD GAMIFICADO DEL SOCIO (Oculto en pantalla completa limpia) ── */}
+      {!isFullscreen && (
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-white/10 p-5 shadow-2xl">
         <div className="absolute top-0 right-0 w-96 h-96 bg-[#00e03c]/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 -left-10 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
 
@@ -406,68 +624,86 @@ export default function TalentTreeConstellation({
           })}
         </div>
       </div>
+      )}
 
-      {/* ── SELECTOR DE FILTRO DE VISTA ── */}
-      <div className="flex items-center justify-between gap-3 flex-wrap bg-slate-900/40 p-2 rounded-xl border border-white/5">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-xs font-bold text-slate-400 flex items-center gap-1 px-2">
-            <Filter className="w-3.5 h-3.5 text-amber-400" />
-            Filtrar Rama:
-          </span>
-          <button
-            type="button"
-            onClick={() => setSelectedConstellationId('all')}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              selectedConstellationId === 'all'
-                ? 'bg-amber-400 text-slate-950 font-black shadow-sm'
-                : 'bg-white/5 text-slate-400 hover:text-white'
-            }`}
-          >
-            Ver Todas las Constelaciones
-          </button>
-          {CONSTELLATIONS.map((c) => (
+      {/* ── SELECTOR DE FILTRO DE VISTA (Oculto en pantalla completa) ── */}
+      {!isFullscreen && (
+        <div className="flex items-center justify-between gap-3 flex-wrap bg-slate-900/40 p-2 rounded-xl border border-white/5">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-xs font-bold text-slate-400 flex items-center gap-1 px-2">
+              <Filter className="w-3.5 h-3.5 text-amber-400" />
+              Filtrar Rama:
+            </span>
             <button
-              key={c.id}
               type="button"
-              onClick={() => setSelectedConstellationId(c.id)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                selectedConstellationId === c.id
-                  ? 'bg-white text-slate-950 font-black shadow-sm'
+              onClick={() => handleFocusConstellation('all')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                selectedConstellationId === 'all'
+                  ? 'bg-amber-400 text-slate-950 font-black shadow-sm'
                   : 'bg-white/5 text-slate-400 hover:text-white'
               }`}
             >
-              <span
-                className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: c.color }}
-              />
-              {c.shortName}
+              Ver Todas las Constelaciones
             </button>
-          ))}
-        </div>
+            {CONSTELLATIONS.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => handleFocusConstellation(c.id)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  selectedConstellationId === c.id
+                    ? 'bg-white text-slate-950 font-black shadow-sm'
+                    : 'bg-white/5 text-slate-400 hover:text-white'
+                }`}
+              >
+                <span
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: c.color }}
+                />
+                {c.shortName}
+              </button>
+            ))}
+          </div>
 
-        {/* Leyenda interactiva */}
-        <div className="flex items-center gap-3 text-[10px] text-slate-400 px-2 flex-wrap">
-          <span className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#00e03c] inline-block shadow-sm shadow-[#00e03c]" />
-            Desbloqueado
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-slate-700 border border-slate-500 inline-block" />
-            Por Desbloquear
-          </span>
-          <span className="flex items-center gap-1">
-            <Satellite className="w-3 h-3 text-cyan-400" />
-            SIG Instrumental
-          </span>
-          <span className="flex items-center gap-1">
-            <Crown className="w-3 h-3 text-yellow-400" />
-            Tier IV Apex
-          </span>
+          {/* Leyenda interactiva */}
+          <div className="flex items-center gap-3 text-[10px] text-slate-400 px-2 flex-wrap">
+            <span className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#00e03c] inline-block shadow-sm shadow-[#00e03c]" />
+              Desbloqueado
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-slate-700 border border-slate-500 inline-block" />
+              Por Desbloquear
+            </span>
+            <span className="flex items-center gap-1">
+              <Satellite className="w-3 h-3 text-cyan-400" />
+              SIG Instrumental
+            </span>
+            <span className="flex items-center gap-1">
+              <Crown className="w-3 h-3 text-yellow-400" />
+              Tier IV Apex
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── LIENZO INTERACTIVO SVG: MAPA ESTELAR DEL ÁRBOL DE TALENTOS ── */}
-      <div className="relative rounded-2xl bg-gradient-to-b from-[#040812] via-[#071022] to-[#03060c] border border-white/10 overflow-hidden shadow-2xl p-2 sm:p-4">
+      <div
+        className={
+          isFullscreen
+            ? 'relative w-full h-full flex-1 overflow-hidden select-none bg-gradient-to-b from-[#040812] via-[#071022] to-[#03060c]'
+            : 'relative rounded-2xl bg-gradient-to-b from-[#040812] via-[#071022] to-[#03060c] border border-white/10 overflow-hidden shadow-2xl p-2 sm:p-4 select-none h-[780px] sm:h-[840px] flex flex-col'
+        }
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onWheel={handleWheel}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+      >
         {/* Fondo con estrellas y cuadrícula cósmica */}
         <div
           className="absolute inset-0 opacity-20 pointer-events-none"
@@ -477,47 +713,83 @@ export default function TalentTreeConstellation({
           }}
         />
 
-        {/* Tooltip flotante en hover */}
-        {hoveredNode && (
-          <div
-            className="absolute z-30 pointer-events-none px-3 py-2 rounded-xl bg-slate-950/95 border border-white/20 text-xs shadow-2xl backdrop-blur-md max-w-xs transition-all"
-            style={{
-              left: `${(hoveredNode.x / 1000) * 100}%`,
-              top: `${(hoveredNode.y / 850) * 100}%`,
-              transform: 'translate(-50%, -125%)'
-            }}
+        {/* Hint de navegación flotante (Inferior Izquierdo) */}
+        <div className="absolute bottom-5 left-5 z-20 hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/70 border border-white/10 backdrop-blur-sm text-[10px] text-slate-400 pointer-events-none select-none">
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#00e03c]" />
+          <span>Arrastra para moverte · Rueda para zoom · Clic en nodo para ver ficha</span>
+        </div>
+
+        {/* Dock flotante de controles Pan & Zoom (Inferior Derecho) */}
+        <div className="absolute bottom-5 right-5 z-30 flex items-center gap-1.5 p-1.5 rounded-2xl bg-slate-950/85 border border-white/15 backdrop-blur-md shadow-2xl">
+          <button
+            type="button"
+            onClick={handleZoomIn}
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white transition-all cursor-pointer"
+            title="Acercar zoom (+)"
           >
-            <div className="flex items-center justify-between gap-2 mb-1">
-              <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400">
-                {hoveredNode.shortCode}
-              </span>
-              <span
-                className={`text-[9px] font-black px-1.5 py-0.2 rounded ${
-                  isNodeUnlocked(hoveredNode.id)
-                    ? 'bg-[#00e03c]/20 text-[#00e03c]'
-                    : 'bg-white/10 text-slate-300'
-                }`}
+            <ZoomIn className="w-4 h-4" />
+          </button>
+
+          <span className="px-1.5 font-mono text-[11px] font-bold text-slate-300 select-none min-w-[42px] text-center">
+            {Math.round(zoom * 100)}%
+          </span>
+
+          <button
+            type="button"
+            onClick={handleZoomOut}
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white transition-all cursor-pointer"
+            title="Alejar zoom (-)"
+          >
+            <ZoomOut className="w-4 h-4" />
+          </button>
+
+          <div className="w-px h-5 bg-white/10 my-auto mx-0.5" />
+
+          <button
+            type="button"
+            onClick={handleResetView}
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white transition-all cursor-pointer flex items-center gap-1 text-[11px] font-bold"
+            title="Centrar vista completa"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+            <span className="hidden sm:inline">Centrar</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleFocusRoot}
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white transition-all cursor-pointer flex items-center gap-1 text-[11px] font-bold"
+            title="Enfocar nodo Raíz / TRONCO-00"
+          >
+            <Crosshair className="w-3.5 h-3.5 text-[#00e03c]" />
+            <span className="hidden sm:inline">Raíz</span>
+          </button>
+
+          {!isFullscreen && (
+            <>
+              <div className="w-px h-5 bg-white/10 my-auto mx-0.5" />
+              <button
+                type="button"
+                onClick={() => setIsFullscreen(true)}
+                className="p-2 rounded-xl bg-[#00e03c]/15 hover:bg-[#00e03c]/25 border border-[#00e03c]/30 text-[#00e03c] transition-all cursor-pointer"
+                title="Expandir a Pantalla Completa"
               >
-                +{TIER_POINTS[hoveredNode.tier]} TP
-              </span>
-            </div>
-            <p className="font-extrabold text-white text-xs">{hoveredNode.title}</p>
-            <p className="text-[10px] text-slate-400 line-clamp-2 mt-0.5">
-              {hoveredNode.description}
-            </p>
-            <div className="mt-1 pt-1 border-t border-white/10 text-[9px] text-amber-400 font-bold flex items-center justify-between">
-              <span>{isNodeUnlocked(hoveredNode.id) ? '✓ Desbloqueado' : '🔒 Bloqueado'}</span>
-              <span>Haz clic para detalles</span>
-            </div>
-          </div>
-        )}
+                <Maximize2 className="w-4 h-4" />
+              </button>
+            </>
+          )}
+        </div>
 
         {/* SVG Interactivo */}
-        <div className="w-full relative">
+        <div className="w-full h-full relative flex items-center justify-center overflow-hidden">
           <svg
             viewBox="0 0 1000 850"
-            className="w-full h-auto select-none"
-            style={{ minHeight: isFullscreen ? '85vh' : '780px', maxHeight: isFullscreen ? 'none' : '960px' }}
+            className="w-full h-full select-none"
+            style={{
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'auto'
+            }}
           >
             <defs>
               {/* Filtros de Resplandor Neon */}
@@ -552,7 +824,15 @@ export default function TalentTreeConstellation({
               </linearGradient>
             </defs>
 
-            {/* ── 0. TITULARES DE CONSTELACIÓN EN EL CÉNIT ── */}
+            {/* GRUPO PRINCIPAL TRANSFORMADO CON PAN Y ZOOM */}
+            <g
+              transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}
+              style={{
+                transformOrigin: '500px 425px',
+                transition: isDragging ? 'none' : 'transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1)'
+              }}
+            >
+              {/* ── 0. TITULARES DE CONSTELACIÓN EN EL CÉNIT ── */}
             <g className="constellation-zenith-headers pointer-events-none select-none">
               {CONSTELLATIONS.map((c) => {
                 const positions = {
@@ -709,7 +989,7 @@ export default function TalentTreeConstellation({
                     className="cursor-pointer transition-transform duration-200"
                     onMouseEnter={() => setHoveredNode(node)}
                     onMouseLeave={() => setHoveredNode(null)}
-                    onClick={() => setSelectedNode(node)}
+                    onClick={() => handleNodeClick(node)}
                   >
                     {/* Anillo de Selección */}
                     {isSelected && (
@@ -858,6 +1138,45 @@ export default function TalentTreeConstellation({
                 );
               })}
             </g>
+
+            {/* ── 3. TOOLTIP FLOTANTE (DENTRO DEL GRUPO TRANSFORMADO PARA CALCE EXACTO) ── */}
+            {hoveredNode && !isDragging && (
+              <foreignObject
+                x={hoveredNode.x - 120}
+                y={hoveredNode.y - (hoveredNode.y < 180 ? -35 : 130)}
+                width={240}
+                height={120}
+                className="pointer-events-none select-none z-50 overflow-visible"
+              >
+                <div className="px-3 py-2 rounded-xl bg-slate-950/95 border border-white/20 text-xs shadow-2xl backdrop-blur-md">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400">
+                      {hoveredNode.shortCode}
+                    </span>
+                    <span
+                      className={`text-[9px] font-black px-1.5 py-0.2 rounded ${
+                        isNodeUnlocked(hoveredNode.id)
+                          ? 'bg-[#00e03c]/20 text-[#00e03c]'
+                          : 'bg-white/10 text-slate-300'
+                      }`}
+                    >
+                      +{TIER_POINTS[hoveredNode.tier]} TP
+                    </span>
+                  </div>
+                  <p className="font-extrabold text-white text-[11px] leading-tight truncate">
+                    {hoveredNode.title}
+                  </p>
+                  <p className="text-[9px] text-slate-400 line-clamp-2 mt-0.5 leading-snug">
+                    {hoveredNode.description}
+                  </p>
+                  <div className="mt-1 pt-1 border-t border-white/10 text-[8.5px] text-amber-400 font-bold flex items-center justify-between">
+                    <span>{isNodeUnlocked(hoveredNode.id) ? '✓ Desbloqueado' : '🔒 Bloqueado'}</span>
+                    <span className="text-slate-400">Clic para abrir ficha</span>
+                  </div>
+                </div>
+              </foreignObject>
+            )}
+          </g>
           </svg>
         </div>
       </div>
@@ -865,7 +1184,7 @@ export default function TalentTreeConstellation({
       {/* ── MODAL DRAWER LATERAL: DETALLES DEL NODO & GESTIÓN DE EVIDENCIA ── */}
       <AnimatePresence>
         {selectedNode && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -1114,4 +1433,6 @@ export default function TalentTreeConstellation({
       </AnimatePresence>
     </div>
   );
+
+  return isFullscreen ? createPortal(treeContent, document.body) : treeContent;
 }

@@ -1,28 +1,35 @@
-# Implementation Plan — Árbol de Talentos Interactivo Estilo RPG / Constelación (SERAM)
+# Implementation Plan — Nivel Máximo 33 y Motor de Sinergias Interdisciplinarias (TASK-055)
 
 ## 1. Contexto y Objetivos
-Diseñar e implementar la interfaz visual interactiva del **Árbol de Talentos de Socios** para SERAM S.R.L. basada en la referencia visual de RPG/Constelación (*media_1791755248283_0d262b6a.png*) y los consensos alcanzados en el proceso `/grill-me`:
-1. **Topología de 5 Constelaciones Independientes:**
-   - Rama I: *Evaluación de Impacto & Riesgo Ambiental (EIA)* (Verde Esmeralda)
-   - Rama II: *Gestión Ambiental, Sostenibilidad Corporativa & Construcción Sostenible (EDGE)* (Ámbar / Dorado)
-   - Rama III: *Cambio Climático, Mercados de Carbono & Finanzas Verdes* (Azul Zafiro / Eléctrico)
-   - Rama IV: *Conservación de Biodiversidad, Restauración & Soluciones Basadas en la Naturaleza (NbS)* (Verde Neón)
-   - Rama V: *Economía Circular, Bioprocesos & Gestión de Residuos* (Púrpura / Amatista)
-2. **Eliminación de Bloqueos Forzados & Vías Paralelas:**
-   - La certificación EDGE no exige conocimientos previos en SYSO o auditorías.
-   - Mercados de Carbono y Biocréditos no exigen silvicultura o inventarios forestales clásicos.
-   - Cada constelación cuenta con 3 o 4 vías paralelas autónomas y un nodo cumbre de maestría (Apex).
-3. **Integración Transversal de SIG y Teledetección:**
-   - Los SIG figuran como nodos de especialización instrumental aplicada dentro de cada constelación (ej. *SIG Minero en EIA*, *MRV Satelital en Clima*, *Zonificación de Corredores en Biodiversidad*), siendo optativos sin bloquear otras vías.
-4. **Mecánica de Desbloqueo Guiada por Certificación Real:**
-   - Desbloqueo directo mediante vinculación de certificaciones externas (EDGE Expert, Diplomados, Registro RENCA), cursos en SERAM Academy o proyectos ejecutados.
-5. **Interfaz Visual Cinemática:**
-   - Gráfico de red estelar interactivo con líneas de energía resplandecientes, nodos circulares con iconos y estados (Desbloqueado, En Progreso, Bloqueado), contador de puntos invertidos por constelación y drawer lateral detallado para adjuntar comprobantes y simular progresión con persistencia en `localStorage`.
+1. **Recalibración del Sistema de Niveles a Grado 33 (Max Level 33):**
+   - Rediseñar la curva matemática de XP en `xpEngine.js` para expandir de 5 niveles a **33 Grados de Maestría Pericial**.
+   - **Objetivo de Progresión:** Progresión diseñada para varios años de ejercicio profesional continuo (~615,000+ XP para Nivel 33), pero con incrementos accesibles en los primeros niveles (Nivel 1 al 5 en el primer mes, Nivel 6 al 15 en los primeros 1-2 años) para que el avance sea visible y gratificante en cada entregable.
+   - **6 Órdenes de Maestría:**
+     - Orden I: Semillero & Aspirantía (Niveles 1 a 5)
+     - Orden II: Especialización & Autonomía (Niveles 6 a 11)
+     - Orden III: Liderazgo Pericial & Dictamen (Niveles 12 a 17)
+     - Orden IV: Dirección & Estrategia Societaria (Niveles 18 a 23)
+     - Orden V: Consejo de Sabios & Maestría (Niveles 24 a 28)
+     - Orden VI: Consejo Supremo & Legado (Niveles 29 a 32)
+     - Cénit Supremo: Grado 33 · Arquitecto Planetario & Socio Emérito (Nivel 33)
+   - Multiplicador de tarifa proporcional de 1.00x (Nivel 1) hasta 2.50x (Nivel 33).
+   - Modal drawer interactivo en `PartnerProfileRPGModule.jsx` para explorar la "Escala de los 33 Grados de SERAM" con visualización del progreso del socio actual.
+
+2. **Implementación de TASK-055: Motor de Sinergias y Combos Interdisciplinarios (Octalysis CD3 & CD5):**
+   - Componente `InterdisciplinarySynergies.jsx` que calcula la resonancia entre los perfiles de los 3 socios según sus talentos y asignaciones en proyectos.
+   - Catálogo de combos cooperativos activos (Blindaje Geo-Legal, Clima & Naturaleza 360°, Bioeconomía Circular, y el Raid Trinitario Apex).
+   - Integración visual en el Portal de Socios para incentivar la concurrencia técnica y el trabajo en equipo en licitaciones y peritajes de impacto.
 
 ---
 
 ## 2. Archivos Afectados
-1. `src/features/partner-portal/gamification/talentTreeData.js` (Nuevo: Base de datos estructurada con las 5 constelaciones, vías paralelas, nodos instrumentales SIG, tiers 1-4, descripciones técnicas y requisitos de certificación).
-2. `src/features/partner-portal/gamification/TalentTreeConstellation.jsx` (Nuevo: Componente visual interactivo estilo RPG / Constelación con lienzo SVG reactivo, animaciones Framer Motion, filtros temáticos, selector de socio y drawer lateral de certificación con persistencia).
-3. `src/features/partner-portal/PartnerProfileRPGModule.jsx` (Integración de `TalentTreeConstellation` en la vista de perfil de socios).
-4. `src/features/partner-portal/gamification/TalentTreeStructured.jsx` (Actualización para armonizar con el nuevo modelo de datos).
+1. `src/features/partner-portal/gamification/xpEngine.js`:
+   - Definición de `LEVELS_33`, `MASTERY_ORDERS`, funciones actualizadas `getPartnerTier`, `calculateTaskXP`, y compatibilidad de campos existentes.
+2. `src/features/partner-portal/PartnerProfileRPGModule.jsx`:
+   - Integración del badge Nivel 33, indicador de orden de maestría, y botón/modal para consultar la escala completa de los 33 grados.
+3. `src/features/partner-portal/gamification/InterdisciplinarySynergies.jsx` (Nuevo):
+   - Motor y UI interactiva de sinergias y combos interdisciplinarios entre ramas.
+4. `src/features/partner-portal/ActivitiesAndClientsModule.jsx`:
+   - Widget de sinergia de equipo en la cabecera del módulo.
+5. `tasks.json`:
+   - Actualización de estado de `TASK-055` (pending -> completed).
