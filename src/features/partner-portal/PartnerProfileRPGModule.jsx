@@ -13,6 +13,7 @@ import {
 import { useApp } from '../../context/AppContext';
 import { calculatePartnerTotalXP, TIERS, LEVELS_33, MASTERY_ORDERS } from './gamification/xpEngine';
 import TalentTreeConstellation from './gamification/TalentTreeConstellation';
+import PlayerJourneyModule from './gamification/PlayerJourneyModule';
 
 // ── PERFILES BASE OFICIALES DE LOS TRES SOCIOS ──────────────────────────────
 const DEFAULT_PROFILES = {
@@ -703,6 +704,16 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
         </div>
 
       </div>
+
+      {/* ── SECCIÓN INTERMEDIA: PLAYER JOURNEY (ONBOARDING FIRST WIN & BUCLE ENDGAME NIVEL 33) ── */}
+      <PlayerJourneyModule
+        currentSocio={currentSocio}
+        activeProfile={activeProfile}
+        rpgStats={rpgStats}
+        activities={activities}
+        timeLogs={timeLogs}
+        triggerToast={showToast}
+      />
 
       {/* ── SECCIÓN COMPLETA INFERIOR: ÁRBOL DE TALENTOS GAMIFICADO (CONSTELACIONES RPG) ── */}
       <div id="arbol-talentos-full" className="w-full pt-4 space-y-4">

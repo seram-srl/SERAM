@@ -47,7 +47,10 @@ import {
   ZoomIn,
   ZoomOut,
   RotateCcw,
-  Crosshair
+  Crosshair,
+  Upload,
+  FileText,
+  Trash2
 } from 'lucide-react';
 import {
   CONSTELLATIONS,
@@ -123,11 +126,38 @@ export default function TalentTreeConstellation({
   const [certForm, setCertForm] = useState({
     institution: '',
     codeOrUrl: '',
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    pdfName: '',
+    pdfData: '',
+    pdfSize: ''
   });
 
   const [toastMsg, setToastMsg] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // ── ESTRELLAS CÓSMICAS GENERADAS PARA EL FONDO DE LA GALAXIA ──
+  const COSMIC_STARS = useMemo(() => {
+    const stars = [];
+    for (let i = 0; i < 85; i++) {
+      const x = ((i * 137.5 + 47) % 1460) + 20;
+      const y = ((i * 219.3 + 83) % 910) + 20;
+      const r = i % 7 === 0 ? 2.5 : i % 3 === 0 ? 1.6 : 1.0;
+      const dur = 2.5 + (i % 6) * 0.9;
+      const delay = (i % 8) * 0.6;
+      const color =
+        i % 4 === 0
+          ? '#a5f3fc'
+          : i % 5 === 0
+          ? '#fde68a'
+          : i % 6 === 0
+          ? '#86efac'
+          : i % 7 === 0
+          ? '#d8b4fe'
+          : '#ffffff';
+      stars.push({ id: i, x, y, r, dur, delay, color });
+    }
+    return stars;
+  }, []);
 
   // ── ESTADOS DE NAVEGACIÓN PAN & ZOOM ──
   const [zoom, setZoom] = useState(1);
@@ -152,8 +182,8 @@ export default function TalentTreeConstellation({
   };
 
   const handleFocusRoot = () => {
-    setZoom(1.25);
-    setPan({ x: 0, y: -220 });
+    setZoom(1.2);
+    setPan({ x: 0, y: -340 });
   };
 
   // Auto-enfoque suave hacia una constelación específica
@@ -164,15 +194,55 @@ export default function TalentTreeConstellation({
       return;
     }
     const offsets = {
-      eia: { x: 300, y: 60 },
-      esg_edge: { x: 160, y: 150 },
-      climate_carbon: { x: 0, y: 220 },
-      biodiversity_nbs: { x: -160, y: 150 },
-      circular_bio: { x: -300, y: 60 }
+      eia: { x: 480, y: 110 },
+      esg_edge: { x: 240, y: 110 },
+      climate_carbon: { x: 0, y: 140 },
+      biodiversity_nbs: { x: -240, y: 110 },
+      circular_bio: { x: -480, y: 110 }
     };
     const target = offsets[constellationId] || { x: 0, y: 0 };
-    setZoom(1.35);
+    setZoom(1.3);
     setPan(target);
+  };
+
+  // Carga de archivo PDF
+  const handlePdfUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      alert('Por favor selecciona un archivo con formato .PDF');
+      return;
+    }
+
+    if (file.size > 8 * 1024 * 1024) {
+      alert('El archivo PDF supera el límite recomendado de 8 MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result;
+      const sizeKb = (file.size / 1024).toFixed(1);
+      setCertForm((prev) => ({
+        ...prev,
+        pdfName: file.name,
+        pdfData: dataUrl,
+        pdfSize: `${sizeKb} KB`
+      }));
+      setToastMsg(`PDF "${file.name}" cargado exitosamente.`);
+      setTimeout(() => setToastMsg(''), 3500);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePdf = () => {
+    setCertForm((prev) => ({
+      ...prev,
+      pdfName: '',
+      pdfData: '',
+      pdfSize: ''
+    }));
   };
 
   const handleMouseDown = (e) => {
@@ -357,8 +427,8 @@ export default function TalentTreeConstellation({
     e.preventDefault();
     if (!selectedNode) return;
 
-    if (!certForm.institution.trim()) {
-      alert('Ingresa la institución emisora del certificado.');
+    if (!certForm.institution.trim() && !certForm.pdfName) {
+      alert('Por favor ingresa la institución emisora o sube el certificado en formato PDF.');
       return;
     }
 
@@ -371,12 +441,23 @@ export default function TalentTreeConstellation({
   // Cargar formulario si el nodo ya tiene certificado guardado
   useEffect(() => {
     if (selectedNode && partnerData.certs && partnerData.certs[selectedNode.id]) {
-      setCertForm(partnerData.certs[selectedNode.id]);
+      setCertForm({
+        institution: '',
+        codeOrUrl: '',
+        date: new Date().toISOString().split('T')[0],
+        pdfName: '',
+        pdfData: '',
+        pdfSize: '',
+        ...partnerData.certs[selectedNode.id]
+      });
     } else {
       setCertForm({
         institution: '',
         codeOrUrl: '',
-        date: new Date().toISOString().split('T')[0]
+        date: new Date().toISOString().split('T')[0],
+        pdfName: '',
+        pdfData: '',
+        pdfSize: ''
       });
     }
   }, [selectedNode, partnerData]);
@@ -783,7 +864,7 @@ export default function TalentTreeConstellation({
         {/* SVG Interactivo */}
         <div className="w-full h-full relative flex items-center justify-center overflow-hidden">
           <svg
-            viewBox="0 0 1000 850"
+            viewBox="0 0 1500 950"
             className="w-full h-full select-none"
             style={{
               width: '100%',
@@ -792,9 +873,24 @@ export default function TalentTreeConstellation({
             }}
           >
             <defs>
+              <style>{`
+                @keyframes starTwinkle {
+                  0%, 100% { opacity: 0.15; transform: scale(0.85); }
+                  50% { opacity: 0.95; transform: scale(1.3); }
+                }
+                @keyframes galaxySpinSlow {
+                  from { transform: rotate(0deg); }
+                  to { transform: rotate(360deg); }
+                }
+                @keyframes nebulaBreathe {
+                  0%, 100% { opacity: 0.10; transform: scale(0.96); }
+                  50% { opacity: 0.22; transform: scale(1.05); }
+                }
+              `}</style>
+
               {/* Filtros de Resplandor Neon */}
               <filter id="glow-root" x="-30%" y="-30%" width="160%" height="160%">
-                <feGaussianBlur stdDeviation="10" result="blur" />
+                <feGaussianBlur stdDeviation="12" result="blur" />
                 <feMerge>
                   <feMergeNode in="blur" />
                   <feMergeNode in="SourceGraphic" />
@@ -802,7 +898,7 @@ export default function TalentTreeConstellation({
               </filter>
 
               <filter id="glow-apex" x="-40%" y="-40%" width="180%" height="180%">
-                <feGaussianBlur stdDeviation="14" result="blur" />
+                <feGaussianBlur stdDeviation="15" result="blur" />
                 <feMerge>
                   <feMergeNode in="blur" />
                   <feMergeNode in="SourceGraphic" />
@@ -810,7 +906,7 @@ export default function TalentTreeConstellation({
               </filter>
 
               <filter id="glow-node" x="-25%" y="-25%" width="150%" height="150%">
-                <feGaussianBlur stdDeviation="6" result="blur" />
+                <feGaussianBlur stdDeviation="7" result="blur" />
                 <feMerge>
                   <feMergeNode in="blur" />
                   <feMergeNode in="SourceGraphic" />
@@ -822,54 +918,142 @@ export default function TalentTreeConstellation({
                 <stop offset="0%" stopColor="#00c0ff" stopOpacity="0.8" />
                 <stop offset="100%" stopColor="#10b981" stopOpacity="0.8" />
               </linearGradient>
+
+              {/* Degradados para Galaxias y Nebulosas */}
+              <radialGradient id="grad-galaxy-1" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#00c0ff" stopOpacity="0.4" />
+                <stop offset="45%" stopColor="#38bdf8" stopOpacity="0.18" />
+                <stop offset="100%" stopColor="#040812" stopOpacity="0" />
+              </radialGradient>
+              <radialGradient id="grad-galaxy-2" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#a855f7" stopOpacity="0.38" />
+                <stop offset="45%" stopColor="#c084fc" stopOpacity="0.16" />
+                <stop offset="100%" stopColor="#040812" stopOpacity="0" />
+              </radialGradient>
+              <radialGradient id="grad-nebula-emerald" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#00e03c" stopOpacity="0.28" />
+                <stop offset="60%" stopColor="#059669" stopOpacity="0.08" />
+                <stop offset="100%" stopColor="#040812" stopOpacity="0" />
+              </radialGradient>
+              <radialGradient id="grad-nebula-gold" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.22" />
+                <stop offset="60%" stopColor="#d97706" stopOpacity="0.06" />
+                <stop offset="100%" stopColor="#040812" stopOpacity="0" />
+              </radialGradient>
+              <radialGradient id="grad-nebula-cyan" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#00c0ff" stopOpacity="0.25" />
+                <stop offset="60%" stopColor="#0284c7" stopOpacity="0.07" />
+                <stop offset="100%" stopColor="#040812" stopOpacity="0" />
+              </radialGradient>
             </defs>
 
             {/* GRUPO PRINCIPAL TRANSFORMADO CON PAN Y ZOOM */}
             <g
               transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}
               style={{
-                transformOrigin: '500px 425px',
+                transformOrigin: '750px 475px',
                 transition: isDragging ? 'none' : 'transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1)'
               }}
             >
-              {/* ── 0. TITULARES DE CONSTELACIÓN EN EL CÉNIT ── */}
-            <g className="constellation-zenith-headers pointer-events-none select-none">
-              {CONSTELLATIONS.map((c) => {
-                const positions = {
-                  eia: { x: 190, y: 155 },
-                  esg_edge: { x: 335, y: 110 },
-                  climate_carbon: { x: 500, y: 65 },
-                  biodiversity_nbs: { x: 670, y: 110 },
-                  circular_bio: { x: 820, y: 155 }
-                };
-                const pos = positions[c.id] || { x: 500, y: 100 };
-                const isFiltered = selectedConstellationId !== 'all' && selectedConstellationId !== c.id;
+              {/* ── FONDO CÓSMICO DE GALAXIAS Y ESTRELLAS VIVAS ── */}
+              <g className="galaxy-background pointer-events-none select-none">
+                {/* Nebulosas pulsantes difusas */}
+                <circle
+                  cx="750"
+                  cy="840"
+                  r="380"
+                  fill="url(#grad-nebula-emerald)"
+                  style={{ transformOrigin: '750px 840px', animation: 'nebulaBreathe 12s ease-in-out infinite' }}
+                />
+                <circle
+                  cx="470"
+                  cy="380"
+                  r="340"
+                  fill="url(#grad-nebula-gold)"
+                  style={{ transformOrigin: '470px 380px', animation: 'nebulaBreathe 16s ease-in-out infinite 2s' }}
+                />
+                <circle
+                  cx="1030"
+                  cy="380"
+                  r="340"
+                  fill="url(#grad-nebula-cyan)"
+                  style={{ transformOrigin: '1030px 380px', animation: 'nebulaBreathe 15s ease-in-out infinite 5s' }}
+                />
 
-                return (
-                  <g key={`zenith-${c.id}`} transform={`translate(${pos.x}, ${pos.y})`} opacity={isFiltered ? 0.2 : 0.85}>
-                    <text
-                      textAnchor="middle"
-                      fill={c.color}
-                      fontSize="9.5"
-                      fontWeight="900"
-                      letterSpacing="0.06em"
-                      className="uppercase"
-                    >
-                      {c.code}
-                    </text>
-                    <text
-                      y="13"
-                      textAnchor="middle"
-                      fill="#e2e8f0"
-                      fontSize="8"
-                      fontWeight="700"
-                    >
-                      {c.shortName}
-                    </text>
-                  </g>
-                );
-              })}
-            </g>
+                {/* Galaxia Espiral Lejana 1 (Noroeste) */}
+                <g
+                  transform="translate(240, 240) rotate(-22)"
+                  style={{ transformOrigin: '240px 240px', animation: 'galaxySpinSlow 180s linear infinite' }}
+                >
+                  <ellipse cx="240" cy="240" rx="190" ry="70" fill="url(#grad-galaxy-1)" />
+                  <ellipse cx="240" cy="240" rx="95" ry="30" fill="#38bdf8" opacity="0.16" filter="url(#glow-node)" />
+                  <circle cx="240" cy="240" r="14" fill="#ffffff" opacity="0.32" filter="url(#glow-node)" />
+                </g>
+
+                {/* Galaxia Espiral Lejana 2 (Noreste) */}
+                <g
+                  transform="translate(1260, 280) rotate(32)"
+                  style={{ transformOrigin: '1260px 280px', animation: 'galaxySpinSlow 220s linear infinite reverse' }}
+                >
+                  <ellipse cx="1260" cy="280" rx="200" ry="75" fill="url(#grad-galaxy-2)" />
+                  <ellipse cx="1260" cy="280" rx="100" ry="32" fill="#c084fc" opacity="0.16" filter="url(#glow-node)" />
+                  <circle cx="1260" cy="280" r="15" fill="#ffffff" opacity="0.28" filter="url(#glow-node)" />
+                </g>
+
+                {/* Enjambre de 85 estrellas titilantes */}
+                {COSMIC_STARS.map((star) => (
+                  <circle
+                    key={`star-${star.id}`}
+                    cx={star.x}
+                    cy={star.y}
+                    r={star.r}
+                    fill={star.color}
+                    style={{
+                      transformOrigin: `${star.x}px ${star.y}px`,
+                      animation: `starTwinkle ${star.dur}s ease-in-out infinite ${star.delay}s`
+                    }}
+                  />
+                ))}
+              </g>
+
+              {/* ── 0. TITULARES DE CONSTELACIÓN EN EL CÉNIT ── */}
+              <g className="constellation-zenith-headers pointer-events-none select-none">
+                {CONSTELLATIONS.map((c) => {
+                  const positions = {
+                    eia: { x: 220, y: 110 },
+                    esg_edge: { x: 470, y: 110 },
+                    climate_carbon: { x: 750, y: 70 },
+                    biodiversity_nbs: { x: 1030, y: 110 },
+                    circular_bio: { x: 1280, y: 110 }
+                  };
+                  const pos = positions[c.id] || { x: 750, y: 100 };
+                  const isFiltered = selectedConstellationId !== 'all' && selectedConstellationId !== c.id;
+
+                  return (
+                    <g key={`zenith-${c.id}`} transform={`translate(${pos.x}, ${pos.y})`} opacity={isFiltered ? 0.2 : 0.9}>
+                      <text
+                        textAnchor="middle"
+                        fill={c.color}
+                        fontSize="12"
+                        fontWeight="900"
+                        letterSpacing="0.08em"
+                        className="uppercase"
+                      >
+                        {c.code}
+                      </text>
+                      <text
+                        y="16"
+                        textAnchor="middle"
+                        fill="#e2e8f0"
+                        fontSize="9.5"
+                        fontWeight="700"
+                      >
+                        {c.shortName}
+                      </text>
+                    </g>
+                  );
+                })}
+              </g>
 
             {/* ── 1. LÍNEAS DE CONEXIÓN ENTRE NODOS (CONDUCTOS DE ENERGÍA) ── */}
             <g className="connections-layer">
@@ -1184,29 +1368,30 @@ export default function TalentTreeConstellation({
       {/* ── MODAL DRAWER LATERAL: DETALLES DEL NODO & GESTIÓN DE EVIDENCIA ── */}
       <AnimatePresence>
         {selectedNode && (
-          <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[160] flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-[#090f1e] border border-white/20 shadow-2xl p-6 text-slate-200 space-y-5"
+              className="relative w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-3xl bg-[#090f1e]/98 border border-white/20 shadow-2xl p-6 sm:p-8 text-slate-200 space-y-6"
             >
               {/* Botón cerrar */}
               <button
                 type="button"
                 onClick={() => setSelectedNode(null)}
-                className="absolute top-4 right-4 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all cursor-pointer"
+                className="absolute top-5 right-5 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all cursor-pointer"
+                title="Cerrar (Esc)"
               >
                 <X className="w-5 h-5" />
               </button>
 
               {/* Cabecera del Nodo */}
-              <div className="space-y-2 pr-10">
+              <div className="space-y-3 pr-10">
                 <div className="flex items-center gap-2 flex-wrap">
                   {/* Constelación Badge */}
                   {selectedNode.constellationId !== 'core' && (
                     <span
-                      className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider text-slate-950"
+                      className="px-3.5 py-1 rounded-full text-xs sm:text-sm font-black uppercase tracking-wider text-slate-950"
                       style={{
                         backgroundColor:
                           CONSTELLATIONS.find((c) => c.id === selectedNode.constellationId)
@@ -1218,42 +1403,42 @@ export default function TalentTreeConstellation({
                   )}
                   {/* Tier Badge */}
                   <span
-                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-black border ${
+                    className={`px-3.5 py-1 rounded-full text-xs sm:text-sm font-black border ${
                       TIER_LABELS[selectedNode.tier]?.border
                     } ${TIER_LABELS[selectedNode.tier]?.text} bg-white/5`}
                   >
                     {TIER_LABELS[selectedNode.tier]?.label}
                   </span>
                   {/* Puntos Badge */}
-                  <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                  <span className="px-3 py-1 rounded-lg text-xs sm:text-sm font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
                     +{TIER_POINTS[selectedNode.tier]} Puntos de Talento (TP)
                   </span>
                   {/* SIG Instrumental */}
                   {selectedNode.isInstrumental && (
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 flex items-center gap-1">
-                      <Satellite className="w-3 h-3" />
+                    <span className="px-3 py-1 rounded-lg text-xs sm:text-sm font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 flex items-center gap-1.5">
+                      <Satellite className="w-4 h-4" />
                       Instrumental SIG
                     </span>
                   )}
                 </div>
 
-                <div className="flex items-center gap-3 pt-1">
+                <div className="flex items-center gap-3.5 pt-1">
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 border border-white/20"
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/20 shadow-lg"
                     style={{
                       backgroundColor: `${
                         CONSTELLATIONS.find((c) => c.id === selectedNode.constellationId)?.color ||
                         '#00e03c'
-                      }25`
+                      }30`
                     }}
                   >
-                    <RenderTalentIcon iconName={selectedNode.icon} className="w-5 h-5 text-white" />
+                    <RenderTalentIcon iconName={selectedNode.icon} className="w-7 h-7 text-white" />
                   </div>
                   <div>
-                    <span className="font-mono text-xs text-slate-400 font-bold block">
+                    <span className="font-mono text-sm sm:text-base text-slate-300 font-bold block mb-0.5">
                       {selectedNode.shortCode} · Track: {selectedNode.track}
                     </span>
-                    <h3 className="text-xl font-black text-white leading-tight">
+                    <h3 className="text-2xl sm:text-3xl font-black text-white leading-tight">
                       {selectedNode.title}
                     </h3>
                   </div>
@@ -1262,28 +1447,28 @@ export default function TalentTreeConstellation({
 
               {/* Estado de Desbloqueo Actual Banner */}
               <div
-                className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 ${
+                className={`p-4 sm:p-5 rounded-2xl border flex items-center justify-between gap-3 ${
                   isNodeUnlocked(selectedNode.id)
-                    ? 'bg-[#00e03c]/10 border-[#00e03c]/30 text-white'
-                    : 'bg-white/[0.03] border-white/10 text-slate-400'
+                    ? 'bg-[#00e03c]/10 border-[#00e03c]/35 text-white shadow-lg shadow-[#00e03c]/5'
+                    : 'bg-white/[0.03] border-white/10 text-slate-300'
                 }`}
               >
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-3">
                   {isNodeUnlocked(selectedNode.id) ? (
-                    <CheckCircle2 className="w-5 h-5 text-[#00e03c] flex-shrink-0" />
+                    <CheckCircle2 className="w-6 h-6 text-[#00e03c] flex-shrink-0" />
                   ) : (
-                    <Lock className="w-5 h-5 text-slate-500 flex-shrink-0" />
+                    <Lock className="w-6 h-6 text-slate-500 flex-shrink-0" />
                   )}
                   <div>
-                    <span className="text-xs font-bold block">
+                    <span className="text-sm sm:text-base font-extrabold block">
                       {isNodeUnlocked(selectedNode.id)
                         ? 'Talento Activo en el Perfil del Socio'
                         : 'Talento Bloqueado / Pendiente de Acreditación'}
                     </span>
-                    <span className="text-[10px] text-slate-400">
+                    <span className="text-xs sm:text-sm text-slate-300 block mt-0.5">
                       {isNodeUnlocked(selectedNode.id)
                         ? 'Aporta a la cotización y liderazgo técnico de proyectos en SERAM.'
-                        : 'Puedes acreditarlo completando el curso o adjuntando comprobante.'}
+                        : 'Puedes acreditarlo completando la formación o subiendo tu certificado oficial en PDF.'}
                     </span>
                   </div>
                 </div>
@@ -1293,10 +1478,10 @@ export default function TalentTreeConstellation({
                   <button
                     type="button"
                     onClick={() => handleToggleUnlock(selectedNode.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer flex-shrink-0 ${
                       isNodeUnlocked(selectedNode.id)
-                        ? 'bg-red-500/20 text-red-300 border border-red-500/40 hover:bg-red-500/30'
-                        : 'bg-[#00e03c] text-slate-950 font-black hover:bg-[#00e03c]/90'
+                        ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30'
+                        : 'bg-[#00e03c] text-slate-950 font-black hover:bg-[#00e03c]/90 shadow-md shadow-[#00e03c]/20'
                     }`}
                   >
                     {isNodeUnlocked(selectedNode.id) ? 'Desactivar' : 'Desbloquear'}
@@ -1305,103 +1490,106 @@ export default function TalentTreeConstellation({
               </div>
 
               {/* Descripción Técnica y Aplicación en SERAM */}
-              <div className="space-y-3 bg-white/[0.02] p-4 rounded-xl border border-white/5 text-xs">
+              <div className="space-y-4 bg-white/[0.02] p-5 rounded-2xl border border-white/10">
                 <div>
-                  <span className="font-bold text-white uppercase text-[10px] tracking-wider block mb-1">
+                  <span className="font-extrabold text-slate-300 uppercase text-xs sm:text-sm tracking-wider block mb-1.5">
                     Descripción del Alcance Técnico
                   </span>
-                  <p className="text-slate-300 leading-relaxed">{selectedNode.description}</p>
+                  <p className="text-sm sm:text-base text-slate-100 leading-relaxed font-normal">
+                    {selectedNode.description}
+                  </p>
                 </div>
 
                 <div>
-                  <span className="font-bold text-amber-400 uppercase text-[10px] tracking-wider block mb-1 flex items-center gap-1">
-                    <Zap className="w-3.5 h-3.5" />
+                  <span className="font-extrabold text-amber-400 uppercase text-xs sm:text-sm tracking-wider block mb-1.5 flex items-center gap-1.5">
+                    <Zap className="w-4 h-4 text-amber-400" />
                     Aplicación Práctica y Facturación en SERAM
                   </span>
-                  <p className="text-slate-300 leading-relaxed">{selectedNode.seramUse}</p>
+                  <p className="text-sm sm:text-base text-slate-100 leading-relaxed font-normal">
+                    {selectedNode.seramUse}
+                  </p>
                 </div>
 
                 {/* Si es Instrumental SIG */}
                 {selectedNode.isInstrumental && (
-                  <div className="p-2.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-200 text-[11px] flex items-center gap-2">
-                    <Satellite className="w-4 h-4 flex-shrink-0 text-cyan-400" />
-                    <span>
-                      <strong>Especialidad Instrumental:</strong> Esta competencia aporta valor transversal a todas las ramas y no condiciona la titulación de otros socios.
+                  <div className="p-3.5 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-100 text-xs sm:text-sm flex items-start gap-2.5">
+                    <Satellite className="w-5 h-5 flex-shrink-0 text-cyan-400 mt-0.5" />
+                    <span className="leading-relaxed">
+                      <strong className="text-white">Especialidad Instrumental:</strong> Esta competencia aporta valor transversal a todas las ramas y no condiciona la titulación de otros socios.
                     </span>
                   </div>
                 )}
               </div>
 
               {/* Certificación Avalada & Academia SERAM */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10 space-y-1">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block flex items-center gap-1">
-                    <Award className="w-3.5 h-3.5 text-amber-400" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1.5">
+                  <span className="text-xs sm:text-sm uppercase tracking-wider text-slate-400 font-extrabold flex items-center gap-2">
+                    <Award className="w-4 h-4 text-amber-400" />
                     Acreditación Externa Sugerida
                   </span>
-                  <p className="font-bold text-white text-xs">{selectedNode.certification}</p>
-                  <p className="text-[10px] text-slate-500">
+                  <p className="font-black text-white text-sm sm:text-base">{selectedNode.certification}</p>
+                  <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
                     Válido mediante diploma, credencial profesional o registro oficial.
                   </p>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10 space-y-1">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block flex items-center gap-1">
-                    <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
+                <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1.5">
+                  <span className="text-xs sm:text-sm uppercase tracking-wider text-slate-400 font-extrabold flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-emerald-400" />
                     Módulo SERAM Academy
                   </span>
-                  <p className="font-bold text-white text-xs">{selectedNode.academyCourse}</p>
-                  <p className="text-[10px] text-slate-500">
+                  <p className="font-black text-white text-sm sm:text-base">{selectedNode.academyCourse}</p>
+                  <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
                     Formación interna continua para acelerar tu progresión.
                   </p>
                 </div>
               </div>
 
-              {/* ── FORMULARIO: REGISTRAR EVIDENCIA DE CERTIFICADO ── */}
+              {/* ── FORMULARIO: REGISTRAR EVIDENCIA DE CERTIFICADO & SUBIR PDF ── */}
               {selectedNode.id !== 'root_core' && (
                 <form
                   onSubmit={handleSaveCertificate}
-                  className="p-4 rounded-xl bg-black/40 border border-white/10 space-y-3"
+                  className="p-5 sm:p-6 rounded-2xl bg-black/50 border border-white/15 space-y-4"
                 >
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                    <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                      <FileCheck className="w-4 h-4 text-[#00e03c]" />
+                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                    <span className="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
+                      <FileCheck className="w-5 h-5 text-[#00e03c]" />
                       Vincular Certificado / Registro Oficial
                     </span>
-                    <span className="text-[10px] text-slate-400">Guarda evidencia en tu perfil</span>
+                    <span className="text-xs text-slate-400">Guarda evidencia en tu perfil</span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                      <label className="text-xs sm:text-sm font-bold text-slate-300 uppercase block mb-1.5">
                         Institución Emisora *
                       </label>
                       <input
                         type="text"
-                        required
                         placeholder="Ej. IFC / GBCI, Verra, SIB, MMAyA"
                         value={certForm.institution}
                         onChange={(e) =>
                           setCertForm({ ...certForm, institution: e.target.value })
                         }
-                        className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-[#00e03c] text-xs"
+                        className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/15 text-white focus:outline-none focus:border-[#00e03c] text-sm"
                       />
                     </div>
 
                     <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                      <label className="text-xs sm:text-sm font-bold text-slate-300 uppercase block mb-1.5">
                         Fecha de Emisión
                       </label>
                       <input
                         type="date"
                         value={certForm.date}
                         onChange={(e) => setCertForm({ ...certForm, date: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-[#00e03c] text-xs"
+                        className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/15 text-white focus:outline-none focus:border-[#00e03c] text-sm"
                       />
                     </div>
 
                     <div className="sm:col-span-2">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                      <label className="text-xs sm:text-sm font-bold text-slate-300 uppercase block mb-1.5">
                         N° Folio, Matrícula o Enlace de Verificación
                       </label>
                       <input
@@ -1411,15 +1599,76 @@ export default function TalentTreeConstellation({
                         onChange={(e) =>
                           setCertForm({ ...certForm, codeOrUrl: e.target.value })
                         }
-                        className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-[#00e03c] text-xs"
+                        className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/15 text-white focus:outline-none focus:border-[#00e03c] text-sm"
                       />
+                    </div>
+
+                    {/* ── ZONA DE CARGA DE ARCHIVO PDF ── */}
+                    <div className="sm:col-span-2 space-y-1.5">
+                      <label className="text-xs sm:text-sm font-bold text-slate-300 uppercase block">
+                        Certificado o Diploma en PDF
+                      </label>
+
+                      {certForm.pdfData ? (
+                        <div className="p-4 rounded-xl bg-[#00e03c]/10 border border-[#00e03c]/30 flex items-center justify-between gap-3 flex-wrap">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-10 rounded-lg bg-[#00e03c]/20 border border-[#00e03c]/40 flex items-center justify-center flex-shrink-0 text-[#00e03c]">
+                              <FileText className="w-5 h-5" />
+                            </div>
+                            <div className="min-w-0">
+                              <span className="text-sm font-bold text-white block truncate">
+                                {certForm.pdfName || 'Certificado.pdf'}
+                              </span>
+                              <span className="text-xs text-slate-400 font-mono">
+                                {certForm.pdfSize || 'Documento PDF'} · Archivo adjunto
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <a
+                              href={certForm.pdfData}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all flex items-center gap-1.5"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                              Ver PDF
+                            </a>
+                            <button
+                              type="button"
+                              onClick={handleRemovePdf}
+                              className="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                              title="Quitar este archivo PDF"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              Quitar
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center p-5 rounded-2xl border-2 border-dashed border-white/20 hover:border-[#00e03c] bg-white/[0.02] hover:bg-[#00e03c]/5 transition-all cursor-pointer group">
+                          <Upload className="w-6 h-6 text-slate-400 group-hover:text-[#00e03c] mb-1.5 transition-colors" />
+                          <span className="text-xs sm:text-sm font-bold text-slate-200 group-hover:text-white text-center">
+                            Subir Certificado / Diploma en PDF (máx. 8 MB)
+                          </span>
+                          <span className="text-[11px] text-slate-500 text-center mt-0.5">
+                            Haz clic para examinar o arrastra el archivo aquí
+                          </span>
+                          <input
+                            type="file"
+                            accept=".pdf,application/pdf"
+                            onChange={handlePdfUpload}
+                            className="hidden"
+                          />
+                        </label>
+                      )}
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-end gap-2 pt-2">
+                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
                     <button
                       type="submit"
-                      className="px-4 py-2 rounded-xl bg-[#00e03c] text-slate-950 font-black text-xs hover:bg-[#00e03c]/90 transition-all flex items-center gap-1.5 cursor-pointer shadow-lg shadow-[#00e03c]/20"
+                      className="px-5 py-2.5 rounded-xl bg-[#00e03c] text-slate-950 font-black text-sm hover:bg-[#00e03c]/90 transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-[#00e03c]/20"
                     >
                       <Check className="w-4 h-4 font-black" />
                       Guardar Evidencia & Acreditar Talento
