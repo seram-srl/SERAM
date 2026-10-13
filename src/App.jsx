@@ -66,7 +66,7 @@ export default function App() {
       <ScrollToTop />
 
       {/* ── CAPA z-0: Fondo WebGL tridimensional ─────────────────────────── */}
-      {location.pathname !== '/' && location.pathname !== '/dashboard' && <EnvironmentalCanvas />}
+      {location.pathname !== '/' && location.pathname !== '/dashboard' && location.pathname !== '/login' && location.pathname !== '/register' && <EnvironmentalCanvas />}
 
       {/* ── CAPA z-2: Vignette degradé lateral para el home y páginas ───── */}
       <div className="vignette-overlay-sides" />

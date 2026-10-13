@@ -1,10 +1,18 @@
 {
   "version": "1.0",
   "project": "SERAM",
-  "last_updated": "2026-10-12",
+  "last_updated": "2026-10-13",
   "tasks": [],
   "in_progress": [],
   "completed": [
+    {
+      "id": "TASK-063",
+      "title": "Sustitución de fondo negro sólido por paisaje Hero de SERAM (bg_home.webp) con leve desenfoque, gradiente de contraste y paralaje suave reactivo al cursor en páginas de autenticación",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-13",
+      "completed_at": "2026-10-13"
+    },
     {
       "id": "TASK-062",
       "title": "Habilitación de Modo Reunión de Directorio & Misión Grupal en Time Tracker, Registro Permanente en Supabase de SRM-INT-DIR-01, Detección de Trabajo Conjunto en Monitor en Vivo y Auto-Cálculo de Proyectos Grupales en xpEngine.js",

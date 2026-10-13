@@ -1,30 +1,38 @@
-# Implementation Plan — Fase 2: Módulo de Misiones Flash Coyunturales Dinámicas en Tiempo Real (TASK-056)
+# Plan de Implementación — TASK-063
 
-## 1. Contexto y Objetivos
-Alineado con los Core Drives 6 (Scarcity & Impatience) y 7 (Unpredictability & Curiosity) de Octalysis:
-1. **Temporizadores de Cuenta Regresiva Reactivos en Vivo (72h - 96h):**
-   - Implementar un cronómetro regresivo en tiempo real (`HH:MM:SS`) basado en `expiresAt` con actualización reactiva cada 1 segundo.
-   - Tres estados de urgencia visual:
-     - Normal ($>48\text{h}$ restantes): Verde Esmeralda (`#00e03c`).
-     - Alerta Crítica ($24\text{h} - 48\text{h}$ restantes): Ámbar radiante (`#f59e0b`).
-     - Urgencia Inminente ($<24\text{h}$ restantes): Neón rojo intermitente / pulso de advertencia (`#ef4444`).
-   - Mecánica de Expiración (CD8 - Loss Avoidance): Si el reloj llega a 00:00:00, la misión expira y el cofre queda sellado.
-2. **Generador Dinámico de Contingencias Ambientales Bolivianas:**
-   - Crear motor `FlashMissionsEngine.js` con generador aleatorio de eventos coyunturales verosímiles del contexto pericial boliviano:
-     - Licitaciones de emergencia SICOES (72h).
-     - Decretos Supremos y resoluciones de sustancias peligrosas (48h).
-     - Alertas biofísicas de crecidas y relaves en cuencas (96h).
-     - Fiscalizaciones sorpresa de la AAC (48h).
-     - Convocatorias express de biocréditos y carbono (72h).
-   - Botón interactivo para simular/disparar nuevas contingencias espontáneas.
-3. **Mecánica de Reclamo & Apertura de Cofres:**
-   - Flujo: *Alerta Abierta* $\to$ *Asumir Desafío* $\to$ *Validar Entrega en Plazo* $\to$ *Apertura de Cofre Esmeralda con perks de racha y PIP*.
-   - Integración nativa en `SpecialMissionsModule.jsx` con persistencia en `localStorage`.
+## Objetivo
+Sustituir el fondo negro sólido (`bg-[#050508]`) en las vistas de autenticación (`LoginPage.jsx` y `RegisterPage.jsx`) por la imagen oficial del Hero de la Home de SERAM (`/assets/3d-backend/bg_home.webp`), aplicando un leve desenfoque cinematográfico, oscurecimiento sutil para garantizar contraste y legibilidad Neuform (WCAG AAA), y un efecto de paralaje reactivo de alta fidelidad al movimiento del cursor del mouse mediante Framer Motion springs.
 
 ---
 
-## 2. Archivos Afectados
-1. `src/features/partner-portal/gamification/FlashMissionsEngine.js` (Nuevo: Plantillas de contingencias, cálculo de tiempo regresivo y disparador).
-2. `src/features/partner-portal/gamification/SpecialMissionsModule.jsx` (Integración de temporizadores reactivos, banner de alertas flash en vivo y botón generador de contingencias).
-3. `tasks.json` (Actualización de `TASK-056` a `completed`).
-4. `progress/TASK-056.md` (Documentación del progreso).
+## Archivos Involucrados
+1. `src/components/ui/AuthHeroBackground.jsx` (Nuevo componente modular y reutilizable para el fondo Hero con paralaje y desenfoque)
+2. `src/features/auth/LoginPage.jsx` (Sustituir fondo negro sólido por `AuthHeroBackground`)
+3. `src/features/auth/RegisterPage.jsx` (Sustituir fondo negro sólido por `AuthHeroBackground` para coherencia en todo el flujo de autenticación)
+4. `src/App.jsx` (Excluir `/login` y `/register` de `EnvironmentalCanvas` para evitar renderizar un lienzo WebGL Three.js innecesario detrás del fondo DOM, cumpliendo la regla de contexto único)
+5. `tasks.json` (Registro de tarea `TASK-063`)
+6. `progress/TASK-063.md` (Registro detallado del progreso de la tarea)
+
+---
+
+## Especificaciones Técnicas y Visuales
+- **Imagen:** `/assets/3d-backend/bg_home.webp` (paisaje de serranías andinas/amazónicas de SERAM).
+- **Desenfoque:** `blur-[6px]` (o `filter: blur(6px)`) con escalado `scale-110` para prevenir bordes desvanecidos en el viewport.
+- **Interacción Mouse:**
+  - `useMotionValue` para capturar coordenadas `(clientX - centerX)` y `(clientY - centerY)`.
+  - `useSpring` con amortiguación suave (`stiffness: 100`, `damping: 30`, `mass: 0.5`) para movimiento fluido y orgánico sin tirones.
+  - Rango de desplazamiento controlado (máximo `[-20px, 20px]`) con `will-change: transform`.
+- **Contraste y Estética Neuform:**
+  - Capa de gradiente oscuro semitransparente (`bg-gradient-to-b from-[#050508]/75 via-[#050508]/55 to-[#050508]/85`) para resaltar la tarjeta glassmórfica `neuform-card` con su `backdrop-blur-xl`.
+  - Preservación de la retícula técnica `neuform-grid-bg` superpuesta con baja opacidad.
+- **Rendimiento y Resiliencia:**
+  - Detección de dispositivos táctiles vs mouse: en móviles se mantiene centrado estático o con sutil respiración sin listeners pesados.
+  - Verificación estricta con ESLint y `npm run build`.
+
+---
+
+## Flujo de Delegación
+1. **Líder:** Inicializa `tasks.json` con `TASK-063` en `in_progress` y crea `progress/TASK-063.md`.
+2. **Implementador:** Escribe `AuthHeroBackground.jsx`, actualiza `LoginPage.jsx`, `RegisterPage.jsx` y `App.jsx`, valida con ESLint y `npm run build`.
+3. **Revisor:** Audita la calidad de código, responsive, ausencia de errores y consistencia de diseño Neuform.
+4. **Líder:** Marca `TASK-063` como completada en `tasks.json`.

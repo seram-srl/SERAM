@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useApp } from '../../context/AppContext';
-import { Mail, Lock, ArrowRight, User } from 'lucide-react';
+import { Mail, Lock, ArrowRight } from 'lucide-react';
+import AuthHeroBackground from '../../components/ui/AuthHeroBackground';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -26,9 +27,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="inner-page min-h-screen flex items-center justify-center bg-[#050508] px-4">
-      {/* Grid Lines for technical look */}
-      <div className="absolute inset-0 neuform-grid-bg opacity-30 pointer-events-none" />
+    <div className="inner-page relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
+      <AuthHeroBackground />
 
       <motion.div
         initial={{ opacity: 0, y: 30 }}
