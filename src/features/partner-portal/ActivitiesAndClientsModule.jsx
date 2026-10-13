@@ -6,7 +6,8 @@ import {
   X, Search, Briefcase, FileText, ChevronDown, CheckCircle2,
   ListFilter, Sparkles, Phone, Mail, MapPin, ExternalLink,
   Layers, BarChart2, TrendingUp, ChevronRight, PanelRightClose,
-  ShieldCheck, Award, Scale, Gift
+  ShieldCheck, Award, Scale, Gift, Table, ChevronLeft,
+  Target, Users, UserCheck, Link2, Zap
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { calculateTaskXP, validateCrossApproval } from './gamification/xpEngine';
@@ -44,6 +45,143 @@ const STATUS_COLUMNS = [
   { id: 'Concluido', label: 'Concluido', color: 'border-[#00e03c]/30 text-[#00e03c] bg-[#00e03c]/10' },
 ];
 
+// ── HELPERS DE FORMATEO ESTILO NOTION ──────────────────────────────────────
+const formatDateRange = (startDate, dueDate) => {
+  if (!dueDate && !startDate) return 'Sin fecha';
+  const formatMonth = (dStr) => {
+    if (!dStr) return '';
+    try {
+      const parts = dStr.split('-');
+      if (parts.length === 3) {
+        const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+        const day = parseInt(parts[2], 10);
+        const mIdx = parseInt(parts[1], 10) - 1;
+        const year = parts[0];
+        return `${day} ${months[mIdx] || ''} ${year}`;
+      }
+    } catch (e) {}
+    return dStr;
+  };
+
+  if (startDate && dueDate && startDate !== dueDate) {
+    return `${formatMonth(startDate)} → ${formatMonth(dueDate)}`;
+  }
+  return formatMonth(dueDate || startDate);
+};
+
+const getPartnerInitials = (name) => {
+  if (!name) return { initials: 'SR', short: 'Socio' };
+  if (name.includes('Fabricio') || name.includes('Sebastian')) return { initials: 'FS', short: 'Fabricio Seb' };
+  if (name.includes('Diego')) return { initials: 'DB', short: 'Diego Barrie' };
+  if (name.includes('Fernando')) return { initials: 'FA', short: 'FAAJ 19' };
+  const parts = name.replace('Ing. ', '').split(' ');
+  const inits = parts.map(p => p[0]).join('').slice(0, 2).toUpperCase();
+  return { initials: inits, short: parts[0] || 'Socio' };
+};
+
+const getProgressPercent = (act) => {
+  if (act.status === 'Concluido') return 100;
+  const step = act.milestoneStep !== undefined && act.milestoneStep !== null ? Number(act.milestoneStep) : 0;
+  if (step > 0) return Math.min(100, step * 20);
+  if (act.status === 'En revisión') return 80;
+  if (act.status === 'En curso') return 40;
+  return 0;
+};
+
+// Aro de Progreso Circular SVG estilo Notion
+const CircularProgressRing = ({ percent }) => {
+  const size = 16;
+  const strokeWidth = 2.5;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (percent / 100) * circumference;
+  const color = percent === 100 ? '#00e03c' : percent >= 60 ? '#38bdf8' : percent > 0 ? '#fbbf24' : '#64748b';
+
+  return (
+    <div className="flex items-center gap-1.5 font-mono text-[11px] font-bold text-slate-300">
+      <svg width={size} height={size} className="transform -rotate-90 shrink-0">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="rgba(255, 255, 255, 0.15)"
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          fill="none"
+          className="transition-all duration-300"
+        />
+      </svg>
+      <span className={percent === 100 ? 'text-[#00e03c]' : 'text-slate-300'}>{percent}%</span>
+    </div>
+  );
+};
+
+// Píldoras de Proyectos estilo Notion
+const renderProjectBadge = (projectTitle) => {
+  if (!projectTitle) return <span className="text-slate-500 text-[10px] italic">General</span>;
+  const pLower = projectTitle.toLowerCase();
+  let style = 'bg-white/[0.08] text-slate-300 border-white/[0.12]';
+  let icon = '📁';
+  if (pLower.includes('seram s.r.l') || pLower.includes('directorio') || pLower.includes('gobernanza')) {
+    style = 'bg-amber-500/15 text-amber-300 border-amber-500/30';
+    icon = '🏛️';
+  } else if (pLower.includes('página web') || pLower.includes('web')) {
+    style = 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30';
+    icon = '💻';
+  } else if (pLower.includes('valle de las agujas') || pLower.includes('campo')) {
+    style = 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30';
+    icon = '🏔️';
+  } else if (pLower.includes('redes') || pLower.includes('contenido')) {
+    style = 'bg-orange-500/15 text-orange-300 border-orange-500/30';
+    icon = '📱';
+  } else if (pLower.includes('academy') || pLower.includes('syso')) {
+    style = 'bg-purple-500/15 text-purple-300 border-purple-500/30';
+    icon = '🎓';
+  }
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap shadow-sm ${style}`}>
+      <span>{icon}</span>
+      <span className="truncate max-w-[150px]">{projectTitle}</span>
+    </span>
+  );
+};
+
+// Píldoras de Objetivos Estratégicos estilo Notion
+const renderObjectiveBadge = (obj) => {
+  const oLower = String(obj).toLowerCase();
+  let style = 'bg-white/[0.08] text-slate-300 border-white/[0.12]';
+  let icon = '🎯';
+  if (oLower.includes('legalizar') || oLower.includes('formalizar')) {
+    style = 'bg-amber-500/15 text-amber-300 border-amber-500/30';
+    icon = '⚖️';
+  } else if (oLower.includes('liderar')) {
+    style = 'bg-blue-500/15 text-blue-300 border-blue-500/30';
+    icon = '🚀';
+  } else if (oLower.includes('rentabilidad')) {
+    style = 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30';
+    icon = '💰';
+  } else if (oLower.includes('cartera') || oLower.includes('clientes')) {
+    style = 'bg-purple-500/15 text-purple-300 border-purple-500/30';
+    icon = '🤝';
+  }
+  return (
+    <span key={obj} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold border whitespace-nowrap shadow-sm ${style}`}>
+      <span>{icon}</span>
+      <span>{obj}</span>
+    </span>
+  );
+};
+
 export default function ActivitiesAndClientsModule({ currentSocio }) {
   const {
     activities = [],
@@ -62,7 +200,10 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     triggerToast
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState('kanban'); // 'kanban', 'table', 'clients', 'prospects', 'progress'
+  const [activeTab, setActiveTab] = useState('table'); // 'table' (Notion), 'kanban', 'clients', 'prospects', 'progress', 'missions', 'synergies'
+  const [scopeFilter, setScopeFilter] = useState('all'); // 'all' (Grupal) | 'personal' (Mis actividades)
+  const [pageSize, setPageSize] = useState(10); // 10 (default: últimas 10) | 25 | 'all'
+  const [currentPage, setCurrentPage] = useState(1);
   const [partnerFilter, setPartnerFilter] = useState('all');
   const [projectFilter, setProjectFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -102,6 +243,11 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
       setDrawerData(null);
     }
   }, [drawerActivity]);
+
+  // Resetear paginación al cambiar cualquier filtro
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [scopeFilter, partnerFilter, projectFilter, searchQuery, pageSize]);
 
   const handleApproveActivity = (act) => {
     const validation = validateCrossApproval(currentSocio, act);
@@ -264,18 +410,56 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
   const [clLocation, setClLocation] = useState('');
   const [clNotes, setClNotes] = useState('');
 
-  // Filtro de Actividades
+  // Filtro de Actividades (Personal vs Grupal, Proyectos, Búsqueda y Ordenamiento)
   const filteredActivities = useMemo(() => {
-    return activities.filter((act) => {
-      const matchPartner = partnerFilter === 'all' || act.assignedPartner === partnerFilter;
-      const matchProject = projectFilter === 'all' || String(act.projectId) === String(projectFilter);
+    const list = activities.filter((act) => {
+      // 1. Filtro Personal (Mis Actividades) vs Grupal (Todo el Equipo)
+      if (scopeFilter === 'personal') {
+        const myName = currentSocio?.name || '';
+        const isMe =
+          act.assignedPartner === myName ||
+          act.coPartner === myName ||
+          (myName.includes('Fabricio') && (act.assignedPartner?.includes('Sebastian') || act.assignedPartner?.includes('Fabricio'))) ||
+          (myName.includes('Diego') && act.assignedPartner?.includes('Diego')) ||
+          (myName.includes('Fernando') && act.assignedPartner?.includes('Fernando'));
+        if (!isMe) return false;
+      }
+
+      // 2. Filtro por Socio específico
+      const matchPartner =
+        partnerFilter === 'all' ||
+        act.assignedPartner === partnerFilter ||
+        act.coPartner === partnerFilter ||
+        (partnerFilter.includes('Fabricio') && act.assignedPartner?.includes('Sebastian'));
+
+      // 3. Filtro por Proyecto
+      const matchProject =
+        projectFilter === 'all' ||
+        String(act.projectId) === String(projectFilter) ||
+        (act.projectTitle && act.projectTitle.toLowerCase().includes(String(projectFilter).toLowerCase()));
+
+      // 4. Búsqueda por texto
       const matchSearch =
+        !searchQuery.trim() ||
         act.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (act.description && act.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (act.projectTitle && act.projectTitle.toLowerCase().includes(searchQuery.toLowerCase()));
+        (act.projectTitle && act.projectTitle.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (act.assignedPartner && act.assignedPartner.toLowerCase().includes(searchQuery.toLowerCase()));
+
       return matchPartner && matchProject && matchSearch;
     });
-  }, [activities, partnerFilter, projectFilter, searchQuery]);
+
+    // Ordenar por ID o fecha descendente (últimas actividades primero)
+    return [...list].sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
+  }, [activities, scopeFilter, partnerFilter, projectFilter, searchQuery, currentSocio]);
+
+  // Paginación (Por defecto: últimas 10 actividades)
+  const totalPages = pageSize === 'all' ? 1 : Math.ceil(filteredActivities.length / pageSize) || 1;
+  const paginatedActivities = useMemo(() => {
+    if (pageSize === 'all') return filteredActivities;
+    const start = (currentPage - 1) * pageSize;
+    return filteredActivities.slice(start, start + pageSize);
+  }, [filteredActivities, currentPage, pageSize]);
 
   // Lista de Socios Únicos
   const partnersList = [
@@ -434,6 +618,16 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         {/* Pestañas de Vista */}
         <div className="flex flex-wrap items-center gap-1.5 bg-white/[0.04] p-1.5 rounded-xl border border-white/[0.08]">
           <button
+            onClick={() => setActiveTab('table')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+              activeTab === 'table'
+                ? 'bg-blue-600 text-white shadow-md font-black shadow-blue-600/30'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
+            }`}
+          >
+            <Table className="w-3.5 h-3.5 text-sky-300" /> ⊞ Base de Datos (Notion)
+          </button>
+          <button
             onClick={() => setActiveTab('kanban')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
               activeTab === 'kanban'
@@ -442,16 +636,6 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
             }`}
           >
             <Layers className="w-3.5 h-3.5" /> Tablero Kanban
-          </button>
-          <button
-            onClick={() => setActiveTab('table')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'table'
-                ? 'bg-[#00e03c] text-slate-950 shadow-md font-black'
-                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
-            }`}
-          >
-            <ListFilter className="w-3.5 h-3.5" /> Vista Tabla (Notion)
           </button>
           <button
             onClick={() => setActiveTab('clients')}
@@ -515,62 +699,163 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
               setActProjectId(activeServices[0]?.id || '');
               setShowNewActivityModal(true);
             }}
-            className="px-4 py-2 rounded-xl bg-[#00e03c] hover:bg-[#00e03c]/90 text-slate-950 font-black text-xs flex items-center gap-2 transition-all shadow-lg shadow-[#00e03c]/10"
+            className="px-4 py-2 rounded-xl bg-[#00e03c] hover:bg-[#00e03c]/90 text-slate-950 font-black text-xs flex items-center gap-2 transition-all shadow-lg shadow-[#00e03c]/10 cursor-pointer"
           >
             <Plus className="w-4 h-4 stroke-[3]" /> Registrar Actividad Clave
           </button>
           <button
             onClick={() => setShowNewClientModal(true)}
-            className="px-3.5 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.15] text-white font-bold text-xs flex items-center gap-2 transition-all"
+            className="px-3.5 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.15] text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer"
           >
             <Building2 className="w-4 h-4 text-purple-400" /> Inscribir Cliente
           </button>
         </div>
       </div>
 
-      {/* ── BARRA DE FILTROS (Búsqueda, Socio, Proyecto) ── */}
+      {/* ── BARRA DE HERRAMIENTAS Y FILTROS ESTILO NOTION ── */}
       {(activeTab === 'kanban' || activeTab === 'table') && (
-        <div className="flex flex-wrap items-center gap-3 bg-white/[0.02] p-3 rounded-xl border border-white/[0.06]">
-          {/* Búsqueda */}
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Buscar actividad o entregable..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full text-xs pl-9 pr-3 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-[#00e03c]"
-            />
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-[#0d1522]/90 p-3 rounded-2xl border border-white/[0.08] shadow-md">
+          {/* Grupo 1: Filtro Personal vs Grupal & Intercambio de Vistas */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Toggle Personal vs Grupal */}
+            <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
+              <button
+                type="button"
+                onClick={() => setScopeFilter('personal')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  scopeFilter === 'personal'
+                    ? 'bg-[#00e03c] text-slate-950 font-black shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                }`}
+                title="Filtrar actividades donde estás asignado"
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>Mis Actividades (Personal)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setScopeFilter('all')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  scopeFilter === 'all'
+                    ? 'bg-white/[0.14] text-white font-black shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                }`}
+                title="Ver todas las actividades grupales de SERAM"
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Todo el Equipo (Grupal)</span>
+              </button>
+            </div>
+
+            {/* Sub-Switch de Vistas (Tabla Notion vs Tablero) */}
+            <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
+              <button
+                type="button"
+                onClick={() => setActiveTab('table')}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeTab === 'table'
+                    ? 'bg-blue-600 text-white font-black shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Vista Base de Datos / Tabla tipo Notion"
+              >
+                <Table className="w-3.5 h-3.5" />
+                <span>Tabla</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('kanban')}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeTab === 'kanban'
+                    ? 'bg-blue-600 text-white font-black shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Vista Tablero de Columnas Kanban"
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>Tablero</span>
+              </button>
+            </div>
           </div>
 
-          {/* Filtro por Socio */}
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold text-slate-500 uppercase">Socio:</span>
-            <select
-              value={partnerFilter}
-              onChange={(e) => setPartnerFilter(e.target.value)}
-              className="text-xs px-2.5 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-lg text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white"
-            >
-              <option value="all">Todos los Socios</option>
-              {partnersList.map((p) => (
-                <option key={p.name} value={p.name}>{p.name}</option>
-              ))}
-            </select>
-          </div>
+          {/* Grupo 2: Filtros Selectores, Paginación y Búsqueda */}
+          <div className="flex flex-wrap items-center gap-2.5 flex-1 justify-end min-w-[260px]">
+            {/* Selector de Límite (Últimas 10 por defecto) */}
+            <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.08] text-xs">
+              <span className="text-[10px] font-bold text-slate-400 uppercase px-2">Ver:</span>
+              <button
+                type="button"
+                onClick={() => setPageSize(10)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  pageSize === 10 ? 'bg-[#00e03c] text-slate-950 font-black' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Últimas 10
+              </button>
+              <button
+                type="button"
+                onClick={() => setPageSize(25)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  pageSize === 25 ? 'bg-[#00e03c] text-slate-950 font-black' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                25
+              </button>
+              <button
+                type="button"
+                onClick={() => setPageSize('all')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  pageSize === 'all' ? 'bg-[#00e03c] text-slate-950 font-black' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Todas ({filteredActivities.length})
+              </button>
+            </div>
 
-          {/* Filtro por Proyecto */}
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold text-slate-500 uppercase">Proyecto:</span>
-            <select
-              value={projectFilter}
-              onChange={(e) => setProjectFilter(e.target.value)}
-              className="text-xs px-2.5 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-lg text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white max-w-[200px] truncate"
-            >
-              <option value="all">Todos los Proyectos</option>
-              {activeServices.map((p) => (
-                <option key={p.id} value={p.id}>{p.client || p.type}</option>
-              ))}
-            </select>
+            {/* Filtro por Socio */}
+            <div className="flex items-center gap-1.5">
+              <select
+                value={partnerFilter}
+                onChange={(e) => setPartnerFilter(e.target.value)}
+                className="text-xs px-2.5 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
+              >
+                <option value="all">Todos los Socios</option>
+                {partnersList.map((p) => (
+                  <option key={p.name} value={p.name}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Filtro por Proyecto */}
+            <div className="flex items-center gap-1.5">
+              <select
+                value={projectFilter}
+                onChange={(e) => setProjectFilter(e.target.value)}
+                className="text-xs px-2.5 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white max-w-[170px] truncate cursor-pointer"
+              >
+                <option value="all">Todos los Proyectos</option>
+                <option value="SERAM S.R.L.">SERAM S.R.L.</option>
+                <option value="Página Web">Página Web</option>
+                <option value="Valle de las Agujas">Valle de las Agujas</option>
+                <option value="Contenido Redes Sociales">Contenido Redes</option>
+                <option value="Lanzamiento de SERAM Academy">SERAM Academy</option>
+                {activeServices.map((p) => (
+                  <option key={p.id} value={p.id}>{p.client || p.type}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Búsqueda */}
+            <div className="relative min-w-[180px]">
+              <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Buscar actividad o tag..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full text-xs pl-8 pr-3 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#00e03c]"
+              />
+            </div>
           </div>
         </div>
       )}
@@ -588,11 +873,36 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
           >
             {/* ── VISTA 1: TABLERO KANBAN (CENTRAL DE ACTIVIDADES) ── */}
             {activeTab === 'kanban' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          {STATUS_COLUMNS.map((col) => {
-            const colActivities = filteredActivities.filter((a) => a.status === col.id);
-            return (
-              <div key={col.id} className="flex flex-col space-y-3 bg-white/[0.02] border border-white/[0.06] rounded-2xl p-3.5 min-h-[500px]">
+              <div className="space-y-3">
+                {pageSize !== 'all' && (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-[#0c141f] border border-white/[0.08] px-4 py-2.5 rounded-2xl text-xs text-slate-300 shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+                      <span>Mostrando las <strong>{paginatedActivities.length}</strong> actividades más recientes de <strong>{filteredActivities.length}</strong>.</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setPageSize('all')}
+                        className="text-[#00e03c] font-black hover:underline cursor-pointer"
+                      >
+                        Ver todas en Kanban ➔
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('table')}
+                        className="text-sky-400 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                      >
+                        <Table className="w-3 h-3" /> Ver en Base de Datos
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                  {STATUS_COLUMNS.map((col) => {
+                    const colActivities = paginatedActivities.filter((a) => a.status === col.id);
+                    return (
+                      <div key={col.id} className="flex flex-col space-y-3 bg-white/[0.02] border border-white/[0.06] rounded-2xl p-3.5 min-h-[500px]">
                 {/* Cabecera Columna */}
                 <div className="flex items-center justify-between pb-2 border-b border-white/[0.06]">
                   <div className="flex items-center gap-2">
@@ -766,180 +1076,318 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
             );
           })}
         </div>
-      )}
+      </div>
+    )}
 
-      {/* ── VISTA 2: TABLA TIPO NOTION (LISTA DETALLADA & ERGONÓMICA) ── */}
+      {/* ── VISTA 2: BASE DE DATOS / TABLA TIPO NOTION (IDÉNTICA A LA CAPTURA DE SERAM) ── */}
       {activeTab === 'table' && (
-        <GlassCard className="p-0 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-white/[0.06] border-b border-white/[0.1] text-[10px] uppercase font-black tracking-wider text-slate-400">
-                <tr>
-                  <th className="p-3.5">Actividad Clave / Entregable</th>
-                  <th className="p-3.5">Proyecto / Cliente</th>
-                  <th className="p-3.5">Socio Asignado</th>
-                  <th className="p-3.5">Hitos de Ejecución (5 Fases)</th>
-                  <th className="p-3.5">Estado</th>
-                  <th className="p-3.5">Prioridad</th>
-                  <th className="p-3.5">Fecha Límite</th>
-                  <th className="p-3.5">Horas</th>
-                  <th className="p-3.5 text-right">Ficha / Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/[0.06]">
-                {filteredActivities.length === 0 ? (
+        <div className="space-y-3">
+          <GlassCard className="p-0 overflow-hidden border-white/[0.1] bg-[#0c131d]/90 shadow-2xl rounded-2xl">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-white/[0.04] border-b border-white/[0.08] text-[10px] uppercase font-bold tracking-wider text-slate-400 select-none">
                   <tr>
-                    <td colSpan="9" className="p-8 text-center text-slate-500">
-                      No se encontraron actividades con los filtros seleccionados.
-                    </td>
+                    <th className="p-3 pl-4 min-w-[220px]">
+                      <span className="flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#00e03c]" /> Actividad
+                      </span>
+                    </th>
+                    <th className="p-3 min-w-[150px]">
+                      <span className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-slate-400" /> Fecha
+                      </span>
+                    </th>
+                    <th className="p-3 min-w-[160px]">
+                      <span className="flex items-center gap-1.5">
+                        <User className="w-3.5 h-3.5 text-sky-400" /> Encargado del Proyecto
+                      </span>
+                    </th>
+                    <th className="p-3 min-w-[110px]">
+                      <span className="flex items-center gap-1.5">
+                        <UserCheck className="w-3.5 h-3.5 text-slate-400" /> Última ed...
+                      </span>
+                    </th>
+                    <th className="p-3 text-center min-w-[125px]">
+                      <span className="flex items-center justify-center gap-1" title="Hitos de Ejecución Técnica (1 a 5)">
+                        <span className="text-[10px] font-mono">☑️ 1-5 Hitos</span>
+                      </span>
+                    </th>
+                    <th className="p-3 min-w-[90px]">
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-[#00e03c]" /> Progreso
+                      </span>
+                    </th>
+                    <th className="p-3 min-w-[200px]">
+                      <span className="flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5 text-slate-400" /> Descripción de Actividad
+                      </span>
+                    </th>
+                    <th className="p-3 min-w-[150px]">
+                      <span className="flex items-center gap-1.5">
+                        <Briefcase className="w-3.5 h-3.5 text-emerald-400" /> PROYECTOS
+                      </span>
+                    </th>
+                    <th className="p-3 min-w-[170px]">
+                      <span className="flex items-center gap-1.5">
+                        <Target className="w-3.5 h-3.5 text-amber-400" /> OBJETIVOS
+                      </span>
+                    </th>
+                    <th className="p-3 min-w-[120px]">
+                      <span className="flex items-center gap-1.5">
+                        <Link2 className="w-3.5 h-3.5 text-sky-400" /> URL
+                      </span>
+                    </th>
+                    <th className="p-3 pr-4 text-right min-w-[90px]">Acciones</th>
                   </tr>
-                ) : (
-                  filteredActivities.map((act) => {
-                    const currentStep = getMilestoneStep(act);
-                    return (
-                      <tr
-                        key={act.id}
-                        className="hover:bg-white/[0.04] transition-colors group cursor-pointer"
-                        onClick={(e) => {
-                          if (e.target.closest('button') || e.target.closest('select') || e.target.closest('input')) return;
-                          setDrawerActivity(act);
-                        }}
-                      >
-                        <td className="p-3.5 font-bold text-white max-w-xs">
-                          <div className="flex items-center gap-1.5 line-clamp-1 group-hover:text-[#00e03c] transition-colors">
-                            <span>{act.title}</span>
-                            <ChevronRight className="w-3 h-3 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                          </div>
-                          {act.description && <div className="text-[10px] text-slate-400 font-normal line-clamp-1">{act.description}</div>}
-                        </td>
-                        <td className="p-3.5 text-emerald-400 font-medium whitespace-nowrap">
-                          {act.projectTitle || 'General'}
-                        </td>
-                        <td className="p-3.5 whitespace-nowrap">
-                          <span className="flex items-center gap-1.5 font-bold text-slate-300">
-                            <User className="w-3 h-3 text-[#00e03c]" />
-                            {act.assignedPartner}
-                          </span>
-                        </td>
+                </thead>
+                <tbody className="divide-y divide-white/[0.04]">
+                  {paginatedActivities.length === 0 ? (
+                    <tr>
+                      <td colSpan="11" className="p-12 text-center text-slate-500">
+                        <div className="max-w-sm mx-auto space-y-2">
+                          <p className="font-bold text-slate-400">No hay actividades para este filtro</p>
+                          <p className="text-[11px] text-slate-500">Prueba cambiando el filtro de socio o el selector de límite a 'Todas'.</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedActivities.map((act) => {
+                      const currentStep = getMilestoneStep(act);
+                      const progressPct = getProgressPercent(act);
+                      const { initials, short } = getPartnerInitials(act.assignedPartner);
 
-                        {/* Hitos Interactivos Notion-Style (5 Fases) */}
-                        <td className="p-3.5">
-                          <div className="flex items-center gap-1">
-                            {STANDARD_MILESTONES.map((m) => {
-                              const isCompleted = currentStep >= m.step;
-                              return (
-                                <button
-                                  key={m.step}
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleMilestoneClick(act, m.step);
-                                  }}
-                                  className={`px-1.5 py-0.5 rounded text-[9px] font-black transition-all flex items-center gap-0.5 cursor-pointer ${
-                                    isCompleted
-                                      ? 'bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/40 shadow-sm shadow-[#00e03c]/10'
-                                      : 'bg-white/[0.04] text-slate-500 hover:text-slate-300 hover:bg-white/[0.08] border border-white/[0.06]'
-                                  }`}
-                                  title={`Hito ${m.step}: ${m.label} (Clic para marcar/desmarcar)`}
-                                >
-                                  {isCompleted && <Check className="w-2.5 h-2.5 stroke-[3]" />}
-                                  <span>{m.step}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </td>
+                      return (
+                        <tr
+                          key={act.id}
+                          onClick={(e) => {
+                            if (e.target.closest('button') || e.target.closest('select') || e.target.closest('a') || e.target.closest('input')) return;
+                            setDrawerActivity(act);
+                          }}
+                          className="hover:bg-white/[0.04] transition-colors group cursor-pointer border-b border-white/[0.04]"
+                        >
+                          {/* 1. Actividad */}
+                          <td className="p-3 pl-4">
+                            <div className="flex items-center gap-2">
+                              <span className="w-4 h-4 rounded-full bg-[#00e03c]/15 text-[#00e03c] border border-[#00e03c]/30 flex items-center justify-center shrink-0 shadow-sm shadow-[#00e03c]/20">
+                                <CheckCircle2 className="w-3 h-3 stroke-[2.5]" />
+                              </span>
+                              <span className="font-bold text-white group-hover:text-[#00e03c] transition-colors line-clamp-1">
+                                {act.title}
+                              </span>
+                            </div>
+                          </td>
 
-                        <td className="p-3.5">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <select
-                              value={act.status}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                handleRequestStatusChange(act, e.target.value);
-                              }}
-                              className="text-[11px] font-bold px-2 py-1 rounded-lg bg-white/[0.08] border border-white/[0.12] text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white"
-                            >
-                              {STATUS_COLUMNS.map((s) => (
-                                <option key={s.id} value={s.id}>{s.label}</option>
-                              ))}
-                            </select>
+                          {/* 2. Fecha */}
+                          <td className="p-3 whitespace-nowrap text-slate-300 font-mono text-[11px]">
+                            {formatDateRange(act.startDate, act.dueDate)}
+                          </td>
 
-                            {act.status === 'En revisión' && currentSocio?.name !== act.assignedPartner && (
+                          {/* 3. Encargado del Proyecto */}
+                          <td className="p-3 whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1.5 font-bold text-slate-200">
+                              <span className="w-4 h-4 rounded-full bg-sky-500/20 text-sky-300 flex items-center justify-center">
+                                <User className="w-2.5 h-2.5" />
+                              </span>
+                              <span className="text-[11px] tracking-wide">
+                                {act.assignedPartner ? act.assignedPartner.toUpperCase() : 'SIN ASIGNAR'}
+                              </span>
+                            </span>
+                          </td>
+
+                          {/* 4. Última edición / Autor */}
+                          <td className="p-3 whitespace-nowrap">
+                            <div className="inline-flex items-center gap-1.5">
+                              <span className="w-4 h-4 rounded-full bg-slate-700/80 text-[8px] font-black text-slate-200 flex items-center justify-center border border-white/10 shadow-sm">
+                                {initials}
+                              </span>
+                              <span className="text-[11px] text-slate-300 font-medium">{short}</span>
+                            </div>
+                          </td>
+
+                          {/* 5. 5 Checkboxes Interactivos estilo Notion (Azul con Check Blanco) */}
+                          <td className="p-3 text-center whitespace-nowrap">
+                            <div className="flex items-center justify-center gap-1">
+                              {[1, 2, 3, 4, 5].map((step) => {
+                                const isChecked = currentStep >= step;
+                                return (
+                                  <button
+                                    key={step}
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleMilestoneClick(act, step);
+                                    }}
+                                    title={`Hito ${step}: ${STANDARD_MILESTONES[step - 1]?.label || ''}`}
+                                    className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center transition-all cursor-pointer ${
+                                      isChecked
+                                        ? 'bg-[#0070f3] hover:bg-blue-500 text-white shadow-sm ring-1 ring-blue-400/40'
+                                        : 'border border-white/20 hover:border-white/50 bg-white/[0.04]'
+                                    }`}
+                                  >
+                                    {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </td>
+
+                          {/* 6. Progreso circular */}
+                          <td className="p-3 whitespace-nowrap">
+                            <CircularProgressRing percent={progressPct} />
+                          </td>
+
+                          {/* 7. Descripción */}
+                          <td className="p-3 text-slate-400 text-[11px] max-w-[220px]">
+                            <span className="line-clamp-1" title={act.description}>
+                              {act.description || 'Sin notas'}
+                            </span>
+                          </td>
+
+                          {/* 8. PROYECTOS */}
+                          <td className="p-3 whitespace-nowrap">
+                            {renderProjectBadge(act.projectTitle || (act.projectId === 2 ? 'Plataforma Digital & Ecosistema SERAM' : 'SERAM S.R.L.'))}
+                          </td>
+
+                          {/* 9. OBJETIVOS */}
+                          <td className="p-3 whitespace-nowrap">
+                            <div className="flex items-center gap-1 flex-wrap max-w-[180px]">
+                              {Array.isArray(act.strategicObjectives) && act.strategicObjectives.length > 0 ? (
+                                act.strategicObjectives.map(obj => renderObjectiveBadge(obj))
+                              ) : (
+                                renderObjectiveBadge(act.category?.includes('Legal') ? 'LEGALIZAR Y FORMALIZAR' : 'LIDERAR EL SECTOR')
+                              )}
+                            </div>
+                          </td>
+
+                          {/* 10. URL */}
+                          <td className="p-3 whitespace-nowrap">
+                            {act.url || act.deliverableUrl ? (
+                              <a
+                                href={act.url || act.deliverableUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-1 text-[11px] text-sky-400 hover:text-sky-300 font-mono underline decoration-sky-500/40 hover:decoration-sky-400 transition-colors max-w-[120px] truncate"
+                                title={act.url || act.deliverableUrl}
+                              >
+                                <ExternalLink className="w-3 h-3 shrink-0" />
+                                <span className="truncate">{(act.url || act.deliverableUrl).replace(/^https?:\/\//, '')}</span>
+                              </a>
+                            ) : (
                               <button
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleApproveActivity(act);
+                                  setDrawerActivity(act);
                                 }}
-                                className="px-2 py-1 rounded-md bg-[#00e03c] text-slate-950 font-black text-[9px] hover:bg-[#00e03c]/90 transition-all cursor-pointer inline-flex items-center gap-1 shadow-sm"
-                                title="Aprobar entregable y asignar XP"
+                                className="text-[10px] text-slate-500 hover:text-slate-300 flex items-center gap-0.5 transition-colors cursor-pointer"
+                                title="Adjuntar link en la ficha"
                               >
-                                <ShieldCheck className="w-2.5 h-2.5" /> Aprobar (+XP)
+                                <Plus className="w-2.5 h-2.5" /> Link
                               </button>
                             )}
+                          </td>
 
-                            {act.status === 'Concluido' && act.xp_awarded ? (
-                              <span className="text-[9px] font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-1.5 py-0.5 rounded font-mono">
-                                +{act.xp_awarded} XP
-                              </span>
-                            ) : null}
-                          </div>
-                        </td>
-                        <td className="p-3.5 whitespace-nowrap">
-                          <span className={`text-[10px] font-black px-2 py-0.5 rounded border ${PRIORITY_STYLES[act.priority] || PRIORITY_STYLES.Media}`}>
-                            {act.priority}
-                          </span>
-                        </td>
-                        <td className="p-3.5 text-slate-400 font-mono whitespace-nowrap">
-                          {act.dueDate || 'Sin fecha'}
-                        </td>
-                        <td className="p-3.5 text-slate-300 font-mono whitespace-nowrap">
-                          {act.actualHours > 0 ? `${act.actualHours}h / ` : ''}{act.estimatedHours || 0}h
-                        </td>
-                        <td className="p-3.5 text-right space-x-1 whitespace-nowrap">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDrawerActivity(act);
-                            }}
-                            className="p-1 rounded hover:bg-[#00e03c]/10 text-slate-400 hover:text-[#00e03c] transition-colors"
-                            title="Abrir ficha detallada (Slide-over lateral)"
-                          >
-                            <FileText className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openEditActivity(act);
-                            }}
-                            className="p-1 rounded hover:bg-white/[0.1] text-slate-400 hover:text-white"
-                            title="Editar en formulario modal"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteActivity(act.id);
-                            }}
-                            className="p-1 rounded hover:bg-rose-500/20 text-slate-500 hover:text-rose-400"
-                            title="Eliminar actividad"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
+                          {/* 11. Acciones */}
+                          <td className="p-3 pr-4 text-right space-x-1 whitespace-nowrap">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDrawerActivity(act);
+                              }}
+                              className="p-1 rounded hover:bg-[#00e03c]/10 text-slate-400 hover:text-[#00e03c] transition-colors cursor-pointer"
+                              title="Abrir ficha detallada (Slide-over lateral)"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEditActivity(act);
+                              }}
+                              className="p-1 rounded hover:bg-white/[0.1] text-slate-400 hover:text-white cursor-pointer"
+                              title="Editar actividad"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteActivity(act.id);
+                              }}
+                              className="p-1 rounded hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 cursor-pointer"
+                              title="Eliminar actividad"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pie de Tabla: Paginación ergonómica ("Últimas 10") */}
+            <div className="p-3.5 bg-white/[0.02] border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+              <div className="flex items-center gap-2">
+                <span>Mostrando</span>
+                <span className="font-bold text-white">
+                  {filteredActivities.length === 0 ? 0 : (currentPage - 1) * (pageSize === 'all' ? filteredActivities.length : pageSize) + 1}
+                  {' - '}
+                  {pageSize === 'all' ? filteredActivities.length : Math.min(currentPage * pageSize, filteredActivities.length)}
+                </span>
+                <span>de</span>
+                <span className="font-bold text-white">{filteredActivities.length}</span>
+                <span>actividades</span>
+                {pageSize !== 'all' && (
+                  <span className="text-[10px] text-[#00e03c] bg-[#00e03c]/10 px-2 py-0.5 rounded-full font-mono border border-[#00e03c]/20">
+                    Pág. {currentPage} de {totalPages}
+                  </span>
                 )}
-              </tbody>
-            </table>
-          </div>
-        </GlassCard>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={currentPage <= 1}
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  className="px-3 py-1 rounded-lg border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] disabled:opacity-30 disabled:cursor-not-allowed text-white font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" /> Anterior
+                </button>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      currentPage === pageNum
+                        ? 'bg-[#00e03c] text-slate-950 font-black shadow-md'
+                        : 'border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  className="px-3 py-1 rounded-lg border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] disabled:opacity-30 disabled:cursor-not-allowed text-white font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  Siguiente <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </GlassCard>
+        </div>
       )}
 
       {/* ── VISTA 3: DIRECTORIO DE CLIENTES E INSTITUCIONES ── */}
@@ -1850,15 +2298,25 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                       </select>
                     </div>
 
-                    {/* Fecha Límite */}
+                    {/* Rango de Fechas (Inicio y Límite) */}
                     <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-slate-400">Fecha Límite</label>
-                      <input
-                        type="date"
-                        value={drawerData.dueDate || ''}
-                        onChange={(e) => setDrawerData(prev => ({ ...prev, dueDate: e.target.value }))}
-                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-mono focus:outline-none focus:border-[#00e03c]"
-                      />
+                      <label className="text-[10px] font-black uppercase text-slate-400">Rango de Fechas (Inicio ➔ Límite)</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <input
+                          type="date"
+                          value={drawerData.startDate || ''}
+                          onChange={(e) => setDrawerData(prev => ({ ...prev, startDate: e.target.value }))}
+                          className="w-full px-2.5 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-mono text-[11px] focus:outline-none focus:border-[#00e03c]"
+                          title="Fecha de inicio"
+                        />
+                        <input
+                          type="date"
+                          value={drawerData.dueDate || ''}
+                          onChange={(e) => setDrawerData(prev => ({ ...prev, dueDate: e.target.value }))}
+                          className="w-full px-2.5 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-mono text-[11px] focus:outline-none focus:border-[#00e03c]"
+                          title="Fecha límite"
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -1886,6 +2344,32 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                         className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-[#00e03c] font-black font-mono focus:outline-none focus:border-[#00e03c]"
                       />
                     </div>
+                  </div>
+
+                  {/* Enlace URL de Entregable (Google Docs, Drive, TikTok, etc.) */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-sky-400 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <Link2 className="w-3.5 h-3.5" /> Enlace de Entregable / Documento URL
+                      </span>
+                      {(drawerData.url || drawerData.deliverableUrl) && (
+                        <a
+                          href={drawerData.url || drawerData.deliverableUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] text-sky-300 underline font-mono flex items-center gap-1 hover:text-white"
+                        >
+                          Abrir Link ➔
+                        </a>
+                      )}
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://docs.google.com/... o https://drive.google.com/..."
+                      value={drawerData.url || drawerData.deliverableUrl || ''}
+                      onChange={(e) => setDrawerData(prev => ({ ...prev, url: e.target.value, deliverableUrl: e.target.value }))}
+                      className="w-full px-3 py-2 bg-white/[0.06] border border-sky-500/30 rounded-xl text-white font-mono text-xs placeholder-slate-500 focus:outline-none focus:border-sky-400"
+                    />
                   </div>
 
                   {/* Descripción / Entregable */}
