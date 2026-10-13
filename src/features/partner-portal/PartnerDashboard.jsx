@@ -3234,12 +3234,12 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
   // Calcular honorarios meritocráticos y balance de horas por proyecto (incluyendo proyectos internos y desarrollo web)
   const meritocraticShares = activeServices
     .map(p => {
-      const isInternal = p.tag === 'Proyecto Interno Real' || (p.budget || 0) === 0 || p.type?.toLowerCase().includes('plataforma') || p.client?.toLowerCase().includes('interno') || p.id === 'srm-internal-web';
+      const isInternal = p.tag === 'Proyecto Interno Real' || (p.budget || 0) === 0 || p.type?.toLowerCase().includes('plataforma') || p.client?.toLowerCase().includes('interno') || p.id === 'srm-internal-web' || p.id === 17;
       const projectLogs = timeLogs.filter(l => {
-        if (p.id === 'srm-internal-web' || isInternal) {
-          return l.project_id === 'srm-internal-web' || l.project_title?.toLowerCase().includes('plataforma');
+        if (p.id === 'srm-internal-web' || p.id === 17 || isInternal) {
+          return l.project_id === 'srm-internal-web' || l.project_id === 17 || l.project_title?.toLowerCase().includes('plataforma');
         }
-        return (l.project_id === p.id || String(l.project_id) === String(p.id)) && !l.project_title?.toLowerCase().includes('plataforma') && l.project_id !== 'srm-internal-web';
+        return (l.project_id === p.id || String(l.project_id) === String(p.id) || l.project_title === p.client || l.project_title === p.type) && !l.project_title?.toLowerCase().includes('plataforma') && l.project_id !== 'srm-internal-web' && l.project_id !== 17;
       });
       const HT = projectLogs.reduce((acc, curr) => acc + (Number(curr.hours) || 0), 0);
 
@@ -3494,9 +3494,10 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
             <div className="space-y-3.5">
               {partnersConfig.map(partner => {
                 const presence = partnerPresences?.[partner.email] || {};
-                const isOnline = presence.isOnline ?? (partner.email === currentSocio?.email);
-                const isTimerOn = presence.isTimerRunning || false;
-                const pSecs = presence.timerSeconds || 0;
+                const isCurrent = partner.email === currentSocio?.email;
+                const isOnline = isCurrent ? true : (presence.isOnline ?? false);
+                const isTimerOn = isCurrent ? isTimerRunning : (presence.isTimerRunning || false);
+                const pSecs = isCurrent ? timerSec : (presence.timerSeconds || 0);
                 const initials = partner.name.replace('Ing. ', '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
                 return (
@@ -3556,7 +3557,7 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
                           </span>
                         ) : (
                           <span className="font-mono text-slate-300 block mt-1 text-xs sm:text-sm">
-                            {pSecs ? `${(pSecs / 3600).toFixed(1)}h pausa` : 'En pausa'}
+                            {pSecs > 0 ? `${(pSecs / 3600).toFixed(1)}h pausa` : 'En pausa'}
                           </span>
                         )}
                       </div>

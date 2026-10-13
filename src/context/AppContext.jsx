@@ -764,7 +764,15 @@ export function AppProvider({ children }) {
       const saved = localStorage.getItem('seram_partners_presence');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && typeof parsed === 'object') return parsed;
+        if (parsed && typeof parsed === 'object') {
+          // Purgar valores antiguos congelados de 13320 / 9720 / 7200 si no están corriendo
+          Object.keys(parsed).forEach(k => {
+            if (!parsed[k]?.isTimerRunning && (parsed[k]?.timerSeconds === 13320 || parsed[k]?.timerSeconds === 9720 || parsed[k]?.timerSeconds === 7200)) {
+              parsed[k].timerSeconds = 0;
+            }
+          });
+          return parsed;
+        }
       }
     } catch (_) {}
     const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone/i.test(navigator.userAgent);
@@ -780,10 +788,10 @@ export function AppProvider({ children }) {
         currentSectorName: '02. DIRECCIÓN',
         roomCoords: { x: 35, y: 35 },
         isTimerRunning: false,
-        timerSeconds: 13320,
+        timerSeconds: 0,
         timerStartedAt: null,
-        activeTaskId: 101,
-        activeTaskTitle: 'Formulación y Presentación de Propuestas Socioambientales para Concejales Municipales',
+        activeTaskId: 17,
+        activeTaskTitle: 'Plataforma Digital & Ecosistema SERAM',
         device: isMobile ? 'Dispositivo Móvil (Android)' : 'Escritorio (Web)',
         location: 'La Paz, Bolivia'
       },
@@ -798,10 +806,10 @@ export function AppProvider({ children }) {
         currentSectorName: '03. OPERACIONES Y PLANIFICACIÓN',
         roomCoords: { x: 53, y: 17 },
         isTimerRunning: false,
-        timerSeconds: 9720,
+        timerSeconds: 0,
         timerStartedAt: null,
-        activeTaskId: 101,
-        activeTaskTitle: 'Plan de Ordenamiento Territorial y Trámites RMCH',
+        activeTaskId: 11,
+        activeTaskTitle: 'Bonos de Carbono & Minería Ecológica',
         device: 'Escritorio (Web)',
         location: 'Santa Cruz, Bolivia'
       },
@@ -816,10 +824,10 @@ export function AppProvider({ children }) {
         currentSectorName: '11. EXPERIENCIA Y CAMPO',
         roomCoords: { x: 12, y: 55 },
         isTimerRunning: false,
-        timerSeconds: 7200,
+        timerSeconds: 0,
         timerStartedAt: null,
-        activeTaskId: 101,
-        activeTaskTitle: 'Auditoría de Gestión de Residuos EcoIndustrial S.A.',
+        activeTaskId: 16,
+        activeTaskTitle: 'G.A.M.L.P. Lombricultura & Auditoría',
         device: 'Dispositivo Móvil',
         location: 'La Paz, Bolivia'
       }
@@ -832,19 +840,31 @@ export function AppProvider({ children }) {
       const saved = localStorage.getItem('seram_active_partner_timer');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && typeof parsed === 'object') return parsed;
+        if (parsed && typeof parsed === 'object') {
+          // Si el cronómetro guardado tenía el valor estático de prueba (13320 = 3h 42m), resetear a 0
+          if ((parsed.seconds === 13320 || parsed.seconds === 9720 || parsed.seconds === 7200) && !parsed.isRunning) {
+            parsed.seconds = 0;
+          }
+          return parsed;
+        }
       }
     } catch (_) {}
     return {
       isRunning: false,
-      seconds: 13320, // 3.7 horas iniciales por defecto
+      seconds: 0,
       startedAt: null,
-      projectId: 101,
-      projectTitle: 'Línea Base: Monitoreo Hidrogeoquímico de Mercurio (Hg)',
+      projectId: 17,
+      projectTitle: 'Plataforma Digital & Ecosistema SERAM',
       sectorId: 'direction',
       sectorName: '02. DIRECCIÓN'
     };
   });
+
+  // Ref dinámico para leer el estado del timer más reciente en heartbeats y tickers sin stale closures
+  const activeTimerRef = useRef(activeTimer);
+  useEffect(() => {
+    activeTimerRef.current = activeTimer;
+  }, [activeTimer]);
 
   // Guardar estado del timer en localStorage
   useEffect(() => {
@@ -853,15 +873,21 @@ export function AppProvider({ children }) {
     } catch (_) {}
   }, [activeTimer]);
 
-  // Ticker de 1 segundo para el activeTimer
+  // Ticker de 1 segundo para el activeTimer con cálculo matemático de timestamp
   useEffect(() => {
     let interval = null;
     if (activeTimer.isRunning) {
       interval = setInterval(() => {
-        setActiveTimer(prev => ({
-          ...prev,
-          seconds: (prev.seconds || 0) + 1
-        }));
+        setActiveTimer(prev => {
+          if (!prev.isRunning) return prev;
+          const newSeconds = prev.startedAt 
+            ? Math.max(prev.seconds + 1, Math.floor((Date.now() - prev.startedAt) / 1000))
+            : (prev.seconds || 0) + 1;
+          return {
+            ...prev,
+            seconds: newSeconds
+          };
+        });
       }, 1000);
     }
     return () => {
@@ -1203,16 +1229,17 @@ export function AppProvider({ children }) {
         } catch (_) {}
       }
 
-      // Heartbeat periódico (cada 3s si el cronómetro está corriendo, cada 12s si no)
+      // Heartbeat periódico (cada 2s si el cronómetro está corriendo, cada 10s si no)
       const heartbeatInterval = setInterval(() => {
+        const curTimer = activeTimerRef.current;
         if (broadcastChan) {
           try {
             broadcastChan.postMessage({
               type: 'PARTNER_TIMER_TICK',
               payload: {
                 email,
-                isTimerRunning: activeTimer.isRunning,
-                timerSeconds: activeTimer.seconds
+                isTimerRunning: curTimer.isRunning,
+                timerSeconds: curTimer.seconds
               }
             });
           } catch (_) {}
@@ -1224,13 +1251,13 @@ export function AppProvider({ children }) {
               event: 'partner_timer_tick',
               payload: {
                 email,
-                isTimerRunning: activeTimer.isRunning,
-                timerSeconds: activeTimer.seconds
+                isTimerRunning: curTimer.isRunning,
+                timerSeconds: curTimer.seconds
               }
             });
           } catch (_) {}
         }
-      }, activeTimer.isRunning ? 3000 : 12000);
+      }, activeTimer.isRunning ? 2000 : 10000);
 
       return () => clearInterval(heartbeatInterval);
     }
@@ -1479,26 +1506,9 @@ export function AppProvider({ children }) {
             description: l.description || '',
             logged_at: l.logged_at
           }));
-          const hasDiegoWeb = mappedLogs.some(l => 
-            (l.partner_id?.includes('barrientos') || l.partner_name?.includes('Diego')) &&
-            (l.project_title?.toLowerCase().includes('plataforma') || l.project_id === 2)
-          );
-          const finalLogs = hasDiegoWeb ? mappedLogs : [
-            {
-              id: 101,
-              partner_id: 'barrientoso2401@gmail.com',
-              partner_name: 'Ing. Diego Barrientos',
-              project_id: 2,
-              project_title: 'Plataforma Digital & Ecosistema SERAM',
-              hours: 180.0,
-              description: 'Ingeniería y arquitectura web completa de SERAM: Portal de socios, Miniverso 2.5D, Time Tracker en tiempo real, catálogo de servicios, simulador gamificado y componentes Neuform.',
-              logged_at: '2026-10-10T14:30:00.000Z'
-            },
-            ...mappedLogs
-          ];
-          setTimeLogs(finalLogs);
+          setTimeLogs(mappedLogs);
           try {
-            localStorage.setItem('seram_time_logs', JSON.stringify(finalLogs));
+            localStorage.setItem('seram_time_logs', JSON.stringify(mappedLogs));
           } catch (_) {}
         }
 
@@ -2757,10 +2767,11 @@ export function AppProvider({ children }) {
       return updated;
     });
     try {
+      const numericProjectId = parseInt(projectId) || (projectId === 'srm-internal-web' ? 17 : 17);
       const { data, error } = await supabase.from('time_logs').insert([{
         partner_id: partnerId,
         partner_name: partnerName,
-        project_id: projectId ? parseInt(projectId) : null,
+        project_id: numericProjectId,
         project_title: proj.client || proj.type || proj.title || 'Proyecto General',
         hours: parseFloat(hours),
         description,
@@ -2845,21 +2856,25 @@ export function AppProvider({ children }) {
   };
 
   const startPartnerTimer = (projectId = null, projectTitle = '') => {
-    const pId = projectId || activeTimer.projectId || (activeServices[0]?.id ?? 101);
+    const pId = projectId || activeTimer.projectId || (activeServices[0]?.id ?? 17);
     const pTitle = projectTitle || activeTimer.projectTitle || activeServices.find(p => p.id === pId)?.client || 'Proyecto General';
 
     const now = Date.now();
-    setActiveTimer(prev => ({
-      ...prev,
-      isRunning: true,
-      startedAt: prev.startedAt || now,
-      projectId: pId,
-      projectTitle: pTitle
-    }));
+    setActiveTimer(prev => {
+      const effectiveStartedAt = now - ((prev.seconds || 0) * 1000);
+      return {
+        ...prev,
+        isRunning: true,
+        startedAt: effectiveStartedAt,
+        projectId: pId,
+        projectTitle: pTitle
+      };
+    });
 
     updatePartnerPresence({
       isTimerRunning: true,
-      timerStartedAt: activeTimer.startedAt || now,
+      timerSeconds: activeTimer.seconds || 0,
+      timerStartedAt: now - ((activeTimer.seconds || 0) * 1000),
       activeTaskId: pId,
       activeTaskTitle: pTitle
     });
@@ -2870,11 +2885,14 @@ export function AppProvider({ children }) {
   const pausePartnerTimer = () => {
     setActiveTimer(prev => ({
       ...prev,
-      isRunning: false
+      isRunning: false,
+      startedAt: null
     }));
 
     updatePartnerPresence({
-      isTimerRunning: false
+      isTimerRunning: false,
+      timerSeconds: activeTimer.seconds || 0,
+      timerStartedAt: null
     });
 
     triggerToast('Sesión de trabajo en pausa', 'info');
@@ -2905,7 +2923,7 @@ export function AppProvider({ children }) {
       return false;
     }
 
-    await handleAddTimeLog(activeTimer.projectId || 101, calculatedHours, description);
+    await handleAddTimeLog(activeTimer.projectId || 17, calculatedHours, description);
     resetPartnerTimer();
     triggerToast(`¡Tiempo de ${calculatedHours} hrs registrado exitosamente a proyecto!`, 'success');
     return true;
