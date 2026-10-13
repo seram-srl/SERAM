@@ -122,7 +122,7 @@ export function AppProvider({ children }) {
   const [activeServices, setActiveServices] = useState(() => {
     const realInternalProject = [
       {
-        id: 2,
+        id: 'srm-internal-web',
         code: 'SRM-INT-WEB-01',
         client: 'SERAM S.R.L. (Interno)',
         type: 'Plataforma Digital & Ecosistema SERAM',
@@ -131,7 +131,7 @@ export function AppProvider({ children }) {
         location: 'La Paz - Remoto',
         startDate: '2026-05-01',
         endDate: '2026-12-31',
-        progress: 85,
+        progress: 95,
         budget: 0,
         labCosts: 0,
         subcontractorCosts: 0,
@@ -147,7 +147,10 @@ export function AppProvider({ children }) {
         if (saved) {
           const parsed = JSON.parse(saved);
           const filtered = Array.isArray(parsed) ? parsed.filter(p => p.id !== 101 && p.id !== 1) : [];
-          if (filtered.length > 0) return filtered;
+          if (filtered.length > 0) {
+            const hasInternal = filtered.some(p => p.type?.includes('Plataforma') || p.client?.includes('SERAM S.R.L.'));
+            return hasInternal ? filtered : [realInternalProject[0], ...filtered];
+          }
         }
       } catch (e) {}
     }
@@ -650,18 +653,90 @@ export function AppProvider({ children }) {
 
   // --- TIME LOGS (intranet tracker de trabajo realizado con persistencia Supabase y LocalStorage) ---
   const [timeLogs, setTimeLogs] = useState(() => {
+    const defaultLogs = [
+      {
+        id: 101,
+        partner_id: 'barrientoso2401@gmail.com',
+        partner_name: 'Ing. Diego Barrientos',
+        project_id: 'srm-internal-web',
+        project_title: 'Plataforma Digital & Ecosistema SERAM',
+        hours: 180.0,
+        description: 'Ingeniería y arquitectura web completa de SERAM: Portal de socios, Miniverso 2.5D, Time Tracker en tiempo real, catálogo de servicios, simulador gamificado y componentes Neuform.',
+        logged_at: '2026-10-10T14:30:00.000Z'
+      },
+      {
+        id: 102,
+        partner_id: 'barrientoso2401@gmail.com',
+        partner_name: 'Ing. Diego Barrientos',
+        project_id: 1,
+        project_title: 'Gobierno Autónomo Municipal de Palos Blancos',
+        hours: 4.5,
+        description: 'Línea base hidrogeoquímica de mercurio y protocolo de muestreo de agua potable.',
+        logged_at: '2026-10-11T16:00:00.000Z'
+      },
+      {
+        id: 103,
+        partner_id: 'fernandoaraujo1912@gmail.com',
+        partner_name: 'Ing. Fernando Araujo',
+        project_id: 'srm-internal-web',
+        project_title: 'Plataforma Digital & Ecosistema SERAM',
+        hours: 33.0,
+        description: 'Redacción de fichas técnicas de servicios, compendio normativo ambiental boliviano y contenido de propuestas.',
+        logged_at: '2026-10-09T18:00:00.000Z'
+      },
+      {
+        id: 104,
+        partner_id: 'sebastiansbs51@gmail.com',
+        partner_name: 'Ing. Fabricio Orosco',
+        project_id: 'srm-internal-web',
+        project_title: 'Plataforma Digital & Ecosistema SERAM',
+        hours: 27.0,
+        description: 'Revisión de estatutos fundacionales, gobernanza societaria y parámetros de auditoría ambiental.',
+        logged_at: '2026-10-08T17:00:00.000Z'
+      },
+      {
+        id: 105,
+        partner_id: 'fernandoaraujo1912@gmail.com',
+        partner_name: 'Ing. Fernando Araujo',
+        project_id: 8,
+        project_title: 'GAM, MUNICIPIO DE COBIJA, DEPARTAMENTO PANDO',
+        hours: 4.0,
+        description: 'Propuesta Técnica y Normativa para la Preservación de la Amazonía Pandina (BONOS DE CARBONO).',
+        logged_at: '2026-10-05T22:10:18.590Z'
+      },
+      {
+        id: 106,
+        partner_id: 'sebastiansbs51@gmail.com',
+        partner_name: 'Ing. Fabricio Orosco',
+        project_id: 10,
+        project_title: 'G.A.M.L.P. - Propuesta Técnica de Lombricultura',
+        hours: 4.0,
+        description: 'Estructuración de guía técnica de compostaje y gestión de residuos sólidos orgánicos.',
+        logged_at: '2026-10-04T04:48:11.980Z'
+      }
+    ];
+
     try {
       const saved = typeof window !== 'undefined' ? localStorage.getItem('seram_time_logs') : null;
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const webLogsToAdd = defaultLogs.filter(d => 
+            d.project_id === 'srm-internal-web' && !parsed.some(p => 
+              (p.partner_id === d.partner_id || p.partner_name === d.partner_name) &&
+              (p.project_title?.toLowerCase().includes('plataforma') || p.project_id === 'srm-internal-web')
+            )
+          );
+          if (webLogsToAdd.length > 0) {
+            const merged = [...webLogsToAdd, ...parsed];
+            try { localStorage.setItem('seram_time_logs', JSON.stringify(merged)); } catch (_) {}
+            return merged;
+          }
+          return parsed;
+        }
       }
     } catch (_) {}
-    return [
-      { id: 1, partner_id: 'barrientoso2401@gmail.com', partner_name: 'Ing. Diego Barrientos', project_id: 1, project_title: 'Gobierno Autónomo Municipal de Palos Blancos', hours: 4.5, description: 'Línea base hidrogeoquímica de mercurio y protocolo de muestreo de agua potable.', logged_at: new Date().toISOString() },
-      { id: 2, partner_id: 'fernandoaraujo1912@gmail.com', partner_name: 'Ing. Fernando Araujo', project_id: 6, project_title: 'Plan Minero Ecológico y Protección de Cuencas - Guanay', hours: 3.5, description: 'Modelación hidráulica de red y balance de cuenca para concejales.', logged_at: new Date().toISOString() },
-      { id: 3, partner_id: 'sebastiansbs51@gmail.com', partner_name: 'Ing. Fabricio Orosco', project_id: 10, project_title: 'G.A.M.L.P. - Propuesta Técnica de Lombricultura', hours: 4.0, description: 'Estructuración de guía técnica de compostaje y gestión de residuos sólidos orgánicos.', logged_at: new Date().toISOString() },
-    ];
+    return defaultLogs;
   });
 
   // --- DEFAULT ISOMETRIC OFFICE ROOMS REFERENCE ---
@@ -1349,7 +1424,31 @@ export function AppProvider({ children }) {
             isProposal: Boolean(p.is_proposal || p.isProposal || p.tag === 'Propuesta'),
             tag: p.tag || (p.is_proposal || p.isProposal ? 'Propuesta' : 'Proyecto B2B')
           }));
-          setActiveServices(mappedProjects);
+          // Garantizar que el Proyecto Interno de la Web nunca se pierda
+          const hasInternal = mappedProjects.some(p => p.type?.includes('Plataforma') || p.client?.includes('SERAM S.R.L.'));
+          const finalProjects = hasInternal ? mappedProjects : [
+            {
+              id: 'srm-internal-web',
+              code: 'SRM-INT-WEB-01',
+              client: 'SERAM S.R.L. (Interno)',
+              type: 'Plataforma Digital & Ecosistema SERAM',
+              lead: 'Ing. Diego Barrientos',
+              involved: ['Ing. Diego Barrientos', 'Ing. Fernando Araujo', 'Ing. Fabricio Orosco'],
+              location: 'La Paz - Remoto',
+              startDate: '2026-05-01',
+              endDate: '2026-12-31',
+              progress: 95,
+              budget: 0,
+              labCosts: 0,
+              subcontractorCosts: 0,
+              taxRegime: 'Régimen General',
+              description: 'Desarrollo de la plataforma web corporativa, aula virtual, portal de socios, simulador gamificado y automatizaciones.',
+              tag: 'Proyecto Interno Real',
+              isProposal: false
+            },
+            ...mappedProjects
+          ];
+          setActiveServices(finalProjects);
         }
 
         // 3. Products
@@ -1380,9 +1479,26 @@ export function AppProvider({ children }) {
             description: l.description || '',
             logged_at: l.logged_at
           }));
-          setTimeLogs(mappedLogs);
+          const hasDiegoWeb = mappedLogs.some(l => 
+            (l.partner_id?.includes('barrientos') || l.partner_name?.includes('Diego')) &&
+            (l.project_title?.toLowerCase().includes('plataforma') || l.project_id === 2)
+          );
+          const finalLogs = hasDiegoWeb ? mappedLogs : [
+            {
+              id: 101,
+              partner_id: 'barrientoso2401@gmail.com',
+              partner_name: 'Ing. Diego Barrientos',
+              project_id: 2,
+              project_title: 'Plataforma Digital & Ecosistema SERAM',
+              hours: 180.0,
+              description: 'Ingeniería y arquitectura web completa de SERAM: Portal de socios, Miniverso 2.5D, Time Tracker en tiempo real, catálogo de servicios, simulador gamificado y componentes Neuform.',
+              logged_at: '2026-10-10T14:30:00.000Z'
+            },
+            ...mappedLogs
+          ];
+          setTimeLogs(finalLogs);
           try {
-            localStorage.setItem('seram_time_logs', JSON.stringify(mappedLogs));
+            localStorage.setItem('seram_time_logs', JSON.stringify(finalLogs));
           } catch (_) {}
         }
 

@@ -726,15 +726,70 @@ export function calculateTaskXP({
  * @param {number} totalXP
  * @returns {Object} Objeto del nivel actual con orden de maestría y progreso al siguiente nivel.
  */
-export function getPartnerTier(totalXP = 0) {
+export function getPartnerTier(totalXP = 0, partnerMetrics = {}) {
   const safeXP = Math.max(0, Number(totalXP) || 0);
-  const currentLevel = LEVELS_33.find(l => safeXP >= l.minXP && safeXP <= l.maxXP) || LEVELS_33[LEVELS_33.length - 1];
+  const rawLevelObj = LEVELS_33.find(l => safeXP >= l.minXP && safeXP <= l.maxXP) || LEVELS_33[LEVELS_33.length - 1];
+
+  const {
+    individualProjects = 0,
+    groupProjects = 0,
+    prospects = 0,
+    clientsClosed = 0,
+    newClients = 0,
+    padawans = 0,
+    juniorMentees = 0,
+    aspirantMentees = 0,
+    completedProposals = 0,
+  } = partnerMetrics;
+
+  // ── EVALUACIÓN ESTRICTA DE BARRERAS TRONCALES (ANTI-CHEAT & MERITOCRACIA REAL) ──
+  let maxAllowedLevel = 33;
+  let isGated = false;
+  let gateReason = null;
+
+  // Barrera 1: Entrada a Orden II (Niveles 7 - 10) requiere al menos 1 proyecto o 1 propuesta técnica concluida
+  const hasBasicProjectOrProposal = (individualProjects + groupProjects + completedProposals) >= 1;
+  if (!hasBasicProjectOrProposal && rawLevelObj.level >= 7) {
+    maxAllowedLevel = 6;
+    isGated = true;
+    gateReason = 'Bloqueo Troncal Orden I: Requiere al menos 1 proyecto o propuesta técnica concluida para ascender a Orden II (Nivel 7).';
+  }
+
+  // Barrera 2: Graduación Troncal I (Niveles 11 - 21)
+  const meetsTroncal1 = individualProjects >= 3 && groupProjects >= 3 && prospects >= 3;
+  if (!meetsTroncal1 && rawLevelObj.level >= 11 && maxAllowedLevel > 10) {
+    maxAllowedLevel = 10;
+    isGated = true;
+    gateReason = 'Bloqueo Graduación Troncal I: Requiere ≥3 proyectos individuales, ≥3 grupales y ≥3 prospectos concluidos para consagrar Nivel 11.';
+  }
+
+  // Barrera 3: Graduación Troncal II (Niveles 22 - 32)
+  const meetsTroncal2 = meetsTroncal1 && individualProjects >= 5 && groupProjects >= 5 && prospects >= 5 && clientsClosed >= 5 && newClients >= 5 && padawans >= 1;
+  if (!meetsTroncal2 && rawLevelObj.level >= 22 && maxAllowedLevel > 21) {
+    maxAllowedLevel = 21;
+    isGated = true;
+    gateReason = 'Bloqueo Graduación Troncal II: Requiere ≥5 individuales, ≥5 grupales, ≥5 cerrados, ≥5 nuevos y 1 Padawan.';
+  }
+
+  // Barrera 4: Graduación Troncal III (Nivel 33 Cénit Supremo)
+  const meetsTroncal3 = meetsTroncal2 && individualProjects >= 10 && groupProjects >= 10 && prospects >= 10 && clientsClosed >= 10 && newClients >= 10 && juniorMentees >= 1 && aspirantMentees >= 2;
+  if (!meetsTroncal3 && rawLevelObj.level >= 33 && maxAllowedLevel > 32) {
+    maxAllowedLevel = 32;
+    isGated = true;
+    gateReason = 'Bloqueo Cénit Supremo: Requiere ≥10 proyectos, ≥10 clientes y 3 aprendices tutelados.';
+  }
+
+  const effectiveLevelNum = Math.min(rawLevelObj.level, maxAllowedLevel);
+  const currentLevel = LEVELS_33.find(l => l.level === effectiveLevelNum) || rawLevelObj;
   const nextLevel = LEVELS_33.find(l => l.level === currentLevel.level + 1) || null;
 
   let progressPercent = 100;
   let xpForNext = 0;
 
-  if (nextLevel && currentLevel.maxXP !== Infinity) {
+  if (isGated && currentLevel.level === maxAllowedLevel) {
+    progressPercent = 100;
+    xpForNext = 0;
+  } else if (nextLevel && currentLevel.maxXP !== Infinity) {
     const range = currentLevel.maxXP - currentLevel.minXP;
     const currentInRange = safeXP - currentLevel.minXP;
     progressPercent = Math.min(100, Math.max(0, Math.round((currentInRange / range) * 100)));
@@ -747,18 +802,24 @@ export function getPartnerTier(totalXP = 0) {
     ...currentLevel,
     order,
     currentXP: safeXP,
+    rawLevel: rawLevelObj.level,
+    rawTitle: rawLevelObj.title,
+    isGated,
+    gateReason,
+    maxAllowedLevel,
     progressPercent,
     nextTier: nextLevel, // Preserva compatibilidad con código existente
     xpForNext,
     maxLevel: 33,
     isMaxLevel: currentLevel.level === 33,
+    graduationRequirements: GRADUATION_REQUIREMENTS[11],
   };
 }
 
 /**
  * Calcula el XP total acumulado por un socio en base a sus actividades aprobadas.
  */
-export function calculatePartnerTotalXP(partnerName, activities = [], timeLogs = []) {
+export function calculatePartnerTotalXP(partnerName, activities = [], timeLogs = [], partnerMetrics = {}) {
   if (!partnerName) return getPartnerTier(0);
 
   // 1. XP de actividades concluidas y aprobadas
@@ -813,8 +874,32 @@ export function calculatePartnerTotalXP(partnerName, activities = [], timeLogs =
   const rawTotalXP = activitiesXP + timeTrackerXP - blackHatPenaltyXP;
   const totalXP = Math.max(0, rawTotalXP);
 
+  // Auto-cálculo de métricas verificadas desde actividades si no se suministran explícitamente
+  const autoIndividualProjects = partnerActs.filter(
+    a => (a.isMajorProject || a.category === 'Proyecto B2B' || a.category === 'Peritaje')
+  ).length;
+
+  const autoCompletedProposals = partnerActs.filter(
+    a => a.category?.toLowerCase().includes('propuesta') || a.category?.toLowerCase().includes('informe')
+  ).length;
+
+  const resolvedMetrics = {
+    individualProjects: partnerMetrics.individualProjects ?? autoIndividualProjects,
+    groupProjects: partnerMetrics.groupProjects ?? 0,
+    prospects: partnerMetrics.prospects ?? 0,
+    clientsClosed: partnerMetrics.clientsClosed ?? 0,
+    newClients: partnerMetrics.newClients ?? 0,
+    padawans: partnerMetrics.padawans ?? 0,
+    juniorMentees: partnerMetrics.juniorMentees ?? 0,
+    aspirantMentees: partnerMetrics.aspirantMentees ?? 0,
+    completedProposals: partnerMetrics.completedProposals ?? autoCompletedProposals,
+    ...partnerMetrics,
+  };
+
+  const tier = getPartnerTier(totalXP, resolvedMetrics);
+
   return {
-    ...getPartnerTier(totalXP),
+    ...tier,
     rawTotalXP,
     activitiesXP,
     timeTrackerXP,
@@ -822,6 +907,7 @@ export function calculatePartnerTotalXP(partnerName, activities = [], timeLogs =
     pendingOverdueCount: pendingOverdue.length,
     totalHours: timeTrackerHours,
     completedTasksCount: partnerActs.length,
+    metrics: resolvedMetrics,
   };
 }
 

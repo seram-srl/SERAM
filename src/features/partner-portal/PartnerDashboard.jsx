@@ -5,7 +5,7 @@ import {
   Shield, DollarSign, BookOpenCheck, Briefcase, Leaf,
   Plus, Trash2, Loader2, Edit2, Check, X, Calendar,
   Clock, Award, TrendingUp, BarChart2, ShoppingBag,
-  Globe, Users, ChevronLeft, ChevronRight, Settings,
+  Globe, Users, ChevronLeft, ChevronRight, ChevronDown, Settings,
   MapPin, UserCheck, Package, Star, AlertCircle, Lock,
   Wallet, Target, Layers, ArrowRight, ArrowUpRight, ArrowDownRight, Percent,
   PieChart as LucidePie, Activity, CreditCard, Building2,
@@ -130,16 +130,8 @@ function MeritocraticGovernanceBanner() {
             <Scale className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                Aviso Corporativo Vinculante
-              </span>
-              <span className="text-[10px] text-slate-400 font-bold hidden sm:inline">
-                · Semestre 2026
-              </span>
-            </div>
-            <h2 className="text-base sm:text-lg font-black text-white tracking-tight mt-0.5 flex flex-wrap items-center gap-2">
-              Fórmula de Liquidación Semestral Meritocrática <span className="text-amber-400 font-bold text-xs sm:text-sm">(Slicing Pie Adaptado)</span>
+            <h2 className="text-base sm:text-xl font-black text-white tracking-tight">
+              Fórmula de Liquidación Semestral Meritocrática
             </h2>
           </div>
         </div>
@@ -147,55 +139,55 @@ function MeritocraticGovernanceBanner() {
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="self-start sm:self-center px-3.5 py-1.5 rounded-xl text-xs font-bold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all flex items-center gap-1.5 cursor-pointer"
+          className="self-start sm:self-center px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all flex items-center gap-1.5 cursor-pointer"
         >
           {isExpanded ? 'Ocultar detalles' : 'Ver directriz completa'}
         </button>
       </div>
 
       {isExpanded && (
-        <div className="mt-4 space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed">
-          <p className="text-slate-300">
+        <div className="mt-4 space-y-4 text-sm sm:text-base text-slate-200 leading-relaxed">
+          <p className="text-slate-200 text-sm sm:text-base leading-relaxed">
             Para garantizar la <strong className="text-white">estricta equidad entre socios</strong> y neutralizar desbalances operativos, el Directorio de SERAM ratifica que antes de repartir un solo peso a los socios, el flujo de ingresos cumplirá este orden obligatorio:
           </p>
 
           {/* Fórmula Visual */}
-          <div className="p-3.5 rounded-xl bg-black/60 border border-amber-500/30 font-mono text-center sm:text-left text-xs sm:text-sm text-amber-200 shadow-inner flex flex-wrap items-center justify-center sm:justify-start gap-2">
+          <div className="p-4 rounded-xl bg-black/60 border border-amber-500/30 font-mono text-center sm:text-left text-sm sm:text-base text-amber-200 shadow-inner flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
             <span className="font-black text-white">Ingresos Totales</span>
             <span className="text-amber-400 font-black">−</span>
-            <span className="text-slate-300 font-medium">Costos Operativos y Fondo de Reserva (20%)</span>
+            <span className="text-slate-200 font-medium">Costos Operativos y Fondo de Reserva (20%)</span>
             <span className="text-amber-400 font-black">=</span>
-            <span className="font-extrabold text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-2.5 py-1 rounded-lg">
+            <span className="font-extrabold text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-3 py-1 rounded-lg">
               Bolsa de Compensación Operativa
             </span>
           </div>
 
           {/* Fases Explicadas */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.08] space-y-2">
-              <div className="flex items-center gap-2 text-amber-400 font-black text-xs uppercase tracking-wider">
-                <span className="w-5 h-5 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-[11px]">1</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+            <div className="p-4 sm:p-5 rounded-xl bg-white/[0.04] border border-white/[0.1] space-y-2.5">
+              <div className="flex items-center gap-2.5 text-amber-400 font-black text-sm sm:text-base uppercase tracking-wider">
+                <span className="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-xs font-black">1</span>
                 Fase 1: Compensación por Trabajo Real
               </div>
-              <p className="text-xs text-slate-300 leading-normal">
+              <p className="text-sm sm:text-base text-slate-200 leading-relaxed">
                 Cada socio cobra una tarifa horaria o por entregable técnico <strong className="text-white">proporcional al esfuerzo medido por el Time Tracker</strong> y los entregables auditados en el PartnerDashboard.
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.08] space-y-2">
-              <div className="flex items-center gap-2 text-[#00e03c] font-black text-xs uppercase tracking-wider">
-                <span className="w-5 h-5 rounded-full bg-[#00e03c]/20 border border-[#00e03c]/30 flex items-center justify-center text-[11px]">2</span>
+            <div className="p-4 sm:p-5 rounded-xl bg-white/[0.04] border border-white/[0.1] space-y-2.5">
+              <div className="flex items-center gap-2.5 text-[#00e03c] font-black text-sm sm:text-base uppercase tracking-wider">
+                <span className="w-6 h-6 rounded-full bg-[#00e03c]/20 border border-[#00e03c]/30 flex items-center justify-center text-xs font-black">2</span>
                 Fase 2: Utilidad Neta Residual (Dividendos)
               </div>
-              <p className="text-xs text-slate-300 leading-normal">
+              <p className="text-sm sm:text-base text-slate-200 leading-relaxed">
                 Si tras pagar el trabajo real de quienes trabajaron sobra utilidad neta, <strong className="text-white">esa utilidad remanente recién se reparte</strong> según el porcentaje accionario registrado de cada socio.
               </p>
             </div>
           </div>
 
           {/* Dictamen de Equidad */}
-          <div className="p-3.5 rounded-xl bg-amber-950/40 border border-amber-500/30 flex items-start gap-2.5 text-xs text-amber-200">
-            <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-500/30 flex items-start gap-3 text-sm sm:text-base text-amber-200 leading-relaxed">
+            <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
             <p>
               <strong className="text-white">Resultado Imparcial:</strong> El socio que no haya trabajado operativamente o cuyo aporte se haya limitado a una lista o activo no tratado <strong className="text-amber-300 font-bold">no cobra compensación operativa</strong>. Solo recibirá su fracción del dividendo residual (si lo hubiere a fin de semestre).
             </p>
@@ -230,14 +222,14 @@ function MyPersonalPartnerPanel({ currentSocio, activities = [], timeLogs = [], 
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              <span className="text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
                 Mi Panel Personal
               </span>
-              <span className="text-[10px] text-slate-400 font-bold hidden sm:inline">
+              <span className="text-xs text-slate-300 font-bold hidden sm:inline">
                 {currentSocio?.email}
               </span>
             </div>
-            <h3 className="text-base sm:text-lg font-black text-white tracking-tight mt-0.5">
+            <h3 className="text-lg sm:text-xl font-black text-white tracking-tight mt-0.5">
               {currentSocio?.name || 'Socio Directivo'}
             </h3>
           </div>
@@ -246,56 +238,56 @@ function MyPersonalPartnerPanel({ currentSocio, activities = [], timeLogs = [], 
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => onNavigate('activities')}
-            className="px-3 py-1.5 rounded-xl text-xs font-bold text-[#00e03c] bg-[#00e03c]/10 hover:bg-[#00e03c]/20 border border-[#00e03c]/30 transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-[#00e03c] bg-[#00e03c]/10 hover:bg-[#00e03c]/20 border border-[#00e03c]/30 transition-all flex items-center gap-1.5 cursor-pointer"
           >
-            <CheckSquare className="w-3.5 h-3.5" /> Mis Tareas
+            <CheckSquare className="w-4 h-4" /> Mis Tareas
           </button>
           <button
             onClick={() => onNavigate('timetracker')}
-            className="px-3 py-1.5 rounded-xl text-xs font-bold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all flex items-center gap-1.5 cursor-pointer"
           >
-            <Clock className="w-3.5 h-3.5" /> Registrar Horas
+            <Clock className="w-4 h-4" /> Registrar Horas
           </button>
           <button
             onClick={() => onNavigate('profiles')}
-            className="px-3 py-1.5 rounded-xl text-xs font-bold text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 transition-all flex items-center gap-1.5 cursor-pointer"
           >
-            <Award className="w-3.5 h-3.5" /> Perfil RPG
+            <Award className="w-4 h-4" /> Perfil RPG
           </button>
         </div>
       </div>
 
       {/* Métricas Personales */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Horas Auditadas</span>
-          <span className="text-lg font-black text-[#00e03c] mt-0.5 block">{totalHours.toFixed(1)} hrs</span>
-          <span className="text-[9px] text-slate-500">Registradas en Time Tracker</span>
+        <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+          <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block">Horas Auditadas</span>
+          <span className="text-xl font-black text-[#00e03c] mt-0.5 block">{totalHours.toFixed(1)} hrs</span>
+          <span className="text-xs text-slate-400 font-medium">Registradas en Time Tracker</span>
         </div>
-        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Tareas Asignadas</span>
-          <span className="text-lg font-black text-white mt-0.5 block">{myActivities.length}</span>
-          <span className="text-[9px] text-slate-500">Total en cartera</span>
+        <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+          <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block">Tareas Asignadas</span>
+          <span className="text-xl font-black text-white mt-0.5 block">{myActivities.length}</span>
+          <span className="text-xs text-slate-400 font-medium">Total en cartera</span>
         </div>
-        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Entregables Hechos</span>
-          <span className="text-lg font-black text-[#00e03c] mt-0.5 block">{myCompletedTasks.length}</span>
-          <span className="text-[9px] text-slate-500">Concluidos</span>
+        <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+          <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block">Entregables Hechos</span>
+          <span className="text-xl font-black text-[#00e03c] mt-0.5 block">{myCompletedTasks.length}</span>
+          <span className="text-xs text-slate-400 font-medium">Concluidos</span>
         </div>
-        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">En Progreso</span>
-          <span className="text-lg font-black text-amber-400 mt-0.5 block">{myPendingTasks.length}</span>
-          <span className="text-[9px] text-slate-500">Pendientes</span>
+        <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+          <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block">En Progreso</span>
+          <span className="text-xl font-black text-amber-400 mt-0.5 block">{myPendingTasks.length}</span>
+          <span className="text-xs text-slate-400 font-medium">Pendientes</span>
         </div>
       </div>
 
       {/* Tareas Claves del Socio */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-black text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-            <Target className="w-3.5 h-3.5 text-amber-400" /> Mis Pendientes & Entregables Clave
+          <span className="text-sm font-black text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+            <Target className="w-4 h-4 text-amber-400" /> Mis Pendientes & Entregables Clave
           </span>
-          <span className="text-[10px] text-slate-500 font-bold">
+          <span className="text-xs text-slate-400 font-bold">
             {myPendingTasks.length} activos
           </span>
         </div>
@@ -3089,6 +3081,12 @@ function FinancesModule() {
 // ─────────────────────────────────────────────────────────────────────────────
 // MODULE: TIME TRACKER (Sesión en Vivo, Cronómetro Multi-Socio y Horas Efectivas)
 // ─────────────────────────────────────────────────────────────────────────────
+const DEFAULT_PARTNERS_CONFIG = [
+  { email: 'barrientoso2401@gmail.com', name: 'Ing. Diego Barrientos', role: 'Socio Fundador · Presidencia & SIG', defaultRoom: '02. DIRECCIÓN' },
+  { email: 'fernandoaraujo1912@gmail.com', name: 'Ing. Fernando Araujo', role: 'Socio Fundador · Hidráulica & Obras', defaultRoom: '03. OPERACIONES' },
+  { email: 'sebastiansbs51@gmail.com', name: 'Ing. Fabricio Orosco', role: 'Socio Fundador · Residuos & Campo', defaultRoom: '11. EXPERIENCIA Y CAMPO' }
+];
+
 function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, onNavigate }) {
   const { handleAddTimeLog, handleDeleteTimeLog, triggerToast } = handlers;
   const {
@@ -3103,8 +3101,6 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
   } = useApp();
 
   const [selectedProjectId, setSelectedProjectId] = useState(() => activeTimer?.projectId || activeServices[0]?.id || 101);
-  const [hours, setHours] = useState('');
-  const [description, setDescription] = useState('');
 
   // Modal / Inline Drawer para guardar la sesión activa
   const [showSaveLogModal, setShowSaveLogModal] = useState(false);
@@ -3168,11 +3164,7 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
   };
 
   // Partners list for meritocracy calculations & team live monitor
-  const partnersConfig = [
-    { email: 'barrientoso2401@gmail.com', name: 'Ing. Diego Barrientos', role: 'Socio Fundador · Presidencia & SIG', defaultRoom: '02. DIRECCIÓN' },
-    { email: 'fernandoaraujo1912@gmail.com', name: 'Ing. Fernando Araujo', role: 'Socio Fundador · Hidráulica & Obras', defaultRoom: '03. OPERACIONES' },
-    { email: 'sebastiansbs51@gmail.com', name: 'Ing. Fabricio Orosco', role: 'Socio Fundador · Residuos & Campo', defaultRoom: '11. EXPERIENCIA Y CAMPO' }
-  ];
+  const partnersConfig = DEFAULT_PARTNERS_CONFIG;
 
   // Calcular horas totales registradas por este socio
   const myLogs = timeLogs.filter(l => l.partner_id === currentSocio?.email || l.partner_id === currentSocio?.id || l.partner_name === currentSocio?.name);
@@ -3239,12 +3231,17 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
     });
   }, [activities, timeLogs]);
 
-  // Calcular honorarios meritocráticos por proyecto con horas ponderadas por feeMultiplier
+  // Calcular honorarios meritocráticos y balance de horas por proyecto (incluyendo proyectos internos y desarrollo web)
   const meritocraticShares = activeServices
-    .filter(p => (p.budget || 0) > 0)
     .map(p => {
-      const projectLogs = timeLogs.filter(l => l.project_id === p.id || l.project_id === parseInt(p.id));
-      const HT = projectLogs.reduce((acc, curr) => acc + curr.hours, 0);
+      const isInternal = p.tag === 'Proyecto Interno Real' || (p.budget || 0) === 0 || p.type?.toLowerCase().includes('plataforma') || p.client?.toLowerCase().includes('interno') || p.id === 'srm-internal-web';
+      const projectLogs = timeLogs.filter(l => {
+        if (p.id === 'srm-internal-web' || isInternal) {
+          return l.project_id === 'srm-internal-web' || l.project_title?.toLowerCase().includes('plataforma');
+        }
+        return (l.project_id === p.id || String(l.project_id) === String(p.id)) && !l.project_title?.toLowerCase().includes('plataforma') && l.project_id !== 'srm-internal-web';
+      });
+      const HT = projectLogs.reduce((acc, curr) => acc + (Number(curr.hours) || 0), 0);
 
       // Calcular Utilidad Neta del proyecto
       const budget = p.budget || 0;
@@ -3256,8 +3253,14 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
 
       // Ponderación meritocrática de horas según nivel (feeMultiplier)
       const shares = partnersWithRPG.map(u => {
-        const partnerLogs = projectLogs.filter(l => l.partner_id === u.email || l.partner_name === u.name);
-        const partnerH = partnerLogs.reduce((acc, curr) => acc + curr.hours, 0);
+        const partnerLogs = projectLogs.filter(l => 
+          l.partner_id === u.email || 
+          l.partner_name === u.name ||
+          (u.email?.includes('barrientos') && (l.partner_id?.includes('barrientos') || l.partner_name?.includes('Diego'))) ||
+          (u.email?.includes('fernando') && (l.partner_id?.includes('fernando') || l.partner_name?.includes('Fernando'))) ||
+          (u.email?.includes('sebastian') && (l.partner_id?.includes('sebastian') || l.partner_name?.includes('Fabricio')))
+        );
+        const partnerH = partnerLogs.reduce((acc, curr) => acc + (Number(curr.hours) || 0), 0);
         const weightedH = partnerH * u.feeMultiplier;
         return {
           name: u.name,
@@ -3284,27 +3287,13 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
         id: p.id,
         client: p.client,
         type: p.type,
+        isInternal,
         totalHours: HT,
         totalWeightedHours,
         netProfit: UN,
         shares
       };
     });
-
-  const handleManualSubmit = (e) => {
-    e.preventDefault();
-    if (!selectedProjectId || !hours || !description) {
-      triggerToast('Completa todos los campos del registro', 'error');
-      return;
-    }
-    if (parseFloat(hours) <= 0) {
-      triggerToast('Las horas deben ser mayores a 0', 'error');
-      return;
-    }
-    handleAddTimeLog(parseInt(selectedProjectId), parseFloat(hours), description);
-    setHours('');
-    setDescription('');
-  };
 
   const timerSec = activeTimer?.seconds || 0;
   const isTimerRunning = activeTimer?.isRunning || false;
@@ -3333,9 +3322,6 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
                 <Clock className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
-                  Time Tracker en Vivo · Intranet SERAM
-                </span>
                 <h3 className="text-base font-black text-white flex items-center gap-2">
                   Sesión de Trabajo en Tiempo Real
                   {isTimerRunning && (
@@ -3498,13 +3484,10 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-[#00e03c]"></span>
                 </span>
                 <div>
-                  <h4 className="text-sm font-black text-white tracking-tight">Monitor del Equipo de Socios</h4>
-                  <p className="text-[10px] text-slate-400">Presencia en vivo, sector 2.5D y cronómetro activo</p>
+                  <h4 className="text-sm sm:text-base font-black text-white tracking-tight">Monitor del Equipo de Socios</h4>
+                  <p className="text-xs text-slate-300 font-medium">Presencia en vivo, sector 2.5D y cronómetro activo</p>
                 </div>
               </div>
-              <span className="text-[9px] font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-2.5 py-1 rounded-full uppercase tracking-widest">
-                En Vivo
-              </span>
             </div>
 
             {/* Listado de los 3 Socios con su estado en vivo */}
@@ -3519,15 +3502,15 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
                 return (
                   <div
                     key={partner.email}
-                    className={`p-3.5 rounded-2xl border transition-all ${
+                    className={`p-4 rounded-2xl border transition-all ${
                       isOnline
                         ? 'bg-white/[0.03] border-[#00e03c]/35 shadow-md shadow-[#00e03c]/5'
                         : 'bg-white/[0.015] border-white/[0.06]'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2.5">
-                        <div className={`relative w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs shrink-0 ${
+                      <div className="flex items-center gap-3">
+                        <div className={`relative w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs shrink-0 ${
                           isOnline
                             ? 'bg-[#00e03c]/15 text-[#00e03c] border border-[#00e03c]/30 ring-2 ring-[#00e03c]/20'
                             : 'bg-white/[0.05] text-slate-400 border border-white/[0.08]'
@@ -3538,41 +3521,41 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
                           )}
                         </div>
                         <div>
-                          <p className="font-extrabold text-white text-xs leading-tight">{partner.name}</p>
-                          <span className="text-[9px] text-slate-400 block mt-0.5">{partner.role}</span>
+                          <p className="font-extrabold text-white text-sm leading-tight">{partner.name}</p>
+                          <span className="text-xs text-slate-300 block mt-0.5 font-medium">{partner.role}</span>
                         </div>
                       </div>
 
                       {/* Badge Online */}
                       {isOnline ? (
-                        <span className="inline-flex items-center gap-1 text-[8px] font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-2 py-0.5 rounded-full uppercase">
+                        <span className="inline-flex items-center gap-1.5 text-[10px] font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-2.5 py-1 rounded-full uppercase tracking-wider">
                           <span className="w-1.5 h-1.5 rounded-full bg-[#00e03c] animate-ping" /> Online
                         </span>
                       ) : (
-                        <span className="text-[8px] font-semibold text-slate-500 bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.06]">
+                        <span className="text-[10px] font-semibold text-slate-400 bg-white/[0.04] px-2.5 py-1 rounded-full border border-white/[0.06]">
                           Offline
                         </span>
                       )}
                     </div>
 
                     {/* Sector y Cronómetro */}
-                    <div className="mt-2.5 pt-2 border-t border-white/[0.04] grid grid-cols-2 gap-2 text-[10px]">
+                    <div className="mt-3 pt-2.5 border-t border-white/[0.06] grid grid-cols-2 gap-2 text-xs">
                       <div>
-                        <span className="text-slate-500 block text-[9px] uppercase font-bold">Sector Oficina:</span>
-                        <span className="font-bold text-amber-300 flex items-center gap-1 truncate mt-0.5">
-                          <Building2 className="w-3 h-3 text-amber-400 shrink-0" />
+                        <span className="text-slate-400 block text-[11px] uppercase font-bold tracking-wider">Sector Oficina:</span>
+                        <span className="font-bold text-amber-300 flex items-center gap-1.5 truncate mt-1 text-xs sm:text-sm">
+                          <Building2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                           {presence.currentSectorName || partner.defaultRoom}
                         </span>
                       </div>
                       <div className="text-right">
-                        <span className="text-slate-500 block text-[9px] uppercase font-bold">Cronómetro Sesión:</span>
+                        <span className="text-slate-400 block text-[11px] uppercase font-bold tracking-wider">Cronómetro Sesión:</span>
                         {isTimerOn ? (
-                          <span className="font-mono font-black text-[#00e03c] inline-flex items-center gap-1 animate-pulse mt-0.5">
-                            <Clock className="w-3 h-3 text-[#00e03c]" />
+                          <span className="font-mono font-black text-[#00e03c] inline-flex items-center gap-1.5 animate-pulse mt-1 text-xs sm:text-sm">
+                            <Clock className="w-3.5 h-3.5 text-[#00e03c]" />
                             {formatTimer(pSecs)}
                           </span>
                         ) : (
-                          <span className="font-mono text-slate-400 block mt-0.5">
+                          <span className="font-mono text-slate-300 block mt-1 text-xs sm:text-sm">
                             {pSecs ? `${(pSecs / 3600).toFixed(1)}h pausa` : 'En pausa'}
                           </span>
                         )}
@@ -3580,16 +3563,16 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
                     </div>
 
                     {/* Tarea / Actividad */}
-                    <div className="mt-2 bg-black/30 px-2.5 py-1.5 rounded-xl border border-white/[0.04] flex items-center justify-between text-[10px]">
-                      <span className="text-slate-400 truncate max-w-[200px]" title={presence.activeTaskTitle || 'Consultoría técnica'}>
+                    <div className="mt-2.5 bg-black/40 px-3 py-2 rounded-xl border border-white/[0.06] flex items-center justify-between text-xs">
+                      <span className="text-slate-200 truncate max-w-[220px]" title={presence.activeTaskTitle || 'Consultoría técnica'}>
                         📌 {presence.activeTaskTitle || 'Consultoría ambiental & proyectos'}
                       </span>
                       <button
                         type="button"
                         onClick={() => onNavigate && onNavigate('office')}
-                        className="text-[9px] font-black text-amber-400 hover:text-amber-200 underline ml-2 flex items-center gap-0.5 shrink-0"
+                        className="text-xs font-black text-amber-400 hover:text-amber-200 underline ml-2 flex items-center gap-1 shrink-0"
                       >
-                        Ubicar <ExternalLink className="w-2.5 h-2.5" />
+                        Ubicar <ExternalLink className="w-3 h-3" />
                       </button>
                     </div>
                   </div>
@@ -3735,108 +3718,51 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
         </GlassCard>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Formulario de Registro Manual Retroactivo */}
-        <GlassCard className="p-6 space-y-4 h-fit">
-          <div className="flex items-center gap-2 border-b border-white/[0.06] pb-3">
-            <Plus className="w-4 h-4 text-[#00e03c]" />
-            <h3 className="font-extrabold text-white text-sm">Registro Manual Retroactivo</h3>
-          </div>
-          <form onSubmit={handleManualSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Proyecto</label>
-              <select
-                required
-                className={selectCls}
-                value={selectedProjectId}
-                onChange={e => setSelectedProjectId(e.target.value)}
-              >
-                <option value="" disabled>Selecciona un proyecto o propuesta</option>
-                {activeServices.map(p => (
-                  <option key={p.id} value={p.id}>
-                    {p.isProposal || p.tag === 'Propuesta' ? '📋 [PROPUESTA] ' : '💼 '}
-                    {p.client} — {p.type.slice(0, 32)}...
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Horas Dedicadas</label>
-              <input
-                required
-                type="number"
-                step="0.5"
-                min="0.5"
-                max="24"
-                className={inputCls}
-                placeholder="Ej. 4.5"
-                value={hours}
-                onChange={e => setHours(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Descripción del Trabajo</label>
-              <textarea
-                required
-                className={`${inputCls} min-h-[80px] resize-none`}
-                placeholder="Describe la actividad realizada..."
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-[#00e03c] text-slate-950 py-2.5 rounded-xl font-black text-xs uppercase hover:bg-emerald-400 flex items-center justify-center gap-1.5 transition-colors shadow-md"
-            >
-              <Clock className="w-4 h-4" /> Registrar Horas Manualmente
-            </button>
-          </form>
-        </GlassCard>
-
-        {/* Listado de Logs */}
-        <GlassCard className="p-6 lg:col-span-2 space-y-4">
+      <div className="w-full">
+        {/* Listado de Logs de Tiempo a Pantalla Completa */}
+        <GlassCard className="p-6 w-full space-y-4">
           <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
-            <h3 className="font-extrabold text-white text-sm">Historial de Tiempos</h3>
-            <span className="text-[9px] text-slate-500 font-bold">{timeLogs.length} logs totales</span>
+            <div>
+              <h3 className="font-black text-white text-base sm:text-lg">Historial de Tiempos</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Bitácora oficial de horas auditadas registradas en Time Tracker</p>
+            </div>
+            <span className="text-xs text-slate-300 font-bold bg-white/[0.05] border border-white/10 px-3 py-1 rounded-full">{timeLogs.length} logs totales</span>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="text-slate-500 font-extrabold uppercase tracking-widest border-b border-white/[0.06] text-[9px]">
-                  {['Socio', 'Proyecto', 'Descripción', 'Horas', 'Fecha', 'Acciones'].map(h => (
-                    <th key={h} className="p-3">{h}</th>
+                <tr className="text-slate-300 font-extrabold uppercase tracking-wider border-b border-white/[0.08] text-xs">
+                  {['Socio', 'Proyecto', 'Descripción del Trabajo', 'Horas', 'Fecha', 'Acciones'].map(h => (
+                    <th key={h} className="p-3.5">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.04]">
                 {timeLogs.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-slate-500 italic">No hay registros de tiempo en el sistema.</td>
+                    <td colSpan={6} className="p-8 text-center text-slate-400 italic text-sm">No hay registros de tiempo en el sistema.</td>
                   </tr>
                 ) : (
                   timeLogs.map((l) => (
-                    <tr key={l.id} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="p-3">
-                        <p className="font-extrabold text-white">{l.partner_name}</p>
-                        <p className="text-[9px] text-slate-500 truncate max-w-[120px]">{l.partner_id}</p>
+                    <tr key={l.id} className="hover:bg-white/[0.03] transition-colors">
+                      <td className="p-3.5">
+                        <p className="font-extrabold text-white text-sm">{l.partner_name}</p>
+                        <p className="text-xs text-slate-400 truncate max-w-[150px]">{l.partner_id}</p>
                       </td>
-                      <td className="p-3">
-                        <span className="font-semibold text-slate-300">{l.project_title}</span>
+                      <td className="p-3.5">
+                        <span className="font-bold text-slate-200 text-sm">{l.project_title}</span>
                       </td>
-                      <td className="p-3 max-w-xs">
-                        <p className="text-slate-400 line-clamp-2">{l.description}</p>
+                      <td className="p-3.5 max-w-md">
+                        <p className="text-slate-300 text-xs sm:text-sm line-clamp-2 leading-relaxed">{l.description}</p>
                       </td>
-                      <td className="p-3">
-                        <span className="font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-2 py-0.5 rounded-full text-[10px]">{l.hours}h</span>
+                      <td className="p-3.5">
+                        <span className="font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-3 py-1 rounded-full text-xs sm:text-sm font-mono">{l.hours}h</span>
                       </td>
-                      <td className="p-3 text-[10px] text-slate-500 font-mono">
+                      <td className="p-3.5 text-xs text-slate-400 font-mono font-medium">
                         {new Date(l.logged_at).toLocaleDateString([], { day: '2-digit', month: 'short' })}
                       </td>
-                      <td className="p-3">
+                      <td className="p-3.5">
                         <button
                           type="button"
                           onClick={() => {
@@ -3844,10 +3770,10 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
                               handleDeleteTimeLog(l.id);
                             }
                           }}
-                          className="p-1.5 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                          className="p-2 text-rose-400 hover:bg-rose-500/15 rounded-xl transition-colors"
                           title="Eliminar registro"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </td>
                     </tr>
@@ -3860,51 +3786,69 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
       </div>
 
       {/* ── CALCULADORA MERITOCRÁTICA DE HONORARIOS POR PROYECTO ── */}
-      <GlassCard className="p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+      <GlassCard className="p-6 sm:p-7 space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-4">
           <div>
-            <h3 className="font-extrabold text-white text-sm">Distribución Meritocrática de Utilidades</h3>
-            <p className="text-[10px] text-slate-500">Cálculo en base a Horas Efectivas Totales trabajadas por proyecto</p>
+            <h3 className="font-black text-white text-base sm:text-lg tracking-tight">Distribución Meritocrática de Utilidades</h3>
+            <p className="text-xs sm:text-sm text-slate-400 mt-0.5">Cálculo proporcional en base a Horas Efectivas Totales trabajadas por proyecto y multiplicador de nivel RPG</p>
           </div>
-          <span className="text-[9px] font-black text-amber-400 bg-amber-400/10 border border-amber-400/20 px-3 py-1 rounded-full uppercase">
+          <span className="text-xs font-black text-amber-400 bg-amber-400/10 border border-amber-400/20 px-3.5 py-1.5 rounded-full uppercase tracking-wider self-start sm:self-auto">
             Estatutos SERAM SRL
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {meritocraticShares.map(p => (
-            <div key={p.id} className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] space-y-3">
-              <div className="flex items-start justify-between">
+            <div key={p.id} className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-4 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h4 className="font-bold text-white text-xs">{p.client}</h4>
-                  <p className="text-[10px] text-slate-400 truncate max-w-xs">{p.type}</p>
+                  <h4 className="font-extrabold text-white text-sm sm:text-base">{p.client}</h4>
+                  <p className="text-xs text-slate-300 truncate max-w-sm mt-0.5">{p.type}</p>
                 </div>
-                <span className="font-mono text-xs font-black text-[#00e03c]">
-                  UN: Bs. {p.netProfit.toLocaleString()}
-                </span>
+                {p.isInternal || p.netProfit === 0 ? (
+                  <span className="font-mono text-xs sm:text-sm font-black text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-xl shrink-0">
+                    Aporte Interno ({p.totalHours}h)
+                  </span>
+                ) : (
+                  <span className="font-mono text-sm sm:text-base font-black text-[#00e03c] shrink-0">
+                    UN: Bs. {p.netProfit.toLocaleString()}
+                  </span>
+                )}
               </div>
 
-              <div className="space-y-2 pt-2 border-t border-white/[0.04]">
+              <div className="space-y-2.5 pt-3 border-t border-white/[0.06]">
                 {p.shares.map(s => (
-                  <div key={s.name} className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs p-2 rounded-xl bg-black/30 border border-white/[0.04]">
-                    <div className="flex items-center gap-2">
-                      <span className="text-slate-200 font-bold">{s.name}</span>
-                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/25 font-bold" title={`Multiplicador de Nivel ${s.rpgLevel}: ${s.feeMultiplier}x`}>
+                  <div key={s.name} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs p-3 rounded-xl bg-black/40 border border-white/[0.05]">
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-slate-100 font-extrabold text-sm">{s.name}</span>
+                      <span className="text-xs font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/25 font-bold" title={`Multiplicador de Nivel ${s.rpgLevel}: ${s.feeMultiplier.toFixed(2)}x`}>
                         Nvl {s.rpgLevel} ({s.feeMultiplier.toFixed(2)}x)
                       </span>
                     </div>
-                    <div className="flex items-center justify-between sm:justify-end gap-3 font-mono">
-                      <span className="text-slate-400 text-[10px]">
+                    <div className="flex items-center justify-between sm:justify-end gap-3.5 font-mono">
+                      <span className="text-slate-300 text-xs sm:text-sm font-bold">
                         {s.hours}h ({s.percent}%)
                       </span>
-                      {s.hours === 0 ? (
-                        <span className="text-[9px] font-bold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20" title="Retención de dividendos según cláusula de inacción operativa del estatuto">
-                          0 Bs · Inacción (Retención)
-                        </span>
+                      {p.isInternal || p.netProfit === 0 ? (
+                        s.hours === 0 ? (
+                          <span className="text-xs font-medium text-slate-500 bg-white/[0.03] px-2.5 py-1 rounded-lg border border-white/[0.06]">
+                            0h · Sin Asignación
+                          </span>
+                        ) : (
+                          <span className="text-xs sm:text-sm font-bold text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
+                            Capitalización Sweat Equity
+                          </span>
+                        )
                       ) : (
-                        <span className="font-bold text-[#00e03c]">
-                          Bs. {s.shareBs.toLocaleString()}
-                        </span>
+                        s.hours === 0 ? (
+                          <span className="text-xs font-bold text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-lg border border-rose-500/20" title="Retención de dividendos según cláusula de inacción operativa del estatuto">
+                            0 Bs · Inacción (Retención)
+                          </span>
+                        ) : (
+                          <span className="font-black text-sm sm:text-base text-[#00e03c]">
+                            Bs. {s.shareBs.toLocaleString()}
+                          </span>
+                        )
                       )}
                     </div>
                   </div>
@@ -4056,6 +4000,30 @@ export default function PartnerDashboard() {
   const [activeModule, setActiveModule] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [openCategories, setOpenCategories] = useState(() => {
+    const initial = {};
+    SIDEBAR_MODULE_GROUPS.forEach(g => {
+      initial[g.category] = g.modules.some(m => m.id === 'overview');
+    });
+    return initial;
+  });
+
+  const toggleCategory = useCallback((category) => {
+    setOpenCategories(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
+  }, []);
+
+  useEffect(() => {
+    const activeGroup = SIDEBAR_MODULE_GROUPS.find(g => g.modules.some(m => m.id === activeModule));
+    if (activeGroup) {
+      setOpenCategories(prev => {
+        if (prev[activeGroup.category]) return prev;
+        return { ...prev, [activeGroup.category]: true };
+      });
+    }
+  }, [activeModule]);
   const [loading, setLoading] = useState(false);
   const [metrics, setMetrics] = useState(() => {
     try {
@@ -4134,6 +4102,31 @@ export default function PartnerDashboard() {
   return (
     <div className="min-h-screen neuform-bg text-slate-100 flex relative z-10">
 
+      {/* ── CABECERA FIJA SUPERIOR DE COLOR SÓLIDO (DESKTOP & MOBILE) ───────── */}
+      <header className="fixed top-0 left-0 right-0 h-20 bg-[#070d17] border-b border-white/[0.1] z-[100] flex items-center justify-between px-4 sm:px-6 shadow-xl shadow-black/50 select-none">
+        {/* Lado izquierdo: Botón Módulos solo en Mobile (oculto en escritorio) */}
+        <div className="flex items-center gap-3 pl-14 sm:pl-16">
+          <button
+            type="button"
+            onClick={() => setMobileDrawerOpen(true)}
+            className="md:hidden flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#00e03c]/10 hover:bg-[#00e03c]/20 border border-[#00e03c]/30 hover:border-[#00e03c]/50 text-xs sm:text-sm font-black text-[#00e03c] transition-all cursor-pointer shadow-sm shadow-[#00e03c]/10 active:scale-95"
+            title="Abrir panel de módulos"
+          >
+            <Layers className="w-4 h-4 text-[#00e03c] shrink-0" />
+            <span className="tracking-wide">Módulos</span>
+          </button>
+        </div>
+
+        {/* Lado derecho: Espacio reservado para ChatbotFAB (right-4 sm:right-6) y badge socio */}
+        <div className="flex items-center gap-3 pr-14 sm:pr-16">
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs">
+            <span className="w-2 h-2 rounded-full bg-[#00e03c] animate-pulse" />
+            <span className="text-slate-400 font-medium">Socio:</span>
+            <span className="font-extrabold text-[#00e03c]">{activeSocio?.name}</span>
+          </div>
+        </div>
+      </header>
+
       {/* ── DESKTOP SIDEBAR ─────────────────────────────────────────────── */}
       <motion.aside
         animate={{ width: sidebarOpen ? 240 : 64 }}
@@ -4171,53 +4164,86 @@ export default function PartnerDashboard() {
         </AnimatePresence>
 
         {/* Nav Items Grouped by Business Model Canvas */}
-        <nav className="flex-1 p-2 space-y-3 overflow-y-auto">
-          {SIDEBAR_MODULE_GROUPS.map((group) => (
-            <div key={group.category} className="space-y-0.5">
-              {sidebarOpen && (
-                <div className="px-3 pt-2 pb-1">
-                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">
-                    {group.category}
-                  </span>
-                </div>
-              )}
-              {group.modules.map((mod) => (
-                <button
-                  key={mod.id}
-                  onClick={() => setActiveModule(mod.id)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all text-left cursor-pointer ${
-                    activeModule === mod.id
-                      ? 'bg-[#00e03c]/10 border border-[#00e03c]/20 text-[#00e03c] font-black shadow-sm shadow-[#00e03c]/5'
-                      : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-200 font-medium'
-                  }`}
-                  title={mod.label}
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="shrink-0">{mod.icon}</span>
-                    <AnimatePresence>
-                      {sidebarOpen && (
-                        <motion.span
-                          initial={{ opacity: 0, width: 0 }}
-                          animate={{ opacity: 1, width: 'auto' }}
-                          exit={{ opacity: 0, width: 0 }}
-                          className="text-xs truncate"
-                        >
-                          {mod.label}
-                        </motion.span>
+        <nav className="flex-1 p-2 space-y-2 overflow-y-auto">
+          {SIDEBAR_MODULE_GROUPS.map((group) => {
+            const isCategoryOpen = !sidebarOpen || !!openCategories[group.category];
+            const hasActiveModule = group.modules.some((m) => m.id === activeModule);
+
+            return (
+              <div key={group.category} className="space-y-0.5">
+                {sidebarOpen && (
+                  <button
+                    type="button"
+                    onClick={() => toggleCategory(group.category)}
+                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-white/[0.05] transition-colors group/cat cursor-pointer select-none"
+                    title={openCategories[group.category] ? `Colapsar ${group.category}` : `Desplegar ${group.category}`}
+                  >
+                    <div className="flex items-center gap-1.5 min-w-0 pr-1">
+                      <span className="text-[11px] sm:text-xs font-black text-slate-300 group-hover/cat:text-white uppercase tracking-wider leading-snug">
+                        {group.category}
+                      </span>
+                      {!openCategories[group.category] && hasActiveModule && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#00e03c] shrink-0" title="Módulo activo" />
                       )}
-                    </AnimatePresence>
-                  </div>
-                  {sidebarOpen && mod.badge && (
-                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0 ${
-                      mod.badge === 'Nuevo' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                    }`}>
-                      {mod.badge}
-                    </span>
+                    </div>
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 text-slate-400 group-hover/cat:text-[#00e03c] transition-transform duration-200 shrink-0 ${
+                        openCategories[group.category] ? 'rotate-180 text-[#00e03c]' : ''
+                      }`}
+                    />
+                  </button>
+                )}
+
+                <AnimatePresence initial={false}>
+                  {isCategoryOpen && (
+                    <motion.div
+                      initial={sidebarOpen ? { height: 0, opacity: 0 } : false}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                      className="space-y-0.5 overflow-hidden"
+                    >
+                      {group.modules.map((mod) => (
+                        <button
+                          key={mod.id}
+                          onClick={() => setActiveModule(mod.id)}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all text-left cursor-pointer ${
+                            activeModule === mod.id
+                              ? 'bg-[#00e03c]/10 border border-[#00e03c]/20 text-[#00e03c] font-black shadow-sm shadow-[#00e03c]/5'
+                              : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-200 font-medium'
+                          }`}
+                          title={mod.label}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <span className="shrink-0">{mod.icon}</span>
+                            <AnimatePresence>
+                              {sidebarOpen && (
+                                <motion.span
+                                  initial={{ opacity: 0, width: 0 }}
+                                  animate={{ opacity: 1, width: 'auto' }}
+                                  exit={{ opacity: 0, width: 0 }}
+                                  className="text-xs truncate"
+                                >
+                                  {mod.label}
+                                </motion.span>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                          {sidebarOpen && mod.badge && (
+                            <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0 ${
+                              mod.badge === 'Nuevo' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                            }`}>
+                              {mod.badge}
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </motion.div>
                   )}
-                </button>
-              ))}
-            </div>
-          ))}
+                </AnimatePresence>
+              </div>
+            );
+          })}
         </nav>
 
         {/* Logout */}
@@ -4264,46 +4290,81 @@ export default function PartnerDashboard() {
               </div>
 
               {/* Socio info */}
-              <div className="px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 mb-4">
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Socio Activo</p>
-                <p className="text-xs font-extrabold text-[#00e03c] truncate">{activeSocio?.name}</p>
-                <p className="text-[10px] text-slate-400 truncate">{activeSocio?.email}</p>
+              <div className="px-3.5 py-3 rounded-xl bg-white/[0.04] border border-white/10 mb-4">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Socio Activo</p>
+                <p className="text-sm font-black text-[#00e03c] truncate mt-0.5">{activeSocio?.name}</p>
+                <p className="text-xs text-slate-400 truncate mt-0.5">{activeSocio?.email}</p>
               </div>
 
               {/* Navigation list */}
-              <nav className="flex-1 space-y-4">
-                {SIDEBAR_MODULE_GROUPS.map((group) => (
-                  <div key={group.category} className="space-y-1">
-                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block px-2">
-                      {group.category}
-                    </span>
-                    {group.modules.map((mod) => (
+              <nav className="flex-1 space-y-3">
+                {SIDEBAR_MODULE_GROUPS.map((group) => {
+                  const isCategoryOpen = !!openCategories[group.category];
+                  const hasActiveModule = group.modules.some((m) => m.id === activeModule);
+
+                  return (
+                    <div key={group.category} className="space-y-1">
                       <button
-                        key={mod.id}
                         type="button"
-                        onClick={() => {
-                          setActiveModule(mod.id);
-                          setMobileDrawerOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-left ${
-                          activeModule === mod.id
-                            ? 'bg-[#00e03c]/15 border border-[#00e03c]/30 text-[#00e03c] font-black'
-                            : 'text-slate-300 hover:bg-white/[0.04]'
-                        }`}
+                        onClick={() => toggleCategory(group.category)}
+                        className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left hover:bg-white/[0.05] transition-colors group/cat cursor-pointer select-none"
+                        title={isCategoryOpen ? `Colapsar ${group.category}` : `Desplegar ${group.category}`}
                       >
-                        <div className="flex items-center gap-2.5">
-                          {mod.icon}
-                          <span className="text-xs">{mod.label}</span>
-                        </div>
-                        {mod.badge && (
-                          <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase">
-                            {mod.badge}
+                        <div className="flex items-center gap-2 min-w-0 pr-1">
+                          <span className="text-sm font-black text-slate-200 group-hover/cat:text-white uppercase tracking-wider leading-snug">
+                            {group.category}
                           </span>
-                        )}
+                          {!isCategoryOpen && hasActiveModule && (
+                            <span className="w-2 h-2 rounded-full bg-[#00e03c] shrink-0" title="Módulo activo" />
+                          )}
+                        </div>
+                        <ChevronDown
+                          className={`w-4 h-4 text-slate-400 group-hover/cat:text-[#00e03c] transition-transform duration-200 shrink-0 ${
+                            isCategoryOpen ? 'rotate-180 text-[#00e03c]' : ''
+                          }`}
+                        />
                       </button>
-                    ))}
-                  </div>
-                ))}
+
+                      <AnimatePresence initial={false}>
+                        {isCategoryOpen && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                            className="space-y-1 overflow-hidden"
+                          >
+                            {group.modules.map((mod) => (
+                              <button
+                                key={mod.id}
+                                type="button"
+                                onClick={() => {
+                                  setActiveModule(mod.id);
+                                  setMobileDrawerOpen(false);
+                                }}
+                                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all text-left ${
+                                  activeModule === mod.id
+                                    ? 'bg-[#00e03c]/15 border border-[#00e03c]/30 text-[#00e03c] font-black'
+                                    : 'text-slate-300 hover:bg-white/[0.04]'
+                                }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  {mod.icon}
+                                  <span className="text-sm font-bold">{mod.label}</span>
+                                </div>
+                                {mod.badge && (
+                                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase">
+                                    {mod.badge}
+                                  </span>
+                                )}
+                              </button>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
               </nav>
 
               {/* Logout */}
@@ -4314,7 +4375,7 @@ export default function PartnerDashboard() {
                     setMobileDrawerOpen(false);
                     handleLogoutPartner();
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-rose-400 hover:bg-rose-500/10 text-xs font-bold"
+                  className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-rose-400 hover:bg-rose-500/10 text-sm font-bold"
                 >
                   <X className="w-4 h-4" /> Cerrar Sesión
                 </button>
@@ -4325,40 +4386,33 @@ export default function PartnerDashboard() {
       </AnimatePresence>
 
       {/* ── MAIN CONTENT ─────────────────────────────────────────────── */}
-      <main ref={mainRef} className="flex-1 overflow-y-auto">
-        <div className="px-6 py-8 pt-6 max-w-7xl mx-auto space-y-8">
+      <main ref={mainRef} className="flex-1 overflow-y-auto pt-20">
+        <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-7xl mx-auto space-y-6 sm:space-y-8">
 
-          {/* Sticky Translucent Page Header */}
-          <div className="sticky top-0 z-30 bg-[#070d17]/85 backdrop-blur-md -mx-6 px-6 py-4 border-b border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
-            <div className="flex items-center gap-3">
-              {/* Botón Mobile para abrir Drawer */}
-              <button
-                type="button"
-                onClick={() => setMobileDrawerOpen(true)}
-                className="md:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.06] border border-white/10 text-xs font-bold text-white hover:bg-white/[0.1] transition-all cursor-pointer shrink-0"
-              >
-                <Layers className="w-4 h-4 text-[#00e03c]" />
-                <span>Módulos</span>
-              </button>
-
-              <div>
-                <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                  {SIDEBAR_MODULES.find(m => m.id === activeModule)?.label}
-                </h1>
-                <p className="text-xs text-slate-500 mt-0.5 font-medium">
-                  Panel Directivo SERAM · Bienvenido, <span className="text-[#00e03c] font-bold">{activeSocio?.name}</span>
-                </p>
+          {/* ── OTRA SEGMENTACIÓN DEBAJO: CABECERA DEL MÓDULO & ESTADO EN TIEMPO REAL ── */}
+          <div className="bg-[#0b1322]/90 border border-white/[0.1] rounded-2xl p-4 sm:p-6 backdrop-blur-md shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-3.5 py-1 rounded-full">
+                  {SIDEBAR_MODULE_GROUPS.find(g => g.modules.some(m => m.id === activeModule))?.category || 'Módulo SERAM'}
+                </span>
               </div>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight">
+                {SIDEBAR_MODULES.find(m => m.id === activeModule)?.label}
+              </h1>
+              <p className="text-sm sm:text-base text-slate-300 font-medium mt-1">
+                Panel Directivo SERAM · Bienvenido, <span className="text-[#00e03c] font-bold">{activeSocio?.name}</span>
+              </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[9px] font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-3 py-1.5 rounded-full uppercase tracking-widest flex items-center gap-1.5 shadow-sm shadow-[#00e03c]/5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#00e03c] animate-ping" />
-                <span className="w-1.5 h-1.5 rounded-full bg-[#00e03c]" />
+            {/* Badges y etiquetas de tiempo real */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+              <span className="text-xs sm:text-sm font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-4 py-2 rounded-full uppercase tracking-wider flex items-center gap-2 shadow-sm shadow-[#00e03c]/5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00e03c] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00e03c]"></span>
+                </span>
                 En Línea · Tiempo Real
-              </span>
-              <span className="text-[9px] font-black text-amber-400 bg-amber-400/10 border border-amber-400/20 px-3 py-1.5 rounded-full uppercase tracking-widest flex items-center gap-1.5">
-                <Shield className="w-3 h-3" /> Socio Directivo
               </span>
             </div>
           </div>
