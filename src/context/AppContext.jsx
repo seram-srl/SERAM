@@ -120,9 +120,28 @@ export function AppProvider({ children }) {
   // --- PROJECTS (Proyectos B2B y Consultorías Ambientales Oficiales de SERAM SRL) ---
   // Datos fantasma depurados: Únicamente el proyecto interno real
   const [activeServices, setActiveServices] = useState(() => {
-    const realInternalProject = [
+    const realInternalProjects = [
       {
-        id: 'srm-internal-web',
+        id: 18,
+        code: 'SRM-INT-DIR-01',
+        client: 'SERAM S.R.L. (Directorio)',
+        type: 'Reunión de Directorio & Coordinación General',
+        lead: 'Ing. Diego Barrientos',
+        involved: ['Ing. Diego Barrientos', 'Ing. Fernando Araujo', 'Ing. Fabricio Orosco'],
+        location: 'Sala de Directorio (Oficina 2.5D / Reunión General)',
+        startDate: '2026-01-01',
+        endDate: '2026-12-31',
+        progress: 100,
+        budget: 0,
+        labCosts: 0,
+        subcontractorCosts: 0,
+        taxRegime: 'Régimen General',
+        description: 'Sesiones de directorio societario, gobernanza, coordinación de licitaciones, planificación operativa y misiones grupales de socios.',
+        tag: 'Proyecto Interno Real',
+        isProposal: false
+      },
+      {
+        id: 17,
         code: 'SRM-INT-WEB-01',
         client: 'SERAM S.R.L. (Interno)',
         type: 'Plataforma Digital & Ecosistema SERAM',
@@ -148,13 +167,15 @@ export function AppProvider({ children }) {
           const parsed = JSON.parse(saved);
           const filtered = Array.isArray(parsed) ? parsed.filter(p => p.id !== 101 && p.id !== 1) : [];
           if (filtered.length > 0) {
-            const hasInternal = filtered.some(p => p.type?.includes('Plataforma') || p.client?.includes('SERAM S.R.L.'));
-            return hasInternal ? filtered : [realInternalProject[0], ...filtered];
+            const hasMeeting = filtered.some(p => p.id === 18 || p.type?.toLowerCase().includes('directorio'));
+            const listWithMeeting = hasMeeting ? filtered : [realInternalProjects[0], ...filtered];
+            const hasWeb = listWithMeeting.some(p => p.id === 17 || p.type?.toLowerCase().includes('plataforma'));
+            return hasWeb ? listWithMeeting : [realInternalProjects[1], ...listWithMeeting];
           }
         }
       } catch (e) {}
     }
-    return realInternalProject;
+    return realInternalProjects;
   });
 
   // --- CLIENTS (Directorio de Clientes e Instituciones de SERAM) ---

@@ -883,9 +883,27 @@ export function calculatePartnerTotalXP(partnerName, activities = [], timeLogs =
     a => a.category?.toLowerCase().includes('propuesta') || a.category?.toLowerCase().includes('informe')
   ).length;
 
+  // Proyectos y Misiones Grupales: iniciativas o proyectos donde 2 o más socios registraron horas de trabajo conjunto
+  const projectPartnersMap = {};
+  (timeLogs || []).forEach(l => {
+    const pKey = l.project_id || l.project_title;
+    if (!pKey) return;
+    if (!projectPartnersMap[pKey]) projectPartnersMap[pKey] = new Set();
+    const pSocioName = l.partner_name || l.partner_id;
+    projectPartnersMap[pKey].add(pSocioName);
+  });
+
+  const autoGroupProjects = Object.entries(projectPartnersMap).filter(([pKey, partnersSet]) => {
+    const hasThisPartner = (timeLogs || []).some(l => 
+      (l.project_id === pKey || l.project_title === pKey) && 
+      (l.partner_name === partnerName || l.partner_id?.includes(partnerName.split(' ')[1]?.toLowerCase() || ''))
+    );
+    return hasThisPartner && partnersSet.size >= 2;
+  }).length;
+
   const resolvedMetrics = {
     individualProjects: partnerMetrics.individualProjects ?? autoIndividualProjects,
-    groupProjects: partnerMetrics.groupProjects ?? 0,
+    groupProjects: partnerMetrics.groupProjects ?? autoGroupProjects,
     prospects: partnerMetrics.prospects ?? 0,
     clientsClosed: partnerMetrics.clientsClosed ?? 0,
     newClients: partnerMetrics.newClients ?? 0,

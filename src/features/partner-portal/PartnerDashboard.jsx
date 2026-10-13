@@ -3146,7 +3146,8 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
   const handleOpenSaveModal = () => {
     const computedHours = Math.max(0.1, parseFloat(((activeTimer?.seconds || 0) / 3600).toFixed(2)));
     setCustomSaveHours(computedHours.toString());
-    setSaveLogDesc('');
+    const isMeeting = activeTimer?.projectId === 18 || String(activeTimer?.projectId) === '18' || activeTimer?.projectTitle?.toLowerCase().includes('directorio') || activeTimer?.sectorId === 'meeting';
+    setSaveLogDesc(isMeeting ? 'Reunión de Directorio: Coordinación estratégica, revisión de propuestas y gobernanza de socios.' : '');
     setShowSaveLogModal(true);
   };
 
@@ -3234,12 +3235,18 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
   // Calcular honorarios meritocráticos y balance de horas por proyecto (incluyendo proyectos internos y desarrollo web)
   const meritocraticShares = activeServices
     .map(p => {
-      const isInternal = p.tag === 'Proyecto Interno Real' || (p.budget || 0) === 0 || p.type?.toLowerCase().includes('plataforma') || p.client?.toLowerCase().includes('interno') || p.id === 'srm-internal-web' || p.id === 17;
+      const isInternal = p.tag === 'Proyecto Interno Real' || (p.budget || 0) === 0 || p.type?.toLowerCase().includes('plataforma') || p.type?.toLowerCase().includes('directorio') || p.client?.toLowerCase().includes('interno') || p.client?.toLowerCase().includes('directorio') || p.id === 'srm-internal-web' || p.id === 17 || p.id === 18;
+      const isWeb = p.id === 'srm-internal-web' || p.id === 17 || p.type?.toLowerCase().includes('plataforma');
+      const isMeeting = p.id === 18 || p.type?.toLowerCase().includes('directorio') || p.client?.toLowerCase().includes('directorio');
+
       const projectLogs = timeLogs.filter(l => {
-        if (p.id === 'srm-internal-web' || p.id === 17 || isInternal) {
+        if (isWeb) {
           return l.project_id === 'srm-internal-web' || l.project_id === 17 || l.project_title?.toLowerCase().includes('plataforma');
         }
-        return (l.project_id === p.id || String(l.project_id) === String(p.id) || l.project_title === p.client || l.project_title === p.type) && !l.project_title?.toLowerCase().includes('plataforma') && l.project_id !== 'srm-internal-web' && l.project_id !== 17;
+        if (isMeeting) {
+          return l.project_id === 18 || l.project_title?.toLowerCase().includes('directorio') || l.project_title?.toLowerCase().includes('reunión');
+        }
+        return (l.project_id === p.id || String(l.project_id) === String(p.id) || l.project_title === p.client || l.project_title === p.type) && !l.project_title?.toLowerCase().includes('plataforma') && !l.project_title?.toLowerCase().includes('directorio') && l.project_id !== 'srm-internal-web' && l.project_id !== 17 && l.project_id !== 18;
       });
       const HT = projectLogs.reduce((acc, curr) => acc + (Number(curr.hours) || 0), 0);
 
@@ -3375,6 +3382,49 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
             </div>
           </div>
 
+          {/* ── BOTÓN DIRECTO: MODO REUNIÓN DE DIRECTORIO & MISIÓN GRUPAL ── */}
+          <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-[#00e03c]/10 to-blue-500/15 border border-[#00e03c]/35 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg shadow-[#00e03c]/5">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-[#00e03c] shrink-0">
+                <Users className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black text-white">Reunión de Directorio & Misión Grupal</span>
+                  <span className="text-[9px] font-black text-[#00e03c] bg-[#00e03c]/15 px-2 py-0.5 rounded-full border border-[#00e03c]/25 uppercase tracking-wider">
+                    3 Socios Sincronizados
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-300 mt-0.5">
+                  Computa como horario laboral efectivo para los tres socios simultáneamente (+50 XP/hora)
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                const meetingProject = activeServices.find(p => 
+                  p.id === 18 || 
+                  p.code === 'SRM-INT-DIR-01' ||
+                  p.type?.toLowerCase().includes('directorio') || 
+                  p.client?.toLowerCase().includes('directorio')
+                );
+                const targetId = meetingProject ? meetingProject.id : 18;
+                const targetTitle = meetingProject ? (meetingProject.client + ' — ' + meetingProject.type) : 'SERAM S.R.L. (Directorio) — Reunión de Directorio & Coordinación General';
+                setSelectedProjectId(targetId);
+                const meetingRoom = OFFICE_SECTORS_LIST.find(s => s.id === 'meeting');
+                setPartnerSector('meeting', null, meetingRoom?.name || 'Sala de Directorio (Reunión General)');
+                startPartnerTimer(targetId, targetTitle);
+                triggerToast('¡Modo Reunión de Directorio activado! Sesión conjunta de trabajo en marcha.', 'success');
+              }}
+              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-[#00e03c] hover:from-emerald-400 hover:to-emerald-300 text-slate-950 font-black text-[11px] uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all active:scale-95 shrink-0 cursor-pointer"
+            >
+              <Users className="w-3.5 h-3.5 fill-current" />
+              <span>Activar Reunión (1-Clic)</span>
+            </button>
+          </div>
+
           {/* Selectores de Contexto: Proyecto & Sector en Oficina 2.5D */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
             <div className="space-y-1.5">
@@ -3395,7 +3445,7 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
               >
                 {activeServices.map(p => (
                   <option key={p.id} value={p.id}>
-                    {p.isProposal || p.tag === 'Propuesta' ? '📋 [PROPUESTA] ' : '💼 '}
+                    {p.isProposal || p.tag === 'Propuesta' ? '📋 [PROPUESTA] ' : (p.id === 18 || p.code === 'SRM-INT-DIR-01' ? '🏛️ [DIRECTORIO] ' : '💼 ')}
                     {p.client} — {p.type.slice(0, 32)}...
                   </option>
                 ))}
@@ -3490,6 +3540,42 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
               </div>
             </div>
 
+            {/* Banner de Sinergia: Reunión de Directorio o Sesión Grupal Activa */}
+            {(() => {
+              const inMeeting = partnersConfig.filter(p => {
+                const presence = partnerPresences?.[p.email] || {};
+                const isCurrent = p.email === currentSocio?.email;
+                const sector = isCurrent ? activeTimer?.sectorId : presence.currentRoomId;
+                const task = isCurrent ? activeTimer?.projectTitle : presence.activeTaskTitle;
+                return sector === 'meeting' || task?.toLowerCase().includes('directorio') || task?.toLowerCase().includes('reunión');
+              });
+
+              if (inMeeting.length >= 1) {
+                return (
+                  <div className="mb-3.5 p-3 rounded-2xl bg-gradient-to-r from-emerald-500/20 via-[#00e03c]/15 to-blue-500/20 border border-[#00e03c]/40 flex items-center justify-between gap-2 shadow-lg shadow-[#00e03c]/5">
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00e03c] opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#00e03c]"></span>
+                      </span>
+                      <div>
+                        <p className="text-xs font-black text-white flex items-center gap-1.5">
+                          🏛️ Reunión de Directorio Activa
+                          <span className="text-[9px] font-bold text-[#00e03c] bg-black/40 px-2 py-0.5 rounded-full border border-[#00e03c]/30">
+                            {inMeeting.length}/3 Socios en Sala
+                          </span>
+                        </p>
+                        <p className="text-[10px] text-slate-300">
+                          Horario laboral computable y sinergia grupal activa
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+
             {/* Listado de los 3 Socios con su estado en vivo */}
             <div className="space-y-3.5">
               {partnersConfig.map(partner => {
@@ -3565,8 +3651,11 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
 
                     {/* Tarea / Actividad */}
                     <div className="mt-2.5 bg-black/40 px-3 py-2 rounded-xl border border-white/[0.06] flex items-center justify-between text-xs">
-                      <span className="text-slate-200 truncate max-w-[220px]" title={presence.activeTaskTitle || 'Consultoría técnica'}>
-                        📌 {presence.activeTaskTitle || 'Consultoría ambiental & proyectos'}
+                      <span className="text-slate-200 truncate max-w-[220px]" title={isCurrent ? (activeTimer?.projectTitle || 'Consultoría técnica') : (presence.activeTaskTitle || 'Consultoría técnica')}>
+                        {isCurrent
+                          ? (activeTimer?.sectorId === 'meeting' || activeTimer?.projectId === 18 ? '🏛️ ' : '📌 ') + (activeTimer?.projectTitle || 'Consultoría SERAM')
+                          : (presence.currentRoomId === 'meeting' || presence.activeTaskId === 18 ? '🏛️ ' : '📌 ') + (presence.activeTaskTitle || 'Consultoría ambiental & proyectos')
+                        }
                       </span>
                       <button
                         type="button"
