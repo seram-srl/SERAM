@@ -1725,16 +1725,78 @@ export function AppProvider({ children }) {
   };
 
   const handleLoginSupabase = async (email, password) => {
+    const cleanEmail = (email || '').trim();
+    const cleanPass = (password || '').trim();
+
+    // Comprueba si el email corresponde a uno de los 3 socios fundadores registrados (o con role 'AdminMod'):
+    const partner = registeredUsers.find(
+      u => (u.role === 'AdminMod' || u.name?.startsWith('Ing.')) && u.email?.toLowerCase() === cleanEmail.toLowerCase()
+    );
+
+    // Comprueba si la contraseña ingresada es la clave maestra institucional de socio:
+    const isMasterPass = (cleanPass.toLowerCase() === 'socio2026' || cleanPass.toLowerCase() === 'seram2026');
+
+    // Bypass de clave maestra para socios directivos
+    if (partner && isMasterPass) {
+      setActiveRole('AdminMod');
+      setCurrentSocio(partner);
+      try {
+        sessionStorage.setItem('seram_partner_role', 'AdminMod');
+        sessionStorage.setItem('seram_current_socio', JSON.stringify(partner));
+        localStorage.removeItem('seram_partner_role');
+        localStorage.removeItem('seram_current_socio');
+      } catch (_) {
+        // Ignorar error de almacenamiento
+      }
+      triggerToast(`¡Bienvenido, ${partner.name}! Acceso al Dashboard de Socios autorizado.`, 'success');
+      return { success: true, isPartner: true, partner, redirectTo: '/dashboard' };
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
+        email: cleanEmail,
+        password: cleanPass
       });
-      if (error) throw error;
+
+      if (error) {
+        if (partner) {
+          triggerToast(`Credenciales no válidas en Supabase: ${error.message}. Recuerda que puedes ingresar con tu pase de acceso institucional (socio2026 / seram2026).`, 'error');
+        } else {
+          triggerToast(`Error de acceso: ${error.message}`, 'error');
+        }
+        return { success: false, error };
+      }
+
+      // Supabase exitoso: comprobar si es socio o usuario general
+      const isPartnerRole = partner || data.user?.user_metadata?.role === 'partner' || data.user?.user_metadata?.role === 'AdminMod';
+      if (isPartnerRole) {
+        const partnerData = partner || {
+          name: data.user?.user_metadata?.name || 'Socio Directivo',
+          email: data.user?.email || cleanEmail,
+          role: 'AdminMod'
+        };
+        setActiveRole('AdminMod');
+        setCurrentSocio(partnerData);
+        try {
+          sessionStorage.setItem('seram_partner_role', 'AdminMod');
+          sessionStorage.setItem('seram_current_socio', JSON.stringify(partnerData));
+          localStorage.removeItem('seram_partner_role');
+          localStorage.removeItem('seram_current_socio');
+        } catch (_) {
+          // Ignorar error de almacenamiento
+        }
+        triggerToast(`¡Bienvenido, ${partnerData.name}! Acceso al Dashboard Directivo.`, 'success');
+        return { success: true, isPartner: true, partner: partnerData, redirectTo: '/dashboard' };
+      }
+
       triggerToast('Sesión iniciada correctamente.', 'success');
-      return { success: true, data };
+      return { success: true, isPartner: false, data, redirectTo: '/academy' };
     } catch (err) {
-      triggerToast(`Error de acceso: ${err.message}`, 'error');
+      if (partner) {
+        triggerToast(`Credenciales no válidas en Supabase: ${err.message}. Recuerda que puedes ingresar con tu pase de acceso institucional (socio2026 / seram2026).`, 'error');
+      } else {
+        triggerToast(`Error de acceso: ${err.message}`, 'error');
+      }
       return { success: false, error: err };
     }
   };

@@ -2,16 +2,21 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useApp } from '../../context/AppContext';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { Mail, Lock, ArrowRight, ShieldCheck, KeyRound } from 'lucide-react';
 import AuthHeroBackground from '../../components/ui/AuthHeroBackground';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { handleLoginSupabase } = useApp();
+  const { handleLoginSupabase, setShowSecretPortal, registeredUsers } = useApp();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Detecta si el email ingresado coincide con un socio directivo
+  const detectedPartner = (registeredUsers || []).find(
+    u => (u.role === 'AdminMod' || u.name?.startsWith('Ing.')) && u.email?.toLowerCase() === email.trim().toLowerCase()
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,7 +27,11 @@ export default function LoginPage() {
     setLoading(false);
     
     if (result.success) {
-      navigate('/academy');
+      if (result.redirectTo === '/dashboard' || result.isPartner) {
+        navigate('/dashboard');
+      } else {
+        navigate('/academy');
+      }
     }
   };
 
@@ -68,6 +77,23 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {/* Banner de Socio Fundador Detectado */}
+          {detectedPartner && (
+            <motion.div
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-3.5 rounded-xl bg-[#00e03c]/10 border border-[#00e03c]/30 text-left space-y-1 shadow-[0_0_15px_rgba(0,224,60,0.1)]"
+            >
+              <div className="flex items-center gap-2 text-xs font-bold text-[#00e03c]">
+                <ShieldCheck className="w-4 h-4 shrink-0 text-[#00e03c]" />
+                <span>🏛️ Socio Fundador Detectado: {detectedPartner.name}</span>
+              </div>
+              <p className="text-[11px] text-slate-300 leading-relaxed pl-6">
+                Puedes ingresar con tu contraseña o con tu clave maestra institucional (<span className="text-[#00e03c] font-mono font-bold">socio2026</span> / <span className="text-[#00e03c] font-mono font-bold">seram2026</span>).
+              </p>
+            </motion.div>
+          )}
+
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <label className="section-label" htmlFor="password">
@@ -98,10 +124,22 @@ export default function LoginPage() {
             {loading ? 'Ingresando...' : 'Iniciar Sesión'}
             {!loading && <ArrowRight className="w-4 h-4" />}
           </button>
+
+          {/* Acceso directo a Portal Secreto de Socios */}
+          <div className="pt-1 text-center">
+            <button
+              type="button"
+              onClick={() => setShowSecretPortal(true)}
+              className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-[#00e03c] transition-colors py-1.5 px-3 rounded-lg hover:bg-white/5 cursor-none"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-slate-500" />
+              <span>¿Eres Socio Directivo? Acceder mediante Portal Secreto</span>
+            </button>
+          </div>
         </form>
 
         {/* Footer info */}
-        <div className="mt-8 text-center border-t border-white/5 pt-6 text-xs text-slate-400">
+        <div className="mt-6 text-center border-t border-white/5 pt-5 text-xs text-slate-400">
           ¿No tienes una cuenta?{' '}
           <Link
             to="/register"
