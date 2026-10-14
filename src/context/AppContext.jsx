@@ -1,6 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../services/supabaseClient';
 import initialProspects from '../data/b2b_prospects.json';
+import {
+  normalizeAvatarConfig,
+  compactAvatarConfig,
+  loadStoredProfileAvatarConfigs,
+  legacySkinFromConfig
+} from '../features/partner-portal/avatar/avatarCatalog';
 
 export const AppContext = createContext(null);
 
@@ -1143,6 +1149,25 @@ export function AppProvider({ children }) {
                 }
               };
             });
+          } else if (type === 'PARTNER_AVATAR_UPDATE' && payload && payload.email) {
+            const normalized = normalizeAvatarConfig(payload.avatarConfig, { email: payload.email });
+            setPartnerAvatarConfigs(prev => ({
+              ...prev,
+              [payload.email]: normalized
+            }));
+            setPartnerPresences(prev => {
+              const current = prev[payload.email] || {};
+              const merged = {
+                ...prev,
+                [payload.email]: { ...current, avatarConfig: normalized, lastPing: Date.now() }
+              };
+              try {
+                localStorage.setItem('seram_partners_presence', JSON.stringify(merged));
+              } catch (_) {
+                /* ignore */
+              }
+              return merged;
+            });
           }
         };
 
@@ -1173,6 +1198,131 @@ export function AppProvider({ children }) {
 
   // REF PERSISTENTE DEL CANAL SUPABASE REALTIME
   const supabaseChannelRef = useRef(null);
+
+  // --- CONFIGURACIÓN DE AVATARES 2.5D DE SOCIOS ---
+  const [partnerAvatarConfigs, setPartnerAvatarConfigs] = useState(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        return loadStoredProfileAvatarConfigs();
+      }
+    } catch (_) {}
+    return {};
+  });
+
+  const partnerAvatarConfigsRef = useRef(partnerAvatarConfigs);
+  useEffect(() => {
+    partnerAvatarConfigsRef.current = partnerAvatarConfigs;
+  }, [partnerAvatarConfigs]);
+
+  const updatePartnerAvatarConfig = useCallback(async (email, newConfig) => {
+    if (!email || !newConfig) return;
+    const normalized = normalizeAvatarConfig(newConfig, { email });
+
+    setPartnerAvatarConfigs(prev => ({
+      ...prev,
+      [email]: normalized
+    }));
+
+    setPartnerPresences(prev => {
+      const entry = prev[email] || {};
+      const updated = {
+        ...prev,
+        [email]: {
+          ...entry,
+          avatarConfig: normalized
+        }
+      };
+      try {
+        localStorage.setItem('seram_partners_presence', JSON.stringify(updated));
+      } catch (_) {
+        /* ignore */
+      }
+      return updated;
+    });
+
+    // 1. Guardar en localStorage seram_partner_profiles
+    try {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('seram_partner_profiles');
+        const profiles = saved ? JSON.parse(saved) : {};
+        profiles[email] = {
+          ...(profiles[email] || {}),
+          avatarConfig: normalized,
+          skin: legacySkinFromConfig(normalized, profiles[email]?.skin)
+        };
+        localStorage.setItem('seram_partner_profiles', JSON.stringify(profiles));
+      }
+    } catch (_) {
+      /* ignore */
+    }
+
+    // 2. Notificar por BroadcastChannel local
+    if (broadcastChan) {
+      try {
+        broadcastChan.postMessage({
+          type: 'PARTNER_AVATAR_UPDATE',
+          payload: { email, avatarConfig: compactAvatarConfig(normalized) }
+        });
+      } catch (_) {
+        /* ignore */
+      }
+    }
+
+    // 3. Notificar por Supabase Realtime
+    if (supabaseChannelRef.current) {
+      try {
+        supabaseChannelRef.current.send({
+          type: 'broadcast',
+          event: 'partner_avatar_update',
+          payload: { email, avatarConfig: compactAvatarConfig(normalized) }
+        });
+      } catch (_) {
+        /* ignore */
+      }
+    }
+
+    // 4. Upsert en tabla Supabase partner_profiles (falla silenciosa)
+    try {
+      if (supabase) {
+        await supabase
+          .from('partner_profiles')
+          .upsert({
+            email,
+            avatar_config: normalized,
+            skin: legacySkinFromConfig(normalized, 'vest'),
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'email' });
+      }
+    } catch (e) {
+      console.warn('[AvatarConfig Supabase Upsert Notice]:', e?.message);
+    }
+  }, [broadcastChan]);
+
+  // Carga remota inicial desde Supabase (si la tabla partner_profiles existe)
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchRemoteAvatarConfigs() {
+      try {
+        if (!supabase) return;
+        const { data, error } = await supabase.from('partner_profiles').select('email, avatar_config, skin');
+        if (!error && Array.isArray(data) && data.length > 0 && isMounted) {
+          setPartnerAvatarConfigs(prev => {
+            const next = { ...prev };
+            data.forEach(row => {
+              if (row && row.email && row.avatar_config) {
+                next[row.email] = normalizeAvatarConfig(row.avatar_config, { email: row.email, skin: row.skin });
+              }
+            });
+            return next;
+          });
+        }
+      } catch (_) {
+        /* ignore */
+      }
+    }
+    fetchRemoteAvatarConfigs();
+    return () => { isMounted = false; };
+  }, []);
 
   // SUPABASE REALTIME CHANNEL (PRESENCE & BROADCAST EN TIEMPO REAL ENTRE DISPOSITIVOS)
   useEffect(() => {
@@ -1333,6 +1483,32 @@ export function AppProvider({ children }) {
           });
         }
       })
+      .on('broadcast', { event: 'partner_avatar_update' }, ({ payload }) => {
+        if (payload && payload.email) {
+          const normalized = normalizeAvatarConfig(payload.avatarConfig, { email: payload.email });
+          setPartnerAvatarConfigs(prev => ({
+            ...prev,
+            [payload.email]: normalized
+          }));
+          setPartnerPresences(prev => {
+            const current = prev[payload.email] || {};
+            const updated = {
+              ...prev,
+              [payload.email]: {
+                ...current,
+                avatarConfig: normalized,
+                lastPing: Date.now()
+              }
+            };
+            try {
+              localStorage.setItem('seram_partners_presence', JSON.stringify(updated));
+            } catch (_) {
+              /* ignore */
+            }
+            return updated;
+          });
+        }
+      })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED' && activeRole === 'AdminMod' && currentEmail) {
           const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone/i.test(navigator.userAgent);
@@ -1352,7 +1528,11 @@ export function AppProvider({ children }) {
             activeTaskId: activeTimer.projectId,
             activeTaskTitle: activeTimer.projectTitle,
             device: isMobile ? 'Dispositivo Móvil (Android)' : 'Escritorio (Web)',
-            location: 'La Paz, Bolivia'
+            location: 'La Paz, Bolivia',
+            avatarConfig: compactAvatarConfig(
+              partnerAvatarConfigsRef.current[currentEmail] ||
+              loadStoredProfileAvatarConfigs()[currentEmail]
+            )
           };
           try {
             await channel.track(initialData);
@@ -1397,7 +1577,11 @@ export function AppProvider({ children }) {
         activeTaskId: activeTimer.projectId,
         activeTaskTitle: activeTimer.projectTitle,
         device: isMobile ? 'Dispositivo Móvil (Android)' : 'Escritorio (Web)',
-        location: 'Bolivia'
+        location: 'Bolivia',
+        avatarConfig: compactAvatarConfig(
+          partnerAvatarConfigsRef.current[email] ||
+          loadStoredProfileAvatarConfigs()[email]
+        )
       };
 
       setPartnerPresences(prev => {
@@ -3311,6 +3495,7 @@ export function AppProvider({ children }) {
       experiences, setExperiences,
       timeLogs, setTimeLogs,
       partnerPresences, setPartnerPresences,
+      partnerAvatarConfigs, setPartnerAvatarConfigs, updatePartnerAvatarConfig,
       publicServices, setPublicServices, specialists, setSpecialists,
       // Academy progress
       completedLessons, courseExamsApproved, courseAssignments,
