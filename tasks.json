@@ -6,6 +6,46 @@
   "in_progress": [],
   "completed": [
     {
+      "id": "TASK-073",
+      "title": "AVATAR-05: Desbloqueos por XP (Octalysis) y micro-animaciones 2.5D (orientación, caminata, tecleo)",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-14",
+      "completed_at": "2026-10-14"
+    },
+    {
+      "id": "TASK-072",
+      "title": "AVATAR-04: Persistencia avatarConfig en AppContext + Supabase (jsonb, RLS) + sincronización por presencia realtime",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-14",
+      "completed_at": "2026-10-14"
+    },
+    {
+      "id": "TASK-071",
+      "title": "AVATAR-03: AvatarCustomizer en Perfil de Socios con pestañas y preview en vivo isométrica",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-14",
+      "completed_at": "2026-10-14"
+    },
+    {
+      "id": "TASK-070",
+      "title": "AVATAR-02: Oficina Virtual consume PartnerAvatar25D y avatarConfig del perfil (fix: skin guardado ignorado)",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-14",
+      "completed_at": "2026-10-14"
+    },
+    {
+      "id": "TASK-069",
+      "title": "AVATAR-01: Catálogo de personalización y renderizador SVG 2.5D por capas (PartnerAvatar25D)",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-14",
+      "completed_at": "2026-10-14"
+    },
+    {
       "id": "TASK-068",
       "title": "Optimización Ergonómica del Tablero Kanban: Altura Acotada con Scrollbar Independiente, Tarjetas Compactas para Tareas Finalizadas y Acordeón Desplegable para Concluidas Antiguas",
       "status": "completed",
