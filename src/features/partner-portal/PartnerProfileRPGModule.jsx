@@ -21,6 +21,14 @@ import {
 import TalentTreeConstellation from './gamification/TalentTreeConstellation';
 import PlayerJourneyModule from './gamification/PlayerJourneyModule';
 import InteractiveGameTourModal from './gamification/InteractiveGameTourModal';
+import PartnerAvatar25D from './avatar/PartnerAvatar25D';
+import AvatarCustomizer from './avatar/AvatarCustomizer';
+import {
+  normalizeAvatarConfig,
+  legacySkinFromConfig,
+  getDefaultAvatarConfig,
+  countFieldMissions
+} from './avatar/avatarCatalog';
 
 // ── PERFILES BASE OFICIALES DE LOS TRES SOCIOS ──────────────────────────────
 const DEFAULT_PROFILES = {
@@ -93,7 +101,7 @@ const SKINS = [
 ];
 
 export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] }) {
-  const { activities = [], prospects = [], municipalProposals = [] } = useApp();
+  const { activities = [], prospects = [], municipalProposals = [], updatePartnerAvatarConfig } = useApp();
 
   // Cargar perfiles guardados o usar valores por defecto
   const [profiles, setProfiles] = useState(() => {
@@ -116,9 +124,23 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
   );
 
   const activeProfile = profiles[selectedEmail] || profiles['barrientoso2401@gmail.com'];
+  const isMyProfile = currentSocio?.email === selectedEmail;
+
+  // Iniciales institucionales para insignia de pecho
+  const partnerInitials = useMemo(() => {
+    const parts = (activeProfile.name || '').replace('Ing. ', '').trim().split(' ');
+    return parts.slice(0, 2).map(p => p[0]).join('').toUpperCase();
+  }, [activeProfile.name]);
 
   // Estados editables de avatar/skin/bio
   const [selectedSkin, setSelectedSkin] = useState(activeProfile.skin || 'vest');
+  const [avatarConfig, setAvatarConfig] = useState(() =>
+    normalizeAvatarConfig(activeProfile?.avatarConfig, {
+      email: selectedEmail,
+      skin: activeProfile?.skin
+    })
+  );
+  const [showAvatarCustomizer, setShowAvatarCustomizer] = useState(false);
   const [honoraryTitle, setHonoraryTitle] = useState(activeProfile.honoraryTitle);
   const [matricula, setMatricula] = useState(activeProfile.matricula);
   const [bio, setBio] = useState(activeProfile.bio);
@@ -133,6 +155,12 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
     setHonoraryTitle(activeProfile.honoraryTitle);
     setMatricula(activeProfile.matricula);
     setBio(activeProfile.bio);
+    setAvatarConfig(
+      normalizeAvatarConfig(activeProfile.avatarConfig, {
+        email: selectedEmail,
+        skin: activeProfile.skin
+      })
+    );
   }, [selectedEmail, activeProfile]);
 
   const showToast = (msg) => {
@@ -141,12 +169,16 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
   };
 
   // Guardar cambios personales del personaje
-  const saveProfileChanges = () => {
+  const saveProfileChanges = (overrideConfig) => {
+    const finalAvatarConfig = overrideConfig || avatarConfig;
+    const finalSkin = legacySkinFromConfig(finalAvatarConfig, selectedSkin);
+
     const updated = {
       ...profiles,
       [selectedEmail]: {
         ...activeProfile,
-        skin: selectedSkin,
+        skin: finalSkin,
+        avatarConfig: finalAvatarConfig,
         honoraryTitle,
         matricula,
         bio,
@@ -156,6 +188,9 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
     if (typeof window !== 'undefined') {
       localStorage.setItem('seram_partner_profiles', JSON.stringify(updated));
     }
+    if (updatePartnerAvatarConfig) {
+      updatePartnerAvatarConfig(selectedEmail, finalAvatarConfig);
+    }
     showToast('¡Personalización del personaje guardada!');
   };
 
@@ -163,6 +198,10 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
   const rpgStats = useMemo(() => {
     return calculatePartnerTotalXP(activeProfile.name, activities, timeLogs);
   }, [activeProfile.name, activities, timeLogs]);
+
+  const fieldMissions = useMemo(() => {
+    return countFieldMissions(activeProfile.name, activities);
+  }, [activeProfile.name, activities]);
 
   // ── 2. CÁLCULO 100% AUTOMÁTICO DEL RADAR PENTAGONAL (SIN SLIDERS) ───────────
   const radarAxes = useMemo(() => {
@@ -312,6 +351,39 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
         </div>
       </div>
 
+      {/* ── SECCIÓN DESPLEGABLE: PERSONALIZADOR DE AVATAR 2.5D ── */}
+      <AnimatePresence>
+        {showAvatarCustomizer && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+            animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
+            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+            className="overflow-hidden"
+          >
+            <AvatarCustomizer
+              config={avatarConfig}
+              onChange={(newCfg) => {
+                setAvatarConfig(newCfg);
+                setSelectedSkin(legacySkinFromConfig(newCfg, selectedSkin));
+              }}
+              onSave={(savedCfg) => {
+                saveProfileChanges(savedCfg);
+              }}
+              onReset={() => {
+                const def = getDefaultAvatarConfig(selectedEmail);
+                setAvatarConfig(def);
+                setSelectedSkin(legacySkinFromConfig(def, 'vest'));
+              }}
+              isReadOnly={!isMyProfile}
+              progress={{ level: rpgStats.level, fieldMissions }}
+              partnerName={activeProfile.name}
+              initials={partnerInitials}
+              email={selectedEmail}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── CUADRÍCULA PRINCIPAL: PERSONAJE RPG & RADAR PENTAGONAL ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
@@ -350,19 +422,34 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
               </button>
             </div>
 
-            {/* Avatar / Skin del Personaje */}
+            {/* Avatar / Skin del Personaje 2.5D */}
             <div className="my-6 p-6 rounded-2xl bg-black/50 border border-white/[0.08] flex flex-col items-center justify-center relative group">
-              <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-slate-900 via-slate-800 to-amber-500/20 border-2 border-white/20 p-2 flex items-center justify-center shadow-2xl relative">
-                <span className="text-5xl filter drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)]">
-                  {selectedSkin === 'vest' ? '🦺' : selectedSkin === 'field' ? '🎒' : '👔'}
-                </span>
-                <span className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-[#00e03c] border-2 border-slate-950 flex items-center justify-center text-[10px] text-slate-950 font-black">
+              <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-slate-900 via-slate-800 to-amber-500/20 border-2 border-white/20 p-2 flex items-center justify-center shadow-2xl relative overflow-hidden group">
+                <PartnerAvatar25D
+                  config={avatarConfig}
+                  scale={2.2}
+                  initials={partnerInitials}
+                  isOnline={true}
+                  isCurrent={isMyProfile}
+                  title={`Avatar 2.5D de ${activeProfile.name}`}
+                />
+                <span className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-[#00e03c] border-2 border-slate-950 flex items-center justify-center text-[10px] text-slate-950 font-black shadow-md">
                   ✓
                 </span>
               </div>
 
+              {/* Botón para abrir/cerrar el Personalizador 2.5D */}
+              <button
+                type="button"
+                onClick={() => setShowAvatarCustomizer(p => !p)}
+                className="mt-3.5 px-3.5 py-1.5 rounded-full bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 border border-amber-400/30 text-xs font-bold flex items-center gap-1.5 transition-all shadow-md cursor-pointer hover:scale-105"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                {showAvatarCustomizer ? 'Cerrar Personalizador' : 'Personalizar Avatar 2.5D'}
+              </button>
+
               {/* Título Honorífico */}
-              <div className="mt-4 text-center">
+              <div className="mt-3 text-center">
                 <span className="text-[11px] font-black uppercase tracking-wider text-amber-300 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
                   {honoraryTitle}
                 </span>
@@ -410,17 +497,34 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
 
             {/* Selector de Skins / Atuendo */}
             <div className="mt-5 space-y-2.5">
-              <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
-                Atuendo Oficial en Oficina Virtual
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
+                  Atuendo Oficial en Oficina Virtual
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowAvatarCustomizer(true)}
+                  className="text-[10px] text-amber-400 hover:text-amber-300 font-bold underline cursor-pointer"
+                >
+                  Más opciones & accesorios
+                </button>
+              </div>
               <div className="grid grid-cols-3 gap-2">
                 {SKINS.map((skin) => {
-                  const isActive = selectedSkin === skin.id;
+                  const isActive = (avatarConfig?.outfit || selectedSkin) === skin.id;
                   return (
                     <button
                       key={skin.id}
                       type="button"
-                      onClick={() => setSelectedSkin(skin.id)}
+                      disabled={!isMyProfile}
+                      onClick={() => {
+                        setSelectedSkin(skin.id);
+                        setAvatarConfig(prev => ({
+                          ...prev,
+                          outfit: skin.id,
+                          outfitColor: skin.id === 'field' ? 'emerald' : skin.id === 'suit' ? 'graphite' : 'navy'
+                        }));
+                      }}
                       className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
                         isActive
                           ? 'border-[#00e03c] bg-[#00e03c]/10 text-white shadow-md'
