@@ -59,7 +59,9 @@ const formatDateRange = (startDate, dueDate) => {
         const year = parts[0];
         return `${day} ${months[mIdx] || ''} ${year}`;
       }
-    } catch (e) {}
+    } catch (e) {
+      // Formato inválido, retornar string original
+    }
     return dStr;
   };
 
@@ -565,7 +567,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
   const progressPercent = totalAct > 0 ? Math.round((doneAct / totalAct) * 100) : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3.5 relative z-10">
       {/* ── BARRA SUPERIOR DE RESUMEN Y CONTROLES ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <GlassCard className="p-4 flex items-center justify-between border-emerald-500/20">
@@ -614,7 +616,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
       </div>
 
       {/* ── BOTONES DE NAVEGACIÓN DE VISTAS Y ACCIONES RÁPIDAS ── */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-white/[0.08] pb-2.5 relative z-10">
         {/* Pestañas de Vista */}
         <div className="flex flex-wrap items-center gap-1.5 bg-white/[0.04] p-1.5 rounded-xl border border-white/[0.08]">
           <button
@@ -714,72 +716,39 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
 
       {/* ── BARRA DE HERRAMIENTAS Y FILTROS ESTILO NOTION ── */}
       {(activeTab === 'kanban' || activeTab === 'table') && (
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-[#0d1522]/90 p-3 rounded-2xl border border-white/[0.08] shadow-md">
-          {/* Grupo 1: Filtro Personal vs Grupal & Intercambio de Vistas */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Toggle Personal vs Grupal */}
-            <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
-              <button
-                type="button"
-                onClick={() => setScopeFilter('personal')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  scopeFilter === 'personal'
-                    ? 'bg-[#00e03c] text-slate-950 font-black shadow-md'
-                    : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
-                }`}
-                title="Filtrar actividades donde estás asignado"
-              >
-                <User className="w-3.5 h-3.5" />
-                <span>Mis Actividades (Personal)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setScopeFilter('all')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  scopeFilter === 'all'
-                    ? 'bg-white/[0.14] text-white font-black shadow-md'
-                    : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
-                }`}
-                title="Ver todas las actividades grupales de SERAM"
-              >
-                <Users className="w-3.5 h-3.5" />
-                <span>Todo el Equipo (Grupal)</span>
-              </button>
-            </div>
-
-            {/* Sub-Switch de Vistas (Tabla Notion vs Tablero) */}
-            <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
-              <button
-                type="button"
-                onClick={() => setActiveTab('table')}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  activeTab === 'table'
-                    ? 'bg-blue-600 text-white font-black shadow-sm'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-                title="Vista Base de Datos / Tabla tipo Notion"
-              >
-                <Table className="w-3.5 h-3.5" />
-                <span>Tabla</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('kanban')}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  activeTab === 'kanban'
-                    ? 'bg-blue-600 text-white font-black shadow-sm'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-                title="Vista Tablero de Columnas Kanban"
-              >
-                <Layers className="w-3.5 h-3.5" />
-                <span>Tablero</span>
-              </button>
-            </div>
+        <div className="flex flex-wrap items-center justify-between gap-2.5 bg-[#0d1522]/90 px-3 py-2 rounded-xl border border-white/[0.08] shadow-md relative z-10">
+          {/* Grupo 1: Filtro Personal vs Grupal */}
+          <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
+            <button
+              type="button"
+              onClick={() => setScopeFilter('personal')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                scopeFilter === 'personal'
+                  ? 'bg-[#00e03c] text-slate-950 font-black shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+              }`}
+              title="Filtrar actividades donde estás asignado"
+            >
+              <User className="w-3.5 h-3.5" />
+              <span>Mis Actividades (Personal)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setScopeFilter('all')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                scopeFilter === 'all'
+                  ? 'bg-white/[0.14] text-white font-black shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+              }`}
+              title="Ver todas las actividades grupales de SERAM"
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Todo el Equipo (Grupal)</span>
+            </button>
           </div>
 
           {/* Grupo 2: Filtros Selectores, Paginación y Búsqueda */}
-          <div className="flex flex-wrap items-center gap-2.5 flex-1 justify-end min-w-[260px]">
+          <div className="flex flex-wrap items-center gap-2 flex-1 justify-end min-w-[260px]">
             {/* Selector de Límite (Últimas 10 por defecto) */}
             <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.08] text-xs">
               <span className="text-[10px] font-bold text-slate-400 uppercase px-2">Ver:</span>
@@ -861,7 +830,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
       )}
 
       {/* ── CONTENEDOR DE VISTAS CON CROSSFADE SIMULTÁNEO ── */}
-      <div className="grid grid-cols-1 items-start relative min-h-[500px]">
+      <div className="grid grid-cols-1 items-start relative min-h-0">
         <AnimatePresence initial={false} mode="sync">
           <motion.div
             key={activeTab}
@@ -1146,7 +1115,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                       <td colSpan="11" className="p-12 text-center text-slate-500">
                         <div className="max-w-sm mx-auto space-y-2">
                           <p className="font-bold text-slate-400">No hay actividades para este filtro</p>
-                          <p className="text-[11px] text-slate-500">Prueba cambiando el filtro de socio o el selector de límite a 'Todas'.</p>
+                          <p className="text-[11px] text-slate-500">Prueba cambiando el filtro de socio o el selector de límite a &apos;Todas&apos;.</p>
                         </div>
                       </td>
                     </tr>
