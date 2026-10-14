@@ -14,6 +14,8 @@ import {
 import soundEngine from './OfficeSoundEngine';
 import officeHdImage from '../../assets/virtual-office/seram_isometric_office_hd.jpg';
 import { useApp } from '../../context/AppContext';
+import PartnerAvatar25D from './avatar/PartnerAvatar25D';
+import { normalizeAvatarConfig, loadStoredProfileAvatarConfigs } from './avatar/avatarCatalog';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DATA: 13 DESPACHOS ISOMÉTRICOS 2.5D (CALIBRADOS EN COORDENADAS %)
@@ -321,57 +323,19 @@ function HumanPartnerSprite({ partner, isWalking }) {
             : 'bg-slate-700/40 opacity-40'
       }`} />
 
-      {/* Miniatura Humana 2.5D Isométrica */}
-      <svg
-        width="34"
-        height="48"
-        viewBox="0 0 34 48"
+      {/* Miniatura Humana 2.5D Isométrica con renderizador por capas */}
+      <PartnerAvatar25D
+        config={partner.avatarConfig}
+        initials={partner.initials}
+        isOnline={isOnline}
+        isCurrent={isCurrent}
+        isWalking={isWalking}
+        isWorking={partner.isWorking}
+        facing={partner.facing || 'right'}
         className={`filter drop-shadow-xl overflow-visible transition-transform duration-200 ${
           isWalking ? 'scale-110 -translate-y-1' : ''
         }`}
-      >
-        {/* Sombra proyectada sobre el parquet */}
-        <ellipse cx="17" cy="45" rx="10" ry="3.5" fill={isOnline ? 'rgba(0,0,0,0.45)' : 'rgba(0,0,0,0.2)'} />
-
-        {/* Piernas con pantalón de faena técnico oscuro */}
-        <rect x="11" y="28" width="4.5" height="14" rx="2" fill="#1e293b" />
-        <rect x="18.5" y="28" width="4.5" height="14" rx="2" fill="#1e293b" />
-
-        {/* Calzados de seguridad oscuros */}
-        <ellipse cx="13" cy="42" rx="3.5" ry="2" fill="#090d16" />
-        <ellipse cx="21" cy="42" rx="3.5" ry="2" fill="#090d16" />
-
-        {/* Torso: CHALECO INSTITUCIONAL SERAM (Azul Marino con ribetes dorados #c9a84c) */}
-        <path d="M 8 16 L 26 16 L 24 29 L 10 29 Z" fill="#0f172a" stroke={isCurrent ? '#fbbf24' : '#c9a84c'} strokeWidth={isCurrent ? '1.6' : '1.2'} />
-
-        {/* Cuello de camisa ejecutiva interior */}
-        <polygon points="14,16 17,21 20,16" fill="#f8fafc" />
-
-        {/* Bordado Institucional SERAM en el Pecho (Dorado) */}
-        <rect x="11" y="19" width="3.5" height="2" rx="0.5" fill="#c9a84c" />
-
-        {/* Brazos */}
-        <rect x="6" y="17" width="3.5" height="10" rx="1.5" fill="#0f172a" />
-        <rect x="24.5" y="17" width="3.5" height="10" rx="1.5" fill="#0f172a" />
-
-        {/* Manos */}
-        <circle cx="7.7" cy="27.5" r="2" fill="#fbcfe8" />
-        <circle cx="26.3" cy="27.5" r="2" fill="#fbcfe8" />
-
-        {/* Cabeza */}
-        <ellipse cx="17" cy="10" rx="6" ry="6.5" fill={isOnline ? '#fcd34d' : '#e2e8f0'} />
-
-        {/* Cabello humano detallado */}
-        <path
-          d="M 11 8 C 11 3.5, 23 3.5, 23 8 C 22 4.5, 12 4.5, 11 8 Z"
-          fill={partner.hairColor || '#291d14'}
-        />
-
-        {/* Insignia de iniciales en el pecho */}
-        <text x="17" y="27" textAnchor="middle" fill="#c9a84c" fontSize="6.5" fontWeight="900" fontFamily="sans-serif">
-          {partner.initials}
-        </text>
-      </svg>
+      />
 
       {/* Rótulo de Identificación Flotante con Estado en Tiempo Real */}
       <div className={`mt-1 px-2.5 py-0.5 rounded-full text-[9px] font-black shadow-2xl whitespace-nowrap flex items-center gap-1.5 backdrop-blur-md border ${
@@ -428,7 +392,8 @@ export default function VirtualOfficeView({
     startPartnerTimer,
     pausePartnerTimer,
     setPartnerSector,
-    partnerPresences: globalPresences
+    partnerPresences: globalPresences,
+    partnerAvatarConfigs
   } = useApp();
 
   const [selectedRoomId, setSelectedRoomId] = useState(() => activeTimer?.sectorId || 'direction');
@@ -438,6 +403,9 @@ export default function VirtualOfficeView({
 
   // Time Tracker Flotante (PiP) sincronizado con el cronómetro global de AppContext
   const [isPipMinimized, setIsPipMinimized] = useState(false);
+
+  // Orientación visual del avatar (2.5D: 'left' | 'right')
+  const [avatarFacing, setAvatarFacing] = useState('right');
 
   // Posición del avatar del usuario interactivo (Point & Click) en %
   const [userAvatarPos, setUserAvatarPos] = useState(() => {
@@ -601,6 +569,7 @@ export default function VirtualOfficeView({
     ];
 
     const effectivePresences = globalPresences || partnerPresences || {};
+    const storedConfigs = typeof window !== 'undefined' ? loadStoredProfileAvatarConfigs() : {};
 
     return list.map((partner, idx) => {
       const presence = effectivePresences[partner.email] || {};
@@ -625,8 +594,15 @@ export default function VirtualOfficeView({
         coords = userAvatarPos;
       }
 
+      const partnerAvatarConfig = normalizeAvatarConfig(
+        presence.avatarConfig || (partnerAvatarConfigs && partnerAvatarConfigs[partner.email]) || storedConfigs[partner.email],
+        { email: partner.email, hairColor: partner.hairColor }
+      );
+
       return {
         ...partner,
+        avatarConfig: partnerAvatarConfig,
+        facing: isCurrent ? avatarFacing : (presence.facing || 'right'),
         isOnline,
         isCurrent,
         isWorking: partnerTimerRunning || partnerActiveStatus === 'working',
@@ -637,7 +613,7 @@ export default function VirtualOfficeView({
         y: coords.y
       };
     });
-  }, [globalPresences, partnerPresences, currentSocio, activeTimer, partnerActiveStatus, userAvatarPos]);
+  }, [globalPresences, partnerPresences, currentSocio, activeTimer, partnerActiveStatus, userAvatarPos, partnerAvatarConfigs, avatarFacing]);
 
   // Manejador de navegación Point & Click al hacer clic en el suelo de la oficina
   const handleFloorClick = (e) => {
@@ -650,6 +626,14 @@ export default function VirtualOfficeView({
 
     const targetX = Math.round((clickScreenX / stageRect.width) * 100);
     const targetY = Math.round((clickScreenY / stageRect.height) * 100);
+
+    if (userAvatarPos) {
+      if (targetX < userAvatarPos.x) {
+        setAvatarFacing('left');
+      } else if (targetX > userAvatarPos.x) {
+        setAvatarFacing('right');
+      }
+    }
 
     soundEngine.playFootstep();
     setClickEffect({ x: targetX, y: targetY, key: Date.now() });
@@ -693,6 +677,13 @@ export default function VirtualOfficeView({
 
     const room = OFFICE_ROOMS.find(r => r.id === roomId);
     if (room) {
+      if (userAvatarPos) {
+        if (room.xPercent < userAvatarPos.x) {
+          setAvatarFacing('left');
+        } else if (room.xPercent > userAvatarPos.x) {
+          setAvatarFacing('right');
+        }
+      }
       setUserAvatarPos({ x: room.xPercent, y: room.yPercent });
       if (setPartnerSector) {
         setPartnerSector(roomId, { x: room.xPercent, y: room.yPercent }, room.name);
