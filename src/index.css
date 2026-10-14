@@ -328,4 +328,21 @@ a, button, [role="button"], .cursor-hover-premium {
     -webkit-text-fill-color: transparent;
 }
 
+/* Scrollbar sutil para columnas Kanban y listas densas */
+.kanban-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.kanban-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 9999px;
+}
+.kanban-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+.kanban-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 224, 60, 0.5);
+}
+
+
 

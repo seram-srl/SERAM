@@ -6,6 +6,14 @@
   "in_progress": [],
   "completed": [
     {
+      "id": "TASK-068",
+      "title": "Optimización Ergonómica del Tablero Kanban: Altura Acotada con Scrollbar Independiente, Tarjetas Compactas para Tareas Finalizadas y Acordeón Desplegable para Concluidas Antiguas",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-14",
+      "completed_at": "2026-10-14"
+    },
+    {
       "id": "TASK-067",
       "title": "Compactación Ergonómica de Herramientas y Eliminación del Espacio de Separación Excesivo en el Módulo de Actividades & Clientes del Dashboard Directivo",
       "status": "completed",

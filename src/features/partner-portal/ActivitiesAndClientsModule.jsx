@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckSquare, Clock, Plus, Filter, User, Building2,
   Calendar, AlertCircle, ArrowRight, Trash2, Edit2, Check,
-  X, Search, Briefcase, FileText, ChevronDown, CheckCircle2,
+  X, Search, Briefcase, FileText, ChevronDown, ChevronUp, CheckCircle2,
   ListFilter, Sparkles, Phone, Mail, MapPin, ExternalLink,
   Layers, BarChart2, TrendingUp, ChevronRight, PanelRightClose,
   ShieldCheck, Award, Scale, Gift, Table, ChevronLeft,
@@ -209,6 +209,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
   const [partnerFilter, setPartnerFilter] = useState('all');
   const [projectFilter, setProjectFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [expandAllConcluido, setExpandAllConcluido] = useState(false);
 
   // Estados Prospección B2B Global
   const [prospectSearch, setProspectSearch] = useState('');
@@ -843,7 +844,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
             {/* ── VISTA 1: TABLERO KANBAN (CENTRAL DE ACTIVIDADES) ── */}
             {activeTab === 'kanban' && (
               <div className="space-y-3">
-                {pageSize !== 'all' && (
+                {pageSize !== 'all' && paginatedActivities.length < filteredActivities.length && (
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-[#0c141f] border border-white/[0.08] px-4 py-2.5 rounded-2xl text-xs text-slate-300 shadow-sm">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
@@ -870,181 +871,230 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                   {STATUS_COLUMNS.map((col) => {
                     const colActivities = paginatedActivities.filter((a) => a.status === col.id);
-                    return (
-                      <div key={col.id} className="flex flex-col space-y-3 bg-white/[0.02] border border-white/[0.06] rounded-2xl p-3.5 min-h-[500px]">
-                {/* Cabecera Columna */}
-                <div className="flex items-center justify-between pb-2 border-b border-white/[0.06]">
-                  <div className="flex items-center gap-2">
-                    <span className={`w-2.5 h-2.5 rounded-full ${col.id === 'Concluido' ? 'bg-[#00e03c]' : col.id === 'En curso' ? 'bg-blue-400' : col.id === 'En revisión' ? 'bg-amber-400' : 'bg-slate-500'}`} />
-                    <h4 className="text-xs font-black text-white uppercase tracking-wider">{col.label}</h4>
-                  </div>
-                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/[0.08] text-slate-300">
-                    {colActivities.length}
-                  </span>
-                </div>
+                    const isDoneCol = col.id === 'Concluido';
+                    const displayedActivities = (isDoneCol && !expandAllConcluido && colActivities.length > 3)
+                      ? colActivities.slice(0, 3)
+                      : colActivities;
 
-                {/* Tarjetas de la Columna */}
-                <div className="space-y-3 flex-1 overflow-y-auto pr-1">
-                  {colActivities.length === 0 ? (
-                    <div className="h-32 border border-dashed border-white/[0.08] rounded-xl flex items-center justify-center text-[11px] text-slate-500">
-                      Sin actividades
-                    </div>
-                  ) : (
-                    colActivities.map((act) => (
-                      <motion.div
-                        layout
-                        key={act.id}
-                        className="bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.1] hover:border-[#00e03c]/40 rounded-xl p-3.5 space-y-2.5 transition-all shadow-md group relative"
+                    return (
+                      <div
+                        key={col.id}
+                        className="flex flex-col bg-white/[0.02] border border-white/[0.06] rounded-2xl p-3 h-[580px] xl:h-[calc(100vh-270px)] xl:min-h-[480px] xl:max-h-[640px] overflow-hidden shadow-sm"
                       >
-                        {/* Categoría y Prioridad */}
-                        <div className="flex items-center justify-between gap-1 text-[10px]">
-                          <span className="font-bold text-slate-400 bg-white/[0.05] px-2 py-0.5 rounded">
-                            {act.category || 'General'}
-                          </span>
-                          <span className={`px-2 py-0.5 rounded font-black border ${PRIORITY_STYLES[act.priority] || PRIORITY_STYLES.Media}`}>
-                            {act.priority}
-                          </span>
+                        {/* Cabecera Columna */}
+                        <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/[0.06] shrink-0">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2.5 h-2.5 rounded-full ${col.id === 'Concluido' ? 'bg-[#00e03c]' : col.id === 'En curso' ? 'bg-blue-400' : col.id === 'En revisión' ? 'bg-amber-400' : 'bg-slate-500'}`} />
+                            <h4 className="text-xs font-black text-white uppercase tracking-wider">{col.label}</h4>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            {isDoneCol && colActivities.length > 3 && (
+                              <button
+                                type="button"
+                                onClick={() => setExpandAllConcluido(!expandAllConcluido)}
+                                className="text-[10px] font-bold text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/30 hover:bg-[#00e03c]/20 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
+                                title={expandAllConcluido ? "Colapsar anteriores" : "Mostrar todas"}
+                              >
+                                {expandAllConcluido ? "Ver 3" : `+${colActivities.length - 3}`}
+                              </button>
+                            )}
+                            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/[0.08] text-slate-300">
+                              {colActivities.length}
+                            </span>
+                          </div>
                         </div>
 
-                        {/* Título */}
-                        <h5 className="text-xs font-bold text-white line-clamp-2 leading-snug">
-                          {act.title}
-                        </h5>
-
-                        {/* Proyecto Vinculado */}
-                        {act.projectTitle && (
-                          <div className="text-[10px] text-emerald-400/90 font-medium flex items-center gap-1 truncate">
-                            <Briefcase className="w-3 h-3 shrink-0" />
-                            <span className="truncate">{act.projectTitle}</span>
-                          </div>
-                        )}
-
-                        {/* Descripción opcional */}
-                        {act.description && (
-                          <p className="text-[10px] text-slate-400 line-clamp-2">
-                            {act.description}
-                          </p>
-                        )}
-
-                        {/* Validación Cruzada / XP Status */}
-                        {act.status === 'En revisión' && (
-                          <div className="pt-1.5 pb-0.5">
-                            {currentSocio?.name !== act.assignedPartner ? (
-                              <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-1">
-                                <span className="text-[9px] font-black text-amber-300 flex items-center gap-1">
-                                  <Scale className="w-2.5 h-2.5 text-amber-400 animate-pulse" /> Auditoría
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleApproveActivity(act);
-                                  }}
-                                  className="px-2 py-0.5 rounded-md bg-[#00e03c] text-slate-950 font-black text-[9px] hover:bg-[#00e03c]/90 transition-all flex items-center gap-1 cursor-pointer"
-                                  title="Aprobar entregable y asignar XP"
-                                >
-                                  <ShieldCheck className="w-2.5 h-2.5" /> Aprobar (+XP)
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="p-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-center text-[8px] font-bold text-amber-300 flex items-center justify-center gap-1">
-                                <Clock className="w-2.5 h-2.5" /> En espera de auditoría par
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {act.status === 'Concluido' && (
-                          <div className="pt-1 pb-0.5 flex items-center justify-between text-[9px] text-[#00e03c]">
-                            <span className="font-semibold flex items-center gap-1">
-                              <CheckCircle2 className="w-2.5 h-2.5" />
-                              {act.approved_by ? `Validado (${act.approved_by.replace('Ing. ', '')})` : 'Auditado'}
-                            </span>
-                            {act.xp_awarded ? (
-                              <span className="font-black font-mono">+{act.xp_awarded} XP</span>
-                            ) : null}
-                          </div>
-                        )}
-
-                        {/* Pie de Tarjeta: Socio Asignado, Fecha y Horas */}
-                        <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-[10px] text-slate-400">
-                          <div className="flex items-center gap-1 font-bold text-slate-300">
-                            <User className="w-3 h-3 text-[#00e03c]" />
-                            <span className="truncate max-w-[90px]">{act.assignedPartner.replace('Ing. ', '')}</span>
-                          </div>
-
-                          {act.dueDate && (
-                            <div className="flex items-center gap-1 text-slate-400">
-                              <Calendar className="w-3 h-3 text-slate-500" />
-                              <span>{act.dueDate.slice(5)}</span>
+                        {/* Tarjetas de la Columna */}
+                        <div className="space-y-2 flex-1 min-h-0 overflow-y-auto pr-1 kanban-scrollbar">
+                          {displayedActivities.length === 0 ? (
+                            <div className="h-32 border border-dashed border-white/[0.08] rounded-xl flex items-center justify-center text-[11px] text-slate-500">
+                              Sin actividades
                             </div>
+                          ) : (
+                            <>
+                              {displayedActivities.map((act) => (
+                                <motion.div
+                                  layout
+                                  key={act.id}
+                                  className={`border transition-all shadow-md group relative rounded-xl ${
+                                    isDoneCol
+                                      ? 'bg-white/[0.03] hover:bg-white/[0.07] border-white/[0.08] hover:border-[#00e03c]/40 p-2.5 space-y-1.5'
+                                      : 'bg-white/[0.05] hover:bg-white/[0.09] border-white/[0.1] hover:border-[#00e03c]/40 p-3 space-y-2'
+                                  }`}
+                                >
+                                  {/* Categoría y Prioridad */}
+                                  <div className="flex items-center justify-between gap-1 text-[10px]">
+                                    <span className="font-bold text-slate-400 bg-white/[0.05] px-2 py-0.5 rounded text-[9px]">
+                                      {act.category || 'General'}
+                                    </span>
+                                    <span className={`px-1.5 py-0.5 rounded font-black border text-[9px] ${PRIORITY_STYLES[act.priority] || PRIORITY_STYLES.Media}`}>
+                                      {act.priority}
+                                    </span>
+                                  </div>
+
+                                  {/* Título */}
+                                  <h5 className={`text-xs font-bold text-white leading-snug ${isDoneCol ? 'line-clamp-1' : 'line-clamp-2'}`}>
+                                    {act.title}
+                                  </h5>
+
+                                  {/* Proyecto Vinculado */}
+                                  {act.projectTitle && (
+                                    <div className="text-[10px] text-emerald-400/90 font-medium flex items-center gap-1 truncate">
+                                      <Briefcase className="w-3 h-3 shrink-0" />
+                                      <span className="truncate">{act.projectTitle}</span>
+                                    </div>
+                                  )}
+
+                                  {/* Descripción (oculta en Concluido para evitar altura excesiva) */}
+                                  {!isDoneCol && act.description && (
+                                    <p className="text-[10px] text-slate-400 line-clamp-2">
+                                      {act.description}
+                                    </p>
+                                  )}
+
+                                  {/* Validación Cruzada / XP Status */}
+                                  {act.status === 'En revisión' && (
+                                    <div className="pt-1.5 pb-0.5">
+                                      {currentSocio?.name !== act.assignedPartner ? (
+                                        <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-1">
+                                          <span className="text-[9px] font-black text-amber-300 flex items-center gap-1">
+                                            <Scale className="w-2.5 h-2.5 text-amber-400 animate-pulse" /> Auditoría
+                                          </span>
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleApproveActivity(act);
+                                            }}
+                                            className="px-2 py-0.5 rounded-md bg-[#00e03c] text-slate-950 font-black text-[9px] hover:bg-[#00e03c]/90 transition-all flex items-center gap-1 cursor-pointer"
+                                            title="Aprobar entregable y asignar XP"
+                                          >
+                                            <ShieldCheck className="w-2.5 h-2.5" /> Aprobar (+XP)
+                                          </button>
+                                        </div>
+                                      ) : (
+                                        <div className="p-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-center text-[8px] font-bold text-amber-300 flex items-center justify-center gap-1">
+                                          <Clock className="w-2.5 h-2.5" /> En espera de auditoría par
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  {act.status === 'Concluido' && (
+                                    <div className="pt-0.5 flex items-center justify-between text-[9px] text-[#00e03c]">
+                                      <span className="font-semibold flex items-center gap-1">
+                                        <CheckCircle2 className="w-2.5 h-2.5" />
+                                        {act.approved_by ? `Validado (${act.approved_by.replace('Ing. ', '')})` : 'Auditado'}
+                                      </span>
+                                      {act.xp_awarded ? (
+                                        <span className="font-black font-mono">+{act.xp_awarded} XP</span>
+                                      ) : null}
+                                    </div>
+                                  )}
+
+                                  {/* Pie de Tarjeta: Socio Asignado, Fecha y Horas */}
+                                  <div className="pt-1.5 border-t border-white/[0.06] flex items-center justify-between text-[10px] text-slate-400">
+                                    <div className="flex items-center gap-1 font-bold text-slate-300">
+                                      <User className="w-3 h-3 text-[#00e03c]" />
+                                      <span className="truncate max-w-[90px]">{act.assignedPartner.replace('Ing. ', '')}</span>
+                                    </div>
+
+                                    {act.dueDate && (
+                                      <div className="flex items-center gap-1 text-slate-400">
+                                        <Calendar className="w-3 h-3 text-slate-500" />
+                                        <span>{act.dueDate.slice(5)}</span>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Indicador de Combo Interdisciplinario */}
+                                  {!isDoneCol && act.coPartner && (
+                                    <div className="pt-1.5 pb-0.5">
+                                      <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full shadow-sm">
+                                        <Zap className="w-2.5 h-2.5 text-amber-400" />
+                                        Combo: {act.coPartner.replace('Ing. ', '')} (+35% XP)
+                                      </span>
+                                    </div>
+                                  )}
+
+                                  {/* Acciones Rápidas de Cambio de Estado y Edición */}
+                                  <div className="pt-1.5 flex items-center justify-between border-t border-white/[0.04]">
+                                    <div className="flex items-center gap-1">
+                                      {STATUS_COLUMNS.map((sc) => (
+                                        <button
+                                          key={sc.id}
+                                          title={`Mover a ${sc.label}`}
+                                          onClick={() => handleRequestStatusChange(act, sc.id)}
+                                          className={`w-3.5 h-3.5 rounded-full text-[8px] flex items-center justify-center transition-all ${
+                                            act.status === sc.id
+                                              ? 'bg-[#00e03c] text-slate-950 font-black ring-2 ring-white/20'
+                                              : 'bg-white/[0.1] hover:bg-white/[0.25] text-transparent'
+                                          }`}
+                                        >
+                                          •
+                                        </button>
+                                      ))}
+                                    </div>
+
+                                    <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                                      <button
+                                        type="button"
+                                        onClick={() => setDrawerActivity(act)}
+                                        className="p-1 rounded hover:bg-[#00e03c]/20 text-slate-400 hover:text-[#00e03c] transition-colors"
+                                        title="Abrir Ficha Técnica (Drawer)"
+                                      >
+                                        <FileText className="w-3 h-3" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => openEditActivity(act)}
+                                        className="p-1 rounded hover:bg-white/[0.1] text-slate-400 hover:text-white"
+                                        title="Editar actividad"
+                                      >
+                                        <Edit2 className="w-3 h-3" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteActivity(act.id)}
+                                        className="p-1 rounded hover:bg-rose-500/20 text-slate-500 hover:text-rose-400"
+                                        title="Eliminar actividad"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              ))}
+                            </>
                           )}
                         </div>
 
-                        {/* Indicador de Combo Interdisciplinario */}
-                        {act.coPartner && (
-                          <div className="pt-1.5 pb-0.5">
-                            <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full shadow-sm">
-                              <Zap className="w-2.5 h-2.5 text-amber-400" />
-                              Combo: {act.coPartner.replace('Ing. ', '')} (+35% XP)
-                            </span>
+                        {/* Botón Acordeón en Concluido si hay más de 3 (Fijado al pie) */}
+                        {isDoneCol && colActivities.length > 3 && (
+                          <div className="pt-2 border-t border-white/[0.06] shrink-0 mt-auto">
+                            <button
+                              type="button"
+                              onClick={() => setExpandAllConcluido(!expandAllConcluido)}
+                              className="w-full py-1.5 px-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-[11px] font-bold text-slate-300 hover:text-[#00e03c] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                            >
+                              {expandAllConcluido ? (
+                                <>
+                                  <ChevronUp className="w-3.5 h-3.5 text-[#00e03c]" />
+                                  <span>Colapsar anteriores (mostrar 3)</span>
+                                </>
+                              ) : (
+                                <>
+                                  <ChevronDown className="w-3.5 h-3.5 text-[#00e03c]" />
+                                  <span>Ver {colActivities.length - 3} concluidas anteriores ({colActivities.length} total)</span>
+                                </>
+                              )}
+                            </button>
                           </div>
                         )}
-
-                        {/* Acciones Rápidas de Cambio de Estado y Edición */}
-                        <div className="pt-1.5 flex items-center justify-between border-t border-white/[0.04]">
-                          <div className="flex items-center gap-1">
-                            {STATUS_COLUMNS.map((sc) => (
-                              <button
-                                key={sc.id}
-                                title={`Mover a ${sc.label}`}
-                                onClick={() => handleRequestStatusChange(act, sc.id)}
-                                className={`w-4 h-4 rounded-full text-[8px] flex items-center justify-center transition-all ${
-                                  act.status === sc.id
-                                    ? 'bg-[#00e03c] text-slate-950 font-black ring-2 ring-white/20'
-                                    : 'bg-white/[0.1] hover:bg-white/[0.25] text-transparent'
-                                }`}
-                              >
-                                •
-                              </button>
-                            ))}
-                          </div>
-
-                          <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
-                            <button
-                              type="button"
-                              onClick={() => setDrawerActivity(act)}
-                              className="p-1 rounded hover:bg-[#00e03c]/20 text-slate-400 hover:text-[#00e03c] transition-colors"
-                              title="Abrir Ficha Técnica (Drawer)"
-                            >
-                              <FileText className="w-3 h-3" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => openEditActivity(act)}
-                              className="p-1 rounded hover:bg-white/[0.1] text-slate-400 hover:text-white"
-                              title="Editar actividad"
-                            >
-                              <Edit2 className="w-3 h-3" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteActivity(act.id)}
-                              className="p-1 rounded hover:bg-rose-500/20 text-slate-500 hover:text-rose-400"
-                              title="Eliminar actividad"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))
-                  )}
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
-            );
-          })}
-        </div>
       </div>
     )}
 
