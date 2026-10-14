@@ -10,7 +10,8 @@
  */
 
 import React, { useEffect, useRef } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Lock } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { gsap } from 'gsap';
 import './cinematic-ui.css';
@@ -27,7 +28,8 @@ const NAV_ITEMS = [
 
 export default function FullscreenMenu({ isOpen, onToggle }) {
   const location = useLocation();
-  const { activeRole, currentSocio, handleLogoutPartner, supabaseUser, handleLogoutPublic } = useApp();
+  const navigate = useNavigate();
+  const { activeRole, currentSocio, handleLogoutPartner, supabaseUser, handleLogoutPublic, setShowSecretPortal } = useApp();
 
   // Bloquear scroll del body cuando el menú está abierto
   useEffect(() => {
@@ -114,6 +116,17 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
     }
   }, [isOpen]);
 
+  // Acceso secreto sutil al portal/dashboard de socios directivos
+  const handleSecretLockClick = (e) => {
+    e.preventDefault();
+    if (isOpen) onToggle();
+    if (activeRole === 'AdminMod') {
+      navigate('/dashboard');
+    } else {
+      setShowSecretPortal(true);
+    }
+  };
+
   return (
     <>
       {/* ── PANEL FULLSCREEN ──────────────────────────────────────────────── */}
@@ -187,7 +200,15 @@ export default function FullscreenMenu({ isOpen, onToggle }) {
           {/* Enlaces de legalidad al costado inferior izquierdo con interlinking */}
           <div className="fullscreen-menu__legal">
             <p className="fullscreen-menu__meta-label">Legalidad</p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginTop: '0.25rem' }}>
+              <button
+                type="button"
+                onClick={handleSecretLockClick}
+                className="secret-lock-trigger"
+                aria-label="Acceso seguro"
+              >
+                <Lock style={{ width: '11px', height: '11px' }} />
+              </button>
               <NavLink
                 to="/privacidad"
                 onClick={onToggle}

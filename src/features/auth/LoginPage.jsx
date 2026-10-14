@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useApp } from '../../context/AppContext';
-import { Mail, Lock, ArrowRight, ShieldCheck, KeyRound } from 'lucide-react';
+import { Mail, Lock, ArrowRight, ShieldCheck } from 'lucide-react';
 import AuthHeroBackground from '../../components/ui/AuthHeroBackground';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { handleLoginSupabase, setShowSecretPortal, registeredUsers } = useApp();
+  const { handleLoginSupabase, registeredUsers } = useApp();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -124,18 +124,6 @@ export default function LoginPage() {
             {loading ? 'Ingresando...' : 'Iniciar Sesión'}
             {!loading && <ArrowRight className="w-4 h-4" />}
           </button>
-
-          {/* Acceso directo a Portal Secreto de Socios */}
-          <div className="pt-1 text-center">
-            <button
-              type="button"
-              onClick={() => setShowSecretPortal(true)}
-              className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-[#00e03c] transition-colors py-1.5 px-3 rounded-lg hover:bg-white/5 cursor-none"
-            >
-              <KeyRound className="w-3.5 h-3.5 text-slate-500" />
-              <span>¿Eres Socio Directivo? Acceder mediante Portal Secreto</span>
-            </button>
-          </div>
         </form>
 
         {/* Footer info */}

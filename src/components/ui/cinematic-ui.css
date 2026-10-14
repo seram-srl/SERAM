@@ -161,6 +161,37 @@
   opacity: 0;
 }
 
+/* Candado discreto de acceso secreto para socios directivos */
+.secret-lock-trigger {
+  background: transparent;
+  border: none;
+  padding: 2px;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.22);
+  line-height: 1;
+  outline: none;
+  transition: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* En mobile/touch: sin animación ni hover */
+@media (hover: hover) and (pointer: fine) {
+  .secret-lock-trigger {
+    transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                filter 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.2s ease;
+  }
+  .secret-lock-trigger:hover {
+    color: #00e03c;
+    filter: drop-shadow(0 0 6px rgba(0, 224, 60, 0.75));
+    transform: scale(1.1);
+  }
+}
+
 .fullscreen-menu__meta-label {
   font-size: 0.625rem;          /* 10px */
   font-weight: 700;
