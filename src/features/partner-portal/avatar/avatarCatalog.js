@@ -110,7 +110,26 @@ export const AVATAR_FIELDS = {
 // ── REGLAS DE DESBLOQUEO (Octalysis CD2 Maestría + CD4 Propiedad) ────────────
 // Formato: { [campo]: { [opción]: { level?: number, fieldMissions?: number } } }
 // Si se definen ambos, basta con cumplir UNO de los dos requisitos.
-export const UNLOCK_RULES = {};
+export const UNLOCK_RULES = {
+  trim: {
+    silver: { level: 10 },
+    goldBright: { level: 20 }
+  },
+  outfit: {
+    polo: { level: 3 },
+    lab: { level: 5 }
+  },
+  headwear: {
+    cap: { level: 2 },
+    hardhat: { level: 4, fieldMissions: 1 },
+    expedition: { level: 8, fieldMissions: 2 }
+  },
+  accessory: {
+    clipboard: { level: 3 },
+    gps: { level: 6, fieldMissions: 1 },
+    tablet: { level: 8 }
+  }
+};
 
 // ── VALORES POR DEFECTO ──────────────────────────────────────────────────────
 

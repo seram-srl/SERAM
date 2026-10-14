@@ -281,18 +281,31 @@ export default function PartnerAvatar25D({
       data-walking={isWalking ? 'true' : undefined}
       data-working={isWorking ? 'true' : undefined}
     >
-      {palette.trimGlow && (
-        <defs>
+      <defs>
+        {palette.trimGlow && (
           <filter id={filterId} x="-30%" y="-30%" width="160%" height="160%">
             <feDropShadow dx="0" dy="0" stdDeviation="0.9" floodColor={palette.trim} floodOpacity="0.9" />
           </filter>
-        </defs>
-      )}
+        )}
+      </defs>
+
+      <style>{`
+        @keyframes avatarWalkBob {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-1.4px); }
+        }
+        @keyframes avatarWorkType {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-0.6px); }
+        }
+        .avatar-walk-anim { animation: avatarWalkBob 0.32s ease-in-out infinite; }
+        .avatar-work-anim { animation: avatarWorkType 1.8s ease-in-out infinite; }
+      `}</style>
 
       {/* Sombra proyectada sobre el parquet */}
       <ellipse cx="17" cy="45" rx="10" ry="3.5" fill={isOnline ? 'rgba(0,0,0,0.45)' : 'rgba(0,0,0,0.2)'} />
 
-      <g transform={flip}>
+      <g transform={flip} className={isWalking ? 'avatar-walk-anim' : isWorking ? 'avatar-work-anim' : ''}>
         <HairBack style={cfg.hairStyle} color={palette.hair} />
         <Legs outfit={cfg.outfit} />
         <Torso
@@ -305,8 +318,10 @@ export default function PartnerAvatar25D({
         <Arms outfit={cfg.outfit} palette={palette} />
 
         {/* Manos */}
-        <circle cx="7.7" cy="27.5" r="2" fill={palette.skinHands} />
-        <circle cx="26.3" cy="27.5" r="2" fill={palette.skinHands} />
+        <g className={isWorking ? 'animate-pulse' : ''}>
+          <circle cx="7.7" cy="27.5" r="2" fill={palette.skinHands} />
+          <circle cx="26.3" cy="27.5" r="2" fill={palette.skinHands} />
+        </g>
 
         {/* Cabeza */}
         <ellipse cx="17" cy="10" rx="6" ry="6.5" fill={palette.skinHead} />
