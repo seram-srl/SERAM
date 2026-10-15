@@ -4,14 +4,6 @@
   "last_updated": "2026-10-14",
   "tasks": [
     {
-      "id": "TASK-078",
-      "title": "Maqueta Panorámica Híbrida 16:9 con Mamparas de Vidrio y Madera (Despachos Delimitados)",
-      "status": "pending",
-      "assigned_to": "Implementador",
-      "priority": "high",
-      "estimated_hours": 2
-    },
-    {
       "id": "TASK-079",
       "title": "Calibración de Despachos Delimitados, Puertas y Grafo de Pasillos en OfficePathfinder",
       "status": "pending",
@@ -30,6 +22,14 @@
   ],
   "in_progress": [],
   "completed": [
+    {
+      "id": "TASK-078",
+      "title": "Maqueta Panorámica Híbrida 16:9 con Mamparas de Vidrio y Madera (Despachos Delimitados)",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-14",
+      "completed_at": "2026-10-14"
+    },
     {
       "id": "TASK-077",
       "title": "Actualización de AvatarCustomizer en PartnerProfileRPGModule con Preview Pixel-Art en Vivo y Sincronización Realtime",
