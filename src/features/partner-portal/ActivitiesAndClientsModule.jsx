@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckSquare, Clock, Plus, Filter, User, Building2,
@@ -7,12 +7,14 @@ import {
   ListFilter, Sparkles, Phone, Mail, MapPin, ExternalLink,
   Layers, BarChart2, TrendingUp, ChevronRight, PanelRightClose,
   ShieldCheck, Award, Scale, Gift, Table, ChevronLeft,
-  Target, Users, UserCheck, Link2, Zap
+  Target, Users, UserCheck, Link2, Zap,
+  Download, Upload, Paperclip, Share2, FileDown, Timer, Flame
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { calculateTaskXP, validateCrossApproval } from './gamification/xpEngine';
 import SpecialMissionsModule from './gamification/SpecialMissionsModule';
 import InterdisciplinarySynergies from './gamification/InterdisciplinarySynergies';
+import { FLASH_CONTINGENCY_TEMPLATES, calculateTimeRemaining } from './gamification/FlashMissionsEngine';
 
 // ── COMPONENTE TARJETA DE CRISTAL ──────────────────────────────────────────
 const GlassCard = ({ children, className = '' }) => (
@@ -182,6 +184,114 @@ const renderObjectiveBadge = (obj) => {
       <span>{obj}</span>
     </span>
   );
+};
+
+// ── TEMPORIZADOR REGRESIVO FLASH (COUNTDOWN EN VIVO) ───────────────────────────
+const FlashCountdownBadge = ({ expiresAt, compact = false, totalDurationHours = 72 }) => {
+  const [timeLeft, setTimeLeft] = useState(() => calculateTimeRemaining(expiresAt, totalDurationHours));
+
+  useEffect(() => {
+    if (!expiresAt) return;
+    const interval = setInterval(() => {
+      setTimeLeft(calculateTimeRemaining(expiresAt, totalDurationHours));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [expiresAt, totalDurationHours]);
+
+  if (!expiresAt) return null;
+
+  if (timeLeft.isExpired) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-mono font-bold shadow-sm">
+        <Timer className="w-3 h-3 text-rose-400" />
+        <span>Expirada</span>
+      </span>
+    );
+  }
+
+  if (timeLeft.isCritical) {
+    return (
+      <span
+        title={`Vence: ${new Date(expiresAt).toLocaleString()}`}
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-mono font-bold animate-pulse shadow-sm shadow-rose-500/20"
+      >
+        <Flame className="w-3 h-3 text-rose-400 animate-bounce" />
+        <span>{compact ? timeLeft.formattedTime.slice(0, 5) : timeLeft.formattedTime}</span>
+      </span>
+    );
+  }
+
+  if (timeLeft.isUrgent) {
+    return (
+      <span
+        title={`Vence: ${new Date(expiresAt).toLocaleString()}`}
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-mono font-bold shadow-sm"
+      >
+        <Timer className="w-3 h-3 text-amber-400" />
+        <span>{compact ? timeLeft.formattedTime.slice(0, 5) : timeLeft.formattedTime}</span>
+      </span>
+    );
+  }
+
+  return (
+    <span
+      title={`Vence: ${new Date(expiresAt).toLocaleString()}`}
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-mono font-bold shadow-sm"
+    >
+      <Timer className="w-3 h-3 text-emerald-400" />
+      <span>{compact ? timeLeft.formattedTime.slice(0, 5) : timeLeft.formattedTime}</span>
+    </span>
+  );
+};
+
+// ── COMPARTIR AL CORREO (MAILTO EJECUTIVO) ──────────────────────────────────
+const handleShareActivityEmail = (act) => {
+  const subject = `[SERAM S.R.L.] Reporte Técnico de Actividad Clave: ${act.title}`;
+  const deliverableText = act.deliverableUrl || act.url || 'Sin enlace adjunto aún';
+  const fileName = act.deliverableName ? ` (${act.deliverableName})` : '';
+  const body = `Estimado Directorio y Equipo SERAM S.R.L.,
+
+Por medio del presente se comparte el resumen ejecutivo y estado de ejecución técnica de la siguiente actividad:
+
+• Actividad Clave: ${act.title}
+• Tipo de Misión: ${act.isFlash || act.activityType === 'flash' ? '⚡ Misión Flash de Contingencia (Urgente)' : (act.activityType === 'secundaria' ? 'Secundaria' : 'Principal')}
+• Proyecto Vinculado: ${act.projectTitle || 'SERAM S.R.L.'}
+• Responsable: ${act.assignedPartner || 'Directorio SERAM'}
+• Co-Ejecutor (Combo): ${act.coPartner || 'N/A'}
+• Estado Actual: ${act.status} (Hito ${act.milestoneStep || 0}/5)
+• Prioridad: ${act.priority || 'Media'}
+• Fecha de Inicio: ${act.startDate || 'N/A'}
+• Fecha Límite: ${act.dueDate || 'Sin fecha definida'}${act.flashExpiresAt ? ` (Expiración Flash: ${new Date(act.flashExpiresAt).toLocaleString()})` : ''}
+• Horas Ejecutadas: ${act.actualHours || 0} hrs / Estimadas: ${act.estimatedHours || 0} hrs
+• Entregable / Enlace de Descarga: ${deliverableText}${fileName}
+• Especificaciones / Alcance: ${act.description || 'Sin notas adicionales'}
+
+Atentamente,
+Ecosistema de Operaciones SERAM S.R.L.
+La Paz, Bolivia`;
+
+  const mailtoUrl = `mailto:${act.assignedPartnerEmail || ''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.open(mailtoUrl, '_blank');
+};
+
+// ── DESCARGA DE ENTREGABLES (BASE64 DATAURI & URLS) ─────────────────────────
+const handleDownloadDeliverable = (act) => {
+  const url = act.deliverableUrl || act.url;
+  if (!url) return;
+
+  // Si es DataURI o archivo directo con extensión
+  if (url.startsWith('data:') || /\.(pdf|jpg|jpeg|png|md|txt|docx|xlsx|zip)($|\?)/i.test(url)) {
+    const link = document.createElement('a');
+    link.href = url;
+    const defaultName = act.deliverableName || `${act.title.replace(/[^a-zA-Z0-9_-]/g, '_')}_entregable`;
+    link.download = defaultName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } else {
+    // Es enlace externo (Google Drive, Docs, Notion, web)
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
 };
 
 export default function ActivitiesAndClientsModule({ currentSocio }) {
@@ -393,6 +503,16 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     triggerToast('Ficha de actividad actualizada correctamente', 'success');
   };
 
+  // Estados para Misiones Rápidas y Modal de Asignación Flash
+  const [showQuickMissionModal, setShowQuickMissionModal] = useState(false);
+  const [quickMissionTab, setQuickMissionTab] = useState('templates'); // 'templates' | 'custom'
+  const [customMissionTitle, setCustomMissionTitle] = useState('');
+  const [customMissionDesc, setCustomMissionDesc] = useState('');
+  const [customMissionDuration, setCustomMissionDuration] = useState(72);
+  const [customMissionPartner, setCustomMissionPartner] = useState(currentSocio?.name || 'Ing. Diego Barrientos');
+  const [customMissionCoPartner, setCustomMissionCoPartner] = useState('');
+  const [customMissionCategory, setCustomMissionCategory] = useState('EIA / Legal Ambiental');
+
   // Form State Actividad
   const [actTitle, setActTitle] = useState('');
   const [actDesc, setActDesc] = useState('');
@@ -402,7 +522,13 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
   const [actCategory, setActCategory] = useState('SIG / Cartografía');
   const [actPriority, setActPriority] = useState('Media');
   const [actDueDate, setActDueDate] = useState('');
+  const [actStartDate, setActStartDate] = useState('');
   const [actEstHours, setActEstHours] = useState('');
+  const [actActivityType, setActActivityType] = useState('principal'); // 'principal' | 'secundaria' | 'flash'
+  const [actFlashDuration, setActFlashDuration] = useState(72);
+  const [actDeliverableUrl, setActDeliverableUrl] = useState('');
+  const [actDeliverableName, setActDeliverableName] = useState('');
+  const [actAttachments, setActAttachments] = useState([]);
 
   // Form State Cliente
   const [clName, setClName] = useState('');
@@ -471,6 +597,118 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     { name: 'Ing. Fabricio Orosco', email: 'sebastiansbs51@gmail.com', role: 'Operaciones & Campo' },
   ];
 
+  // Asignar misión flash desde plantilla predefinida de contingencias
+  const handleSelectFlashTemplate = (tpl) => {
+    const durationHours = tpl.durationHours || 72;
+    const expiresAt = new Date(Date.now() + durationHours * 3600 * 1000).toISOString();
+    const selectedProj = activeServices[0];
+
+    handleAddActivity({
+      title: tpl.title,
+      description: tpl.desc,
+      projectId: selectedProj?.id || null,
+      projectTitle: tpl.context || 'Contingencia Ambiental Flash',
+      assignedPartner: tpl.defaultAssigned?.[0] || currentSocio?.name || 'Ing. Diego Barrientos',
+      coPartner: tpl.defaultAssigned?.[1] || null,
+      category: tpl.requiredRole || 'EIA / Legal Ambiental',
+      priority: 'Urgente',
+      startDate: new Date().toISOString().split('T')[0],
+      dueDate: new Date(Date.now() + durationHours * 3600 * 1000).toISOString().split('T')[0],
+      estimatedHours: Math.min(40, Math.round(durationHours / 2)),
+      actualHours: 0,
+      status: 'En curso',
+      milestoneStep: 1,
+      isFlash: true,
+      activityType: 'flash',
+      flashExpiresAt: expiresAt,
+      strategicObjectives: ['LIDERAR EL SECTOR', 'RENTABILIDAD']
+    });
+
+    setShowQuickMissionModal(false);
+    triggerToast(`⚡ Misión Flash activada: ${durationHours}h límite de contingencia`, 'success');
+  };
+
+  // Asignar misión flash personalizada
+  const handleSubmitCustomQuickMission = (e) => {
+    e.preventDefault();
+    if (!customMissionTitle.trim()) {
+      triggerToast('Ingresa el título de la contingencia flash', 'error');
+      return;
+    }
+    const durationHours = parseInt(customMissionDuration, 10) || 72;
+    const expiresAt = new Date(Date.now() + durationHours * 3600 * 1000).toISOString();
+    const selectedProj = activeServices[0];
+
+    handleAddActivity({
+      title: customMissionTitle,
+      description: customMissionDesc || 'Misión flash de contingencia prioritaria asignada por el Directorio.',
+      projectId: selectedProj?.id || null,
+      projectTitle: selectedProj ? selectedProj.client || selectedProj.type : 'Misión Flash SERAM',
+      assignedPartner: customMissionPartner,
+      coPartner: customMissionCoPartner || null,
+      category: customMissionCategory,
+      priority: 'Urgente',
+      startDate: new Date().toISOString().split('T')[0],
+      dueDate: new Date(Date.now() + durationHours * 3600 * 1000).toISOString().split('T')[0],
+      estimatedHours: Math.min(40, Math.round(durationHours / 2)),
+      actualHours: 0,
+      status: 'En curso',
+      milestoneStep: 1,
+      isFlash: true,
+      activityType: 'flash',
+      flashExpiresAt: expiresAt,
+      strategicObjectives: ['LIDERAR EL SECTOR', 'RENTABILIDAD']
+    });
+
+    setCustomMissionTitle('');
+    setCustomMissionDesc('');
+    setShowQuickMissionModal(false);
+    triggerToast(`⚡ Misión Flash personalizada creada (${durationHours}h restantes)`, 'success');
+  };
+
+  // Helper para procesar subida de archivo a Base64 DataURI con redundancia
+  const handleFileUpload = (file, isDrawer = false) => {
+    if (!file) return;
+    const maxBytes = 25 * 1024 * 1024; // 25MB
+    if (file.size > maxBytes) {
+      triggerToast('El archivo supera el límite de 25 MB', 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUri = e.target.result;
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || '';
+      const newAttachment = {
+        name: file.name,
+        size: file.size,
+        type: file.type || fileExt,
+        data: dataUri,
+        uploadedAt: new Date().toISOString()
+      };
+
+      if (isDrawer) {
+        setDrawerData(prev => {
+          const currentAtts = Array.isArray(prev.attachments) ? prev.attachments : [];
+          return {
+            ...prev,
+            deliverableUrl: dataUri,
+            deliverableName: file.name,
+            deliverableType: fileExt,
+            url: dataUri,
+            attachments: [newAttachment, ...currentAtts]
+          };
+        });
+        triggerToast(`Archivo "${file.name}" adjuntado a la ficha`, 'success');
+      } else {
+        setActDeliverableUrl(dataUri);
+        setActDeliverableName(file.name);
+        setActAttachments(prev => [newAttachment, ...prev]);
+        triggerToast(`Archivo "${file.name}" cargado`, 'success');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   // Submit Nueva Actividad
   const onSubmitActivity = (e) => {
     e.preventDefault();
@@ -480,6 +718,10 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     }
 
     const selectedProj = activeServices.find((p) => String(p.id) === String(actProjectId));
+    const isFlashMission = actActivityType === 'flash';
+    const expiresAt = isFlashMission
+      ? new Date(Date.now() + (parseInt(actFlashDuration, 10) || 72) * 3600 * 1000).toISOString()
+      : null;
 
     if (editingActivity) {
       handleEditActivity(editingActivity.id, {
@@ -490,9 +732,17 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         assignedPartner: actPartner,
         coPartner: actCoPartner || null,
         category: actCategory,
-        priority: actPriority,
+        priority: isFlashMission ? 'Urgente' : actPriority,
+        startDate: actStartDate || null,
         dueDate: actDueDate,
         estimatedHours: parseFloat(actEstHours) || 0,
+        activityType: actActivityType,
+        isFlash: isFlashMission,
+        flashExpiresAt: expiresAt || editingActivity.flashExpiresAt || null,
+        deliverableUrl: actDeliverableUrl || editingActivity.deliverableUrl || null,
+        deliverableName: actDeliverableName || editingActivity.deliverableName || null,
+        url: actDeliverableUrl || editingActivity.url || null,
+        attachments: actAttachments.length > 0 ? actAttachments : (editingActivity.attachments || [])
       });
       setEditingActivity(null);
     } else {
@@ -504,11 +754,19 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         assignedPartner: actPartner,
         coPartner: actCoPartner || null,
         category: actCategory,
-        priority: actPriority,
+        priority: isFlashMission ? 'Urgente' : actPriority,
+        startDate: actStartDate || new Date().toISOString().split('T')[0],
         dueDate: actDueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         estimatedHours: parseFloat(actEstHours) || 0,
         actualHours: 0,
         status: 'Pendiente',
+        activityType: actActivityType,
+        isFlash: isFlashMission,
+        flashExpiresAt: expiresAt,
+        deliverableUrl: actDeliverableUrl || null,
+        deliverableName: actDeliverableName || null,
+        url: actDeliverableUrl || null,
+        attachments: actAttachments
       });
     }
 
@@ -517,7 +775,13 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     setActDesc('');
     setActProjectId('');
     setActCoPartner('');
+    setActStartDate('');
     setActEstHours('');
+    setActActivityType('principal');
+    setActFlashDuration(72);
+    setActDeliverableUrl('');
+    setActDeliverableName('');
+    setActAttachments([]);
     setShowNewActivityModal(false);
   };
 
@@ -555,8 +819,13 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     setActCoPartner(act.coPartner || '');
     setActCategory(act.category || 'SIG / Cartografía');
     setActPriority(act.priority || 'Media');
+    setActStartDate(act.startDate || '');
     setActDueDate(act.dueDate || '');
     setActEstHours(act.estimatedHours || '');
+    setActActivityType(act.activityType || (act.isFlash ? 'flash' : 'principal'));
+    setActDeliverableUrl(act.deliverableUrl || act.url || '');
+    setActDeliverableName(act.deliverableName || '');
+    setActAttachments(Array.isArray(act.attachments) ? act.attachments : []);
     setShowNewActivityModal(true);
   };
 
@@ -692,23 +961,38 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
           </button>
         </div>
 
-        {/* Botones de Creación */}
-        <div className="flex items-center gap-2.5">
+        {/* Botones de Creación y Misión Rápida */}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowQuickMissionModal(true)}
+            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs flex items-center gap-1.5 transition-all shadow-lg shadow-amber-500/20 border border-amber-300/40 cursor-pointer"
+            title="Activar contingencia ambiental inmediata con temporizador regresivo de 48h, 72h o 96h"
+          >
+            <Flame className="w-3.5 h-3.5 text-slate-950 fill-current animate-pulse" />
+            <span>⚡ Asignar Misión Rápida</span>
+          </button>
           <button
             onClick={() => {
               setEditingActivity(null);
               setActTitle('');
               setActDesc('');
               setActProjectId(activeServices[0]?.id || '');
+              setActStartDate('');
+              setActActivityType('principal');
+              setActFlashDuration(72);
+              setActDeliverableUrl('');
+              setActDeliverableName('');
+              setActAttachments([]);
               setShowNewActivityModal(true);
             }}
-            className="px-4 py-2 rounded-xl bg-[#00e03c] hover:bg-[#00e03c]/90 text-slate-950 font-black text-xs flex items-center gap-2 transition-all shadow-lg shadow-[#00e03c]/10 cursor-pointer"
+            className="px-3.5 py-2 rounded-xl bg-[#00e03c] hover:bg-[#00e03c]/90 text-slate-950 font-black text-xs flex items-center gap-1.5 transition-all shadow-lg shadow-[#00e03c]/10 cursor-pointer"
           >
             <Plus className="w-4 h-4 stroke-[3]" /> Registrar Actividad Clave
           </button>
           <button
             onClick={() => setShowNewClientModal(true)}
-            className="px-3.5 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.15] text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer"
+            className="px-3.5 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.15] text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
           >
             <Building2 className="w-4 h-4 text-purple-400" /> Inscribir Cliente
           </button>
@@ -924,9 +1208,14 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                                 >
                                   {/* Categoría y Prioridad */}
                                   <div className="flex items-center justify-between gap-1 text-[10px]">
-                                    <span className="font-bold text-slate-400 bg-white/[0.05] px-2 py-0.5 rounded text-[9px]">
-                                      {act.category || 'General'}
-                                    </span>
+                                    <div className="flex items-center gap-1 flex-wrap">
+                                      <span className="font-bold text-slate-400 bg-white/[0.05] px-2 py-0.5 rounded text-[9px]">
+                                        {act.category || 'General'}
+                                      </span>
+                                      {(act.isFlash || act.activityType === 'flash') && (
+                                        <FlashCountdownBadge expiresAt={act.flashExpiresAt} compact={true} />
+                                      )}
+                                    </div>
                                     <span className={`px-1.5 py-0.5 rounded font-black border text-[9px] ${PRIORITY_STYLES[act.priority] || PRIORITY_STYLES.Media}`}>
                                       {act.priority}
                                     </span>
@@ -1037,6 +1326,30 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                                     </div>
 
                                     <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                                      {(act.deliverableUrl || act.url) && (
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDownloadDeliverable(act);
+                                          }}
+                                          className="p-1 rounded hover:bg-sky-500/20 text-sky-400 transition-colors cursor-pointer"
+                                          title="Descargar entregable / abrir enlace"
+                                        >
+                                          <FileDown className="w-3 h-3" />
+                                        </button>
+                                      )}
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleShareActivityEmail(act);
+                                        }}
+                                        className="p-1 rounded hover:bg-amber-500/20 text-slate-400 hover:text-amber-300 transition-colors cursor-pointer"
+                                        title="Compartir por correo (mailto)"
+                                      >
+                                        <Mail className="w-3 h-3" />
+                                      </button>
                                       <button
                                         type="button"
                                         onClick={() => setDrawerActivity(act)}
@@ -1190,9 +1503,19 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                               <span className="w-4 h-4 rounded-full bg-[#00e03c]/15 text-[#00e03c] border border-[#00e03c]/30 flex items-center justify-center shrink-0 shadow-sm shadow-[#00e03c]/20">
                                 <CheckCircle2 className="w-3 h-3 stroke-[2.5]" />
                               </span>
-                              <span className="font-bold text-white group-hover:text-[#00e03c] transition-colors line-clamp-1">
-                                {act.title}
-                              </span>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-bold text-white group-hover:text-[#00e03c] transition-colors line-clamp-1">
+                                  {act.title}
+                                </span>
+                                {(act.isFlash || act.activityType === 'flash') && (
+                                  <FlashCountdownBadge expiresAt={act.flashExpiresAt} compact={true} />
+                                )}
+                                {act.activityType === 'secundaria' && (
+                                  <span className="px-1.5 py-0.5 rounded text-[9px] bg-slate-500/20 text-slate-400 border border-slate-500/30">
+                                    Secundaria
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </td>
 
@@ -1278,37 +1601,81 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                             </div>
                           </td>
 
-                          {/* 10. URL */}
+                          {/* 10. URL & Entregables / Descargas */}
                           <td className="p-3 whitespace-nowrap">
                             {act.url || act.deliverableUrl ? (
-                              <a
-                                href={act.url || act.deliverableUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                                className="inline-flex items-center gap-1 text-[11px] text-sky-400 hover:text-sky-300 font-mono underline decoration-sky-500/40 hover:decoration-sky-400 transition-colors max-w-[120px] truncate"
-                                title={act.url || act.deliverableUrl}
-                              >
-                                <ExternalLink className="w-3 h-3 shrink-0" />
-                                <span className="truncate">{(act.url || act.deliverableUrl).replace(/^https?:\/\//, '')}</span>
-                              </a>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDownloadDeliverable(act);
+                                  }}
+                                  className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-[11px] text-sky-300 font-mono transition-colors max-w-[130px] truncate cursor-pointer shadow-sm"
+                                  title={act.deliverableName || act.url || act.deliverableUrl}
+                                >
+                                  {act.deliverableName?.endsWith('.pdf') ? (
+                                    <FileText className="w-3 h-3 text-rose-400 shrink-0" />
+                                  ) : (act.url?.startsWith('data:') || act.deliverableUrl?.startsWith('data:')) ? (
+                                    <FileDown className="w-3 h-3 text-emerald-400 shrink-0" />
+                                  ) : (
+                                    <ExternalLink className="w-3 h-3 text-sky-400 shrink-0" />
+                                  )}
+                                  <span className="truncate">{act.deliverableName || (act.url || act.deliverableUrl).replace(/^https?:\/\//, '')}</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleShareActivityEmail(act);
+                                  }}
+                                  className="p-1 rounded-lg bg-white/[0.04] hover:bg-amber-500/20 text-slate-400 hover:text-amber-300 border border-white/[0.08] transition-colors cursor-pointer"
+                                  title="Compartir al correo (mailto)"
+                                >
+                                  <Mail className="w-3 h-3" />
+                                </button>
+                              </div>
                             ) : (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDrawerActivity(act);
-                                }}
-                                className="text-[10px] text-slate-500 hover:text-slate-300 flex items-center gap-0.5 transition-colors cursor-pointer"
-                                title="Adjuntar link en la ficha"
-                              >
-                                <Plus className="w-2.5 h-2.5" /> Link
-                              </button>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDrawerActivity(act);
+                                  }}
+                                  className="text-[10px] text-slate-400 hover:text-white px-2 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] flex items-center gap-1 transition-colors cursor-pointer"
+                                  title="Adjuntar entregable o enlace en la ficha"
+                                >
+                                  <Paperclip className="w-2.5 h-2.5 text-sky-400" /> + Adjunto
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleShareActivityEmail(act);
+                                  }}
+                                  className="p-1 rounded-lg bg-white/[0.04] hover:bg-amber-500/20 text-slate-400 hover:text-amber-300 border border-white/[0.08] transition-colors cursor-pointer"
+                                  title="Compartir al correo (mailto)"
+                                >
+                                  <Share2 className="w-3 h-3" />
+                                </button>
+                              </div>
                             )}
                           </td>
 
                           {/* 11. Acciones */}
                           <td className="p-3 pr-4 text-right space-x-1 whitespace-nowrap">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleShareActivityEmail(act);
+                              }}
+                              className="p-1 rounded hover:bg-amber-500/20 text-slate-400 hover:text-amber-300 transition-colors cursor-pointer"
+                              title="Compartir ficha por correo (mailto)"
+                            >
+                              <Share2 className="w-3.5 h-3.5" />
+                            </button>
                             <button
                               type="button"
                               onClick={(e) => {
@@ -1761,6 +2128,228 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         </AnimatePresence>
       </div>
 
+      {/* ── MODAL: ASIGNACIÓN RÁPIDA DE MISIONES FLASH DE CONTINGENCIA ── */}
+      <AnimatePresence>
+        {showQuickMissionModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-2xl bg-[#0c141f] border border-amber-500/30 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                    <Flame className="w-5 h-5 animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                      ⚡ Asignación Rápida de Misiones Flash
+                    </h3>
+                    <p className="text-[11px] text-slate-400">
+                      Contingencias ambientales críticas y licitaciones express con cuenta regresiva en tiempo real.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowQuickMissionModal(false)}
+                  className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.08] cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Selector de Pestañas: Templates vs Personalizada */}
+              <div className="flex items-center gap-2 bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
+                <button
+                  type="button"
+                  onClick={() => setQuickMissionTab('templates')}
+                  className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                    quickMissionTab === 'templates'
+                      ? 'bg-amber-400 text-slate-950 font-black shadow-md'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Flame className="w-3.5 h-3.5" />
+                  <span>Contingencias Predefinidas ({FLASH_CONTINGENCY_TEMPLATES.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickMissionTab('custom')}
+                  className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                    quickMissionTab === 'custom'
+                      ? 'bg-amber-400 text-slate-950 font-black shadow-md'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Misión Flash Personalizada</span>
+                </button>
+              </div>
+
+              {/* Tab 1: Plantillas Predefinidas */}
+              {quickMissionTab === 'templates' && (
+                <div className="space-y-3">
+                  {FLASH_CONTINGENCY_TEMPLATES.map((tpl, idx) => (
+                    <div
+                      key={idx}
+                      className="p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] hover:border-amber-500/40 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group"
+                    >
+                      <div className="space-y-1.5 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-black bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-1">
+                            <Timer className="w-3 h-3 text-rose-400" /> {tpl.durationHours} Horas Límite
+                          </span>
+                          <span className="text-[10px] font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+                            {tpl.requiredRole}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            {tpl.streakBonus}
+                          </span>
+                        </div>
+                        <h4 className="text-sm font-bold text-white group-hover:text-amber-300 transition-colors">
+                          {tpl.title}
+                        </h4>
+                        <p className="text-[11px] text-slate-400 leading-relaxed">
+                          {tpl.desc}
+                        </p>
+                        <div className="text-[10px] text-slate-500 flex items-center gap-1">
+                          <User className="w-3 h-3 text-sky-400" />
+                          <span>Responsables sugeridos: {tpl.defaultAssigned?.join(' y ')}</span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSelectFlashTemplate(tpl)}
+                        className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs transition-all shadow-md shadow-amber-500/20 shrink-0 cursor-pointer flex items-center gap-1.5 w-full sm:w-auto justify-center"
+                      >
+                        <Flame className="w-3.5 h-3.5 fill-current" />
+                        <span>⚡ Asignar Misión</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Tab 2: Personalizada */}
+              {quickMissionTab === 'custom' && (
+                <form onSubmit={handleSubmitCustomQuickMission} className="space-y-4 text-xs">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-slate-400">Título de la Contingencia Flash *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ej: Emergencia por Derrame de Ácido en Cuenca Alta 48h"
+                      value={customMissionTitle}
+                      onChange={(e) => setCustomMissionTitle(e.target.value)}
+                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-amber-400 flex items-center gap-1">
+                        <Timer className="w-3 h-3" /> Duración de la Misión Flash
+                      </label>
+                      <select
+                        value={customMissionDuration}
+                        onChange={(e) => setCustomMissionDuration(Number(e.target.value))}
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-amber-500/30 rounded-xl text-white font-mono focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
+                      >
+                        <option value={24}>⚡ 24 Horas (Extrema Urgencia)</option>
+                        <option value={48}>⚡ 48 Horas (Fiscalización / Inspección)</option>
+                        <option value={72}>⚡ 72 Horas (Licitación SICOES / Decretos)</option>
+                        <option value={96}>⚡ 96 Horas (Cisne Negro / Modelación Hidrológica)</option>
+                        <option value={120}>⚡ 120 Horas (Expediente Ampliado)</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-slate-400">Categoría Técnica</label>
+                      <select
+                        value={customMissionCategory}
+                        onChange={(e) => setCustomMissionCategory(e.target.value)}
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
+                      >
+                        <option value="EIA / Legal Ambiental">EIA / Legal Ambiental</option>
+                        <option value="Hidrología & SIG">Hidrología & SIG</option>
+                        <option value="Teledetección & Geomática">Teledetección & Geomática</option>
+                        <option value="Compliance & Legal">Compliance & Legal</option>
+                        <option value="Biodiversidad & Carbono">Biodiversidad & Carbono</option>
+                        <option value="Trabajo de Campo / Muestreo">Trabajo de Campo / Muestreo</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-slate-400">Socio Responsable Principal *</label>
+                      <select
+                        value={customMissionPartner}
+                        onChange={(e) => setCustomMissionPartner(e.target.value)}
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
+                      >
+                        {partnersList.map((p) => (
+                          <option key={p.name} value={p.name}>{p.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-amber-400 flex items-center justify-between">
+                        <span>Co-Ejecutor (Combo +35% XP)</span>
+                      </label>
+                      <select
+                        value={customMissionCoPartner}
+                        onChange={(e) => setCustomMissionCoPartner(e.target.value)}
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-amber-500/30 rounded-xl text-white focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
+                      >
+                        <option value="">-- Sin co-ejecutor --</option>
+                        {partnersList.filter(p => p.name !== customMissionPartner).map((p) => (
+                          <option key={p.name} value={p.name}>⚡ {p.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-slate-400">Instrucciones & Alcance Crítico</label>
+                    <textarea
+                      rows="3"
+                      placeholder="Objetivos periciales de esta contingencia ambiental..."
+                      value={customMissionDesc}
+                      onChange={(e) => setCustomMissionDesc(e.target.value)}
+                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 resize-none"
+                    />
+                  </div>
+
+                  <div className="pt-2 flex items-center justify-end gap-3 border-t border-white/[0.08]">
+                    <button
+                      type="button"
+                      onClick={() => setShowQuickMissionModal(false)}
+                      className="px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-slate-300 font-bold cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black shadow-lg shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Flame className="w-3.5 h-3.5 fill-current" />
+                      <span>⚡ Lanzar Misión Flash</span>
+                    </button>
+                  </div>
+                </form>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* ── MODAL: REGISTRAR / EDITAR ACTIVIDAD CLAVE ── */}
       <AnimatePresence>
         {showNewActivityModal && (
@@ -1769,7 +2358,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-lg bg-[#0e1622] border border-white/[0.15] rounded-3xl p-6 shadow-2xl space-y-5"
+              className="w-full max-w-lg bg-[#0e1622] border border-white/[0.15] rounded-3xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
                 <div className="flex items-center gap-2.5">
@@ -1779,14 +2368,60 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                   </h3>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setShowNewActivityModal(false)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08]"
+                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <form onSubmit={onSubmitActivity} className="space-y-4 text-xs">
+                {/* Tipo de Actividad & Duración Flash */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-slate-400">Tipo de Actividad</label>
+                    <select
+                      value={actActivityType}
+                      onChange={(e) => setActActivityType(e.target.value)}
+                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
+                    >
+                      <option value="principal">Actividad Principal</option>
+                      <option value="secundaria">Actividad Secundaria</option>
+                      <option value="flash">⚡ Misión Flash (Contingencia)</option>
+                    </select>
+                  </div>
+
+                  {actActivityType === 'flash' ? (
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-amber-400 flex items-center gap-1">
+                        <Timer className="w-3 h-3" /> Duración Flash Límite
+                      </label>
+                      <select
+                        value={actFlashDuration}
+                        onChange={(e) => setActFlashDuration(Number(e.target.value))}
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-amber-500/30 rounded-xl text-white font-mono font-bold focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
+                      >
+                        <option value={24}>24 Horas</option>
+                        <option value={48}>48 Horas</option>
+                        <option value={72}>72 Horas</option>
+                        <option value={96}>96 Horas</option>
+                        <option value={120}>120 Horas</option>
+                      </select>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-slate-400">Fecha de Inicio</label>
+                      <input
+                        type="date"
+                        value={actStartDate}
+                        onChange={(e) => setActStartDate(e.target.value)}
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-[#00e03c]"
+                      />
+                    </div>
+                  )}
+                </div>
+
                 {/* Título */}
                 <div className="space-y-1">
                   <label className="text-[10px] font-black uppercase text-slate-400">Título de la Actividad / Tarea *</label>
@@ -1807,7 +2442,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                     <select
                       value={actProjectId}
                       onChange={(e) => setActProjectId(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white"
+                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
                     >
                       <option value="">Proyecto General / Interno</option>
                       {activeServices.map((p) => (
@@ -1821,7 +2456,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                     <select
                       value={actPartner}
                       onChange={(e) => setActPartner(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white"
+                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
                     >
                       {partnersList.map((p) => (
                         <option key={p.name} value={p.name}>{p.name}</option>
@@ -1843,7 +2478,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                     <select
                       value={actCoPartner}
                       onChange={(e) => setActCoPartner(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-amber-500/30 rounded-xl text-white focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white"
+                      className="w-full px-3 py-2 bg-white/[0.06] border border-amber-500/30 rounded-xl text-white focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
                     >
                       <option value="">-- Sin Co-ejecutor (Misión Individual) --</option>
                       {partnersList.filter(p => p.name !== actPartner).map((p) => (
@@ -1860,7 +2495,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                     <select
                       value={actCategory}
                       onChange={(e) => setActCategory(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white"
+                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
                     >
                       <option value="SIG / Cartografía">SIG / Cartografía</option>
                       <option value="Desarrollo Web & Sistemas">Desarrollo Web & Sistemas</option>
@@ -1879,7 +2514,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                     <select
                       value={actPriority}
                       onChange={(e) => setActPriority(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white"
+                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
                     >
                       <option value="Baja">Baja</option>
                       <option value="Media">Media</option>
@@ -1914,6 +2549,43 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                   </div>
                 </div>
 
+                {/* Enlace y Entregable */}
+                <div className="space-y-2 p-3 rounded-2xl bg-white/[0.03] border border-sky-500/20">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-sky-400 flex items-center gap-1">
+                      <Link2 className="w-3 h-3" /> URL del Entregable / Carpeta Drive
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://docs.google.com/... o https://drive.google.com/..."
+                      value={actDeliverableUrl}
+                      onChange={(e) => setActDeliverableUrl(e.target.value)}
+                      className="w-full px-3 py-2 bg-white/[0.06] border border-sky-500/30 rounded-xl text-white placeholder-slate-500 font-mono text-xs focus:outline-none focus:border-sky-400"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1">
+                      <Paperclip className="w-3 h-3" /> Subir Archivo Adjunto (.pdf, .jpg, .md)
+                    </label>
+                    <input
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png,.md"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          handleFileUpload(e.target.files[0], false);
+                        }
+                      }}
+                      className="w-full text-xs text-slate-400 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-sky-500/20 file:text-sky-300 hover:file:bg-sky-500/30 cursor-pointer"
+                    />
+                    {actDeliverableName && (
+                      <p className="text-[10px] text-emerald-400 font-mono">
+                        ✓ Archivo cargado: {actDeliverableName}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
                 {/* Descripción Detallada */}
                 <div className="space-y-1">
                   <label className="text-[10px] font-black uppercase text-slate-400">Detalles Técnicos / Entregable</label>
@@ -1931,13 +2603,13 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                   <button
                     type="button"
                     onClick={() => setShowNewActivityModal(false)}
-                    className="px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-slate-300 font-bold"
+                    className="px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-slate-300 font-bold cursor-pointer"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-xl bg-[#00e03c] hover:bg-[#00e03c]/90 text-slate-950 font-black shadow-lg shadow-[#00e03c]/20"
+                    className="px-5 py-2 rounded-xl bg-[#00e03c] hover:bg-[#00e03c]/90 text-slate-950 font-black shadow-lg shadow-[#00e03c]/20 cursor-pointer"
                   >
                     {editingActivity ? 'Guardar Cambios' : 'Registrar Actividad'}
                   </button>
@@ -2101,24 +2773,44 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
               >
                 {/* Header del Drawer */}
                 <div className="space-y-4 border-b border-white/[0.08] pb-5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-white/[0.08] text-slate-300">
                         {drawerData.category || 'General'}
                       </span>
                       <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${PRIORITY_STYLES[drawerData.priority] || PRIORITY_STYLES.Media}`}>
                         Prioridad {drawerData.priority}
                       </span>
+                      {(drawerData.isFlash || drawerData.activityType === 'flash') && (
+                        <FlashCountdownBadge expiresAt={drawerData.flashExpiresAt} />
+                      )}
+                      {drawerData.activityType === 'secundaria' && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] bg-slate-500/20 text-slate-400 border border-slate-500/30">
+                          Secundaria
+                        </span>
+                      )}
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => setDrawerActivity(null)}
-                      className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors"
-                      title="Cerrar ficha"
-                    >
-                      <PanelRightClose className="w-5 h-5" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleShareActivityEmail(drawerData)}
+                        className="px-2.5 py-1.5 rounded-xl bg-white/[0.06] hover:bg-amber-500/20 text-slate-300 hover:text-amber-300 border border-white/[0.1] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+                        title="Compartir ficha por correo (mailto)"
+                      >
+                        <Mail className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Compartir Correo</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setDrawerActivity(null)}
+                        className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
+                        title="Cerrar ficha"
+                      >
+                        <PanelRightClose className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Input Título editable directamente */}
@@ -2271,6 +2963,73 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
 
                 {/* Formulario en línea de Propiedades y Metadatos */}
                 <div className="space-y-4 text-xs">
+                  {/* Tipo de Actividad & Duración Flash */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-slate-400">Tipo de Actividad</label>
+                      <select
+                        value={drawerData.activityType || (drawerData.isFlash ? 'flash' : 'principal')}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setDrawerData(prev => {
+                            const isF = val === 'flash';
+                            const expires = isF && !prev.flashExpiresAt
+                              ? new Date(Date.now() + 72 * 3600 * 1000).toISOString()
+                              : prev.flashExpiresAt;
+                            return {
+                              ...prev,
+                              activityType: val,
+                              isFlash: isF,
+                              flashExpiresAt: expires,
+                              priority: isF ? 'Urgente' : prev.priority
+                            };
+                          });
+                        }}
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
+                      >
+                        <option value="principal">Actividad Principal</option>
+                        <option value="secundaria">Actividad Secundaria</option>
+                        <option value="flash">⚡ Misión Flash (Contingencia)</option>
+                      </select>
+                    </div>
+
+                    {(drawerData.activityType === 'flash' || drawerData.isFlash) ? (
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase text-amber-400 flex items-center justify-between">
+                          <span className="flex items-center gap-1"><Timer className="w-3 h-3" /> Duración Regresiva</span>
+                          <span className="text-[9px] text-amber-300 font-mono">En vivo</span>
+                        </label>
+                        <select
+                          onChange={(e) => {
+                            const hrs = Number(e.target.value);
+                            if (hrs > 0) {
+                              const newExp = new Date(Date.now() + hrs * 3600 * 1000).toISOString();
+                              setDrawerData(prev => ({
+                                ...prev,
+                                flashExpiresAt: newExp
+                              }));
+                            }
+                          }}
+                          className="w-full px-3 py-2 bg-white/[0.06] border border-amber-500/30 rounded-xl text-white font-mono font-bold focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
+                        >
+                          <option value="">Ajustar tiempo (+horas)...</option>
+                          <option value={24}>Reiniciar a 24 Horas</option>
+                          <option value={48}>Reiniciar a 48 Horas</option>
+                          <option value={72}>Reiniciar a 72 Horas</option>
+                          <option value={96}>Reiniciar a 96 Horas</option>
+                          <option value={120}>Reiniciar a 120 Horas</option>
+                        </select>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase text-slate-400">Objetivo Estratégico</label>
+                        <div className="px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-xl text-slate-300 text-[11px] font-bold truncate">
+                          {drawerData.category?.includes('Legal') ? 'LEGALIZAR Y FORMALIZAR' : 'LIDERAR EL SECTOR'}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Estado */}
                     <div className="space-y-1">
@@ -2278,7 +3037,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                       <select
                         value={drawerData.status || 'Pendiente'}
                         onChange={(e) => setDrawerData(prev => ({ ...prev, status: e.target.value }))}
-                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white"
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
                       >
                         {STATUS_COLUMNS.map((s) => (
                           <option key={s.id} value={s.id}>{s.label}</option>
@@ -2292,7 +3051,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                       <select
                         value={drawerData.priority || 'Media'}
                         onChange={(e) => setDrawerData(prev => ({ ...prev, priority: e.target.value }))}
-                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white"
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
                       >
                         <option value="Baja">Baja</option>
                         <option value="Media">Media</option>
@@ -2309,7 +3068,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                       <select
                         value={drawerData.assignedPartner || ''}
                         onChange={(e) => setDrawerData(prev => ({ ...prev, assignedPartner: e.target.value }))}
-                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white"
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
                       >
                         {partnersList.map((p) => (
                           <option key={p.name} value={p.name}>{p.name}</option>
@@ -2365,30 +3124,141 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                     </div>
                   </div>
 
-                  {/* Enlace URL de Entregable (Google Docs, Drive, TikTok, etc.) */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-sky-400 flex items-center justify-between">
-                      <span className="flex items-center gap-1.5">
-                        <Link2 className="w-3.5 h-3.5" /> Enlace de Entregable / Documento URL
-                      </span>
-                      {(drawerData.url || drawerData.deliverableUrl) && (
-                        <a
-                          href={drawerData.url || drawerData.deliverableUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[10px] text-sky-300 underline font-mono flex items-center gap-1 hover:text-white"
-                        >
-                          Abrir Link ➔
-                        </a>
-                      )}
-                    </label>
-                    <input
-                      type="url"
-                      placeholder="https://docs.google.com/... o https://drive.google.com/..."
-                      value={drawerData.url || drawerData.deliverableUrl || ''}
-                      onChange={(e) => setDrawerData(prev => ({ ...prev, url: e.target.value, deliverableUrl: e.target.value }))}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-sky-500/30 rounded-xl text-white font-mono text-xs placeholder-slate-500 focus:outline-none focus:border-sky-400"
-                    />
+                  {/* Zona de Entregables, Enlace y Subida de Archivos (.pdf, .jpg, .md) */}
+                  <div className="space-y-3 bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-black uppercase text-sky-400 flex items-center gap-1.5">
+                        <Paperclip className="w-3.5 h-3.5" /> Entregables & Documentación Técnica
+                      </label>
+                      <span className="text-[10px] text-slate-400">PDF, JPG, PNG, MD (Hasta 25 MB)</span>
+                    </div>
+
+                    {/* URL Externa */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-slate-400 font-medium">Enlace Web o Drive:</span>
+                        {(drawerData.url || drawerData.deliverableUrl) && (
+                          <a
+                            href={drawerData.url || drawerData.deliverableUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] text-sky-300 underline font-mono flex items-center gap-1 hover:text-white"
+                          >
+                            Abrir enlace ➔
+                          </a>
+                        )}
+                      </div>
+                      <input
+                        type="url"
+                        placeholder="https://docs.google.com/... o https://drive.google.com/..."
+                        value={drawerData.url || drawerData.deliverableUrl || ''}
+                        onChange={(e) => setDrawerData(prev => ({ ...prev, url: e.target.value, deliverableUrl: e.target.value }))}
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-sky-500/30 rounded-xl text-white font-mono text-xs placeholder-slate-500 focus:outline-none focus:border-sky-400"
+                      />
+                    </div>
+
+                    {/* Dropzone / Upload de archivo */}
+                    <div className="relative border-2 border-dashed border-white/20 hover:border-sky-400/50 rounded-2xl p-4 text-center transition-all bg-white/[0.02] hover:bg-white/[0.04] group cursor-pointer">
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png,.md,.doc,.docx"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            handleFileUpload(e.target.files[0], true);
+                          }
+                        }}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                      />
+                      <div className="space-y-1 pointer-events-none">
+                        <Upload className="w-6 h-6 text-sky-400 mx-auto group-hover:scale-110 transition-transform" />
+                        <p className="text-xs font-bold text-white">Haz clic o arrastra un archivo aquí</p>
+                        <p className="text-[10px] text-slate-400">Soporta informes periciales (.pdf), planos/fotos (.jpg, .png) o minutas (.md)</p>
+                      </div>
+                    </div>
+
+                    {/* Lista de Archivos Adjuntos / Entregable Principal */}
+                    {((drawerData.deliverableName && (drawerData.deliverableUrl || drawerData.url)) || (Array.isArray(drawerData.attachments) && drawerData.attachments.length > 0)) && (
+                      <div className="space-y-2 pt-1 border-t border-white/[0.06]">
+                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
+                          Archivos Adjuntos Disponibles para Descarga:
+                        </span>
+
+                        {/* Entregable Principal si tiene nombre */}
+                        {drawerData.deliverableName && (
+                          <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.04] border border-sky-500/30 text-xs">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <FileText className="w-4 h-4 text-sky-400 shrink-0" />
+                              <span className="text-white font-bold truncate max-w-[240px]">
+                                {drawerData.deliverableName}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleDownloadDeliverable(drawerData)}
+                                className="px-2.5 py-1 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                              >
+                                <FileDown className="w-3.5 h-3.5" /> Descargar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setDrawerData(prev => ({ ...prev, deliverableName: null, deliverableUrl: null }))}
+                                className="p-1 text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
+                                title="Quitar archivo"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Adjuntos en array */}
+                        {Array.isArray(drawerData.attachments) && drawerData.attachments.map((att, i) => (
+                          <div key={i} className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <FileText className="w-4 h-4 text-emerald-400 shrink-0" />
+                              <div className="min-w-0">
+                                <span className="text-white font-medium block truncate max-w-[220px]">{att.name}</span>
+                                {att.size && (
+                                  <span className="text-[10px] text-slate-500 font-mono">
+                                    {(att.size / 1024).toFixed(1)} KB
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const link = document.createElement('a');
+                                  link.href = att.data;
+                                  link.download = att.name;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                }}
+                                className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                              >
+                                <Download className="w-3.5 h-3.5" /> Descargar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setDrawerData(prev => ({
+                                    ...prev,
+                                    attachments: prev.attachments.filter((_, idx) => idx !== i)
+                                  }));
+                                }}
+                                className="p-1 text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
+                                title="Eliminar adjunto"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Descripción / Entregable */}

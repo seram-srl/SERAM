@@ -1938,8 +1938,24 @@ export function AppProvider({ children }) {
             dueDate: act.due_date,
             estimatedHours: parseFloat(act.estimated_hours) || 0,
             actualHours: parseFloat(act.actual_hours) || 0,
-            deliverableUrl: act.deliverable_url || null,
-            deliverableName: act.deliverable_name || null
+            url: act.deliverable_url || act.url || null,
+            deliverableUrl: act.deliverable_url || act.url || null,
+            deliverableName: act.deliverable_name || null,
+            deliverableType: act.deliverable_type || null,
+            attachments: Array.isArray(act.attachments) ? act.attachments : [],
+            isFlash: Boolean(act.is_flash),
+            flashExpiresAt: act.flash_expires_at || null,
+            activityType: act.activity_type || 'principal',
+            milestoneStep: act.milestone_step !== undefined ? Number(act.milestone_step) : 0,
+            startDate: act.start_date || null,
+            coPartner: act.co_partner || null,
+            strategicObjectives: Array.isArray(act.strategic_objectives)
+              ? act.strategic_objectives
+              : (act.strategic_objectives ? [act.strategic_objectives] : []),
+            xp_awarded: act.xp_awarded || 0,
+            approved_by: act.approved_by || null,
+            approved_at: act.approved_at || null,
+            reviewNotes: act.review_notes || null
           }));
           setActivities(mappedActivities);
         }
@@ -2758,8 +2774,20 @@ export function AppProvider({ children }) {
       dueDate: actData.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       estimatedHours: parseFloat(actData.estimatedHours) || 0,
       actualHours: parseFloat(actData.actualHours) || 0,
-      deliverableUrl: actData.deliverableUrl || null,
-      deliverableName: actData.deliverableName || null
+      url: actData.deliverableUrl || actData.url || null,
+      deliverableUrl: actData.deliverableUrl || actData.url || null,
+      deliverableName: actData.deliverableName || null,
+      deliverableType: actData.deliverableType || null,
+      attachments: Array.isArray(actData.attachments) ? actData.attachments : [],
+      isFlash: Boolean(actData.isFlash),
+      flashExpiresAt: actData.flashExpiresAt || null,
+      activityType: actData.activityType || 'principal',
+      milestoneStep: actData.milestoneStep !== undefined ? Number(actData.milestoneStep) : 0,
+      startDate: actData.startDate || null,
+      coPartner: actData.coPartner || null,
+      strategicObjectives: Array.isArray(actData.strategicObjectives)
+        ? actData.strategicObjectives
+        : (actData.strategicObjectives ? [actData.strategicObjectives] : [])
     };
 
     setActivities(prev => [newAct, ...prev]);
@@ -2779,8 +2807,17 @@ export function AppProvider({ children }) {
         due_date: newAct.dueDate,
         estimated_hours: newAct.estimatedHours,
         actual_hours: newAct.actualHours,
-        deliverable_url: newAct.deliverableUrl,
-        deliverable_name: newAct.deliverableName
+        deliverable_url: newAct.deliverableUrl || newAct.url || null,
+        deliverable_name: newAct.deliverableName || null,
+        deliverable_type: newAct.deliverableType || null,
+        attachments: newAct.attachments || [],
+        is_flash: Boolean(newAct.isFlash),
+        flash_expires_at: newAct.flashExpiresAt || null,
+        activity_type: newAct.activityType || 'principal',
+        start_date: newAct.startDate || null,
+        co_partner: newAct.coPartner || null,
+        strategic_objectives: newAct.strategicObjectives || [],
+        milestone_step: newAct.milestoneStep || 0
       }]);
       if (error && error.code !== 'PGRST205') {
         console.warn('[Supabase Insert Activity Warning]:', error.message);
@@ -2827,6 +2864,19 @@ export function AppProvider({ children }) {
       if (updatedFields.approved_at !== undefined) dbFields.approved_at = updatedFields.approved_at;
       if (updatedFields.reviewNotes !== undefined) dbFields.review_notes = updatedFields.reviewNotes;
       if (updatedFields.milestoneStep !== undefined) dbFields.milestone_step = updatedFields.milestoneStep;
+
+      if (updatedFields.deliverableUrl !== undefined || updatedFields.url !== undefined) {
+        dbFields.deliverable_url = updatedFields.deliverableUrl || updatedFields.url || null;
+      }
+      if (updatedFields.deliverableName !== undefined) dbFields.deliverable_name = updatedFields.deliverableName;
+      if (updatedFields.deliverableType !== undefined) dbFields.deliverable_type = updatedFields.deliverableType;
+      if (updatedFields.attachments !== undefined) dbFields.attachments = updatedFields.attachments;
+      if (updatedFields.isFlash !== undefined) dbFields.is_flash = Boolean(updatedFields.isFlash);
+      if (updatedFields.flashExpiresAt !== undefined) dbFields.flash_expires_at = updatedFields.flashExpiresAt;
+      if (updatedFields.activityType !== undefined) dbFields.activity_type = updatedFields.activityType;
+      if (updatedFields.startDate !== undefined) dbFields.start_date = updatedFields.startDate;
+      if (updatedFields.coPartner !== undefined) dbFields.co_partner = updatedFields.coPartner;
+      if (updatedFields.strategicObjectives !== undefined) dbFields.strategic_objectives = updatedFields.strategicObjectives;
 
       const { error } = await supabase
         .from('activities')
