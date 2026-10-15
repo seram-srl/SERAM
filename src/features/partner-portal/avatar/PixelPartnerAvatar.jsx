@@ -413,6 +413,43 @@ function PixelArms({ facing, outfit, palette, skinTones, isSitting, isWorking, i
 
   // 1. BRAZOS EN POSTURA DE TECLEO ACTIVO (FRENTE AL TECLADO/ESCRITORIO)
   if (isSitting && isWorking) {
+    if (facing === 'up') {
+      return (
+        <g className="pixel-arms-typing-up">
+          <g className="pixel-typing-hand-left">
+            <rect x="7" y="18" width="3" height="6" fill={sleeve} />
+            <rect x="8" y="22" width="4" height="2" fill={sleeve} />
+            <rect x="11" y="21" width="3" height="2" fill={hand} />
+          </g>
+          <g className="pixel-typing-hand-right">
+            <rect x="22" y="18" width="3" height="6" fill={sleeve} />
+            <rect x="20" y="22" width="4" height="2" fill={sleeve} />
+            <rect x="18" y="21" width="3" height="2" fill={hand} />
+          </g>
+          {/* Micro-teclado frontal con retroiluminación LED */}
+          <rect x="11" y="20" width="10" height="2" rx="0.4" fill="#0f172a" />
+          <rect x="12" y="20.5" width="2" height="1" fill="#00e03c" opacity="0.9" />
+          <rect x="17" y="20.5" width="2" height="1" fill="#38bdf8" opacity="0.8" />
+        </g>
+      );
+    }
+    if (facing === 'left' || facing === 'right') {
+      return (
+        <g className="pixel-arms-typing-profile">
+          <g className="pixel-typing-hand-left">
+            <rect x="13" y="18" width="3" height="5" fill={sleeve} />
+            <rect x="10" y="22" width="5" height="2" fill={sleeve} />
+            <rect x="7" y="23" width="4" height="2" fill={hand} />
+            <rect x="7" y="24" width="2" height="1" fill={handShadow} />
+          </g>
+          {/* Micro-teclado de perfil ergonómico */}
+          <rect x="5" y="25" width="7" height="2" rx="0.4" fill="#0f172a" />
+          <rect x="6" y="25.5" width="2" height="1" fill="#38bdf8" opacity="0.85" />
+          <rect x="9" y="25.5" width="2" height="1" fill="#00e03c" opacity="0.95" />
+        </g>
+      );
+    }
+
     return (
       <g className="pixel-arms-typing">
         {/* Brazo Izquierdo tecleando */}
@@ -432,10 +469,10 @@ function PixelArms({ facing, outfit, palette, skinTones, isSitting, isWorking, i
         </g>
 
         {/* Micro-teclado táctil en el escritorio con luces de teclas */}
-        <rect x="11" y="25" width="10" height="2" rx="0.4" fill="#0f172a" />
-        <rect x="12" y="25.5" width="1.5" height="1" fill="#38bdf8" opacity="0.8" />
-        <rect x="15" y="25.5" width="2" height="1" fill="#00e03c" opacity="0.9" />
-        <rect x="18.5" y="25.5" width="1.5" height="1" fill="#c9a84c" opacity="0.8" />
+        <rect x="11" y="25" width="10" height="2.2" rx="0.4" fill="#0f172a" stroke="#334155" strokeWidth="0.3" />
+        <rect x="12" y="25.5" width="1.5" height="1" fill="#38bdf8" opacity="0.85" />
+        <rect x="15" y="25.5" width="2" height="1" fill="#00e03c" opacity="0.95" />
+        <rect x="18.5" y="25.5" width="1.5" height="1" fill="#c9a84c" opacity="0.85" />
       </g>
     );
   }
@@ -502,6 +539,9 @@ function PixelArms({ facing, outfit, palette, skinTones, isSitting, isWorking, i
 /** Cabeza, cuello, orejas y rostro expresivo según orientación. */
 function PixelHeadAndFace({ facing, skinTones, hairColor, facialHair }) {
   const { base: skin, shadow: skinShadow, highlight: skinHighlight } = skinTones;
+  const hairShadow = adjustHex(hairColor, -24);
+  const hairHighlight = adjustHex(hairColor, 26);
+  const fHair = facialHair === 'beard' ? 'beard_full' : facialHair;
 
   // Cuello
   const neck = (
@@ -543,6 +583,39 @@ function PixelHeadAndFace({ facing, skinTones, hairColor, facialHair }) {
         <rect x="10" y="10" width="1" height="1" fill="#ffffff" />
         {/* Ceja */}
         <rect x="9" y="9" width="3" height="1" fill={hairColor} />
+
+        {/* Vello Facial en Perfil */}
+        {fHair === 'mustache' && (
+          <g className="pixel-mustache-profile" fill={hairColor}>
+            <rect x="8" y="13" width="4" height="1.5" />
+            <rect x="7" y="13.5" width="1" height="1" />
+          </g>
+        )}
+
+        {fHair === 'beard_full' && (
+          <g className="pixel-beard-full-profile">
+            <rect x="8" y="13" width="3" height="1.5" fill={hairColor} />
+            <rect x="8" y="14" width="5" height="2.5" fill={hairColor} />
+            <rect x="12" y="14" width="4" height="2" fill={hairColor} />
+            <rect x="15" y="12" width="2" height="3" fill={hairColor} />
+            <rect x="8" y="16.5" width="5" height="1" fill={hairShadow} />
+          </g>
+        )}
+
+        {fHair === 'beard_stubble' && (
+          <g className="pixel-beard-stubble-profile" fill={hairColor} opacity="0.55">
+            <rect x="8" y="13" width="1" height="1" />
+            <rect x="10" y="13" width="1" height="1" />
+            <rect x="8" y="14" width="1" height="1" />
+            <rect x="10" y="14" width="1" height="1" />
+            <rect x="12" y="14" width="1" height="1" />
+            <rect x="14" y="14" width="1" height="1" />
+            <rect x="16" y="12.5" width="1" height="1" />
+            <rect x="9" y="15.5" width="1" height="1" />
+            <rect x="11" y="15.5" width="1" height="1" />
+            <rect x="13" y="15.5" width="1" height="1" />
+          </g>
+        )}
       </g>
     );
   }
@@ -590,18 +663,65 @@ function PixelHeadAndFace({ facing, skinTones, hairColor, facialHair }) {
       {/* Labios / Expresión ejecutiva segura */}
       <rect x="15" y="14" width="2" height="1" fill={skinShadow} />
 
-      {/* Vello Facial: Bigote o Barba completa */}
-      {facialHair === 'mustache' && (
-        <g fill={hairColor}>
-          <rect x="13" y="13" width="6" height="1" />
-          <rect x="14" y="14" width="4" height="1" />
+      {/* Vello Facial: Bigote, Barba completa o Barba de 3 días */}
+      {fHair === 'mustache' && (
+        <g className="pixel-mustache" fill={hairColor}>
+          {/* Bigote clásico definido de ingeniero sobre labio superior */}
+          <rect x="12" y="13" width="8" height="1.5" />
+          <rect x="11" y="13.5" width="1" height="1" />
+          <rect x="20" y="13.5" width="1" height="1" />
+          <rect x="13" y="14" width="6" height="0.6" fill={hairShadow} />
         </g>
       )}
-      {facialHair === 'beard' && (
-        <g fill={hairColor}>
-          <rect x="13" y="13" width="6" height="1" />
-          <rect x="10" y="14" width="12" height="2" />
-          <rect x="11" y="16" width="10" height="1" />
+
+      {fHair === 'beard_full' && (
+        <g className="pixel-beard-full">
+          {/* Bigote y bozo */}
+          <rect x="12" y="13" width="8" height="1.5" fill={hairColor} />
+          {/* Conexión lateral bajo nariz */}
+          <rect x="15" y="14" width="2" height="1" fill={hairShadow} />
+          {/* Barba densa bordeando mandíbula completa */}
+          <rect x="9" y="12" width="2" height="4" fill={hairColor} />
+          <rect x="21" y="12" width="2" height="4" fill={hairColor} />
+          <rect x="10" y="14" width="12" height="2" fill={hairColor} />
+          {/* Mentón y sombra inferior de volumen directivo */}
+          <rect x="11" y="16" width="10" height="1.5" fill={hairShadow} />
+          <rect x="12" y="17" width="8" height="0.5" fill={hairShadow} />
+          {/* Brillos sutiles superiores */}
+          <rect x="10" y="14" width="1" height="1" fill={hairHighlight} opacity="0.6" />
+          <rect x="21" y="14" width="1" height="1" fill={hairHighlight} opacity="0.6" />
+        </g>
+      )}
+
+      {fHair === 'beard_stubble' && (
+        <g className="pixel-beard-stubble" fill={hairColor} opacity="0.55">
+          {/* Punteado sutil en bozo */}
+          <rect x="13" y="13" width="1" height="1" />
+          <rect x="15" y="13" width="1" height="1" />
+          <rect x="17" y="13" width="1" height="1" />
+          <rect x="14" y="13.5" width="1" height="0.8" />
+          <rect x="16" y="13.5" width="1" height="0.8" />
+          <rect x="18" y="13.5" width="1" height="0.8" />
+          {/* Punteado sutil en mandíbula y mentón */}
+          <rect x="9" y="12" width="1" height="1" />
+          <rect x="9" y="14" width="1" height="1" />
+          <rect x="22" y="12" width="1" height="1" />
+          <rect x="22" y="14" width="1" height="1" />
+          <rect x="10" y="14.5" width="1" height="1" />
+          <rect x="12" y="14.5" width="1" height="1" />
+          <rect x="14" y="14.5" width="1" height="1" />
+          <rect x="16" y="14.5" width="1" height="1" />
+          <rect x="18" y="14.5" width="1" height="1" />
+          <rect x="20" y="14.5" width="1" height="1" />
+          <rect x="11" y="15.5" width="1" height="1" />
+          <rect x="13" y="15.5" width="1" height="1" />
+          <rect x="15" y="15.5" width="1" height="1" />
+          <rect x="17" y="15.5" width="1" height="1" />
+          <rect x="19" y="15.5" width="1" height="1" />
+          <rect x="12" y="16.5" width="1" height="0.8" />
+          <rect x="14" y="16.5" width="1" height="0.8" />
+          <rect x="16" y="16.5" width="1" height="0.8" />
+          <rect x="18" y="16.5" width="1" height="0.8" />
         </g>
       )}
     </g>
@@ -631,6 +751,43 @@ function PixelHair({ facing, style, hairColor }) {
           // Coleta recogida centrada
           <rect x="14" y="11" width="4" height="7" fill={base} />
         )}
+        {style === 'pompadour' && (
+          // Tupé visto de atrás: nuca limpia con gran volumen superior elevado
+          <>
+            <rect x="10" y="1" width="12" height="3" fill={highlight} />
+            <rect x="12" y="0" width="8" height="2" fill={highlight} />
+            <rect x="11" y="12" width="10" height="2" fill={shadow} />
+          </>
+        )}
+        {style === 'military' && (
+          // Corte militar visto de atrás: nuca alta rapada con fade
+          <>
+            <rect x="10" y="4" width="12" height="4" fill={base} />
+            <rect x="11" y="3" width="10" height="2" fill={highlight} />
+            <rect x="10" y="8" width="12" height="3" fill={shadow} />
+            <rect x="12" y="11" width="8" height="2" fill={shadow} opacity="0.6" />
+          </>
+        )}
+        {style === 'manbun' && (
+          // Man-bun visto de atrás: moño centrado prominente con goma elástica
+          <>
+            <rect x="12" y="0.5" width="8" height="5" rx="1.5" fill={base} />
+            <rect x="13" y="1" width="6" height="2.5" fill={highlight} />
+            <rect x="13" y="5" width="6" height="1" fill="#c9a84c" />
+            <rect x="11" y="12" width="10" height="2" fill={shadow} />
+          </>
+        )}
+        {style === 'wavy_exec' && (
+          // Ondulado ejecutivo de espaldas: capas onduladas con caída natural
+          <>
+            <rect x="9" y="3" width="14" height="10" fill={base} />
+            <rect x="10" y="2" width="12" height="2" fill={highlight} />
+            <rect x="9" y="10" width="14" height="3" fill={shadow} />
+            <rect x="9" y="13" width="4" height="1" fill={shadow} />
+            <rect x="14" y="13" width="4" height="1" fill={shadow} />
+            <rect x="19" y="13" width="4" height="1" fill={shadow} />
+          </>
+        )}
       </g>
     );
   }
@@ -648,6 +805,40 @@ function PixelHair({ facing, style, hairColor }) {
         )}
         {style === 'ponytail' && (
           <rect x="21" y="8" width="4" height="6" fill={base} />
+        )}
+        {style === 'pompadour' && (
+          // Tupé de perfil: cresta alzada hacia arriba y adelante
+          <>
+            <rect x="9" y="1" width="8" height="4" fill={highlight} />
+            <rect x="10" y="0" width="6" height="2" fill={highlight} />
+            <rect x="15" y="7" width="4" height="5" fill={shadow} />
+          </>
+        )}
+        {style === 'military' && (
+          // Corte militar perfil: rasurado limpio pegado
+          <>
+            <rect x="11" y="4" width="10" height="2" fill={highlight} />
+            <rect x="10" y="5" width="11" height="2" fill={base} />
+            <rect x="15" y="7" width="5" height="4" fill={shadow} opacity="0.7" />
+          </>
+        )}
+        {style === 'manbun' && (
+          // Moño de perfil: pequeño bun recogido en coronilla posterior
+          <>
+            <rect x="19" y="2" width="5" height="4" rx="1" fill={base} />
+            <rect x="20" y="2.5" width="3" height="2" fill={highlight} />
+            <rect x="18.5" y="3.5" width="1.5" height="2" fill="#c9a84c" />
+            <rect x="15" y="7" width="4" height="5" fill={shadow} />
+          </>
+        )}
+        {style === 'wavy_exec' && (
+          // Ondas de perfil con volumen frontal y ondas detrás
+          <>
+            <rect x="10" y="2" width="11" height="4" fill={highlight} />
+            <rect x="9" y="4" width="4" height="4" fill={base} />
+            <rect x="16" y="7" width="5" height="5" fill={shadow} />
+            <rect x="17" y="11" width="3" height="2" fill={shadow} />
+          </>
         )}
       </g>
     );
@@ -709,6 +900,69 @@ function PixelHair({ facing, style, hairColor }) {
           <rect x="9" y="5" width="14" height="3" fill={base} />
           <rect x="22" y="7" width="3" height="8" rx="0.5" fill={base} />
           <rect x="22" y="6" width="2" height="1" fill="#c9a84c" />
+        </>
+      )}
+
+      {style === 'pompadour' && (
+        // Tupé Pompadour moderno con volumen superior elevado
+        <>
+          {/* Volumen elevado que sobrepasa el cráneo */}
+          <rect x="10" y="1" width="12" height="3" fill={highlight} />
+          <rect x="12" y="0" width="8" height="2" fill={highlight} />
+          <rect x="11" y="3" width="10" height="1" fill={base} />
+          {/* Degradado lateral fade */}
+          <rect x="9" y="6" width="2" height="4" fill={shadow} />
+          <rect x="21" y="6" width="2" height="4" fill={shadow} />
+          {/* Peinado hacia arriba y sombra central */}
+          <rect x="11" y="4" width="1" height="2" fill={shadow} />
+          <rect x="15" y="3" width="2" height="2" fill={base} />
+          <rect x="19" y="4" width="1" height="2" fill={shadow} />
+        </>
+      )}
+
+      {style === 'military' && (
+        // Corte Militar Fade: silueta baja y limpia pegada al cráneo
+        <>
+          <rect x="11" y="4" width="10" height="1.5" fill={highlight} />
+          <rect x="10" y="5" width="12" height="1.5" fill={base} />
+          <rect x="9" y="6" width="2" height="3" fill={shadow} opacity="0.75" />
+          <rect x="21" y="6" width="2" height="3" fill={shadow} opacity="0.75" />
+          <rect x="11" y="6" width="10" height="0.8" fill={base} />
+        </>
+      )}
+
+      {style === 'manbun' && (
+        // Moño Man-Bun: laterales con fade y moño superior posterior asomando
+        <>
+          {/* Moño asomando detrás de la coronilla */}
+          <rect x="14" y="0" width="4" height="3" rx="0.5" fill={base} />
+          <rect x="15" y="0.5" width="2" height="1.5" fill={highlight} />
+          <rect x="14" y="2.5" width="4" height="0.8" fill="#c9a84c" />
+          {/* Cabello peinado tenso hacia atrás */}
+          <rect x="10" y="3" width="12" height="2" fill={highlight} />
+          <rect x="10" y="5" width="12" height="2" fill={base} />
+          {/* Fade undercut lateral */}
+          <rect x="9" y="6" width="2" height="4" fill={shadow} />
+          <rect x="21" y="6" width="2" height="4" fill={shadow} />
+        </>
+      )}
+
+      {style === 'wavy_exec' && (
+        // Ondulado Ejecutivo: ondas con caída asimétrica elegante
+        <>
+          {/* Copa superior ondulada */}
+          <rect x="9" y="2" width="14" height="3" rx="0.5" fill={highlight} />
+          {/* Raya al lado y ondas texturizadas */}
+          <rect x="11" y="3" width="2" height="1" fill={shadow} />
+          <rect x="15" y="3" width="2" height="1" fill={shadow} />
+          <rect x="18" y="3" width="2" height="1" fill={shadow} />
+          {/* Mechón ondulado asimétrico sobre ceja izquierda */}
+          <rect x="8" y="5" width="4" height="4" fill={base} />
+          <rect x="9" y="7" width="3" height="3" fill={shadow} />
+          <rect x="12" y="5" width="5" height="2" fill={highlight} />
+          {/* Lateral derecho recortado / peinado */}
+          <rect x="20" y="5" width="3" height="4" fill={base} />
+          <rect x="21" y="7" width="2" height="3" fill={shadow} />
         </>
       )}
     </g>
@@ -1000,7 +1254,7 @@ export function PixelPartnerAvatar({
           facing={effectiveFacing}
           skinTones={skinTones}
           hairColor={palette.hair}
-          facialHair={cfg.facialHair}
+          facialHair={cfg.facialHair || (['beard_full', 'beard_stubble', 'mustache', 'beard'].includes(cfg.accessory) ? cfg.accessory : 'none')}
         />
 
         {/* Capa de cabello volumétrico */}

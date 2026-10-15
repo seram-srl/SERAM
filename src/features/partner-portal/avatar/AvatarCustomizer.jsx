@@ -140,7 +140,7 @@ export default function AvatarCustomizer({
                 isWorking={animState === 'sit'}
                 isOnline={true}
                 isCurrent={true}
-                size={previewZoom ? 92 : 72}
+                size={previewZoom ? 104 : 80}
                 initials={initials}
                 title={`Avatar Pixel-Art de ${partnerName}`}
               />
@@ -404,40 +404,56 @@ export default function AvatarCustomizer({
                     <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider block mb-2">
                       Corte y Peinado
                     </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                       {HAIR_STYLES.map(s => {
                         const isSelected = safeConfig.hairStyle === s.id;
+                        const unlocked = isOptionUnlocked('hairStyle', s.id, progress);
+                        const unlockLabel = getUnlockLabel('hairStyle', s.id);
                         return (
                           <button
                             key={s.id}
                             type="button"
-                            disabled={isReadOnly}
+                            disabled={isReadOnly || !unlocked}
                             onClick={() => handleSelectOption('hairStyle', s.id)}
                             className={`p-2 rounded-xl border flex items-center gap-2.5 transition-all cursor-pointer ${
                               isSelected
-                                ? 'border-amber-400 bg-amber-400/15 text-white font-bold'
-                                : 'border-white/10 bg-black/30 text-slate-300 hover:border-white/25'
+                                ? 'border-amber-400 bg-amber-400/15 text-white font-bold shadow-md shadow-amber-400/10'
+                                : unlocked
+                                  ? 'border-white/10 bg-black/30 text-slate-300 hover:border-white/25 hover:bg-white/5'
+                                  : 'border-white/5 bg-black/20 text-slate-600 opacity-60 cursor-not-allowed'
                             }`}
                           >
-                            <div className="w-9 h-10 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
+                            <div className="w-10 h-11 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
                               <PixelPartnerAvatar
                                 config={{ ...safeConfig, hairStyle: s.id }}
-                                size={26}
+                                size={28}
                                 facing="down"
                                 isOnline={true}
                               />
                             </div>
-                            <span className="text-xs truncate">{s.name}</span>
+                            <div className="flex-1 min-w-0 text-left">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs truncate font-bold text-white">{s.name || s.label}</span>
+                                {!unlocked && <Lock className="w-3 h-3 text-amber-400 shrink-0" />}
+                                {isSelected && <Check className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
+                              </div>
+                              {s.desc && <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">{s.desc}</p>}
+                              {!unlocked && unlockLabel && (
+                                <span className="text-[9px] text-amber-400 font-mono block mt-0.5">
+                                  {unlockLabel}
+                                </span>
+                              )}
+                            </div>
                           </button>
                         );
                       })}
                     </div>
                   </div>
 
-                  {/* Color de Cabello */}
+                  {/* Color de Cabello y Canas */}
                   <div>
                     <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider block mb-2">
-                      Color de Cabello
+                      Color de Cabello & Canas Distinguidas
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {HAIR_COLORS.map(c => {
@@ -468,32 +484,48 @@ export default function AvatarCustomizer({
                   {/* Vello Facial */}
                   <div>
                     <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider block mb-2">
-                      Vello Facial
+                      Vello Facial & Barbas Ejecutivas
                     </label>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {FACIAL_HAIR.map(f => {
                         const isSelected = safeConfig.facialHair === f.id;
+                        const unlocked = isOptionUnlocked('facialHair', f.id, progress);
+                        const unlockLabel = getUnlockLabel('facialHair', f.id);
                         return (
                           <button
                             key={f.id}
                             type="button"
-                            disabled={isReadOnly}
+                            disabled={isReadOnly || !unlocked}
                             onClick={() => handleSelectOption('facialHair', f.id)}
-                            className={`p-2 rounded-xl border flex items-center gap-2 transition-all cursor-pointer ${
+                            className={`p-2 rounded-xl border flex items-center gap-2.5 transition-all cursor-pointer ${
                               isSelected
-                                ? 'border-amber-400 bg-amber-400/15 text-white font-bold'
-                                : 'border-white/10 bg-black/30 text-slate-300 hover:border-white/25'
+                                ? 'border-amber-400 bg-amber-400/15 text-white font-bold shadow-md shadow-amber-400/10'
+                                : unlocked
+                                  ? 'border-white/10 bg-black/30 text-slate-300 hover:border-white/25 hover:bg-white/5'
+                                  : 'border-white/5 bg-black/20 text-slate-600 opacity-60 cursor-not-allowed'
                             }`}
                           >
-                            <div className="w-8 h-9 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
+                            <div className="w-10 h-11 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
                               <PixelPartnerAvatar
                                 config={{ ...safeConfig, facialHair: f.id }}
-                                size={24}
+                                size={28}
                                 facing="down"
                                 isOnline={true}
                               />
                             </div>
-                            <span className="text-xs truncate">{f.name}</span>
+                            <div className="flex-1 min-w-0 text-left">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs truncate font-bold text-white">{f.name || f.label}</span>
+                                {!unlocked && <Lock className="w-3 h-3 text-amber-400 shrink-0" />}
+                                {isSelected && <Check className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
+                              </div>
+                              {f.desc && <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">{f.desc}</p>}
+                              {!unlocked && unlockLabel && (
+                                <span className="text-[9px] text-amber-400 font-mono block mt-0.5">
+                                  {unlockLabel}
+                                </span>
+                              )}
+                            </div>
                           </button>
                         );
                       })}
@@ -502,14 +534,14 @@ export default function AvatarCustomizer({
                 </motion.div>
               )}
 
-              {/* ── PESTAÑA: RASGOS / TONO DE PIEL ── */}
+              {/* ── PESTAÑA: RASGOS / TONO DE PIEL & FISONOMÍA ── */}
               {activeTab === 'body' && (
                 <motion.div
                   key="tab-body"
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
-                  className="space-y-4"
+                  className="space-y-5"
                 >
                   <div>
                     <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider block mb-2">
@@ -549,6 +581,57 @@ export default function AvatarCustomizer({
                               <span className="text-[9px] text-slate-400 block font-mono mt-0.5">
                                 {t.id === 'classic' ? 'Sprite original' : 'Realista'}
                               </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Vello Facial y Barbas en Rasgos */}
+                  <div>
+                    <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider block mb-2">
+                      Vello Facial & Barbas Ejecutivas
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {FACIAL_HAIR.map(f => {
+                        const isSelected = safeConfig.facialHair === f.id;
+                        const unlocked = isOptionUnlocked('facialHair', f.id, progress);
+                        const unlockLabel = getUnlockLabel('facialHair', f.id);
+                        return (
+                          <button
+                            key={f.id}
+                            type="button"
+                            disabled={isReadOnly || !unlocked}
+                            onClick={() => handleSelectOption('facialHair', f.id)}
+                            className={`p-2 rounded-xl border flex items-center gap-2.5 transition-all cursor-pointer ${
+                              isSelected
+                                ? 'border-amber-400 bg-amber-400/15 text-white font-bold shadow-md shadow-amber-400/10'
+                                : unlocked
+                                  ? 'border-white/10 bg-black/30 text-slate-300 hover:border-white/25 hover:bg-white/5'
+                                  : 'border-white/5 bg-black/20 text-slate-600 opacity-60 cursor-not-allowed'
+                            }`}
+                          >
+                            <div className="w-10 h-11 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
+                              <PixelPartnerAvatar
+                                config={{ ...safeConfig, facialHair: f.id }}
+                                size={28}
+                                facing="down"
+                                isOnline={true}
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0 text-left">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs truncate font-bold text-white">{f.name || f.label}</span>
+                                {!unlocked && <Lock className="w-3 h-3 text-amber-400 shrink-0" />}
+                                {isSelected && <Check className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
+                              </div>
+                              {f.desc && <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">{f.desc}</p>}
+                              {!unlocked && unlockLabel && (
+                                <span className="text-[9px] text-amber-400 font-mono block mt-0.5">
+                                  {unlockLabel}
+                                </span>
+                              )}
                             </div>
                           </button>
                         );

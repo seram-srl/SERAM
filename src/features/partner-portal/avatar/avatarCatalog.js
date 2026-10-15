@@ -28,14 +28,17 @@ export const SKIN_TONES = [
 ];
 
 export const HAIR_COLORS = [
-  { id: '#2b1d0c', name: 'Castaño oscuro' },
-  { id: '#1a1a1a', name: 'Negro' },
-  { id: '#3d2b1f', name: 'Chocolate' },
-  { id: '#5a3825', name: 'Castaño' },
-  { id: '#8b5a2b', name: 'Avellana' },
-  { id: '#c9a46c', name: 'Rubio arena' },
-  { id: '#9ca3af', name: 'Canoso' },
-  { id: '#7c2d12', name: 'Cobrizo' }
+  { id: '#2b1d0c', name: 'Castaño oscuro', label: 'Castaño oscuro' },
+  { id: '#1a1a1a', name: 'Negro', label: 'Negro' },
+  { id: '#3d2b1f', name: 'Chocolate', label: 'Chocolate' },
+  { id: '#5a3825', name: 'Castaño', label: 'Castaño' },
+  { id: '#8b5a2b', name: 'Avellana', label: 'Avellana' },
+  { id: '#c9a46c', name: 'Rubio arena', label: 'Rubio arena' },
+  { id: '#9ca3af', name: 'Canoso', label: 'Canoso' },
+  { id: '#7c2d12', name: 'Cobrizo', label: 'Cobrizo' },
+  { id: '#cbd5e1', name: 'Canas Silver', label: 'Canas Silver', key: 'silver' },
+  { id: '#64748b', name: 'Sal y Pimienta', label: 'Sal y Pimienta', key: 'salt_pepper' },
+  { id: '#f8fafc', name: 'Platino Distinguido', label: 'Platino Distinguido', key: 'platinum' }
 ];
 
 /** Colores de prenda dentro de la paleta Neuform (oscuros, sobrios). */
@@ -57,18 +60,23 @@ export const TRIM_COLORS = [
 // ── OPCIONES DE FORMA ────────────────────────────────────────────────────────
 
 export const HAIR_STYLES = [
-  { id: 'short', name: 'Corto' },
-  { id: 'side', name: 'Raya al lado' },
-  { id: 'curly', name: 'Rizado' },
-  { id: 'long', name: 'Largo' },
-  { id: 'ponytail', name: 'Coleta' },
-  { id: 'bald', name: 'Rapado' }
+  { id: 'short', name: 'Corto', label: 'Corto', desc: 'Corte clásico institucional', levelReq: 1 },
+  { id: 'side', name: 'Raya al lado', label: 'Raya al lado', desc: 'Degradado lateral ejecutivo', levelReq: 1 },
+  { id: 'curly', name: 'Rizado', label: 'Rizado', desc: 'Rizos densos volumétricos', levelReq: 1 },
+  { id: 'long', name: 'Largo', label: 'Largo', desc: 'Cabello largo natural', levelReq: 1 },
+  { id: 'ponytail', name: 'Coleta', label: 'Coleta', desc: 'Coleta recogida elegante', levelReq: 1 },
+  { id: 'bald', name: 'Rapado', label: 'Rapado', desc: 'Sin cabello', levelReq: 1 },
+  { id: 'pompadour', name: 'Tupé Pompadour', label: 'Tupé Pompadour', desc: 'Tupé moderno con volumen superior elevado', levelReq: 1 },
+  { id: 'military', name: 'Corte Militar Fade', label: 'Corte Militar Fade', desc: 'Corte rapado limpio y disciplinado', levelReq: 1 },
+  { id: 'manbun', name: 'Moño Man-Bun', label: 'Moño Man-Bun', desc: 'Recogido moderno con degradado lateral', levelReq: 3 },
+  { id: 'wavy_exec', name: 'Ondulado Ejecutivo', label: 'Ondulado Ejecutivo', desc: 'Cabello ondulado natural con raya lateral', levelReq: 5 }
 ];
 
 export const FACIAL_HAIR = [
-  { id: 'none', name: 'Sin vello' },
-  { id: 'mustache', name: 'Bigote' },
-  { id: 'beard', name: 'Barba' }
+  { id: 'none', name: 'Sin vello', label: 'Sin vello', desc: 'Afeitado limpio', levelReq: 1 },
+  { id: 'beard_stubble', name: 'Barba de 3 Días (Rastrojo)', label: 'Barba de 3 Días (Rastrojo)', desc: 'Sombra de barba corta ejecutiva', levelReq: 1 },
+  { id: 'beard_full', name: 'Barba Completa Perfilada', label: 'Barba Completa Perfilada', desc: 'Barba densa y delineada al estilo directivo', levelReq: 1 },
+  { id: 'mustache', name: 'Bigote Clásico Ingeniero', label: 'Bigote Clásico Ingeniero', desc: 'Bigote espeso tradicional', levelReq: 2 }
 ];
 
 export const OUTFITS = [
@@ -87,11 +95,14 @@ export const HEADWEAR = [
 ];
 
 export const ACCESSORIES = [
-  { id: 'none', name: 'Ninguno' },
-  { id: 'glasses', name: 'Lentes' },
-  { id: 'clipboard', name: 'Portapapeles' },
-  { id: 'tablet', name: 'Tablet SIG' },
-  { id: 'gps', name: 'GPS de campo' }
+  { id: 'none', name: 'Ninguno', label: 'Ninguno', desc: 'Sin accesorio', levelReq: 1 },
+  { id: 'glasses', name: 'Lentes', label: 'Lentes', desc: 'Gafas de marco ejecutivo', levelReq: 1 },
+  { id: 'beard_full', name: 'Barba Completa Perfilada', label: 'Barba Completa Perfilada', desc: 'Barba densa y delineada al estilo directivo', levelReq: 1 },
+  { id: 'beard_stubble', name: 'Barba de 3 Días (Rastrojo)', label: 'Barba de 3 Días (Rastrojo)', desc: 'Sombra de barba corta ejecutiva', levelReq: 1 },
+  { id: 'mustache', name: 'Bigote Clásico Ingeniero', label: 'Bigote Clásico Ingeniero', desc: 'Bigote espeso tradicional', levelReq: 2 },
+  { id: 'clipboard', name: 'Portapapeles', label: 'Portapapeles', desc: 'Carpeta técnica de actas y fichas', levelReq: 3 },
+  { id: 'tablet', name: 'Tablet SIG', label: 'Tablet SIG', desc: 'Terminal móvil de cartografía', levelReq: 8 },
+  { id: 'gps', name: 'GPS de campo', label: 'GPS de campo', desc: 'Navegador satelital pericial', levelReq: 6 }
 ];
 
 export const EQUIPMENTS = [
@@ -135,6 +146,13 @@ export const UNLOCK_RULES = {
     silver: { level: 10 },
     goldBright: { level: 20 }
   },
+  hairStyle: {
+    manbun: { level: 3 },
+    wavy_exec: { level: 5 }
+  },
+  facialHair: {
+    mustache: { level: 2 }
+  },
   outfit: {
     polo: { level: 3 },
     lab: { level: 5 }
@@ -145,6 +163,7 @@ export const UNLOCK_RULES = {
     expedition: { level: 8, fieldMissions: 2 }
   },
   accessory: {
+    mustache: { level: 2 },
     clipboard: { level: 3 },
     gps: { level: 6, fieldMissions: 1 },
     tablet: { level: 8 }
@@ -205,8 +224,12 @@ export function getDefaultAvatarConfig(email) {
   return { ...(DEFAULT_AVATAR_CONFIGS[key] || BASE_AVATAR_CONFIG) };
 }
 
-const isValidOption = (field, value) =>
-  Array.isArray(AVATAR_FIELDS[field]) && AVATAR_FIELDS[field].some(o => o.id === value);
+const isValidOption = (field, value) => {
+  if (field === 'hairColor' && (value === 'silver' || value === 'salt_pepper' || value === 'platinum')) return true;
+  if (field === 'facialHair' && value === 'beard') return true;
+  if (field === 'accessory' && value === 'beard') return true;
+  return Array.isArray(AVATAR_FIELDS[field]) && AVATAR_FIELDS[field].some(o => o.id === value || o.key === value);
+};
 
 /**
  * Devuelve SIEMPRE una configuración completa y válida.
@@ -225,7 +248,7 @@ export function normalizeAvatarConfig(raw, opts = {}) {
   // 2. hairColor legacy (definido en la oficina)
   if (hairColor && isValidOption('hairColor', hairColor)) base.hairColor = hairColor;
 
-  // 3. Mapeo de alias semánticos de estilo / atuendo
+  // 3. Mapeo de alias semánticos de estilo / atuendo / vello
   const source = raw && typeof raw === 'object' ? { ...raw } : {};
   if (source.outfit === 'casual') source.outfit = 'polo';
   if (source.hairStyle === 'classic') source.hairStyle = 'short';
@@ -235,6 +258,11 @@ export function normalizeAvatarConfig(raw, opts = {}) {
     source.hairStyle = 'short';
     if (!source.headwear || source.headwear === 'none') source.headwear = 'cap';
   }
+  if (source.hairColor === 'silver') source.hairColor = '#cbd5e1';
+  if (source.hairColor === 'salt_pepper') source.hairColor = '#64748b';
+  if (source.hairColor === 'platinum') source.hairColor = '#f8fafc';
+  if (source.facialHair === 'beard') source.facialHair = 'beard_full';
+  if (source.accessory === 'beard') source.accessory = 'beard_full';
 
   // 4. Campos explícitos válidos del avatarConfig guardado
   Object.keys(AVATAR_FIELDS).forEach(field => {
@@ -277,11 +305,16 @@ export function resolveAvatarPalette(config) {
   const outfitColor = findById(OUTFIT_COLORS, c.outfitColor);
   const trim = findById(TRIM_COLORS, c.trim);
   const aura = findById(AURAS, c.aura);
+  let resolvedHair = c.hairColor;
+  if (resolvedHair === 'silver') resolvedHair = '#cbd5e1';
+  else if (resolvedHair === 'salt_pepper') resolvedHair = '#64748b';
+  else if (resolvedHair === 'platinum') resolvedHair = '#f8fafc';
+
   return {
     config: c,
     skinHead: skin.head,
     skinHands: skin.hands,
-    hair: c.hairColor,
+    hair: resolvedHair,
     outfit: outfitColor.hex,
     outfitShade: outfitColor.shade,
     trim: trim.hex,

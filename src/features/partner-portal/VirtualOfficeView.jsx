@@ -325,7 +325,7 @@ function HumanPartnerSprite({ partner, isWalking }) {
             : 'bg-slate-700/40 opacity-40'
       }`} />
 
-      {/* Miniatura Humana Pixel-Art HD con renderizador multicapa */}
+      {/* Miniatura Humana Pixel-Art HD con renderizador multicapa - Escala Hero 64px */}
       <PixelPartnerAvatar
         config={partner.avatarConfig}
         initials={partner.initials}
@@ -335,14 +335,14 @@ function HumanPartnerSprite({ partner, isWalking }) {
         isSitting={isSitting}
         isWorking={partner.isWorking}
         facing={partner.facing || 'down'}
-        size={36}
-        className={`filter drop-shadow-xl overflow-visible transition-transform duration-200 ${
-          isWalking ? 'scale-110 -translate-y-1' : ''
+        size={64}
+        className={`filter drop-shadow-2xl overflow-visible transition-transform duration-200 ${
+          isWalking ? 'scale-105 -translate-y-1' : ''
         }`}
       />
 
       {/* Rótulo de Identificación Flotante con Estado en Tiempo Real */}
-      <div className={`mt-1 px-2.5 py-0.5 rounded-full text-[9px] font-black shadow-2xl whitespace-nowrap flex items-center gap-1.5 backdrop-blur-md border ${
+      <div className={`mt-0.5 px-2.5 py-0.5 rounded-full text-[9px] font-black shadow-2xl whitespace-nowrap flex items-center gap-1.5 backdrop-blur-md border z-20 ${
         isCurrent
           ? 'bg-slate-950/95 border-amber-400 text-amber-300 ring-1 ring-amber-400/40'
           : isOnline
