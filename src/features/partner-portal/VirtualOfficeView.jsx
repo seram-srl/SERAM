@@ -14,7 +14,7 @@ import {
 import soundEngine from './OfficeSoundEngine';
 import officePanoramicImage from '../../assets/virtual-office/seram_office_pixelart_panoramic.jpg';
 import { useApp } from '../../context/AppContext';
-import PartnerAvatar25D from './avatar/PartnerAvatar25D';
+import PixelPartnerAvatar from './avatar/PixelPartnerAvatar';
 import { normalizeAvatarConfig, loadStoredProfileAvatarConfigs } from './avatar/avatarCatalog';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -309,6 +309,7 @@ export const OFFICE_ROOMS = [
 function HumanPartnerSprite({ partner, isWalking }) {
   const isOnline = partner.isOnline;
   const isCurrent = partner.isCurrent;
+  const isSitting = partner.isSitting !== undefined ? partner.isSitting : !isWalking;
 
   return (
     <div className={`relative flex flex-col items-center group cursor-pointer transition-opacity duration-300 ${
@@ -323,15 +324,17 @@ function HumanPartnerSprite({ partner, isWalking }) {
             : 'bg-slate-700/40 opacity-40'
       }`} />
 
-      {/* Miniatura Humana 2.5D Isométrica con renderizador por capas */}
-      <PartnerAvatar25D
+      {/* Miniatura Humana Pixel-Art HD con renderizador multicapa */}
+      <PixelPartnerAvatar
         config={partner.avatarConfig}
         initials={partner.initials}
         isOnline={isOnline}
         isCurrent={isCurrent}
         isWalking={isWalking}
+        isSitting={isSitting}
         isWorking={partner.isWorking}
-        facing={partner.facing || 'right'}
+        facing={partner.facing || 'down'}
+        size={36}
         className={`filter drop-shadow-xl overflow-visible transition-transform duration-200 ${
           isWalking ? 'scale-110 -translate-y-1' : ''
         }`}
@@ -404,8 +407,8 @@ export default function VirtualOfficeView({
   // Time Tracker Flotante (PiP) sincronizado con el cronómetro global de AppContext
   const [isPipMinimized, setIsPipMinimized] = useState(false);
 
-  // Orientación visual del avatar (2.5D: 'left' | 'right')
-  const [avatarFacing, setAvatarFacing] = useState('right');
+  // Orientación visual del avatar (Pixel-art 4-way: 'down' | 'up' | 'left' | 'right')
+  const [avatarFacing, setAvatarFacing] = useState('down');
 
   // Posición del avatar del usuario interactivo (Point & Click) en %
   const [userAvatarPos, setUserAvatarPos] = useState(() => {
@@ -605,10 +608,11 @@ export default function VirtualOfficeView({
       return {
         ...partner,
         avatarConfig: partnerAvatarConfig,
-        facing: isCurrent ? avatarFacing : (presence.facing || 'right'),
+        facing: isCurrent ? avatarFacing : (presence.facing || 'down'),
         isOnline,
         isCurrent,
         isWorking: partnerTimerRunning || partnerActiveStatus === 'working',
+        isSitting: isCurrent ? !isWalking : true,
         isTimerRunning: partnerTimerRunning,
         timerSeconds: partnerTimerSecs,
         currentSectorName: sectorName,
@@ -616,7 +620,7 @@ export default function VirtualOfficeView({
         y: coords.y
       };
     });
-  }, [globalPresences, partnerPresences, currentSocio, activeTimer, partnerActiveStatus, userAvatarPos, partnerAvatarConfigs, avatarFacing]);
+  }, [globalPresences, partnerPresences, currentSocio, activeTimer, partnerActiveStatus, userAvatarPos, partnerAvatarConfigs, avatarFacing, isWalking]);
 
   // Manejador de navegación Point & Click al hacer clic en el suelo de la oficina
   const handleFloorClick = (e) => {
@@ -631,10 +635,12 @@ export default function VirtualOfficeView({
     const targetY = Math.round((clickScreenY / stageRect.height) * 100);
 
     if (userAvatarPos) {
-      if (targetX < userAvatarPos.x) {
-        setAvatarFacing('left');
-      } else if (targetX > userAvatarPos.x) {
-        setAvatarFacing('right');
+      const dx = targetX - userAvatarPos.x;
+      const dy = targetY - userAvatarPos.y;
+      if (Math.abs(dy) > Math.abs(dx)) {
+        setAvatarFacing(dy > 0 ? 'down' : 'up');
+      } else {
+        setAvatarFacing(dx > 0 ? 'right' : 'left');
       }
     }
 
@@ -681,10 +687,12 @@ export default function VirtualOfficeView({
     const room = OFFICE_ROOMS.find(r => r.id === roomId);
     if (room) {
       if (userAvatarPos) {
-        if (room.xPercent < userAvatarPos.x) {
-          setAvatarFacing('left');
-        } else if (room.xPercent > userAvatarPos.x) {
-          setAvatarFacing('right');
+        const dx = room.xPercent - userAvatarPos.x;
+        const dy = room.yPercent - userAvatarPos.y;
+        if (Math.abs(dy) > Math.abs(dx)) {
+          setAvatarFacing(dy > 0 ? 'down' : 'up');
+        } else {
+          setAvatarFacing(dx > 0 ? 'right' : 'left');
         }
       }
       setUserAvatarPos({ x: room.xPercent, y: room.yPercent });

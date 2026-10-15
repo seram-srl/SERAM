@@ -94,6 +94,24 @@ export const ACCESSORIES = [
   { id: 'gps', name: 'GPS de campo' }
 ];
 
+export const EQUIPMENTS = [
+  { id: 'none', name: 'Ninguno' },
+  { id: 'lanyard', name: 'Credencial SERAM' },
+  { id: 'tablet', name: 'Tablet de campo' },
+  { id: 'clipboard', name: 'Portapapeles' },
+  { id: 'gps', name: 'GPS geodésico' },
+  { id: 'radio', name: 'Radio VHF' },
+  { id: 'briefcase', name: 'Portafolio ejecutivo' }
+];
+
+export const AURAS = [
+  { id: 'none', name: 'Sin aura' },
+  { id: 'gold', name: 'Aura Dorada SERAM', color: '#c9a84c' },
+  { id: 'emerald', name: 'Resonancia Esmeralda', color: '#029907' },
+  { id: 'cyan', name: 'Claridad Tecnológica', color: '#06b6d4' },
+  { id: 'goldBright', name: 'Maestría Dorada', color: '#fcd775' }
+];
+
 /** Mapa campo → lista de opciones válidas (para validar y para el editor). */
 export const AVATAR_FIELDS = {
   skinTone: SKIN_TONES,
@@ -104,7 +122,9 @@ export const AVATAR_FIELDS = {
   outfitColor: OUTFIT_COLORS,
   trim: TRIM_COLORS,
   headwear: HEADWEAR,
-  accessory: ACCESSORIES
+  accessory: ACCESSORIES,
+  equipment: EQUIPMENTS,
+  aura: AURAS
 };
 
 // ── REGLAS DE DESBLOQUEO (Octalysis CD2 Maestría + CD4 Propiedad) ────────────
@@ -143,7 +163,9 @@ export const BASE_AVATAR_CONFIG = {
   outfitColor: 'navy',
   trim: 'gold',
   headwear: 'none',
-  accessory: 'none'
+  accessory: 'none',
+  equipment: 'none',
+  aura: 'none'
 };
 
 /** Defaults por socio: salen del `hairColor` de la oficina y del `skin` del perfil. */
@@ -197,8 +219,18 @@ export function normalizeAvatarConfig(raw, opts = {}) {
   // 2. hairColor legacy (definido en la oficina)
   if (hairColor && isValidOption('hairColor', hairColor)) base.hairColor = hairColor;
 
-  // 3. Campos explícitos válidos del avatarConfig guardado
-  const source = raw && typeof raw === 'object' ? raw : {};
+  // 3. Mapeo de alias semánticos de estilo / atuendo
+  const source = raw && typeof raw === 'object' ? { ...raw } : {};
+  if (source.outfit === 'casual') source.outfit = 'polo';
+  if (source.hairStyle === 'classic') source.hairStyle = 'short';
+  if (source.hairStyle === 'fade' || source.hairStyle === 'slick') source.hairStyle = 'side';
+  if (source.hairStyle === 'wavy') source.hairStyle = 'curly';
+  if (source.hairStyle === 'field_cap') {
+    source.hairStyle = 'short';
+    if (!source.headwear || source.headwear === 'none') source.headwear = 'cap';
+  }
+
+  // 4. Campos explícitos válidos del avatarConfig guardado
   Object.keys(AVATAR_FIELDS).forEach(field => {
     if (source[field] !== undefined && isValidOption(field, source[field])) {
       base[field] = source[field];
