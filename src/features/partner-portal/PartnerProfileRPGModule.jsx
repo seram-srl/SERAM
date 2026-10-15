@@ -21,7 +21,7 @@ import {
 import TalentTreeConstellation from './gamification/TalentTreeConstellation';
 import PlayerJourneyModule from './gamification/PlayerJourneyModule';
 import InteractiveGameTourModal from './gamification/InteractiveGameTourModal';
-import PartnerAvatar25D from './avatar/PartnerAvatar25D';
+import PixelPartnerAvatar from './avatar/PixelPartnerAvatar';
 import AvatarCustomizer from './avatar/AvatarCustomizer';
 import {
   normalizeAvatarConfig,
@@ -422,30 +422,31 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
               </button>
             </div>
 
-            {/* Avatar / Skin del Personaje 2.5D */}
+            {/* Avatar / Skin del Personaje Pixel-Art HD */}
             <div className="my-6 p-6 rounded-2xl bg-black/50 border border-white/[0.08] flex flex-col items-center justify-center relative group">
               <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-slate-900 via-slate-800 to-amber-500/20 border-2 border-white/20 p-2 flex items-center justify-center shadow-2xl relative overflow-hidden group">
-                <PartnerAvatar25D
+                <PixelPartnerAvatar
                   config={avatarConfig}
-                  scale={2.2}
+                  size={68}
                   initials={partnerInitials}
+                  facing="down"
                   isOnline={true}
                   isCurrent={isMyProfile}
-                  title={`Avatar 2.5D de ${activeProfile.name}`}
+                  title={`Avatar Pixel-Art de ${activeProfile.name}`}
                 />
                 <span className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-[#00e03c] border-2 border-slate-950 flex items-center justify-center text-[10px] text-slate-950 font-black shadow-md">
                   ✓
                 </span>
               </div>
 
-              {/* Botón para abrir/cerrar el Personalizador 2.5D */}
+              {/* Botón para abrir/cerrar el Personalizador Pixel-Art */}
               <button
                 type="button"
                 onClick={() => setShowAvatarCustomizer(p => !p)}
                 className="mt-3.5 px-3.5 py-1.5 rounded-full bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 border border-amber-400/30 text-xs font-bold flex items-center gap-1.5 transition-all shadow-md cursor-pointer hover:scale-105"
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                {showAvatarCustomizer ? 'Cerrar Personalizador' : 'Personalizar Avatar 2.5D'}
+                {showAvatarCustomizer ? 'Cerrar Personalizador' : 'Personalizar Avatar Pixel-Art'}
               </button>
 
               {/* Título Honorífico */}
@@ -525,15 +526,22 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
                           outfitColor: skin.id === 'field' ? 'emerald' : skin.id === 'suit' ? 'graphite' : 'navy'
                         }));
                       }}
-                      className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                      className={`p-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
                         isActive
                           ? 'border-[#00e03c] bg-[#00e03c]/10 text-white shadow-md'
                           : 'border-white/[0.08] bg-white/[0.02] text-slate-400 hover:border-white/20 hover:text-slate-200'
                       }`}
                       title={skin.desc}
                     >
-                      <span className="text-xl block mb-1">{skin.icon}</span>
-                      <span className="text-[10px] font-bold block truncate">{skin.name.split(' ')[0]}</span>
+                      <div className="w-8 h-9 flex items-center justify-center overflow-hidden mb-1">
+                        <PixelPartnerAvatar
+                          config={{ ...avatarConfig, outfit: skin.id }}
+                          size={24}
+                          facing="down"
+                          isOnline={true}
+                        />
+                      </div>
+                      <span className="text-[10px] font-bold block truncate w-full">{skin.name.split(' ')[0]}</span>
                     </button>
                   );
                 })}

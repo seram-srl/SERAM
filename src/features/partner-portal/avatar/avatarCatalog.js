@@ -148,6 +148,12 @@ export const UNLOCK_RULES = {
     clipboard: { level: 3 },
     gps: { level: 6, fieldMissions: 1 },
     tablet: { level: 8 }
+  },
+  aura: {
+    gold: { level: 5 },
+    emerald: { level: 10 },
+    cyan: { level: 15 },
+    goldBright: { level: 20 }
   }
 };
 
@@ -270,6 +276,7 @@ export function resolveAvatarPalette(config) {
   const skin = findById(SKIN_TONES, c.skinTone);
   const outfitColor = findById(OUTFIT_COLORS, c.outfitColor);
   const trim = findById(TRIM_COLORS, c.trim);
+  const aura = findById(AURAS, c.aura);
   return {
     config: c,
     skinHead: skin.head,
@@ -278,7 +285,8 @@ export function resolveAvatarPalette(config) {
     outfit: outfitColor.hex,
     outfitShade: outfitColor.shade,
     trim: trim.hex,
-    trimGlow: Boolean(trim.glow)
+    trimGlow: Boolean(trim.glow),
+    aura: aura && aura.id !== 'none' ? (aura.color || '#c9a84c') : null
   };
 }
 
