@@ -2,7 +2,32 @@
   "version": "1.0",
   "project": "SERAM",
   "last_updated": "2026-10-14",
-  "tasks": [],
+  "tasks": [
+    {
+      "id": "TASK-078",
+      "title": "Maqueta Panorámica Híbrida 16:9 con Mamparas de Vidrio y Madera (Despachos Delimitados)",
+      "status": "pending",
+      "assigned_to": "Implementador",
+      "priority": "high",
+      "estimated_hours": 2
+    },
+    {
+      "id": "TASK-079",
+      "title": "Calibración de Despachos Delimitados, Puertas y Grafo de Pasillos en OfficePathfinder",
+      "status": "pending",
+      "assigned_to": "Implementador",
+      "priority": "high",
+      "estimated_hours": 2
+    },
+    {
+      "id": "TASK-080",
+      "title": "Escala Hero (64-68px) en Oficina Virtual y Expansión de Peinados, Barbas y Canas en PixelPartnerAvatar",
+      "status": "pending",
+      "assigned_to": "Implementador",
+      "priority": "high",
+      "estimated_hours": 2
+    }
+  ],
   "in_progress": [],
   "completed": [
     {
