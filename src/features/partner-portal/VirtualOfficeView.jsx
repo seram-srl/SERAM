@@ -16,6 +16,7 @@ import officePanoramicImage from '../../assets/virtual-office/seram_office_pixel
 import { useApp } from '../../context/AppContext';
 import PixelPartnerAvatar from './avatar/PixelPartnerAvatar';
 import { normalizeAvatarConfig, loadStoredProfileAvatarConfigs } from './avatar/avatarCatalog';
+import { findPath, getSeatForRoom, ROOM_SEATS, isPointWalkable } from './OfficePathfinder';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DATA: 13 DESPACHOS ISOMÉTRICOS 2.5D (CALIBRADOS EN COORDENADAS %)
@@ -408,18 +409,269 @@ export default function VirtualOfficeView({
   const [isPipMinimized, setIsPipMinimized] = useState(false);
 
   // Orientación visual del avatar (Pixel-art 4-way: 'down' | 'up' | 'left' | 'right')
-  const [avatarFacing, setAvatarFacing] = useState('down');
+  const [avatarFacing, setAvatarFacing] = useState(() => {
+    const currentEmail = currentSocio?.email || 'barrientoso2401@gmail.com';
+    if (currentEmail === 'fernandoaraujo1912@gmail.com') return ROOM_SEATS.operations.facing;
+    if (currentEmail === 'sebastiansbs51@gmail.com') return ROOM_SEATS.experience.facing;
+    return ROOM_SEATS.direction.facing;
+  });
 
   // Posición del avatar del usuario interactivo (Point & Click) en %
   const [userAvatarPos, setUserAvatarPos] = useState(() => {
     const currentEmail = currentSocio?.email || 'barrientoso2401@gmail.com';
     const presence = (globalPresences || partnerPresences || {})[currentEmail];
     if (presence?.roomCoords) return presence.roomCoords;
-    if (currentEmail === 'fernandoaraujo1912@gmail.com') return { x: 50, y: 34 };
-    if (currentEmail === 'sebastiansbs51@gmail.com') return { x: 82, y: 34 };
-    return { x: 23.5, y: 30 };
+    if (currentEmail === 'fernandoaraujo1912@gmail.com') return { x: ROOM_SEATS.operations.x, y: ROOM_SEATS.operations.y };
+    if (currentEmail === 'sebastiansbs51@gmail.com') return { x: ROOM_SEATS.experience.x, y: ROOM_SEATS.experience.y };
+    return { x: ROOM_SEATS.direction.x, y: ROOM_SEATS.direction.y };
   });
   const [isWalking, setIsWalking] = useState(false);
+
+  // Referencias para la animación y navegación continua por waypoints (OfficePathfinder)
+  const currentPosRef = useRef(userAvatarPos);
+  const pathQueueRef = useRef([]);
+  const targetFacingRef = useRef(null);
+  const targetRoomIdRef = useRef(null);
+  const animationFrameRef = useRef(null);
+  const lastStepSoundTimeRef = useRef(0);
+  const isWalkingRef = useRef(false);
+
+  // Sincronizar referencia cuando la posición cambia externamente y no está caminando
+  useEffect(() => {
+    if (!isWalkingRef.current && userAvatarPos) {
+      currentPosRef.current = userAvatarPos;
+    }
+  }, [userAvatarPos]);
+
+  // Limpieza de requestAnimationFrame al desmontar
+  useEffect(() => {
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []);
+
+  /**
+   * Motor de interpolación de ruta continua a 60fps a través de la cola de waypoints.
+   */
+  const navigateAlongPath = (waypoints, finalFacing = null, destinationRoomId = null) => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
+    if (!waypoints || waypoints.length === 0) {
+      if (finalFacing) setAvatarFacing(finalFacing);
+      if (destinationRoomId) setSelectedRoomId(destinationRoomId);
+      return;
+    }
+
+    const queue = [...waypoints];
+    // Omitir el primer punto si coincide con la posición actual del avatar
+    if (queue.length > 1) {
+      const first = queue[0];
+      const distToFirst = Math.hypot(first.x - currentPosRef.current.x, first.y - currentPosRef.current.y);
+      if (distToFirst < 1.0) {
+        queue.shift();
+      }
+    }
+
+    if (queue.length === 0) {
+      if (finalFacing) setAvatarFacing(finalFacing);
+      if (destinationRoomId) setSelectedRoomId(destinationRoomId);
+      return;
+    }
+
+    pathQueueRef.current = queue;
+    targetFacingRef.current = finalFacing;
+    targetRoomIdRef.current = destinationRoomId;
+    isWalkingRef.current = true;
+    setIsWalking(true);
+
+    soundEngine.playFootstep();
+    lastStepSoundTimeRef.current = performance.now();
+
+    let lastTime = performance.now();
+    const SPEED = 22; // Velocidad de marcha fluida (~22% de la pantalla panorámica por segundo)
+
+    const stepFrame = (nowTime) => {
+      const dt = Math.min((nowTime - lastTime) / 1000, 0.05);
+      lastTime = nowTime;
+
+      if (pathQueueRef.current.length === 0) {
+        // Meta alcanzada
+        isWalkingRef.current = false;
+        setIsWalking(false);
+
+        if (targetFacingRef.current) {
+          setAvatarFacing(targetFacingRef.current);
+        }
+
+        const finalRoomId = targetRoomIdRef.current;
+        if (finalRoomId) {
+          setSelectedRoomId(finalRoomId);
+          soundEngine.playDeskClick();
+          const roomObj = OFFICE_ROOMS.find(r => r.id === finalRoomId);
+          if (setPartnerSector) {
+            setPartnerSector(
+              finalRoomId,
+              currentPosRef.current,
+              roomObj ? roomObj.name : 'Oficina'
+            );
+          }
+        } else {
+          // Destino en suelo libre: comprobar proximidad a alguna sala
+          const closestRoom = OFFICE_ROOMS.find(r => {
+            const dx = r.xPercent - currentPosRef.current.x;
+            const dy = r.yPercent - currentPosRef.current.y;
+            return Math.hypot(dx, dy) < 8;
+          });
+
+          if (setPartnerSector) {
+            setPartnerSector(
+              closestRoom ? closestRoom.id : 'corridor',
+              currentPosRef.current,
+              closestRoom ? closestRoom.name : 'Pasillo Central'
+            );
+          }
+        }
+
+        animationFrameRef.current = null;
+        return;
+      }
+
+      const target = pathQueueRef.current[0];
+      const dx = target.x - currentPosRef.current.x;
+      const dy = target.y - currentPosRef.current.y;
+      const dist = Math.hypot(dx, dy);
+
+      // Determinar orientación 4-way según el vector de avance hacia el siguiente waypoint
+      if (dist > 0.25) {
+        if (Math.abs(dx) > Math.abs(dy)) {
+          setAvatarFacing(dx > 0 ? 'right' : 'left');
+        } else {
+          setAvatarFacing(dy > 0 ? 'down' : 'up');
+        }
+      }
+
+      // Pasos rítmicos audibles cada ~240ms
+      if (nowTime - lastStepSoundTimeRef.current > 240) {
+        soundEngine.playFootstep();
+        lastStepSoundTimeRef.current = nowTime;
+      }
+
+      const maxStep = SPEED * dt;
+      if (dist <= maxStep) {
+        // Waypoint alcanzado
+        currentPosRef.current = { x: target.x, y: target.y };
+        setUserAvatarPos({ x: target.x, y: target.y });
+        pathQueueRef.current.shift();
+      } else {
+        const nextX = currentPosRef.current.x + (dx / dist) * maxStep;
+        const nextY = currentPosRef.current.y + (dy / dist) * maxStep;
+        currentPosRef.current = { x: nextX, y: nextY };
+        setUserAvatarPos({ x: nextX, y: nextY });
+      }
+
+      animationFrameRef.current = requestAnimationFrame(stepFrame);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(stepFrame);
+  };
+
+  // Soporte de navegación por teclado: W/A/S/D y Flechas de dirección
+  useEffect(() => {
+    const keysPressed = new Set();
+    let keyWalkTimer = null;
+
+    const handleKeyDown = (e) => {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) {
+        return;
+      }
+
+      const key = e.key.toLowerCase();
+      if (!['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
+        return;
+      }
+
+      e.preventDefault();
+      keysPressed.add(key);
+
+      // Cancelar cualquier ruta automática en ejecución
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+        pathQueueRef.current = [];
+      }
+
+      let dx = 0;
+      let dy = 0;
+      let dirFacing = null;
+
+      if (keysPressed.has('w') || keysPressed.has('arrowup')) {
+        dy -= 1.2;
+        dirFacing = 'up';
+      }
+      if (keysPressed.has('s') || keysPressed.has('arrowdown')) {
+        dy += 1.2;
+        dirFacing = 'down';
+      }
+      if (keysPressed.has('a') || keysPressed.has('arrowleft')) {
+        dx -= 1.2;
+        dirFacing = 'left';
+      }
+      if (keysPressed.has('d') || keysPressed.has('arrowright')) {
+        dx += 1.2;
+        dirFacing = 'right';
+      }
+
+      if (dirFacing) {
+        setAvatarFacing(dirFacing);
+      }
+
+      const nextX = Math.round((currentPosRef.current.x + dx) * 10) / 10;
+      const nextY = Math.round((currentPosRef.current.y + dy) * 10) / 10;
+
+      if (isPointWalkable(nextX, nextY)) {
+        isWalkingRef.current = true;
+        setIsWalking(true);
+        currentPosRef.current = { x: nextX, y: nextY };
+        setUserAvatarPos({ x: nextX, y: nextY });
+
+        const now = performance.now();
+        if (now - lastStepSoundTimeRef.current > 240) {
+          soundEngine.playFootstep();
+          lastStepSoundTimeRef.current = now;
+        }
+
+        clearTimeout(keyWalkTimer);
+        keyWalkTimer = setTimeout(() => {
+          isWalkingRef.current = false;
+          setIsWalking(false);
+        }, 200);
+      }
+    };
+
+    const handleKeyUp = (e) => {
+      const key = e.key.toLowerCase();
+      keysPressed.delete(key);
+      if (keysPressed.size === 0) {
+        clearTimeout(keyWalkTimer);
+        isWalkingRef.current = false;
+        setIsWalking(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      clearTimeout(keyWalkTimer);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
 
   // Estado operativo seleccionado por el socio activo
   const [partnerActiveStatus, setPartnerActiveStatus] = useState(() => {
@@ -470,53 +722,36 @@ export default function VirtualOfficeView({
 
     if (status === 'recreation') {
       soundEngine.playCoffeeBrew();
-      setUserAvatarPos({ x: 28, y: 76 });
-      setSelectedRoomId('recreation');
-      if (setPartnerSector) {
-        setPartnerSector('recreation', { x: 28, y: 76 }, 'Área de Café & Descanso');
-      }
+      const seat = ROOM_SEATS.recreation;
+      const path = findPath(currentPosRef.current, { x: seat.x, y: seat.y });
+      navigateAlongPath(path, seat.facing, 'recreation');
       if (isTimerRunning) pausePartnerTimer();
     } else if (status === 'commission') {
       soundEngine.playCoffeeBrew();
-      setUserAvatarPos({ x: 25, y: 73 });
-      setSelectedRoomId('recreation');
-      if (setPartnerSector) {
-        setPartnerSector('commission', { x: 25, y: 73 }, 'De Comisión Externa');
-      }
+      const commissionSpot = { x: 25, y: 73 };
+      const path = findPath(currentPosRef.current, commissionSpot);
+      navigateAlongPath(path, 'up', 'recreation');
       if (isTimerRunning) pausePartnerTimer();
     } else if (status === 'meeting') {
       soundEngine.playDeskClick();
-      setUserAvatarPos({ x: 65, y: 64 });
-      setSelectedRoomId('meeting');
-      if (setPartnerSector) {
-        setPartnerSector('meeting', { x: 65, y: 64 }, 'Sala de Directorio');
-      }
+      const seat = ROOM_SEATS.meeting;
+      const path = findPath(currentPosRef.current, { x: seat.x, y: seat.y });
+      navigateAlongPath(path, seat.facing, 'meeting');
     } else if (status === 'working') {
       soundEngine.playDeskClick();
-      const defaultCoords = currentSocio?.email === 'fernandoaraujo1912@gmail.com'
-        ? { x: 50, y: 34 }
-        : currentSocio?.email === 'sebastiansbs51@gmail.com'
-        ? { x: 82, y: 34 }
-        : { x: 23.5, y: 30 };
       const defaultRoomId = currentSocio?.email === 'fernandoaraujo1912@gmail.com'
         ? 'operations'
         : currentSocio?.email === 'sebastiansbs51@gmail.com'
         ? 'experience'
         : 'direction';
-      const defaultName = currentSocio?.email === 'fernandoaraujo1912@gmail.com'
-        ? '03. OPERACIONES Y PLANIFICACIÓN'
-        : currentSocio?.email === 'sebastiansbs51@gmail.com'
-        ? '11. EXPERIENCIA Y CAMPO'
-        : '02. DIRECCIÓN';
 
-      setUserAvatarPos(defaultCoords);
-      setSelectedRoomId(defaultRoomId);
-      if (setPartnerSector) {
-        setPartnerSector(defaultRoomId, defaultCoords, defaultName);
-      }
+      const seat = ROOM_SEATS[defaultRoomId];
+      const path = findPath(currentPosRef.current, { x: seat.x, y: seat.y });
+      navigateAlongPath(path, seat.facing, defaultRoomId);
       if (!isTimerRunning) startPartnerTimer();
     }
   };
+
 
   // Zoom & Pan state
   const [zoomLevel, setZoomLevel] = useState(() => {
@@ -634,72 +869,30 @@ export default function VirtualOfficeView({
     const targetX = Math.round((clickScreenX / stageRect.width) * 100);
     const targetY = Math.round((clickScreenY / stageRect.height) * 100);
 
-    if (userAvatarPos) {
-      const dx = targetX - userAvatarPos.x;
-      const dy = targetY - userAvatarPos.y;
-      if (Math.abs(dy) > Math.abs(dx)) {
-        setAvatarFacing(dy > 0 ? 'down' : 'up');
-      } else {
-        setAvatarFacing(dx > 0 ? 'right' : 'left');
-      }
-    }
-
-    soundEngine.playFootstep();
     setClickEffect({ x: targetX, y: targetY, key: Date.now() });
 
-    setIsWalking(true);
-    setUserAvatarPos({ x: targetX, y: targetY });
-
-    setTimeout(() => {
-      soundEngine.playFootstep(1);
-    }, 150);
-
-    setTimeout(() => {
-      setIsWalking(false);
-    }, 380);
-
-    // Detección de proximidad a alguna de las salas
+    // Detección de proximidad a alguna de las 13 salas (radio 8%)
     const closestRoom = OFFICE_ROOMS.find(r => {
       const dx = r.xPercent - targetX;
       const dy = r.yPercent - targetY;
-      return Math.sqrt(dx * dx + dy * dy) < 9;
+      return Math.hypot(dx, dy) < 8;
     });
 
     if (closestRoom) {
-      setSelectedRoomId(closestRoom.id);
-      soundEngine.playDeskClick();
-    }
-
-    // Sincronización en tiempo real vía Supabase Realtime y BroadcastChannel para todos los socios
-    if (setPartnerSector) {
-      setPartnerSector(
-        closestRoom ? closestRoom.id : 'corridor',
-        { x: targetX, y: targetY },
-        closestRoom ? closestRoom.name : 'Pasillo Central'
-      );
+      const seat = getSeatForRoom(closestRoom.id);
+      const path = findPath(currentPosRef.current, { x: seat.x, y: seat.y });
+      navigateAlongPath(path, seat.facing, closestRoom.id);
+    } else {
+      const path = findPath(currentPosRef.current, { x: targetX, y: targetY });
+      navigateAlongPath(path, null, null);
     }
   };
 
   const handleSelectRoom = (roomId) => {
-    setSelectedRoomId(roomId);
-    soundEngine.playDeskClick();
-
-    const room = OFFICE_ROOMS.find(r => r.id === roomId);
-    if (room) {
-      if (userAvatarPos) {
-        const dx = room.xPercent - userAvatarPos.x;
-        const dy = room.yPercent - userAvatarPos.y;
-        if (Math.abs(dy) > Math.abs(dx)) {
-          setAvatarFacing(dy > 0 ? 'down' : 'up');
-        } else {
-          setAvatarFacing(dx > 0 ? 'right' : 'left');
-        }
-      }
-      setUserAvatarPos({ x: room.xPercent, y: room.yPercent });
-      if (setPartnerSector) {
-        setPartnerSector(roomId, { x: room.xPercent, y: room.yPercent }, room.name);
-      }
-    }
+    const seat = getSeatForRoom(roomId);
+    setClickEffect({ x: seat.x, y: seat.y, key: Date.now() });
+    const path = findPath(currentPosRef.current, { x: seat.x, y: seat.y });
+    navigateAlongPath(path, seat.facing, roomId);
   };
 
   const handleOpenModule = (targetModule) => {
@@ -827,7 +1020,9 @@ export default function VirtualOfficeView({
         {partnerAvatars.map((partner) => (
           <div
             key={partner.id}
-            className="absolute z-30 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-300 ease-out"
+            className={`absolute z-30 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none ${
+              partner.isCurrent && isWalking ? 'transition-none will-change-[left,top]' : 'transition-all duration-300 ease-out'
+            }`}
             style={{
               left: `${partner.x}%`,
               top: `${partner.y}%`
@@ -961,10 +1156,10 @@ export default function VirtualOfficeView({
         </button>
       </div>
 
-      {/* Rótulo de guía interactiva Point & Click */}
+      {/* Rótulo de guía interactiva Point & Click y Teclado */}
       <div className="absolute bottom-4 left-4 z-30 hidden sm:flex items-center gap-2 bg-black/75 border border-white/10 rounded-xl px-3 py-1.5 backdrop-blur-sm text-[11px] text-slate-300 pointer-events-none">
         <Compass className="w-3.5 h-3.5 text-amber-400" />
-        <span>Haz clic en el suelo para caminar · Toca cualquier oficina para abrir su módulo</span>
+        <span>Haz clic o usa W/A/S/D para caminar por los pasillos · Toca cualquier oficina para ir a su estación</span>
       </div>
     </div>
   );
