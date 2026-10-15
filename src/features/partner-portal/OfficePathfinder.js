@@ -114,6 +114,205 @@ export const ROOM_SEATS = {
 };
 
 /**
+ * Segmentos de mamparas divisorias sólidas (madera noble y cristal).
+ * Los vanos o gaps entre segmentos representan las puertas de acceso abiertas.
+ */
+export const WALL_SEGMENTS = [
+  // ── Mampara vertical izquierda: x=32, segmentos [12 a 33] y [37 a 68] (puerta Dirección en y: 33-37, puerta Admin en y: 50-55) ──
+  { id: 'w_v_left_dir_top', p1: { x: 32, y: 12 }, p2: { x: 32, y: 33 } },
+  { id: 'w_v_left_dir_mid', p1: { x: 32, y: 37 }, p2: { x: 32, y: 50 } },
+  { id: 'w_v_left_admin_bot', p1: { x: 32, y: 56 }, p2: { x: 32, y: 68 } },
+
+  // ── Mampara horizontal entre Dir y Admin: y=40, segmento x de [6 a 32] ──
+  { id: 'w_h_dir_admin', p1: { x: 6, y: 40 }, p2: { x: 32, y: 40 } },
+
+  // ── Mampara horizontal entre Admin y Lounge: y=68, segmento x de [6 a 32] ──
+  { id: 'w_h_admin_lounge', p1: { x: 6, y: 68 }, p2: { x: 32, y: 68 } },
+
+  // ── Mamparas de la Sala de Directorio (caja acristalada central) ──
+  // Pared izquierda: x=44, y de [15 a 68]
+  { id: 'w_meet_left', p1: { x: 44, y: 15 }, p2: { x: 44, y: 68 } },
+  // Pared derecha: x=68, y de [15 a 68]
+  { id: 'w_meet_right', p1: { x: 68, y: 15 }, p2: { x: 68, y: 68 } },
+  // Pared norte: y=15, x de [44 a 68]
+  { id: 'w_meet_north', p1: { x: 44, y: 15 }, p2: { x: 68, y: 15 } },
+  // Pared sur: y=68, segmentos x de [44 a 52] y [58 a 68] (puerta central en x: 52-58)
+  { id: 'w_meet_south_1', p1: { x: 44, y: 68 }, p2: { x: 52, y: 68 } },
+  { id: 'w_meet_south_2', p1: { x: 58, y: 68 }, p2: { x: 68, y: 68 } },
+
+  // ── Mampara vertical derecha: x=72, segmentos [12 a 29], [33 a 52], [56 a 66] y [70 a 95] ──
+  // Gaps transitables: Puerta Operaciones (29-33), Puerta Experiencia (52-56), Puerta Servidores (66-70)
+  { id: 'w_v_right_top', p1: { x: 72, y: 12 }, p2: { x: 72, y: 29 } },
+  { id: 'w_v_right_mid1', p1: { x: 72, y: 33 }, p2: { x: 72, y: 52 } },
+  { id: 'w_v_right_mid2', p1: { x: 72, y: 56 }, p2: { x: 72, y: 66 } },
+  { id: 'w_v_right_bot', p1: { x: 72, y: 70 }, p2: { x: 72, y: 95 } },
+
+  // ── Mampara horizontal Ops/Exp: y=42, x de [72 a 95] ──
+  { id: 'w_h_ops_exp', p1: { x: 72, y: 42 }, p2: { x: 95, y: 42 } },
+
+  // ── Mampara horizontal Exp/Servidores: y=66, x de [72 a 95] ──
+  { id: 'w_h_exp_serv', p1: { x: 72, y: 66 }, p2: { x: 95, y: 66 } }
+];
+
+/**
+ * Cajas delimitadoras de mobiliario y obstáculos sólidos donde NUNCA se debe caminar encima.
+ */
+export const OBSTACLE_BOXES = [
+  // Mesa ovalada de reuniones Directorio (evita que el avatar se pare encima de la mesa)
+  { id: 'meeting_table', minX: 48, maxX: 64, minY: 37, maxY: 55 },
+  // Barra de café & espresso
+  { id: 'coffee_bar', minX: 5, maxX: 19, minY: 70, maxY: 94 },
+  // Mesa centro lounge
+  { id: 'lounge_table', minX: 30, maxX: 37, minY: 84, maxY: 91 },
+  // Escritorio Dirección
+  { id: 'dir_desk', minX: 8, maxX: 25, minY: 26, maxY: 36 },
+  // Estación Operaciones
+  { id: 'ops_desk', minX: 81, maxX: 95, minY: 25, maxY: 37 },
+  // Estación Experiencia
+  { id: 'exp_desk', minX: 81, maxX: 95, minY: 48, maxY: 60 },
+  // Servidores y Bóveda
+  { id: 'servers_vault', minX: 74, maxX: 95, minY: 75, maxY: 95 }
+];
+
+/**
+ * Intersección matemática precisa entre dos segmentos 2D (p1-p2 con w1-w2).
+ */
+export function lineIntersectsSegment(p1, p2, w1, w2) {
+  const ccw = (A, B, C) => (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x);
+  return (ccw(p1, w1, w2) !== ccw(p2, w1, w2)) && (ccw(p1, p2, w1) !== ccw(p1, p2, w2));
+}
+
+/**
+ * Evalúa si una línea recta entre dos puntos corta cualquier mampara divisoria sólida.
+ */
+export function lineIntersectsAnyWall(p1, p2) {
+  if (!p1 || !p2) return false;
+  return WALL_SEGMENTS.some(wall => lineIntersectsSegment(p1, p2, wall.p1, wall.p2));
+}
+
+/**
+ * Distancia euclídea mínima de un punto p a un segmento 2D [a, b].
+ */
+export function pointDistanceToSegment(p, a, b) {
+  const l2 = (b.x - a.x) ** 2 + (b.y - a.y) ** 2;
+  if (l2 === 0) return Math.hypot(p.x - a.x, p.y - a.y);
+  let t = ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / l2;
+  t = Math.max(0, Math.min(1, t));
+  const projX = a.x + t * (b.x - a.x);
+  const projY = a.y + t * (b.y - a.y);
+  return Math.hypot(p.x - projX, p.y - projY);
+}
+
+/**
+ * Verifica si un punto cae dentro de alguna caja de obstáculo sólido.
+ */
+export function isPointInsideObstacle(x, y) {
+  return OBSTACLE_BOXES.some(box => (
+    x >= box.minX && x <= box.maxX && y >= box.minY && y <= box.maxY
+  ));
+}
+
+/**
+ * Verifica si el punto coincide con una silla designada de trabajo/reunión.
+ */
+export function isNearSeat(x, y, radius = 1.8) {
+  return Object.values(ROOM_SEATS).some(seat => (
+    Math.hypot(seat.x - x, seat.y - y) <= radius
+  ));
+}
+
+/**
+ * Puertas de acceso designadas para ingresar y salir de cada despacho acristalado.
+ */
+export const DOOR_NODES = [
+  { id: 'door_direction', x: 32, y: 35, roomId: 'direction' },
+  { id: 'door_admin', x: 32, y: 53, roomId: 'admin' },
+  { id: 'door_operations', x: 72, y: 31, roomId: 'operations' },
+  { id: 'door_experience', x: 72, y: 54, roomId: 'experience' },
+  { id: 'door_meeting', x: 55, y: 68, roomId: 'meeting' },
+  { id: 'door_recreation', x: 34, y: 76, roomId: 'recreation' },
+  { id: 'door_commercial', x: 72, y: 68, roomId: 'commercial' },
+  { id: 'door_research', x: 72, y: 15, roomId: 'research' }
+];
+
+/**
+ * Verifica si el punto está dentro de un vano de puerta transitable.
+ */
+export function isNearDoor(x, y, radius = 2.4) {
+  return DOOR_NODES.some(door => (
+    Math.hypot(door.x - x, door.y - y) <= radius
+  ));
+}
+
+/**
+ * Si un clic o punto cae dentro de un obstáculo (como la mesa de directorio),
+ * lo proyecta al borde libre más próximo para que sea transitable.
+ */
+export function projectOutOfObstacle(pos) {
+  if (!pos) return { x: 50, y: 50 };
+  const { x, y } = pos;
+  if (!isPointInsideObstacle(x, y)) return { x, y };
+  if (isNearSeat(x, y)) return { x, y };
+
+  const box = OBSTACLE_BOXES.find(b => x >= b.minX && x <= b.maxX && y >= b.minY && y <= b.maxY);
+  if (!box) return { x, y };
+
+  const candidates = [
+    { x: box.minX - 2.0, y },
+    { x: box.maxX + 2.0, y },
+    { x, y: box.minY - 2.0 },
+    { x, y: box.maxY + 2.0 }
+  ];
+
+  let best = null;
+  let minD = Infinity;
+
+  for (const cand of candidates) {
+    if (cand.x >= 6 && cand.x <= 95 && cand.y >= 14 && cand.y <= 94) {
+      if (!isPointInsideObstacle(cand.x, cand.y)) {
+        const d = Math.hypot(cand.x - x, cand.y - y);
+        if (d < minD) {
+          minD = d;
+          best = cand;
+        }
+      }
+    }
+  }
+
+  return best || { x, y };
+}
+
+/**
+ * Valida si una coordenada está dentro del área transitable de la oficina.
+ * Impide pisar mamparas o subirse a muebles sólidos (mesa de reuniones, escritorios, barra de café).
+ */
+export function isPointWalkable(x, y) {
+  if (typeof x !== 'number' || typeof y !== 'number') return false;
+
+  // 1. Límites generales de la oficina
+  if (x < 6 || x > 95 || y < 14 || y > 94) return false;
+
+  // 2. Obstáculos sólidos (a menos que sea la silla de llegada)
+  if (isPointInsideObstacle(x, y) && !isNearSeat(x, y)) {
+    return false;
+  }
+
+  // 3. Si está transitando por el umbral de una puerta abierta, permitir paso
+  if (isNearDoor(x, y)) {
+    return true;
+  }
+
+  // 4. Distancia mínima de seguridad a cualquier mampara (1.2%)
+  for (const wall of WALL_SEGMENTS) {
+    if (pointDistanceToSegment({ x, y }, wall.p1, wall.p2) < 1.2) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
  * Nodos del pasillo principal transitable libre de obstáculos (mamparas y escritorios).
  */
 export const CORRIDOR_NODES = [
@@ -125,14 +324,14 @@ export const CORRIDOR_NODES = [
   { id: 'cor_v_left_60', x: 36, y: 60 },
   { id: 'cor_v_left_76', x: 36, y: 76 },
 
-  // ── Pasillo central vertical derecho (x: 72%, entre y: 20% y 76%) ──
-  { id: 'cor_v_right_20', x: 72, y: 20 },
-  { id: 'cor_v_right_31', x: 72, y: 31 },
-  { id: 'cor_v_right_45', x: 72, y: 45 },
-  { id: 'cor_v_right_54', x: 72, y: 54 },
-  { id: 'cor_v_right_60', x: 72, y: 60 },
-  { id: 'cor_v_right_68', x: 72, y: 68 },
-  { id: 'cor_v_right_76', x: 72, y: 76 },
+  // ── Pasillo central vertical derecho (x: 70%, entre y: 20% y 76%) ──
+  { id: 'cor_v_right_20', x: 70, y: 20 },
+  { id: 'cor_v_right_31', x: 70, y: 31 },
+  { id: 'cor_v_right_45', x: 70, y: 45 },
+  { id: 'cor_v_right_54', x: 70, y: 54 },
+  { id: 'cor_v_right_60', x: 70, y: 60 },
+  { id: 'cor_v_right_68', x: 70, y: 68 },
+  { id: 'cor_v_right_76', x: 70, y: 76 },
 
   // ── Pasillo transversal superior (norte de Directorio, y: 20%) ──
   { id: 'cor_h_top_54', x: 54, y: 20 },
@@ -141,20 +340,6 @@ export const CORRIDOR_NODES = [
   { id: 'cor_h_bot_28', x: 28, y: 76 },
   { id: 'cor_h_bot_50', x: 50, y: 76 },
   { id: 'cor_h_bot_55', x: 55, y: 76 }
-];
-
-/**
- * Puertas de acceso designadas para ingresar y salir de cada despacho acristalado.
- */
-export const DOOR_NODES = [
-  { id: 'door_direction', x: 28, y: 35, roomId: 'direction' },
-  { id: 'door_operations', x: 76, y: 31, roomId: 'operations' },
-  { id: 'door_experience', x: 76, y: 54, roomId: 'experience' },
-  { id: 'door_meeting', x: 55, y: 60, roomId: 'meeting' },
-  { id: 'door_recreation', x: 34, y: 76, roomId: 'recreation' },
-  { id: 'door_commercial', x: 74, y: 68, roomId: 'commercial' },
-  { id: 'door_admin', x: 28, y: 53, roomId: 'admin' },
-  { id: 'door_research', x: 76, y: 22, roomId: 'research' }
 ];
 
 /**
@@ -183,25 +368,25 @@ export const ROOM_ZONES = [
   {
     id: 'meeting',
     doorId: 'door_meeting',
-    minX: 38, maxX: 70, minY: 22, maxY: 59,
-    innerNodeId: 'meet_inner'
+    minX: 44, maxX: 68, minY: 15, maxY: 68,
+    innerNodeId: 'meet_south'
   },
   {
     id: 'operations',
     doorId: 'door_operations',
-    minX: 74, maxX: 96, minY: 15, maxY: 42,
+    minX: 72, maxX: 96, minY: 15, maxY: 42,
     innerNodeId: 'ops_inner'
   },
   {
     id: 'experience',
     doorId: 'door_experience',
-    minX: 74, maxX: 96, minY: 43, maxY: 65,
+    minX: 72, maxX: 96, minY: 43, maxY: 65,
     innerNodeId: 'exp_inner'
   },
   {
     id: 'commercial',
     doorId: 'door_commercial',
-    minX: 73, maxX: 96, minY: 66, maxY: 92,
+    minX: 72, maxX: 96, minY: 66, maxY: 92,
     innerNodeId: 'comm_inner'
   }
 ];
@@ -218,15 +403,18 @@ export const WAYPOINTS = [
   { id: 'seat_direction', x: 16, y: 24 },
 
   // ── Nodos interiores y puestos en Operaciones ──
-  { id: 'ops_inner', x: 84, y: 31 },
+  { id: 'ops_inner', x: 80, y: 31 },
   { id: 'seat_operations', x: 91, y: 31 },
 
   // ── Nodos interiores y puestos en Experiencia & Campo ──
-  { id: 'exp_inner', x: 84, y: 54 },
+  { id: 'exp_inner', x: 80, y: 54 },
   { id: 'seat_experience', x: 91, y: 54 },
 
-  // ── Nodos interiores en Directorio (Mesa oval de reuniones) ──
-  { id: 'meet_inner', x: 56, y: 46 },
+  // ── Nodos interiores en Directorio (Rodeando la mesa de reuniones) ──
+  { id: 'meet_south', x: 55, y: 62 },
+  { id: 'meet_left', x: 46, y: 46 },
+  { id: 'meet_right', x: 66, y: 46 },
+  { id: 'meet_north', x: 57, y: 31 },
   { id: 'seat_meeting', x: 57, y: 33 },
 
   // ── Nodos interiores en Café & Lounge ──
@@ -264,7 +452,7 @@ export const EDGES = [
   ['cor_v_left_53', 'cor_v_left_60'],
   ['cor_v_left_60', 'cor_v_left_76'],
 
-  // ── Espina vertical derecha (x: 72%) ──
+  // ── Espina vertical derecha (x: 70%) ──
   ['cor_v_right_20', 'cor_v_right_31'],
   ['cor_v_right_31', 'cor_v_right_45'],
   ['cor_v_right_45', 'cor_v_right_54'],
@@ -283,22 +471,28 @@ export const EDGES = [
   ['cor_h_bot_50', 'cor_h_bot_55'],
   ['cor_h_bot_55', 'cor_v_right_76'],
 
-  // ── Pasillo transversal medio frente a Directorio (y: 60%) ──
-  ['cor_v_left_60', 'door_meeting'],
-  ['door_meeting', 'cor_v_right_60'],
+  // ── Pasillo transversal medio frente a Directorio (y: 68-76%) ──
   ['door_meeting', 'cor_h_bot_55'],
+  ['door_meeting', 'cor_v_right_68'],
+  ['cor_v_left_60', 'cor_h_bot_50'],
 
   // ── Conexiones de Puertas a Pasillos Principales ──
   ['door_direction', 'cor_v_left_35'],
+  ['door_admin', 'cor_v_left_53'],
   ['door_operations', 'cor_v_right_31'],
   ['door_experience', 'cor_v_right_54'],
   ['door_commercial', 'cor_v_right_68'],
-  ['door_admin', 'cor_v_left_53'],
   ['door_research', 'cor_v_right_20'],
 
   // ── Despacho Dirección (Diego) ──
   ['door_direction', 'dir_inner'],
   ['dir_inner', 'seat_direction'],
+
+  // ── Despacho Administración (Admin, Service, Marketing) ──
+  ['door_admin', 'admin_inner'],
+  ['admin_inner', 'seat_admin'],
+  ['admin_inner', 'seat_service'],
+  ['admin_inner', 'seat_marketing'],
 
   // ── Despacho Operaciones (Fernando) ──
   ['door_operations', 'ops_inner'],
@@ -308,9 +502,13 @@ export const EDGES = [
   ['door_experience', 'exp_inner'],
   ['exp_inner', 'seat_experience'],
 
-  // ── Sala de Directorio (Directorio) ──
-  ['door_meeting', 'meet_inner'],
-  ['meet_inner', 'seat_meeting'],
+  // ── Sala de Directorio (Rodeando mesa ovalada de reuniones) ──
+  ['door_meeting', 'meet_south'],
+  ['meet_south', 'meet_left'],
+  ['meet_south', 'meet_right'],
+  ['meet_left', 'meet_north'],
+  ['meet_right', 'meet_north'],
+  ['meet_north', 'seat_meeting'],
 
   // ── Café & Lounge de Descanso ──
   ['door_recreation', 'seat_recreation'],
@@ -322,12 +520,6 @@ export const EDGES = [
   ['comm_inner', 'seat_commercial'],
   ['comm_inner', 'seat_finances'],
   ['comm_inner', 'seat_academy'],
-
-  // ── Administración, Servicios Ambientales & Marketing ──
-  ['door_admin', 'admin_inner'],
-  ['admin_inner', 'seat_admin'],
-  ['admin_inner', 'seat_service'],
-  ['admin_inner', 'seat_marketing'],
 
   // ── Laboratorio de Investigación ──
   ['door_research', 'seat_research'],
@@ -408,6 +600,7 @@ function resolveWaypointForPosition(pos, isStart = false) {
     const roomWaypoints = WAYPOINTS.filter(w => {
       if (w.id === room.doorId) return true;
       if (w.id === room.innerNodeId) return true;
+      if (room.id === 'meeting' && (w.id === 'meet_south' || w.id === 'meet_left' || w.id === 'meet_right' || w.id === 'meet_north')) return true;
       if (w.id.startsWith('seat_')) {
         const seat = ROOM_SEATS[room.id];
         return seat && Math.hypot(seat.x - w.x, seat.y - w.y) < 1;
@@ -495,7 +688,8 @@ function dijkstra(startId, targetId) {
 }
 
 /**
- * Simplifica un camino eliminando puntos colineales redundantes o excesivamente cercanos (< 1.0%).
+ * Simplifica un camino eliminando puntos colineales redundantes o excesivamente cercanos (< 1.0%),
+ * verificando que el segmento directo simplificado no corte ninguna mampara.
  */
 function simplifyPath(points) {
   if (!points || points.length <= 1) return points || [];
@@ -511,6 +705,12 @@ function simplifyPath(points) {
     const next = points[i + 1];
 
     if (distance(prev, curr) < 0.8) continue;
+
+    // Si cortar de prev a next atraviesa una mampara o mueble, mantener curr
+    if (lineIntersectsAnyWall(prev, next)) {
+      result.push(curr);
+      continue;
+    }
 
     const dx1 = curr.x - prev.x;
     const dy1 = curr.y - prev.y;
@@ -538,6 +738,7 @@ function simplifyPath(points) {
 /**
  * Función principal de navegación: calcula el camino transitable continuo entre `startPos` y `targetPos`.
  * Utiliza nodos de puerta obligatorios para entrar o salir de despachos con mamparas de vidrio.
+ * Si el destino cae dentro de un obstáculo, lo proyecta fuera de él automáticamente.
  *
  * @param {{ x: number, y: number }} startPos - Posición inicial en %
  * @param {{ x: number, y: number }} targetPos - Posición destino en %
@@ -546,37 +747,45 @@ function simplifyPath(points) {
 export function findPath(startPos, targetPos) {
   if (!startPos || !targetPos) return [];
 
-  const directDist = distance(startPos, targetPos);
-  if (directDist < 1.2) {
-    return [{ x: targetPos.x, y: targetPos.y }];
+  // Proyectar si cae en un obstáculo sólido y no es una silla de llegada
+  const safeTarget = isPointInsideObstacle(targetPos.x, targetPos.y) && !isNearSeat(targetPos.x, targetPos.y)
+    ? projectOutOfObstacle(targetPos)
+    : { x: targetPos.x, y: targetPos.y };
+
+  const directDist = distance(startPos, safeTarget);
+  if (directDist < 1.0) {
+    return [{ x: safeTarget.x, y: safeTarget.y }];
   }
 
   const startRoom = getRoomForPoint(startPos);
-  const targetRoom = getRoomForPoint(targetPos);
+  const targetRoom = getRoomForPoint(safeTarget);
+  const lineBlocked = lineIntersectsAnyWall(startPos, safeTarget);
 
-  // 1. Si ambos puntos están dentro de la misma sala cerrada, desplazarse directamente
-  if (startRoom && targetRoom && startRoom.id === targetRoom.id) {
-    return [
-      { x: startPos.x, y: startPos.y },
-      { x: targetPos.x, y: targetPos.y }
-    ];
+  // 1. Si la línea directa NO corta ninguna mampara y están en la misma sala o ambos en pasillo abierto
+  if (!lineBlocked) {
+    if ((startRoom && targetRoom && startRoom.id === targetRoom.id) || (!startRoom && !targetRoom)) {
+      return [
+        { x: startPos.x, y: startPos.y },
+        { x: safeTarget.x, y: safeTarget.y }
+      ];
+    }
   }
 
   // 2. Resolver los waypoints de anclaje de salida y llegada adecuados
   const startWp = resolveWaypointForPosition(startPos, true);
-  const targetWp = resolveWaypointForPosition(targetPos, false);
+  const targetWp = resolveWaypointForPosition(safeTarget, false);
 
   if (!startWp || !targetWp) {
     return [
       { x: startPos.x, y: startPos.y },
-      { x: targetPos.x, y: targetPos.y }
+      { x: safeTarget.x, y: safeTarget.y }
     ];
   }
 
   // 3. Trazar ruta por pasillos y puertas con Dijkstra
   const corridorPath = dijkstra(startWp.id, targetWp.id);
 
-  // 4. Ensamblar secuencia completa: startPos -> waypoints -> targetPos sin duplicados
+  // 4. Ensamblar secuencia completa: startPos -> waypoints -> safeTarget sin duplicados
   const rawPoints = [{ x: startPos.x, y: startPos.y }];
 
   corridorPath.forEach(wp => {
@@ -587,8 +796,8 @@ export function findPath(startPos, targetPos) {
   });
 
   const lastPrev = rawPoints[rawPoints.length - 1];
-  if (!lastPrev || distance(lastPrev, targetPos) >= 0.5) {
-    rawPoints.push({ x: targetPos.x, y: targetPos.y });
+  if (!lastPrev || distance(lastPrev, safeTarget) >= 0.5) {
+    rawPoints.push({ x: safeTarget.x, y: safeTarget.y });
   }
 
   // 5. Simplificar y devolver ruta libre de mamparas
@@ -602,17 +811,10 @@ export function getSeatForRoom(roomId) {
   return ROOM_SEATS[roomId] || ROOM_SEATS.direction;
 }
 
-/**
- * Valida si una coordenada está dentro del área transitable de la oficina.
- */
-export function isPointWalkable(x, y) {
-  if (typeof x !== 'number' || typeof y !== 'number') return false;
-  if (x < 6 || x > 95 || y < 14 || y > 94) return false;
-  return true;
-}
-
 export default {
   ROOM_SEATS,
+  WALL_SEGMENTS,
+  OBSTACLE_BOXES,
   CORRIDOR_NODES,
   DOOR_NODES,
   ROOM_ZONES,
@@ -621,5 +823,10 @@ export default {
   findPath,
   getSeatForRoom,
   getRoomForPoint,
-  isPointWalkable
+  isPointWalkable,
+  isPointInsideObstacle,
+  projectOutOfObstacle,
+  lineIntersectsSegment,
+  lineIntersectsAnyWall,
+  pointDistanceToSegment
 };

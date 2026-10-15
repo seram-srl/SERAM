@@ -1,15 +1,12 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Building2, Users, Bot, Maximize2, Minimize2, ZoomIn, ZoomOut,
-  RotateCcw, Sparkles, Shield, DollarSign, Clock, CheckCircle2,
-  AlertCircle, ChevronRight, X, Search, Filter, Play, Pause, ExternalLink,
-  Laptop, Smartphone, Award, TrendingUp, Layers, Compass, Target,
-  Briefcase, BookOpenCheck, Globe, ShoppingBag, Info, MapPin,
-  ChevronDown, ArrowUpRight, Coffee, Microscope, FolderArchive,
-  Car, UserCheck, CheckSquare, FileText, Volume2, VolumeX, MessageSquare,
-  Share2, Radio, Sliders, ChevronUp, RefreshCw
+  Building2, Users, Maximize2, Minimize2, ZoomIn, ZoomOut,
+  RotateCcw, ChevronRight, X, Play, Pause,
+  Compass, Briefcase, ChevronDown, ArrowUpRight, Coffee,
+  Car, Volume2, VolumeX, ChevronUp,
+  ArrowUp, ArrowDown, ArrowLeft, ArrowRight
 } from 'lucide-react';
 import soundEngine from './OfficeSoundEngine';
 import officePanoramicImage from '../../assets/virtual-office/seram_office_hybrid_partitions.jpg';
@@ -402,8 +399,22 @@ export default function VirtualOfficeView({
 
   const [selectedRoomId, setSelectedRoomId] = useState(() => activeTimer?.sectorId || 'direction');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showMobileRoomInfo, setShowMobileRoomInfo] = useState(false);
   const [isSoundMuted, setIsSoundMuted] = useState(() => soundEngine.isMuted());
   const [clickEffect, setClickEffect] = useState(null);
+
+  // Zoom & Pan state - En pantallas móviles < 640px zoom base de 0.68 para visión panorámica óptima
+  const [zoomLevel, setZoomLevel] = useState(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 640) return 0.68;
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) return 0.85;
+    return 1.0;
+  });
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  const containerRef = useRef(null);
+  const floorStageRef = useRef(null);
 
   // Time Tracker Flotante (PiP) sincronizado con el cronómetro global de AppContext
   const [isPipMinimized, setIsPipMinimized] = useState(false);
@@ -435,6 +446,7 @@ export default function VirtualOfficeView({
   const animationFrameRef = useRef(null);
   const lastStepSoundTimeRef = useRef(0);
   const isWalkingRef = useRef(false);
+  const dpadIntervalRef = useRef(null);
 
   // Sincronizar referencia cuando la posición cambia externamente y no está caminando
   useEffect(() => {
@@ -443,11 +455,14 @@ export default function VirtualOfficeView({
     }
   }, [userAvatarPos]);
 
-  // Limpieza de requestAnimationFrame al desmontar
+  // Limpieza de requestAnimationFrame e intervalos al desmontar
   useEffect(() => {
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
+      }
+      if (dpadIntervalRef.current) {
+        clearInterval(dpadIntervalRef.current);
       }
     };
   }, []);
@@ -455,7 +470,7 @@ export default function VirtualOfficeView({
   /**
    * Motor de interpolación de ruta continua a 60fps a través de la cola de waypoints.
    */
-  const navigateAlongPath = (waypoints, finalFacing = null, destinationRoomId = null) => {
+  const navigateAlongPath = useCallback((waypoints, finalFacing = null, destinationRoomId = null) => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
@@ -578,7 +593,98 @@ export default function VirtualOfficeView({
     };
 
     animationFrameRef.current = requestAnimationFrame(stepFrame);
-  };
+  }, [setPartnerSector]);
+
+  // Manejador de navegación Point & Click al hacer clic en el suelo de la oficina
+  const handleFloorClick = useCallback((e) => {
+    if (isDragging) return;
+    const stageRect = floorStageRef.current?.getBoundingClientRect();
+    if (!stageRect) return;
+
+    const clickScreenX = e.clientX - stageRect.left;
+    const clickScreenY = e.clientY - stageRect.top;
+
+    const targetX = Math.round((clickScreenX / stageRect.width) * 100);
+    const targetY = Math.round((clickScreenY / stageRect.height) * 100);
+
+    setClickEffect({ x: targetX, y: targetY, key: Date.now() });
+
+    // Detección de proximidad a alguna de las 13 salas (radio 8%)
+    const closestRoom = OFFICE_ROOMS.find(r => {
+      const dx = r.xPercent - targetX;
+      const dy = r.yPercent - targetY;
+      return Math.hypot(dx, dy) < 8;
+    });
+
+    if (closestRoom) {
+      const seat = getSeatForRoom(closestRoom.id);
+      const path = findPath(currentPosRef.current, { x: seat.x, y: seat.y });
+      navigateAlongPath(path, seat.facing, closestRoom.id);
+    } else {
+      const path = findPath(currentPosRef.current, { x: targetX, y: targetY });
+      navigateAlongPath(path, null, null);
+    }
+  }, [isDragging, navigateAlongPath]);
+
+  const handleSelectRoom = useCallback((roomId) => {
+    const seat = getSeatForRoom(roomId);
+    setClickEffect({ x: seat.x, y: seat.y, key: Date.now() });
+    const path = findPath(currentPosRef.current, { x: seat.x, y: seat.y });
+    navigateAlongPath(path, seat.facing, roomId);
+  }, [navigateAlongPath]);
+
+  // Soporte D-Pad táctil virtual (movimiento continuo paso a paso respetando físicas)
+  const handleDpadStep = useCallback((direction) => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+      pathQueueRef.current = [];
+    }
+
+    let dx = 0;
+    let dy = 0;
+
+    if (direction === 'up') dy -= 1.2;
+    if (direction === 'down') dy += 1.2;
+    if (direction === 'left') dx -= 1.2;
+    if (direction === 'right') dx += 1.2;
+
+    setAvatarFacing(direction);
+
+    const nextX = Math.round((currentPosRef.current.x + dx) * 10) / 10;
+    const nextY = Math.round((currentPosRef.current.y + dy) * 10) / 10;
+
+    if (isPointWalkable(nextX, nextY)) {
+      isWalkingRef.current = true;
+      setIsWalking(true);
+      currentPosRef.current = { x: nextX, y: nextY };
+      setUserAvatarPos({ x: nextX, y: nextY });
+
+      const now = performance.now();
+      if (now - lastStepSoundTimeRef.current > 240) {
+        soundEngine.playFootstep();
+        lastStepSoundTimeRef.current = now;
+      }
+    }
+  }, []);
+
+  const handleDpadEnd = useCallback(() => {
+    if (dpadIntervalRef.current) {
+      clearInterval(dpadIntervalRef.current);
+      dpadIntervalRef.current = null;
+    }
+    isWalkingRef.current = false;
+    setIsWalking(false);
+  }, []);
+
+  const handleDpadStart = useCallback((direction, e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    handleDpadEnd();
+    handleDpadStep(direction);
+    dpadIntervalRef.current = setInterval(() => {
+      handleDpadStep(direction);
+    }, 85);
+  }, [handleDpadEnd, handleDpadStep]);
 
   // Soporte de navegación por teclado: W/A/S/D y Flechas de dirección
   useEffect(() => {
@@ -752,20 +858,6 @@ export default function VirtualOfficeView({
     }
   };
 
-
-  // Zoom & Pan state
-  const [zoomLevel, setZoomLevel] = useState(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 640) return 0.58;
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) return 0.82;
-    return 1.0;
-  });
-  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-
-  const containerRef = useRef(null);
-  const floorStageRef = useRef(null);
-
   // Habitación activa seleccionada
   const activeRoom = useMemo(() => {
     return OFFICE_ROOMS.find(r => r.id === selectedRoomId) || OFFICE_ROOMS[1];
@@ -857,44 +949,6 @@ export default function VirtualOfficeView({
     });
   }, [globalPresences, partnerPresences, currentSocio, activeTimer, partnerActiveStatus, userAvatarPos, partnerAvatarConfigs, avatarFacing, isWalking]);
 
-  // Manejador de navegación Point & Click al hacer clic en el suelo de la oficina
-  const handleFloorClick = (e) => {
-    if (isDragging) return;
-    const stageRect = floorStageRef.current?.getBoundingClientRect();
-    if (!stageRect) return;
-
-    const clickScreenX = e.clientX - stageRect.left;
-    const clickScreenY = e.clientY - stageRect.top;
-
-    const targetX = Math.round((clickScreenX / stageRect.width) * 100);
-    const targetY = Math.round((clickScreenY / stageRect.height) * 100);
-
-    setClickEffect({ x: targetX, y: targetY, key: Date.now() });
-
-    // Detección de proximidad a alguna de las 13 salas (radio 8%)
-    const closestRoom = OFFICE_ROOMS.find(r => {
-      const dx = r.xPercent - targetX;
-      const dy = r.yPercent - targetY;
-      return Math.hypot(dx, dy) < 8;
-    });
-
-    if (closestRoom) {
-      const seat = getSeatForRoom(closestRoom.id);
-      const path = findPath(currentPosRef.current, { x: seat.x, y: seat.y });
-      navigateAlongPath(path, seat.facing, closestRoom.id);
-    } else {
-      const path = findPath(currentPosRef.current, { x: targetX, y: targetY });
-      navigateAlongPath(path, null, null);
-    }
-  };
-
-  const handleSelectRoom = (roomId) => {
-    const seat = getSeatForRoom(roomId);
-    setClickEffect({ x: seat.x, y: seat.y, key: Date.now() });
-    const path = findPath(currentPosRef.current, { x: seat.x, y: seat.y });
-    navigateAlongPath(path, seat.facing, roomId);
-  };
-
   const handleOpenModule = (targetModule) => {
     soundEngine.playModuleOpen();
     if (onNavigateModule) {
@@ -918,12 +972,119 @@ export default function VirtualOfficeView({
     });
   };
 
+  // Gestos táctiles: Touch Pan & Pinch-to-zoom & Tap
+  const touchStateRef = useRef({
+    startTime: 0,
+    startX: 0,
+    startY: 0,
+    lastX: 0,
+    lastY: 0,
+    initialPinchDist: 0,
+    initialZoom: 1.0,
+    hasMoved: false
+  });
+
+  const handleTouchStart = (e) => {
+    if (e.target.closest('.no-drag')) return;
+
+    if (e.touches.length === 1) {
+      const t = e.touches[0];
+      touchStateRef.current = {
+        startTime: Date.now(),
+        startX: t.clientX,
+        startY: t.clientY,
+        lastX: t.clientX,
+        lastY: t.clientY,
+        initialPinchDist: 0,
+        initialZoom: zoomLevel,
+        hasMoved: false
+      };
+    } else if (e.touches.length === 2) {
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      touchStateRef.current = {
+        startTime: Date.now(),
+        startX: (t1.clientX + t2.clientX) / 2,
+        startY: (t1.clientY + t2.clientY) / 2,
+        lastX: (t1.clientX + t2.clientX) / 2,
+        lastY: (t1.clientY + t2.clientY) / 2,
+        initialPinchDist: dist,
+        initialZoom: zoomLevel,
+        hasMoved: true
+      };
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (e.target.closest('.no-drag')) return;
+
+    if (e.touches.length === 1) {
+      const t = e.touches[0];
+      const distMoved = Math.hypot(t.clientX - touchStateRef.current.startX, t.clientY - touchStateRef.current.startY);
+
+      if (distMoved > 6) {
+        touchStateRef.current.hasMoved = true;
+        const dx = t.clientX - touchStateRef.current.lastX;
+        const dy = t.clientY - touchStateRef.current.lastY;
+        touchStateRef.current.lastX = t.clientX;
+        touchStateRef.current.lastY = t.clientY;
+        setPanOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+      }
+    } else if (e.touches.length === 2) {
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      if (touchStateRef.current.initialPinchDist > 0) {
+        const scale = dist / touchStateRef.current.initialPinchDist;
+        const nextZoom = Math.min(Math.max(0.45, touchStateRef.current.initialZoom * scale), 2.2);
+        setZoomLevel(Math.round(nextZoom * 100) / 100);
+      }
+    }
+  };
+
+  const handleTouchEnd = (e) => {
+    if (e.target.closest('.no-drag')) return;
+
+    const duration = Date.now() - touchStateRef.current.startTime;
+    // Si fue un toque rápido sin arrastrar cámara (< 250ms y < 6px), es un TAP para caminar
+    if (!touchStateRef.current.hasMoved && duration < 250) {
+      const stageRect = floorStageRef.current?.getBoundingClientRect();
+      if (stageRect) {
+        const touchX = touchStateRef.current.startX;
+        const touchY = touchStateRef.current.startY;
+        const clickScreenX = touchX - stageRect.left;
+        const clickScreenY = touchY - stageRect.top;
+
+        const targetX = Math.round((clickScreenX / stageRect.width) * 100);
+        const targetY = Math.round((clickScreenY / stageRect.height) * 100);
+
+        setClickEffect({ x: targetX, y: targetY, key: Date.now() });
+
+        const closestRoom = OFFICE_ROOMS.find(r => {
+          const dx = r.xPercent - targetX;
+          const dy = r.yPercent - targetY;
+          return Math.hypot(dx, dy) < 8;
+        });
+
+        if (closestRoom) {
+          const seat = getSeatForRoom(closestRoom.id);
+          const path = findPath(currentPosRef.current, { x: seat.x, y: seat.y });
+          navigateAlongPath(path, seat.facing, closestRoom.id);
+        } else {
+          const path = findPath(currentPosRef.current, { x: targetX, y: targetY });
+          navigateAlongPath(path, null, null);
+        }
+      }
+    }
+  };
+
   const handleZoom = (delta) => {
     setZoomLevel(prev => Math.min(Math.max(0.45, prev + delta), 2.2));
   };
 
   const handleResetView = () => {
-    setZoomLevel(typeof window !== 'undefined' && window.innerWidth < 640 ? 0.58 : 1.0);
+    setZoomLevel(typeof window !== 'undefined' && window.innerWidth < 640 ? 0.68 : 1.0);
     setPanOffset({ x: 0, y: 0 });
     soundEngine.playDeskClick();
   };
@@ -941,7 +1102,10 @@ export default function VirtualOfficeView({
       ref={containerRef}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
-      className="relative w-full h-full overflow-hidden bg-[#14100c] cursor-crosshair select-none [image-rendering:pixelated]"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      className="relative w-full h-full overflow-hidden bg-[#14100c] cursor-crosshair select-none touch-none [image-rendering:pixelated]"
       style={{ imageRendering: 'pixelated' }}
     >
       {/* Escenario Panorámico 16:9 Escalable con Zoom & Pan */}
@@ -1099,6 +1263,66 @@ export default function VirtualOfficeView({
         )}
       </div>
 
+      {/* ── D-PAD VIRTUAL TÁCTIL (WASD TOUCH) ── */}
+      <div className="absolute bottom-4 left-4 z-40 select-none no-drag">
+        <div className="bg-black/75 border border-white/20 backdrop-blur-md rounded-2xl p-1.5 sm:p-2 shadow-2xl flex flex-col items-center gap-1">
+          {/* Botón Arriba (W) */}
+          <button
+            onPointerDown={(e) => handleDpadStart('up', e)}
+            onPointerUp={handleDpadEnd}
+            onPointerLeave={handleDpadEnd}
+            onPointerCancel={handleDpadEnd}
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/10 active:bg-amber-400 active:text-slate-950 hover:bg-white/20 text-slate-200 flex items-center justify-center text-xs font-black transition-all shadow-md active:scale-90"
+            title="Mover Arriba (W)"
+          >
+            <ArrowUp className="w-4 h-4" />
+          </button>
+
+          <div className="flex items-center gap-1">
+            {/* Botón Izquierda (A) */}
+            <button
+              onPointerDown={(e) => handleDpadStart('left', e)}
+              onPointerUp={handleDpadEnd}
+              onPointerLeave={handleDpadEnd}
+              onPointerCancel={handleDpadEnd}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/10 active:bg-amber-400 active:text-slate-950 hover:bg-white/20 text-slate-200 flex items-center justify-center text-xs font-black transition-all shadow-md active:scale-90"
+              title="Mover Izquierda (A)"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+
+            {/* Centro decorativo de orientación */}
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-400/20 border border-amber-400/30 flex items-center justify-center text-[9px] font-black text-amber-300">
+              <Compass className="w-3.5 h-3.5" />
+            </div>
+
+            {/* Botón Derecha (D) */}
+            <button
+              onPointerDown={(e) => handleDpadStart('right', e)}
+              onPointerUp={handleDpadEnd}
+              onPointerLeave={handleDpadEnd}
+              onPointerCancel={handleDpadEnd}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/10 active:bg-amber-400 active:text-slate-950 hover:bg-white/20 text-slate-200 flex items-center justify-center text-xs font-black transition-all shadow-md active:scale-90"
+              title="Mover Derecha (D)"
+            >
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Botón Abajo (S) */}
+          <button
+            onPointerDown={(e) => handleDpadStart('down', e)}
+            onPointerUp={handleDpadEnd}
+            onPointerLeave={handleDpadEnd}
+            onPointerCancel={handleDpadEnd}
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/10 active:bg-amber-400 active:text-slate-950 hover:bg-white/20 text-slate-200 flex items-center justify-center text-xs font-black transition-all shadow-md active:scale-90"
+            title="Mover Abajo (S)"
+          >
+            <ArrowDown className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
       {/* ── CONTROLES FLOTANTES HUD (INFERIOR DERECHA) ── */}
       <div className="absolute bottom-4 right-4 z-30 flex items-center gap-1.5 bg-black/80 border border-white/15 rounded-2xl p-1.5 backdrop-blur-md shadow-2xl text-xs text-white no-drag">
         <button
@@ -1157,15 +1381,29 @@ export default function VirtualOfficeView({
       </div>
 
       {/* Rótulo de guía interactiva Point & Click y Teclado */}
-      <div className="absolute bottom-4 left-4 z-30 hidden sm:flex items-center gap-2 bg-black/75 border border-white/10 rounded-xl px-3 py-1.5 backdrop-blur-sm text-[11px] text-slate-300 pointer-events-none">
+      <div className="absolute top-4 right-4 z-30 hidden lg:flex items-center gap-2 bg-black/75 border border-white/10 rounded-xl px-3 py-1.5 backdrop-blur-sm text-[11px] text-slate-300 pointer-events-none">
         <Compass className="w-3.5 h-3.5 text-amber-400" />
-        <span>Haz clic o usa W/A/S/D para caminar por los pasillos · Toca cualquier oficina para ir a su estación</span>
+        <span>Haz clic, usa D-Pad o W/A/S/D para caminar · Pellizca con 2 dedos para zoom</span>
       </div>
+
+      {/* ── PANTALLA COMPLETA: BOTÓN PASTILLA FLOTANTE COMPACTA "INFO SALA" ── */}
+      {isFullMode && (
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-40 no-drag">
+          <button
+            onClick={() => setShowMobileRoomInfo(true)}
+            className="px-4 py-2 rounded-full bg-slate-950/95 hover:bg-slate-900 border border-amber-400/60 text-white font-bold text-xs flex items-center gap-2 shadow-2xl backdrop-blur-md transition-all active:scale-95 group"
+          >
+            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: activeRoom.color }} />
+            <span>📋 Ver Info Sala ({activeRoom.name})</span>
+            <ChevronUp className="w-3.5 h-3.5 text-amber-400 group-hover:-translate-y-0.5 transition-transform" />
+          </button>
+        </div>
+      )}
     </div>
   );
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // RENDER: DRAWER INFERIOR TIPO 'FÁBRICA VIVA' (BOT & MÓDULO OPERATIVO)
+  // RENDER: DRAWER INFERIOR TIPO 'FÁBRICA VIVA' (MODO EMBEBIDO ESTÁNDAR)
   // ─────────────────────────────────────────────────────────────────────────────
   const renderRoomDrawer = () => (
     <AnimatePresence>
@@ -1260,7 +1498,7 @@ export default function VirtualOfficeView({
               </h2>
             </div>
             <p className="text-xs text-slate-400 font-medium line-clamp-1">
-              Planta abierta con parquet de roble, ventanales luminosos y navegación Point & Click para los 3 socios
+              Planta abierta con parquet de roble, mamparas acristaladas y controles táctiles para los 3 socios
             </p>
           </div>
         </div>
@@ -1344,10 +1582,10 @@ export default function VirtualOfficeView({
         {renderOfficeCanvas(false)}
       </div>
 
-      {/* ── INSPECTOR INFERIOR TIPO FÁBRICA VIVA ── */}
+      {/* ── INSPECTOR INFERIOR TIPO FÁBRICA VIVA EN MODO NORMAL ── */}
       {renderRoomDrawer()}
 
-      {/* ── OVERLAY PANTALLA COMPLETA (REACT PORTAL) ── */}
+      {/* ── OVERLAY PANTALLA COMPLETA 100% REAL (REACT PORTAL) ── */}
       {isFullscreen && typeof document !== 'undefined' && createPortal(
         <div
           className="fixed inset-0 z-[99999999] w-screen h-[100dvh] bg-[#120d09] flex flex-col overflow-hidden select-none text-left"
@@ -1368,7 +1606,7 @@ export default function VirtualOfficeView({
               <Building2 className="w-4 h-4 text-amber-400" />
               <span className="text-xs sm:text-sm font-black text-white">Oficina Virtual SERAM SRL</span>
               <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-mono hidden sm:inline">
-                Planta Panorámica 16:9 Pixel-Art
+                Pantalla Completa 100%
               </span>
             </div>
 
@@ -1383,13 +1621,99 @@ export default function VirtualOfficeView({
             </div>
           </div>
 
-          {/* Lienzo en Pantalla Completa */}
+          {/* Lienzo al 100% sin ser aplastado por el drawer inferior */}
           <div className="relative flex-1 w-full h-full overflow-hidden">
             {renderOfficeCanvas(true)}
           </div>
 
-          {/* Drawer Inferior */}
-          {renderRoomDrawer()}
+          {/* MODAL / BOTTOM SHEET FLOTANTE PARA VER INFO SALA EN PANTALLA COMPLETA */}
+          <AnimatePresence>
+            {showMobileRoomInfo && activeRoom && (
+              <div className="fixed inset-0 z-[100000000] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm">
+                <motion.div
+                  initial={{ opacity: 0, y: 100 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 100 }}
+                  className="w-full sm:max-w-xl bg-[#18110b] border border-amber-500/40 rounded-t-3xl sm:rounded-2xl p-5 shadow-2xl text-left relative max-h-[85vh] overflow-y-auto"
+                >
+                  <button
+                    onClick={() => setShowMobileRoomInfo(false)}
+                    className="absolute top-4 right-4 p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors"
+                    title="Cerrar detalles"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+
+                  <div className="flex items-center gap-4 mb-4">
+                    <div
+                      className="w-14 h-14 rounded-2xl border flex items-center justify-center text-2xl shrink-0 shadow-xl"
+                      style={{
+                        backgroundColor: `${activeRoom.color}15`,
+                        borderColor: `${activeRoom.color}40`,
+                        color: activeRoom.color
+                      }}
+                    >
+                      {activeRoom.bot?.avatar || <Building2 className="w-6 h-6" />}
+                    </div>
+
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full border bg-white/5 border-white/15 text-slate-300 font-mono">
+                          SALA {activeRoom.number}
+                        </span>
+                        <span
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
+                          style={{
+                            backgroundColor: `${activeRoom.color}20`,
+                            borderColor: `${activeRoom.color}50`,
+                            color: activeRoom.color
+                          }}
+                        >
+                          {activeRoom.wing}
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-black text-white mt-0.5">
+                        {activeRoom.name}
+                      </h3>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 text-xs">
+                    <div className="bg-black/40 border border-white/10 rounded-xl p-3">
+                      <span className="text-amber-400 font-bold block mb-1">Subagente / Bot:</span>
+                      <p className="text-slate-200">
+                        {activeRoom.bot ? `${activeRoom.bot.name} — ${activeRoom.bot.status}` : activeRoom.subtitle}
+                      </p>
+                    </div>
+
+                    <p className="text-slate-300 leading-relaxed">
+                      {activeRoom.description}
+                    </p>
+
+                    {activeRoom.isRecreationRoom && (
+                      <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs">
+                        <Coffee className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span>Horas en pausa · Zona de café y descanso</span>
+                      </div>
+                    )}
+
+                    <div className="pt-2 flex gap-3">
+                      <button
+                        onClick={() => {
+                          setShowMobileRoomInfo(false);
+                          handleOpenModule(activeRoom.targetModule);
+                        }}
+                        className="flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-xl shadow-amber-500/20 active:scale-95"
+                      >
+                        <span>Abrir Módulo ({activeRoom.name})</span>
+                        <ArrowUpRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
         </div>,
         document.body
       )}
