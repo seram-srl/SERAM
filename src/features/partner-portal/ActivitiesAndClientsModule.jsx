@@ -8,7 +8,8 @@ import {
   Layers, BarChart2, TrendingUp, ChevronRight, PanelRightClose,
   ShieldCheck, Award, Scale, Gift, Table, ChevronLeft,
   Target, Users, UserCheck, Link2, Zap,
-  Download, Upload, Paperclip, Share2, FileDown, Timer, Flame
+  Download, Upload, Paperclip, Share2, FileDown, Timer, Flame,
+  Copy
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { calculateTaskXP, validateCrossApproval } from './gamification/xpEngine';
@@ -274,24 +275,84 @@ La Paz, Bolivia`;
   window.open(mailtoUrl, '_blank');
 };
 
-// ── DESCARGA DE ENTREGABLES (BASE64 DATAURI & URLS) ─────────────────────────
-const handleDownloadDeliverable = (act) => {
+// ── MOTOR INTELIGENTE DE DESCARGA DE ENTREGABLES (BASE64, GOOGLE DOCS/SHEETS/DRIVE & URLS) ───
+const handleDownloadDeliverable = (act, triggerToast = null) => {
+  if (!act) return;
   const url = act.deliverableUrl || act.url;
-  if (!url) return;
+  if (!url) {
+    if (triggerToast) triggerToast('No hay documento o enlace disponible para descargar', 'error');
+    return;
+  }
 
-  // Si es DataURI o archivo directo con extensión
-  if (url.startsWith('data:') || /\.(pdf|jpg|jpeg|png|md|txt|docx|xlsx|zip)($|\?)/i.test(url)) {
+  const title = act.title || 'entregable_seram';
+  const cleanTitle = title.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const defaultBaseName = act.deliverableName || `${cleanTitle}_entregable`;
+
+  // 1. Google Docs: Exportación directa a PDF (/export?format=pdf)
+  const docMatch = url.match(/docs\.google\.com\/document\/d\/([a-zA-Z0-9_-]+)/i);
+  if (docMatch && docMatch[1]) {
+    const exportUrl = `https://docs.google.com/document/d/${docMatch[1]}/export?format=pdf`;
     const link = document.createElement('a');
-    link.href = url;
-    const defaultName = act.deliverableName || `${act.title.replace(/[^a-zA-Z0-9_-]/g, '_')}_entregable`;
-    link.download = defaultName;
+    link.href = exportUrl;
+    link.setAttribute('download', defaultBaseName.endsWith('.pdf') ? defaultBaseName : `${defaultBaseName}.pdf`);
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  } else {
-    // Es enlace externo (Google Drive, Docs, Notion, web)
-    window.open(url, '_blank', 'noopener,noreferrer');
+    if (triggerToast) triggerToast('Iniciando descarga directa de Google Docs en formato PDF...', 'info');
+    return;
   }
+
+  // 2. Google Sheets: Exportación directa a PDF (/export?format=pdf)
+  const sheetMatch = url.match(/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/i);
+  if (sheetMatch && sheetMatch[1]) {
+    const exportUrl = `https://docs.google.com/spreadsheets/d/${sheetMatch[1]}/export?format=pdf`;
+    const link = document.createElement('a');
+    link.href = exportUrl;
+    link.setAttribute('download', defaultBaseName.endsWith('.pdf') ? defaultBaseName : `${defaultBaseName}_planilla.pdf`);
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    if (triggerToast) triggerToast('Iniciando descarga directa de Google Sheets en formato PDF...', 'info');
+    return;
+  }
+
+  // 3. Google Drive: Enlace de descarga directa (uc?export=download&id=...)
+  const driveMatch = url.match(/drive\.google\.com\/(?:file\/d\/([a-zA-Z0-9_-]+)|open\?id=([a-zA-Z0-9_-]+)|uc\?id=([a-zA-Z0-9_-]+))/i);
+  if (driveMatch) {
+    const fileId = driveMatch[1] || driveMatch[2] || driveMatch[3];
+    if (fileId) {
+      const directDownloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+      const link = document.createElement('a');
+      link.href = directDownloadUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      if (triggerToast) triggerToast('Descargando archivo desde Google Drive...', 'info');
+      return;
+    }
+  }
+
+  // 4. DataURI (Base64) o archivo con extensión directa (.pdf, .jpg, .png, .md, .docx, .zip, etc.)
+  if (url.startsWith('data:') || /\.(pdf|jpg|jpeg|png|md|txt|docx|xlsx|zip|rar|csv)($|\?)/i.test(url)) {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = defaultBaseName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    if (triggerToast) triggerToast(`Descargando entregable: ${act.deliverableName || 'Documento'}`, 'info');
+    return;
+  }
+
+  // 5. Cualquier otra URL web: abrir en pestaña segura
+  window.open(url, '_blank', 'noopener,noreferrer');
+  if (triggerToast) triggerToast('Abriendo enlace del documento en nueva pestaña...', 'info');
 };
 
 export default function ActivitiesAndClientsModule({ currentSocio }) {
@@ -335,6 +396,42 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
   // Slide-over Drawer lateral (Ficha detallada sin modales invasivos)
   const [drawerActivity, setDrawerActivity] = useState(null);
   const [drawerData, setDrawerData] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
+
+  // Copiado al Portapapeles con Feedback Visual y Toast
+  const handleCopyLink = async (url, id = 'drawer') => {
+    if (!url) {
+      if (triggerToast) triggerToast('No hay enlace disponible para copiar', 'error');
+      return;
+    }
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopiedId(id);
+      if (triggerToast) {
+        triggerToast('¡Enlace copiado al portapapeles!', 'success');
+      }
+      setTimeout(() => {
+        setCopiedId(null);
+      }, 2500);
+    } catch (err) {
+      console.warn('Error al copiar enlace:', err);
+      if (triggerToast) {
+        triggerToast('No se pudo copiar el enlace', 'error');
+      }
+    }
+  };
 
   const getMilestoneStep = (act) => {
     if (!act) return 0;
@@ -1327,17 +1424,48 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
 
                                     <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                                       {(act.deliverableUrl || act.url) && (
-                                        <button
-                                          type="button"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDownloadDeliverable(act);
-                                          }}
-                                          className="p-1 rounded hover:bg-sky-500/20 text-sky-400 transition-colors cursor-pointer"
-                                          title="Descargar entregable / abrir enlace"
-                                        >
-                                          <FileDown className="w-3 h-3" />
-                                        </button>
+                                        <>
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleDownloadDeliverable(act, triggerToast);
+                                            }}
+                                            className="p-1 rounded hover:bg-[#00e03c]/20 text-[#00e03c] transition-colors cursor-pointer"
+                                            title="Descargar documento compartido / entregable"
+                                          >
+                                            <Download className="w-3 h-3" />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleCopyLink(act.url || act.deliverableUrl, `kanban-${act.id}`);
+                                            }}
+                                            className={`p-1 rounded transition-colors cursor-pointer ${
+                                              copiedId === `kanban-${act.id}`
+                                                ? 'bg-[#00e03c]/20 text-[#00e03c]'
+                                                : 'hover:bg-white/[0.1] text-slate-400 hover:text-white'
+                                            }`}
+                                            title={copiedId === `kanban-${act.id}` ? "¡Enlace copiado!" : "Copiar enlace al portapapeles"}
+                                          >
+                                            {copiedId === `kanban-${act.id}` ? (
+                                              <Check className="w-3 h-3 text-[#00e03c]" />
+                                            ) : (
+                                              <Copy className="w-3 h-3" />
+                                            )}
+                                          </button>
+                                          <a
+                                            href={act.url || act.deliverableUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="p-1 rounded hover:bg-sky-500/20 text-sky-400 transition-colors cursor-pointer"
+                                            title="Abrir enlace externo"
+                                          >
+                                            <ExternalLink className="w-3 h-3" />
+                                          </a>
+                                        </>
                                       )}
                                       <button
                                         type="button"
@@ -1605,31 +1733,61 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                           <td className="p-3 whitespace-nowrap">
                             {act.url || act.deliverableUrl ? (
                               <div className="flex items-center gap-1.5">
+                                {/* Botón Descargar con Nombre/Icono */}
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleDownloadDeliverable(act);
+                                    handleDownloadDeliverable(act, triggerToast);
                                   }}
-                                  className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-[11px] text-sky-300 font-mono transition-colors max-w-[130px] truncate cursor-pointer shadow-sm"
-                                  title={act.deliverableName || act.url || act.deliverableUrl}
+                                  className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[#00e03c]/15 hover:bg-[#00e03c]/25 border border-[#00e03c]/30 text-[11px] text-[#00e03c] font-mono font-medium transition-colors max-w-[130px] truncate cursor-pointer shadow-sm"
+                                  title={`Descargar entregable: ${act.deliverableName || act.url || act.deliverableUrl}`}
                                 >
-                                  {act.deliverableName?.endsWith('.pdf') ? (
-                                    <FileText className="w-3 h-3 text-rose-400 shrink-0" />
-                                  ) : (act.url?.startsWith('data:') || act.deliverableUrl?.startsWith('data:')) ? (
-                                    <FileDown className="w-3 h-3 text-emerald-400 shrink-0" />
-                                  ) : (
-                                    <ExternalLink className="w-3 h-3 text-sky-400 shrink-0" />
-                                  )}
+                                  <Download className="w-3 h-3 shrink-0 text-[#00e03c]" />
                                   <span className="truncate">{act.deliverableName || (act.url || act.deliverableUrl).replace(/^https?:\/\//, '')}</span>
                                 </button>
+
+                                {/* Botón Copiar Enlace al Portapapeles */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCopyLink(act.url || act.deliverableUrl, act.id);
+                                  }}
+                                  className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
+                                    copiedId === act.id
+                                      ? 'bg-[#00e03c]/20 border-[#00e03c]/50 text-[#00e03c]'
+                                      : 'bg-white/[0.04] hover:bg-white/[0.1] border-white/[0.08] text-slate-300 hover:text-white'
+                                  }`}
+                                  title={copiedId === act.id ? "¡Enlace copiado al portapapeles!" : "Copiar enlace al portapapeles"}
+                                >
+                                  {copiedId === act.id ? (
+                                    <Check className="w-3 h-3 text-[#00e03c]" />
+                                  ) : (
+                                    <Copy className="w-3 h-3" />
+                                  )}
+                                </button>
+
+                                {/* Botón Abrir Enlace en pestaña externa */}
+                                <a
+                                  href={act.url || act.deliverableUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-sky-500/20 text-slate-400 hover:text-sky-300 border border-white/[0.08] transition-colors cursor-pointer"
+                                  title="Abrir enlace externo en nueva pestaña"
+                                >
+                                  <ExternalLink className="w-3 h-3" />
+                                </a>
+
+                                {/* Botón Compartir al Correo */}
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleShareActivityEmail(act);
                                   }}
-                                  className="p-1 rounded-lg bg-white/[0.04] hover:bg-amber-500/20 text-slate-400 hover:text-amber-300 border border-white/[0.08] transition-colors cursor-pointer"
+                                  className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-amber-500/20 text-slate-400 hover:text-amber-300 border border-white/[0.08] transition-colors cursor-pointer"
                                   title="Compartir al correo (mailto)"
                                 >
                                   <Mail className="w-3 h-3" />
@@ -2552,9 +2710,32 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                 {/* Enlace y Entregable */}
                 <div className="space-y-2 p-3 rounded-2xl bg-white/[0.03] border border-sky-500/20">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-sky-400 flex items-center gap-1">
-                      <Link2 className="w-3 h-3" /> URL del Entregable / Carpeta Drive
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-black uppercase text-sky-400 flex items-center gap-1">
+                        <Link2 className="w-3 h-3" /> URL del Entregable / Carpeta Drive
+                      </label>
+                      {actDeliverableUrl && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleCopyLink(actDeliverableUrl, 'modal-url')}
+                            className="text-[10px] text-slate-300 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
+                            title="Copiar enlace"
+                          >
+                            {copiedId === 'modal-url' ? <Check className="w-2.5 h-2.5 text-[#00e03c]" /> : <Copy className="w-2.5 h-2.5" />}
+                            <span>{copiedId === 'modal-url' ? '¡Copiado!' : 'Copiar'}</span>
+                          </button>
+                          <a
+                            href={actDeliverableUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] text-sky-300 hover:text-white flex items-center gap-0.5 underline font-medium"
+                          >
+                            <ExternalLink className="w-2.5 h-2.5" /> Abrir
+                          </a>
+                        </div>
+                      )}
+                    </div>
                     <input
                       type="url"
                       placeholder="https://docs.google.com/... o https://drive.google.com/..."
@@ -3133,8 +3314,69 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                       <span className="text-[10px] text-slate-400">PDF, JPG, PNG, MD (Hasta 25 MB)</span>
                     </div>
 
+                    {/* Tarjeta Destacada de Documento Compartido por el Otro Socio */}
+                    {(drawerData.url || drawerData.deliverableUrl) && drawerData.assignedPartner && currentSocio?.name && drawerData.assignedPartner !== currentSocio?.name && (
+                      <div className="p-3.5 rounded-xl bg-gradient-to-r from-emerald-500/15 via-sky-500/10 to-transparent border border-emerald-500/30 text-xs space-y-2.5 shadow-md">
+                        <div className="flex items-start gap-2.5">
+                          <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
+                            <FileText className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-white font-bold text-xs flex items-center gap-1.5 flex-wrap">
+                              <span>📄 Documento Compartido por</span>
+                              <span className="text-emerald-400 font-black">{drawerData.assignedPartner}:</span>
+                            </p>
+                            <p className="text-[11px] text-slate-300 font-mono mt-0.5 truncate max-w-full">
+                              {drawerData.deliverableName || drawerData.url || drawerData.deliverableUrl}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-wrap pt-1.5 border-t border-white/[0.08]">
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadDeliverable(drawerData, triggerToast)}
+                            className="px-3 py-1.5 rounded-lg bg-[#00e03c]/20 hover:bg-[#00e03c]/30 text-[#00e03c] border border-[#00e03c]/40 font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                          >
+                            <Download className="w-3.5 h-3.5" /> Descargar Documento Compartido
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleCopyLink(drawerData.url || drawerData.deliverableUrl, 'drawer-shared')}
+                            className={`px-3 py-1.5 rounded-lg border font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                              copiedId === 'drawer-shared'
+                                ? 'bg-[#00e03c]/20 border-[#00e03c]/50 text-[#00e03c]'
+                                : 'bg-white/[0.08] hover:bg-white/[0.15] text-slate-200 border-white/[0.15]'
+                            }`}
+                          >
+                            {copiedId === 'drawer-shared' ? (
+                              <>
+                                <Check className="w-3.5 h-3.5 text-[#00e03c]" />
+                                <span>¡Copiado!</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3.5 h-3.5" />
+                                <span>Copiar Enlace</span>
+                              </>
+                            )}
+                          </button>
+
+                          <a
+                            href={drawerData.url || drawerData.deliverableUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/30 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" /> Abrir
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
                     {/* URL Externa */}
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
                       <div className="flex items-center justify-between text-[11px]">
                         <span className="text-slate-400 font-medium">Enlace Web o Drive:</span>
                         {(drawerData.url || drawerData.deliverableUrl) && (
@@ -3155,6 +3397,50 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                         onChange={(e) => setDrawerData(prev => ({ ...prev, url: e.target.value, deliverableUrl: e.target.value }))}
                         className="w-full px-3 py-2 bg-white/[0.06] border border-sky-500/30 rounded-xl text-white font-mono text-xs placeholder-slate-500 focus:outline-none focus:border-sky-400"
                       />
+
+                      {/* Barra de Acciones Inmediatas para el Enlace / Documento URL */}
+                      {(drawerData.url || drawerData.deliverableUrl) && (
+                        <div className="flex items-center gap-2 pt-1 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={() => handleCopyLink(drawerData.url || drawerData.deliverableUrl, 'drawer-input')}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 border transition-all cursor-pointer ${
+                              copiedId === 'drawer-input'
+                                ? 'bg-[#00e03c]/20 border-[#00e03c]/50 text-[#00e03c]'
+                                : 'bg-white/[0.06] hover:bg-white/[0.12] border-white/[0.12] text-slate-300'
+                            }`}
+                          >
+                            {copiedId === 'drawer-input' ? (
+                              <>
+                                <Check className="w-3.5 h-3.5 text-[#00e03c]" />
+                                <span>¡Copiado!</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3.5 h-3.5" />
+                                <span>Copiar Enlace</span>
+                              </>
+                            )}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadDeliverable(drawerData, triggerToast)}
+                            className="px-2.5 py-1 rounded-lg bg-[#00e03c]/20 hover:bg-[#00e03c]/30 text-[#00e03c] border border-[#00e03c]/30 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                          >
+                            <Download className="w-3.5 h-3.5" /> Descargar Documento
+                          </button>
+
+                          <a
+                            href={drawerData.url || drawerData.deliverableUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2.5 py-1 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/30 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" /> Abrir Enlace
+                          </a>
+                        </div>
+                      )}
                     </div>
 
                     {/* Dropzone / Upload de archivo */}
@@ -3195,11 +3481,25 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                             <div className="flex items-center gap-2">
                               <button
                                 type="button"
-                                onClick={() => handleDownloadDeliverable(drawerData)}
-                                className="px-2.5 py-1 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                                onClick={() => handleDownloadDeliverable(drawerData, triggerToast)}
+                                className="px-2.5 py-1 rounded-lg bg-[#00e03c]/20 hover:bg-[#00e03c]/30 text-[#00e03c] border border-[#00e03c]/30 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
                               >
-                                <FileDown className="w-3.5 h-3.5" /> Descargar
+                                <Download className="w-3.5 h-3.5" /> Descargar
                               </button>
+                              {(drawerData.deliverableUrl || drawerData.url) && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopyLink(drawerData.deliverableUrl || drawerData.url, 'drawer-file-main')}
+                                  className={`p-1 rounded-lg border transition-colors cursor-pointer ${
+                                    copiedId === 'drawer-file-main'
+                                      ? 'bg-[#00e03c]/20 border-[#00e03c]/50 text-[#00e03c]'
+                                      : 'bg-white/[0.04] hover:bg-white/[0.1] border-white/[0.08] text-slate-300'
+                                  }`}
+                                  title={copiedId === 'drawer-file-main' ? "¡Copiado!" : "Copiar enlace"}
+                                >
+                                  {copiedId === 'drawer-file-main' ? <Check className="w-3.5 h-3.5 text-[#00e03c]" /> : <Copy className="w-3.5 h-3.5" />}
+                                </button>
+                              )}
                               <button
                                 type="button"
                                 onClick={() => setDrawerData(prev => ({ ...prev, deliverableName: null, deliverableUrl: null }))}
