@@ -32,7 +32,7 @@ export const OFFICE_ROOMS = [
     targetModule: 'users',
     color: '#3b82f6',
     xPercent: 12,
-    yPercent: 22,
+    yPercent: 53,
     lead: 'Gerencia Administrativa',
     role: 'Gobierno Corporativo',
     bot: {
@@ -52,8 +52,8 @@ export const OFFICE_ROOMS = [
     wing: 'Ala Ejecutiva',
     targetModule: 'services',
     color: '#f59e0b',
-    xPercent: 23.5,
-    yPercent: 33,
+    xPercent: 16,
+    yPercent: 24,
     lead: 'Ing. Diego Barrientos',
     role: 'Socio Fundador · Dirección General',
     leadInitials: 'DB',
@@ -74,8 +74,8 @@ export const OFFICE_ROOMS = [
     wing: 'Ala Técnica',
     targetModule: 'services',
     color: '#0284c7',
-    xPercent: 50,
-    yPercent: 35,
+    xPercent: 91,
+    yPercent: 31,
     lead: 'Ing. Fernando Araujo',
     role: 'Socio Directivo · Hidráulica & Obras',
     leadInitials: 'FA',
@@ -96,8 +96,8 @@ export const OFFICE_ROOMS = [
     wing: 'Ala Comercial',
     targetModule: 'activities',
     color: '#e11d48',
-    xPercent: 87,
-    yPercent: 68,
+    xPercent: 80,
+    yPercent: 73,
     lead: 'Gerencia Comercial B2B',
     role: 'Captación & SICOES',
     bot: {
@@ -117,8 +117,8 @@ export const OFFICE_ROOMS = [
     wing: 'Núcleo Central',
     targetModule: 'services',
     color: '#059669',
-    xPercent: 58,
-    yPercent: 36,
+    xPercent: 14,
+    yPercent: 52,
     lead: 'Equipo Técnico Central',
     role: 'Servicios Ambientales',
     bot: {
@@ -138,8 +138,8 @@ export const OFFICE_ROOMS = [
     wing: 'Núcleo Central',
     targetModule: 'activities',
     color: '#f97316',
-    xPercent: 14,
-    yPercent: 52,
+    xPercent: 18,
+    yPercent: 44,
     lead: 'Equipo de Crecimiento',
     role: 'Growth & Alianzas',
     bot: {
@@ -159,8 +159,8 @@ export const OFFICE_ROOMS = [
     wing: 'Núcleo Central',
     targetModule: 'finances',
     color: '#eab308',
-    xPercent: 36,
-    yPercent: 20,
+    xPercent: 77,
+    yPercent: 73,
     lead: 'Gobernanza Financiera',
     role: 'Bóveda & Distribución',
     bot: {
@@ -180,8 +180,8 @@ export const OFFICE_ROOMS = [
     wing: 'Ala Colaborativa',
     targetModule: 'overview',
     color: '#d97706',
-    xPercent: 65,
-    yPercent: 64,
+    xPercent: 57,
+    yPercent: 33,
     lead: 'Directorio Plenario',
     role: 'Asamblea de Socios',
     isMeetingRoom: true,
@@ -203,7 +203,7 @@ export const OFFICE_ROOMS = [
     targetModule: 'timetracker',
     color: '#10b981',
     xPercent: 28,
-    yPercent: 76,
+    yPercent: 80,
     lead: 'Zona de Pausa & Diligencias',
     role: 'Descanso / Horas Detenidas',
     isRecreationRoom: true,
@@ -224,8 +224,8 @@ export const OFFICE_ROOMS = [
     wing: 'Ala Académica',
     targetModule: 'products',
     color: '#8b5cf6',
-    xPercent: 69,
-    yPercent: 82,
+    xPercent: 85,
+    yPercent: 73,
     lead: 'SERAM Campus Virtual',
     role: 'Educación & Certificados',
     bot: {
@@ -245,8 +245,8 @@ export const OFFICE_ROOMS = [
     wing: 'Ala de Campo',
     targetModule: 'experience',
     color: '#06b6d4',
-    xPercent: 82,
-    yPercent: 35,
+    xPercent: 91,
+    yPercent: 54,
     lead: 'Ing. Fabricio Orosco',
     role: 'Socio Directivo · Calidad & Expansión',
     leadInitials: 'FO',
@@ -267,8 +267,8 @@ export const OFFICE_ROOMS = [
     wing: 'Ala Creativa',
     targetModule: 'activities',
     color: '#ec4899',
-    xPercent: 48,
-    yPercent: 72,
+    xPercent: 50,
+    yPercent: 76,
     lead: 'Estudio de Contenido',
     role: 'Difusión & Divulgación',
     bot: {
@@ -288,7 +288,7 @@ export const OFFICE_ROOMS = [
     wing: 'Ala Científica',
     targetModule: 'services',
     color: '#14b8a6',
-    xPercent: 92,
+    xPercent: 85,
     yPercent: 22,
     lead: 'Laboratorio Pericial',
     role: 'I+D Ambiental',
@@ -728,7 +728,7 @@ export default function VirtualOfficeView({
       if (isTimerRunning) pausePartnerTimer();
     } else if (status === 'commission') {
       soundEngine.playCoffeeBrew();
-      const commissionSpot = { x: 25, y: 73 };
+      const commissionSpot = { x: 27, y: 92 };
       const path = findPath(currentPosRef.current, commissionSpot);
       navigateAlongPath(path, 'up', 'recreation');
       if (isTimerRunning) pausePartnerTimer();
@@ -781,7 +781,7 @@ export default function VirtualOfficeView({
         shortName: 'Diego',
         initials: 'DB',
         hairColor: '#2b1d0c',
-        homeCoords: { x: 23.5, y: 30 }
+        homeCoords: { x: 16, y: 24 }
       },
       {
         id: 'fernando',
@@ -790,7 +790,7 @@ export default function VirtualOfficeView({
         shortName: 'Fernando',
         initials: 'FA',
         hairColor: '#1a1a1a',
-        homeCoords: { x: 50, y: 34 }
+        homeCoords: { x: 91, y: 31 }
       },
       {
         id: 'fabricio',
@@ -799,14 +799,14 @@ export default function VirtualOfficeView({
         shortName: 'Fabricio',
         initials: 'FO',
         hairColor: '#3d2b1f',
-        homeCoords: { x: 82, y: 34 }
+        homeCoords: { x: 91, y: 54 }
       }
     ];
 
     const recreationSpots = [
-      { x: 25, y: 73 },
-      { x: 31, y: 73 },
-      { x: 28, y: 82 }
+      { x: 28, y: 80 },
+      { x: 39, y: 80 },
+      { x: 27, y: 92 }
     ];
 
     const effectivePresences = globalPresences || partnerPresences || {};
