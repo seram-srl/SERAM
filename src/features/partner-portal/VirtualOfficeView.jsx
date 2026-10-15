@@ -12,7 +12,7 @@ import {
   Share2, Radio, Sliders, ChevronUp, RefreshCw
 } from 'lucide-react';
 import soundEngine from './OfficeSoundEngine';
-import officeHdImage from '../../assets/virtual-office/seram_isometric_office_hd.jpg';
+import officePanoramicImage from '../../assets/virtual-office/seram_office_pixelart_panoramic.jpg';
 import { useApp } from '../../context/AppContext';
 import PartnerAvatar25D from './avatar/PartnerAvatar25D';
 import { normalizeAvatarConfig, loadStoredProfileAvatarConfigs } from './avatar/avatarCatalog';
@@ -30,7 +30,7 @@ export const OFFICE_ROOMS = [
     wing: 'Ala Ejecutiva',
     targetModule: 'users',
     color: '#3b82f6',
-    xPercent: 29,
+    xPercent: 12,
     yPercent: 22,
     lead: 'Gerencia Administrativa',
     role: 'Gobierno Corporativo',
@@ -51,8 +51,8 @@ export const OFFICE_ROOMS = [
     wing: 'Ala Ejecutiva',
     targetModule: 'services',
     color: '#f59e0b',
-    xPercent: 35,
-    yPercent: 35,
+    xPercent: 23.5,
+    yPercent: 33,
     lead: 'Ing. Diego Barrientos',
     role: 'Socio Fundador · Dirección General',
     leadInitials: 'DB',
@@ -73,8 +73,8 @@ export const OFFICE_ROOMS = [
     wing: 'Ala Técnica',
     targetModule: 'services',
     color: '#0284c7',
-    xPercent: 53,
-    yPercent: 17,
+    xPercent: 50,
+    yPercent: 35,
     lead: 'Ing. Fernando Araujo',
     role: 'Socio Directivo · Hidráulica & Obras',
     leadInitials: 'FA',
@@ -95,8 +95,8 @@ export const OFFICE_ROOMS = [
     wing: 'Ala Comercial',
     targetModule: 'activities',
     color: '#e11d48',
-    xPercent: 64,
-    yPercent: 27,
+    xPercent: 87,
+    yPercent: 68,
     lead: 'Gerencia Comercial B2B',
     role: 'Captación & SICOES',
     bot: {
@@ -116,8 +116,8 @@ export const OFFICE_ROOMS = [
     wing: 'Núcleo Central',
     targetModule: 'services',
     color: '#059669',
-    xPercent: 62,
-    yPercent: 44,
+    xPercent: 58,
+    yPercent: 36,
     lead: 'Equipo Técnico Central',
     role: 'Servicios Ambientales',
     bot: {
@@ -137,8 +137,8 @@ export const OFFICE_ROOMS = [
     wing: 'Núcleo Central',
     targetModule: 'activities',
     color: '#f97316',
-    xPercent: 21,
-    yPercent: 46,
+    xPercent: 14,
+    yPercent: 52,
     lead: 'Equipo de Crecimiento',
     role: 'Growth & Alianzas',
     bot: {
@@ -158,8 +158,8 @@ export const OFFICE_ROOMS = [
     wing: 'Núcleo Central',
     targetModule: 'finances',
     color: '#eab308',
-    xPercent: 77,
-    yPercent: 46,
+    xPercent: 36,
+    yPercent: 20,
     lead: 'Gobernanza Financiera',
     role: 'Bóveda & Distribución',
     bot: {
@@ -179,8 +179,8 @@ export const OFFICE_ROOMS = [
     wing: 'Ala Colaborativa',
     targetModule: 'overview',
     color: '#d97706',
-    xPercent: 52,
-    yPercent: 52,
+    xPercent: 65,
+    yPercent: 64,
     lead: 'Directorio Plenario',
     role: 'Asamblea de Socios',
     isMeetingRoom: true,
@@ -201,8 +201,8 @@ export const OFFICE_ROOMS = [
     wing: 'Ala Colaborativa',
     targetModule: 'timetracker',
     color: '#10b981',
-    xPercent: 49,
-    yPercent: 82,
+    xPercent: 28,
+    yPercent: 76,
     lead: 'Zona de Pausa & Diligencias',
     role: 'Descanso / Horas Detenidas',
     isRecreationRoom: true,
@@ -223,8 +223,8 @@ export const OFFICE_ROOMS = [
     wing: 'Ala Académica',
     targetModule: 'products',
     color: '#8b5cf6',
-    xPercent: 25,
-    yPercent: 73,
+    xPercent: 69,
+    yPercent: 82,
     lead: 'SERAM Campus Virtual',
     role: 'Educación & Certificados',
     bot: {
@@ -244,8 +244,8 @@ export const OFFICE_ROOMS = [
     wing: 'Ala de Campo',
     targetModule: 'experience',
     color: '#06b6d4',
-    xPercent: 12,
-    yPercent: 55,
+    xPercent: 82,
+    yPercent: 35,
     lead: 'Ing. Fabricio Orosco',
     role: 'Socio Directivo · Calidad & Expansión',
     leadInitials: 'FO',
@@ -266,8 +266,8 @@ export const OFFICE_ROOMS = [
     wing: 'Ala Creativa',
     targetModule: 'activities',
     color: '#ec4899',
-    xPercent: 71,
-    yPercent: 70,
+    xPercent: 48,
+    yPercent: 72,
     lead: 'Estudio de Contenido',
     role: 'Difusión & Divulgación',
     bot: {
@@ -287,8 +287,8 @@ export const OFFICE_ROOMS = [
     wing: 'Ala Científica',
     targetModule: 'services',
     color: '#14b8a6',
-    xPercent: 91,
-    yPercent: 54,
+    xPercent: 92,
+    yPercent: 22,
     lead: 'Laboratorio Pericial',
     role: 'I+D Ambiental',
     bot: {
@@ -411,7 +411,10 @@ export default function VirtualOfficeView({
   const [userAvatarPos, setUserAvatarPos] = useState(() => {
     const currentEmail = currentSocio?.email || 'barrientoso2401@gmail.com';
     const presence = (globalPresences || partnerPresences || {})[currentEmail];
-    return presence?.roomCoords || { x: 35, y: 35 };
+    if (presence?.roomCoords) return presence.roomCoords;
+    if (currentEmail === 'fernandoaraujo1912@gmail.com') return { x: 50, y: 34 };
+    if (currentEmail === 'sebastiansbs51@gmail.com') return { x: 82, y: 34 };
+    return { x: 23.5, y: 30 };
   });
   const [isWalking, setIsWalking] = useState(false);
 
@@ -464,34 +467,34 @@ export default function VirtualOfficeView({
 
     if (status === 'recreation') {
       soundEngine.playCoffeeBrew();
-      setUserAvatarPos({ x: 49, y: 82 });
+      setUserAvatarPos({ x: 28, y: 76 });
       setSelectedRoomId('recreation');
       if (setPartnerSector) {
-        setPartnerSector('recreation', { x: 49, y: 82 }, 'Área de Café & Descanso');
+        setPartnerSector('recreation', { x: 28, y: 76 }, 'Área de Café & Descanso');
       }
       if (isTimerRunning) pausePartnerTimer();
     } else if (status === 'commission') {
       soundEngine.playCoffeeBrew();
-      setUserAvatarPos({ x: 44, y: 81 });
+      setUserAvatarPos({ x: 25, y: 73 });
       setSelectedRoomId('recreation');
       if (setPartnerSector) {
-        setPartnerSector('commission', { x: 44, y: 81 }, 'De Comisión Externa');
+        setPartnerSector('commission', { x: 25, y: 73 }, 'De Comisión Externa');
       }
       if (isTimerRunning) pausePartnerTimer();
     } else if (status === 'meeting') {
       soundEngine.playDeskClick();
-      setUserAvatarPos({ x: 52, y: 52 });
+      setUserAvatarPos({ x: 65, y: 64 });
       setSelectedRoomId('meeting');
       if (setPartnerSector) {
-        setPartnerSector('meeting', { x: 52, y: 52 }, 'Sala de Directorio');
+        setPartnerSector('meeting', { x: 65, y: 64 }, 'Sala de Directorio');
       }
     } else if (status === 'working') {
       soundEngine.playDeskClick();
       const defaultCoords = currentSocio?.email === 'fernandoaraujo1912@gmail.com'
-        ? { x: 53, y: 17 }
+        ? { x: 50, y: 34 }
         : currentSocio?.email === 'sebastiansbs51@gmail.com'
-        ? { x: 12, y: 55 }
-        : { x: 35, y: 35 };
+        ? { x: 82, y: 34 }
+        : { x: 23.5, y: 30 };
       const defaultRoomId = currentSocio?.email === 'fernandoaraujo1912@gmail.com'
         ? 'operations'
         : currentSocio?.email === 'sebastiansbs51@gmail.com'
@@ -540,7 +543,7 @@ export default function VirtualOfficeView({
         shortName: 'Diego',
         initials: 'DB',
         hairColor: '#2b1d0c',
-        homeCoords: { x: 35, y: 35 }
+        homeCoords: { x: 23.5, y: 30 }
       },
       {
         id: 'fernando',
@@ -549,7 +552,7 @@ export default function VirtualOfficeView({
         shortName: 'Fernando',
         initials: 'FA',
         hairColor: '#1a1a1a',
-        homeCoords: { x: 53, y: 17 }
+        homeCoords: { x: 50, y: 34 }
       },
       {
         id: 'fabricio',
@@ -558,14 +561,14 @@ export default function VirtualOfficeView({
         shortName: 'Fabricio',
         initials: 'FO',
         hairColor: '#3d2b1f',
-        homeCoords: { x: 12, y: 55 }
+        homeCoords: { x: 82, y: 34 }
       }
     ];
 
     const recreationSpots = [
-      { x: 44, y: 81 },
-      { x: 49, y: 84 },
-      { x: 54, y: 81 }
+      { x: 25, y: 73 },
+      { x: 31, y: 73 },
+      { x: 28, y: 82 }
     ];
 
     const effectivePresences = globalPresences || partnerPresences || {};
@@ -730,35 +733,38 @@ export default function VirtualOfficeView({
   };
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // RENDER: MAQUETA ISOMÉTRICA 2.5D REAL CON PARQUET CÁLIDO E ILUMINACIÓN NATURAL
+  // RENDER: MAQUETA PANORÁMICA 16:9 PIXEL-ART LIMPIA (SIN PERSONAS HORNEADAS)
   // ─────────────────────────────────────────────────────────────────────────────
   const renderOfficeCanvas = (isFullMode) => (
     <div
       ref={containerRef}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
-      className="relative w-full h-full overflow-hidden bg-[#e5dfd8] cursor-crosshair select-none"
+      className="relative w-full h-full overflow-hidden bg-[#14100c] cursor-crosshair select-none [image-rendering:pixelated]"
+      style={{ imageRendering: 'pixelated' }}
     >
-      {/* Escenario Isométrico Escalable con Zoom & Pan */}
+      {/* Escenario Panorámico 16:9 Escalable con Zoom & Pan */}
       <div
         ref={floorStageRef}
         onClick={handleFloorClick}
-        className="absolute origin-center transition-transform duration-75 will-change-transform"
+        className="absolute origin-center transition-transform duration-75 will-change-transform [image-rendering:pixelated]"
         style={{
           transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomLevel})`,
           left: '50%',
           top: '50%',
-          marginLeft: '-600px',
-          marginTop: '-338px',
-          width: '1200px',
-          height: '675px'
+          marginLeft: '-688px',
+          marginTop: '-384px',
+          width: '1376px',
+          height: '768px',
+          imageRendering: 'pixelated'
         }}
       >
-        {/* ILUSTRACIÓN ARQUITECTÓNICA ISOMÉTRICA HD (PARQUET CÁLIDO Y MAMPARAS 3D) */}
+        {/* ILUSTRACIÓN ARQUITECTÓNICA PANORÁMICA 16:9 PIXEL-ART LIMPIA */}
         <img
-          src={officeHdImage}
-          alt="Oficina Virtual Isométrica SERAM"
-          className="w-full h-full object-cover rounded-2xl shadow-2xl pointer-events-none select-none"
+          src={officePanoramicImage}
+          alt="Oficina Virtual Panorámica Pixel-Art SERAM"
+          className="w-full h-full object-cover rounded-2xl shadow-2xl pointer-events-none select-none [image-rendering:pixelated]"
+          style={{ imageRendering: 'pixelated' }}
           draggable={false}
         />
 
@@ -1046,12 +1052,12 @@ export default function VirtualOfficeView({
               <h2 className="text-base sm:text-lg font-black text-white tracking-tight flex items-center gap-2">
                 Oficina Virtual SERAM
                 <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  2.5D Isométrica · Fábrica Viva
+                  Panorámica 16:9 · Pixel-Art HD
                 </span>
               </h2>
             </div>
             <p className="text-xs text-slate-400 font-medium line-clamp-1">
-              Piso de parquet, iluminación cálida y navegación Point & Click para los 3 socios y subagentes IA
+              Planta abierta con parquet de roble, ventanales luminosos y navegación Point & Click para los 3 socios
             </p>
           </div>
         </div>
@@ -1130,8 +1136,8 @@ export default function VirtualOfficeView({
         ))}
       </div>
 
-      {/* ── LIENZO ISOMÉTRICO EMBEBIDO ── */}
-      <div className="relative w-full h-[520px] sm:h-[640px] lg:h-[720px] overflow-hidden">
+      {/* ── LIENZO PANORÁMICO 16:9 EMBEBIDO ── */}
+      <div className="relative w-full min-h-[520px] sm:min-h-[640px] max-w-[1720px] aspect-video mx-auto overflow-hidden [image-rendering:pixelated]">
         {renderOfficeCanvas(false)}
       </div>
 
@@ -1159,7 +1165,7 @@ export default function VirtualOfficeView({
               <Building2 className="w-4 h-4 text-amber-400" />
               <span className="text-xs sm:text-sm font-black text-white">Oficina Virtual SERAM SRL</span>
               <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-mono hidden sm:inline">
-                Planta Isométrica 2.5D
+                Planta Panorámica 16:9 Pixel-Art
               </span>
             </div>
 
