@@ -12,7 +12,7 @@ import {
   Share2, Radio, Sliders, ChevronUp, RefreshCw
 } from 'lucide-react';
 import soundEngine from './OfficeSoundEngine';
-import officePanoramicImage from '../../assets/virtual-office/seram_office_pixelart_panoramic.jpg';
+import officePanoramicImage from '../../assets/virtual-office/seram_office_hybrid_partitions.jpg';
 import { useApp } from '../../context/AppContext';
 import PixelPartnerAvatar from './avatar/PixelPartnerAvatar';
 import { normalizeAvatarConfig, loadStoredProfileAvatarConfigs } from './avatar/avatarCatalog';
