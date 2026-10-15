@@ -2,9 +2,42 @@
   "version": "1.0",
   "project": "SERAM",
   "last_updated": "2026-10-14",
-  "tasks": [],
+  "tasks": [
+    {
+      "id": "TASK-075",
+      "title": "Renderizador de Avatares Pixel-Art HD Multicapa (PixelPartnerAvatar) con Animación de Caminata 4-Way y Postura Sentado",
+      "status": "pending",
+      "assigned_to": "Implementador",
+      "priority": "high",
+      "estimated_hours": 2
+    },
+    {
+      "id": "TASK-076",
+      "title": "Motor de Desplazamiento Continuo por Waypoints (OfficePathfinder) en VirtualOfficeView con Caminata Fluida y Prevención de Obstáculos",
+      "status": "pending",
+      "assigned_to": "Implementador",
+      "priority": "high",
+      "estimated_hours": 2
+    },
+    {
+      "id": "TASK-077",
+      "title": "Actualización de AvatarCustomizer en PartnerProfileRPGModule con Preview Pixel-Art en Vivo y Sincronización Realtime",
+      "status": "pending",
+      "assigned_to": "Implementador",
+      "priority": "medium",
+      "estimated_hours": 1.5
+    }
+  ],
   "in_progress": [],
   "completed": [
+    {
+      "id": "TASK-074",
+      "title": "Maqueta Panorámica 16:9 Pixel-Art Limpia (Open-Space estilo seram_office_model.jpg) y Calibración de Estaciones de Trabajo",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-14",
+      "completed_at": "2026-10-14"
+    },
     {
       "id": "TASK-073",
       "title": "AVATAR-05: Desbloqueos por XP (Octalysis) y micro-animaciones 2.5D (orientación, caminata, tecleo)",
