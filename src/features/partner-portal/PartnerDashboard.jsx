@@ -11,7 +11,8 @@ import {
   PieChart as LucidePie, Activity, CreditCard, Building2,
   FileText, Smartphone, Laptop, Radio, Wifi,
   UploadCloud, ExternalLink, FileCheck, Paperclip, CheckSquare,
-  Play, Pause, RotateCcw, Scale, Menu, Flame
+  Play, Pause, RotateCcw, Scale, Menu, Flame,
+  Copy, Download, FileDown, Link2
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
@@ -756,9 +757,11 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
   const [newProjSubcontractorCosts, setNewProjSubcontractorCosts] = useState('');
   const [newProjTaxRegime, setNewProjTaxRegime] = useState('Régimen General');
   const [newProjDesc, setNewProjDesc] = useState('');
+  const [newProjDriveUrl, setNewProjDriveUrl] = useState('');
 
   const [isProposalMode, setIsProposalMode] = useState(false);
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+  const [copiedProjId, setCopiedProjId] = useState(null);
 
   // PDF Upload state
   const [pdfFile, setPdfFile] = useState(null);
@@ -796,9 +799,73 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
       labCosts: p.labCosts || 0,
       subcontractorCosts: p.subcontractorCosts || 0,
       taxRegime: p.taxRegime || 'Régimen General',
-      pdfUrl: p.pdfUrl || null,
-      pdfName: p.pdfName || null
+      pdfUrl: p.pdfUrl || '',
+      pdfName: p.pdfName || ''
     });
+  };
+
+  const handleDownloadProjectDocument = (p) => {
+    if (!p.pdfUrl) {
+      triggerToast('No hay documento adjunto', 'info');
+      return;
+    }
+    const url = p.pdfUrl.trim();
+
+    // Google Docs -> export as PDF
+    const docMatch = url.match(/docs\.google\.com\/document\/d\/([a-zA-Z0-9_-]+)/);
+    if (docMatch && docMatch[1]) {
+      window.open(`https://docs.google.com/document/d/${docMatch[1]}/export?format=pdf`, '_blank');
+      triggerToast('Iniciando exportación en PDF desde Google Docs', 'success');
+      return;
+    }
+
+    // Google Sheets -> export as PDF
+    const sheetMatch = url.match(/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+    if (sheetMatch && sheetMatch[1]) {
+      window.open(`https://docs.google.com/spreadsheets/d/${sheetMatch[1]}/export?format=pdf`, '_blank');
+      triggerToast('Iniciando exportación en PDF desde Google Sheets', 'success');
+      return;
+    }
+
+    // Google Drive File -> direct download link
+    const driveMatch = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/);
+    if (driveMatch && driveMatch[1]) {
+      window.open(`https://drive.google.com/uc?export=download&id=${driveMatch[1]}`, '_blank');
+      triggerToast('Abriendo enlace de descarga de Google Drive', 'success');
+      return;
+    }
+
+    // Direct downloadable file (DataURI or standard URL)
+    try {
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.download = p.pdfName || 'Documento_Tecnico_SERAM.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      triggerToast('Descarga iniciada', 'success');
+    } catch {
+      window.open(url, '_blank');
+    }
+  };
+
+  const handleCopyProjLink = (url, id) => {
+    if (!url) return;
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(url)
+        .then(() => {
+          setCopiedProjId(id);
+          triggerToast('Enlace copiado al portapapeles', 'success');
+          setTimeout(() => setCopiedProjId(null), 2500);
+        })
+        .catch(() => {
+          triggerToast('No se pudo copiar el enlace', 'error');
+        });
+    } else {
+      triggerToast('Portapapeles no disponible en este navegador', 'error');
+    }
   };
 
   const calculateTimeProgress = (start, end) => {
@@ -901,6 +968,407 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
             </div>
           </div>
 
+          {/* Add Project Form (Reubicado al inicio de SERAM Service) */}
+          <GlassCard className="p-6 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/[0.06] pb-3 gap-3">
+              <div className="flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-[#00e03c]" />
+                <h4 className="text-xs font-black text-white uppercase tracking-wider">
+                  {isProposalMode ? 'Registrar Nueva Propuesta Técnica / Licitación' : 'Registrar Nuevo Proyecto B2B / Contrato Adjudicado'}
+                </h4>
+              </div>
+              <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
+                <button
+                  type="button"
+                  onClick={() => setIsProposalMode(false)}
+                  className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                    !isProposalMode ? 'bg-[#00e03c] text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  💼 Proyecto B2B
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsProposalMode(true)}
+                  className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                    isProposalMode ? 'bg-amber-400 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  📄 Propuesta Comercial
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              if (!newProjClient.trim() || !newProjType.trim() || !newProjLead) {
+                triggerToast('Completa cliente, tipo de servicio y socio líder', 'error');
+                return;
+              }
+              setPdfUploading(true);
+              try {
+                let finalPdfUrl = null;
+                let finalPdfName = null;
+
+                if (pdfFile) {
+                  const docRes = await uploadProjectDocument(pdfFile, Date.now(), 'projects');
+                  finalPdfUrl = docRes.url;
+                  finalPdfName = docRes.name;
+                } else if (newProjDriveUrl.trim()) {
+                  finalPdfUrl = newProjDriveUrl.trim();
+                  finalPdfName = 'Documento Drive Compartido';
+                } else if (useSamplePdf) {
+                  finalPdfUrl = '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf';
+                  finalPdfName = 'Propuesta_Tecnica_Oficial_SERAM_2026.pdf';
+                }
+
+                const prefix = isProposalMode ? 'PROP' : 'B2B';
+                const generatedCode = newProjCode.trim() || `SRM-2026-${prefix}-${String(activeServices.length + 1).padStart(2, '0')}`;
+
+                await handleAddProject({
+                  code: generatedCode,
+                  client: newProjClient.trim(),
+                  type: newProjType.trim(),
+                  lead: newProjLead,
+                  location: newProjLocation.trim() || 'Bolivia',
+                  description: newProjDesc.trim(),
+                  startDate: newProjStartDate || new Date().toISOString().split('T')[0],
+                  endDate: newProjEndDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                  involved: newProjInvolved.length > 0 ? newProjInvolved : [newProjLead],
+                  budget: parseFloat(newProjBudget) || 0,
+                  labCosts: parseFloat(newProjLabCosts) || 0,
+                  subcontractorCosts: parseFloat(newProjSubcontractorCosts) || 0,
+                  taxRegime: newProjTaxRegime,
+                  pdfUrl: finalPdfUrl,
+                  pdfName: finalPdfName,
+                  isProposal: isProposalMode,
+                  tag: isProposalMode ? 'Propuesta' : 'Proyecto B2B',
+                  progress: isProposalMode ? 0 : 10
+                });
+
+                // Clear form
+                setNewProjClient('');
+                setNewProjType('');
+                setNewProjCode('');
+                setNewProjLocation('');
+                setNewProjDesc('');
+                setNewProjDriveUrl('');
+                setNewProjStartDate('');
+                setNewProjEndDate('');
+                setNewProjInvolved([]);
+                setNewProjBudget('');
+                setNewProjLabCosts('');
+                setNewProjSubcontractorCosts('');
+                setPdfFile(null);
+                setUseSamplePdf(false);
+                setShowAdvancedOptions(false);
+              } catch (err) {
+                console.error('Error registrando proyecto:', err);
+                triggerToast('Error al registrar proyecto', 'error');
+              } finally {
+                setPdfUploading(false);
+              }
+            }} className="space-y-4">
+              
+              {/* Sección Principal y Esencial */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">
+                    Cliente / Municipio / Entidad *
+                  </label>
+                  <input
+                    required
+                    className={inputCls}
+                    placeholder="Ej: G.A.M. Palos Blancos, Minera San Cristóbal, etc."
+                    value={newProjClient}
+                    onChange={e => setNewProjClient(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">
+                    {isProposalMode ? 'Título de la Propuesta / Servicio Técnico *' : 'Nombre del Proyecto / Servicio Técnico *'}
+                  </label>
+                  <input
+                    required
+                    className={inputCls}
+                    placeholder="Ej: Línea Base Hidrogeoquímica, Mitigación de Mercurio, etc."
+                    value={newProjType}
+                    onChange={e => setNewProjType(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">
+                    Socio Responsable / Líder *
+                  </label>
+                  <select
+                    required
+                    className={selectCls}
+                    value={newProjLead}
+                    onChange={e => setNewProjLead(e.target.value)}
+                  >
+                    {registeredEngineers.map(e => (
+                      <option key={e.email} value={e.name}>{e.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">
+                    Presupuesto Ofertado (Bs.)
+                  </label>
+                  <input
+                    className={inputCls}
+                    type="number"
+                    min="0"
+                    placeholder="Ej: 68000"
+                    value={newProjBudget}
+                    onChange={e => setNewProjBudget(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* UPLOADER DE DOCUMENTO PDF EN SUPABASE STORAGE O LINK GOOGLE DRIVE */}
+              <div className="p-3.5 bg-white/[0.02] border border-white/[0.08] rounded-xl space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-emerald-400" />
+                    <div>
+                      <span className="text-xs font-bold text-white block">
+                        Documento Técnico / Términos de Referencia (PDF o Drive)
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        Sube un archivo PDF o añade un enlace colaborativo de Google Drive / Google Docs
+                      </span>
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2 text-[11px] text-slate-300 font-semibold cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={useSamplePdf}
+                      disabled={!!pdfFile || !!newProjDriveUrl.trim()}
+                      onChange={e => setUseSamplePdf(e.target.checked)}
+                      className="rounded border-white/20 bg-white/5 text-[#00e03c] focus:ring-0"
+                    />
+                    <span>Usar PDF Modelo SERAM</span>
+                  </label>
+                </div>
+
+                {/* Input Enlace de Google Drive / Docs Compartido */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-sky-400 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Link2 className="w-3.5 h-3.5" /> Enlace de Google Drive / Documento Compartido (URL)
+                    </span>
+                    {newProjDriveUrl && (
+                      <a
+                        href={newProjDriveUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] text-sky-300 underline font-mono flex items-center gap-1 hover:text-white"
+                      >
+                        Abrir link ➔
+                      </a>
+                    )}
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://drive.google.com/... o https://docs.google.com/document/d/..."
+                    value={newProjDriveUrl}
+                    onChange={e => {
+                      setNewProjDriveUrl(e.target.value);
+                      if (e.target.value) setUseSamplePdf(false);
+                    }}
+                    className={inputCls}
+                  />
+                  <span className="text-[10px] text-slate-400">
+                    Pega el link de Google Drive / Docs para colaborar en tiempo real con el documento técnico compartido.
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 text-slate-400 text-[10px] uppercase font-bold pt-1">
+                  <span>o adjunta un archivo PDF directo:</span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <label className="w-full sm:w-auto cursor-pointer px-4 py-2 bg-white/[0.05] hover:bg-white/[0.09] border border-dashed border-white/20 hover:border-emerald-400/50 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-2 transition-all">
+                    <UploadCloud className="w-4 h-4 text-emerald-400" />
+                    <span>{pdfFile ? 'Reemplazar archivo PDF' : 'Seleccionar PDF del equipo'}</span>
+                    <input
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      className="hidden"
+                      onChange={e => {
+                        if (e.target.files?.[0]) {
+                          setPdfFile(e.target.files[0]);
+                          setUseSamplePdf(false);
+                        }
+                      }}
+                    />
+                  </label>
+
+                  {pdfFile && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-300 text-xs">
+                      <FileCheck className="w-4 h-4 text-emerald-400" />
+                      <span className="font-mono truncate max-w-[200px]">{pdfFile.name}</span>
+                      <span className="text-[10px] opacity-75">({(pdfFile.size / 1024).toFixed(1)} KB)</span>
+                      <button
+                        type="button"
+                        onClick={() => setPdfFile(null)}
+                        className="text-slate-400 hover:text-white ml-1 cursor-pointer"
+                        title="Quitar archivo"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {!pdfFile && useSamplePdf && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-400/10 border border-amber-400/20 rounded-lg text-amber-300 text-xs">
+                      <FileCheck className="w-4 h-4 text-amber-400" />
+                      <span className="font-mono">ejemplo_propuesta_tecnica_seram.pdf</span>
+                      <a
+                        href="/assets/documents/ejemplo_propuesta_tecnica_seram.pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-amber-400 hover:text-amber-200 ml-1"
+                        title="Ver PDF modelo"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Botón Acordeón para Opciones Avanzadas */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                  className="text-xs font-semibold text-slate-400 hover:text-[#00e03c] flex items-center gap-1.5 transition-colors py-1 cursor-pointer"
+                >
+                  <span>{showAdvancedOptions ? '▼ Ocultar detalles adicionales' : '▶ Configurar fechas, desglose financiero o ubicación (Opcional)'}</span>
+                </button>
+
+                {showAdvancedOptions && (
+                  <div className="mt-3 p-4 bg-white/[0.015] border border-white/[0.06] rounded-xl space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      <div>
+                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Código Personalizado SRM</label>
+                        <input
+                          className={inputCls}
+                          placeholder={`Auto: SRM-2026-${isProposalMode ? 'PROP' : 'B2B'}-${String(activeServices.length + 1).padStart(2, '0')}`}
+                          value={newProjCode}
+                          onChange={e => setNewProjCode(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Ubicación / Municipio</label>
+                        <input
+                          className={inputCls}
+                          placeholder="Ej: Cobija, Pando / Palos Blancos"
+                          value={newProjLocation}
+                          onChange={e => setNewProjLocation(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Fecha de Inicio</label>
+                        <input
+                          className={inputCls}
+                          type="date"
+                          value={newProjStartDate}
+                          onChange={e => setNewProjStartDate(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Fecha de Conclusión</label>
+                        <input
+                          className={inputCls}
+                          type="date"
+                          value={newProjEndDate}
+                          onChange={e => setNewProjEndDate(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Régimen Tributario</label>
+                        <select
+                          className={selectCls}
+                          value={newProjTaxRegime}
+                          onChange={e => setNewProjTaxRegime(e.target.value)}
+                        >
+                          <option value="Régimen General">Régimen General (16% Impuestos)</option>
+                          <option value="Régimen SIETE (5%)">Régimen SIETE (5% Monotributo)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Costos Lab / Equipos (Bs.)</label>
+                        <input
+                          className={inputCls}
+                          type="number"
+                          min="0"
+                          placeholder="Ej: 12000"
+                          value={newProjLabCosts}
+                          onChange={e => setNewProjLabCosts(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Costos Tercerizados (Bs.)</label>
+                        <input
+                          className={inputCls}
+                          type="number"
+                          min="0"
+                          placeholder="Ej: 8000"
+                          value={newProjSubcontractorCosts}
+                          onChange={e => setNewProjSubcontractorCosts(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Descripción / Alcance Técnico</label>
+                      <textarea
+                        rows="2"
+                        className={`${inputCls} resize-none`}
+                        placeholder="Entregables, marco regulatorio o metodologías..."
+                        value={newProjDesc}
+                        onChange={e => setNewProjDesc(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Submit button */}
+              <button
+                type="submit"
+                disabled={pdfUploading}
+                className="w-full bg-[#00e03c] text-slate-950 py-3 rounded-xl font-black text-xs uppercase hover:bg-emerald-400 flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(0,224,60,0.2)] disabled:opacity-50 cursor-pointer"
+              >
+                {pdfUploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Guardando en Supabase y Subiendo Documento Técnico...</span>
+                  </>
+                ) : isProposalMode ? (
+                  <>
+                    <FileText className="w-4 h-4" />
+                    <span>Guardar Propuesta Comercial en Base de Datos</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    <span>Registrar Proyecto Operativo en Base de Datos</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </GlassCard>
+
           {/* Time Progress Table */}
           <GlassCard className="p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
@@ -916,7 +1384,7 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="text-slate-500 font-extrabold uppercase tracking-widest border-b border-white/[0.06]">
-                    {['Proyecto / Código', 'Líder / Proponente', 'Finanzas (i)', 'Físico vs Temporal', 'Documento PDF', 'Estado', 'Acciones'].map(h => (
+                    {['Proyecto / Código', 'Líder / Proponente', 'Finanzas (i)', 'Físico vs Temporal', 'Documento / Drive', 'Estado', 'Acciones'].map(h => (
                       <th key={h} className="p-3">{h}</th>
                     ))}
                   </tr>
@@ -1009,21 +1477,59 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
                         </td>
                         <td className="p-3">
                           {p.pdfUrl ? (
-                            <a
-                              href={p.pdfUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 font-bold text-[10px] transition-all group shadow-sm shadow-emerald-500/10"
-                              title={p.pdfName || "Ver Términos de Referencia o Propuesta"}
-                            >
-                              <FileText className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
-                              <span className="truncate max-w-[100px] font-mono">{p.pdfName ? p.pdfName.replace(/\.pdf$/i, '') : 'TDR / PDF'}</span>
-                              <ExternalLink className="w-2.5 h-2.5 text-emerald-400 opacity-70" />
-                            </a>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <a
+                                href={p.pdfUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 font-bold text-[10px] transition-all group shadow-sm shadow-emerald-500/10"
+                                title={p.pdfName || "Ver Términos de Referencia o Propuesta"}
+                              >
+                                {p.pdfUrl.includes('drive.google.com') || p.pdfUrl.includes('docs.google.com') ? (
+                                  <Link2 className="w-3.5 h-3.5 text-sky-400 group-hover:scale-110 transition-transform" />
+                                ) : (
+                                  <FileText className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
+                                )}
+                                <span className="truncate max-w-[95px] font-mono">
+                                  {p.pdfName ? p.pdfName.replace(/\.pdf$/i, '') : (p.pdfUrl.includes('drive.google.com') || p.pdfUrl.includes('docs.google.com') ? 'Google Drive' : 'TDR / Doc')}
+                                </span>
+                                <ExternalLink className="w-2.5 h-2.5 text-emerald-400 opacity-70" />
+                              </a>
+
+                              {/* Botón Descarga Directa */}
+                              <button
+                                type="button"
+                                onClick={() => handleDownloadProjectDocument(p)}
+                                className="p-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-lg transition-colors cursor-pointer"
+                                title="Descargar documento (PDF/Drive)"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                              </button>
+
+                              {/* Botón Copiar Enlace */}
+                              <button
+                                type="button"
+                                onClick={() => handleCopyProjLink(p.pdfUrl, p.id)}
+                                className="p-1.5 bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/30 rounded-lg transition-colors cursor-pointer"
+                                title="Copiar enlace del documento"
+                              >
+                                {copiedProjId === p.id ? (
+                                  <Check className="w-3.5 h-3.5 text-[#00e03c]" />
+                                ) : (
+                                  <Copy className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            </div>
                           ) : (
-                            <span className="text-[10px] text-slate-500 italic flex items-center gap-1">
-                              <Paperclip className="w-3 h-3 opacity-40" /> Sin TDR
-                            </span>
+                            <button
+                              type="button"
+                              onClick={() => startEdit(p)}
+                              className="text-[10px] text-slate-400 hover:text-emerald-300 border border-dashed border-white/15 hover:border-emerald-500/40 px-2 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                              title="Adjuntar enlace de Drive o archivo PDF"
+                            >
+                              <Paperclip className="w-3 h-3 text-slate-500" />
+                              <span>+ Adjuntar Drive/PDF</span>
+                            </button>
                           )}
                         </td>
                         <td className="p-3"><span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase ${badge}`}>{status}</span></td>
@@ -1148,40 +1654,71 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
                     />
                   </div>
 
-                  <div className="p-3 bg-white/[0.03] border border-white/[0.08] rounded-xl flex items-center justify-between flex-wrap gap-2">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-emerald-400" />
-                      <div>
-                        <span className="text-xs font-bold text-white block">Documento Técnico / TDR (PDF)</span>
-                        <span className="text-[10px] text-slate-400">
-                          {editPdfFile ? `Nuevo archivo: ${editPdfFile.name}` : (editState.pdfName || 'Sin archivo adjunto')}
-                        </span>
+                  <div className="p-3 bg-white/[0.03] border border-white/[0.08] rounded-xl space-y-2.5">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-emerald-400" />
+                        <div>
+                          <span className="text-xs font-bold text-white block">Documento Técnico / TDR (PDF o Google Drive)</span>
+                          <span className="text-[10px] text-slate-400">
+                            {editPdfFile ? `Nuevo archivo: ${editPdfFile.name}` : (editState.pdfName || 'Sin archivo adjunto')}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="cursor-pointer px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors">
+                          <UploadCloud className="w-3.5 h-3.5" />
+                          <span>{editPdfFile || editState.pdfUrl ? 'Cambiar PDF' : 'Adjuntar PDF'}</span>
+                          <input
+                            type="file"
+                            accept=".pdf,application/pdf"
+                            className="hidden"
+                            onChange={e => {
+                              if (e.target.files?.[0]) setEditPdfFile(e.target.files[0]);
+                            }}
+                          />
+                        </label>
+                        {editState.pdfUrl && (
+                          <a
+                            href={editState.pdfUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1.5 bg-white/5 hover:bg-white/10 text-emerald-400 rounded-lg border border-white/10"
+                            title="Ver documento actual"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <label className="cursor-pointer px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors">
-                        <UploadCloud className="w-3.5 h-3.5" />
-                        <span>{editPdfFile || editState.pdfUrl ? 'Cambiar PDF' : 'Adjuntar PDF'}</span>
-                        <input
-                          type="file"
-                          accept=".pdf,application/pdf"
-                          className="hidden"
-                          onChange={e => {
-                            if (e.target.files?.[0]) setEditPdfFile(e.target.files[0]);
-                          }}
-                        />
+
+                    <div className="space-y-1 pt-2 border-t border-white/[0.06]">
+                      <label className="text-[10px] font-black uppercase text-sky-400 flex items-center justify-between">
+                        <span className="flex items-center gap-1.5">
+                          <Link2 className="w-3.5 h-3.5" /> Enlace de Google Drive / Docs / URL Compartida
+                        </span>
+                        {editState.pdfUrl && (
+                          <a
+                            href={editState.pdfUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] text-sky-300 underline font-mono flex items-center gap-1 hover:text-white"
+                          >
+                            Probar link ➔
+                          </a>
+                        )}
                       </label>
-                      {editState.pdfUrl && (
-                        <a
-                          href={editState.pdfUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-1.5 bg-white/5 hover:bg-white/10 text-emerald-400 rounded-lg border border-white/10"
-                          title="Ver PDF actual"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
-                      )}
+                      <input
+                        type="url"
+                        className={inputCls}
+                        placeholder="https://drive.google.com/... o https://docs.google.com/document/d/..."
+                        value={editState.pdfUrl || ''}
+                        onChange={e => setEditState(s => ({
+                          ...s,
+                          pdfUrl: e.target.value,
+                          pdfName: s.pdfName || (e.target.value ? 'Documento Compartido' : '')
+                        }))}
+                      />
                     </div>
                   </div>
 
@@ -1192,8 +1729,8 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
                       onClick={async () => {
                         setEditPdfUploading(true);
                         try {
-                          let finalPdfUrl = editState.pdfUrl;
-                          let finalPdfName = editState.pdfName;
+                          let finalPdfUrl = editState.pdfUrl ? editState.pdfUrl.trim() : null;
+                          let finalPdfName = editState.pdfName || (finalPdfUrl ? 'Documento Compartido' : null);
                           if (editPdfFile) {
                             const uploadRes = await uploadProjectDocument(editPdfFile, editingId, 'projects');
                             finalPdfUrl = uploadRes.url;
@@ -1223,367 +1760,6 @@ function ServicesModule({ activeServices, registeredEngineers, handlers, publicS
               </motion.div>
             )}
           </AnimatePresence>
-
-          {/* Add Project Form */}
-          <GlassCard className="p-6 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/[0.06] pb-3 gap-3">
-              <div className="flex items-center gap-2">
-                <Briefcase className="w-4 h-4 text-[#00e03c]" />
-                <h4 className="text-xs font-black text-white uppercase tracking-wider">
-                  {isProposalMode ? 'Registrar Nueva Propuesta Técnica / Licitación' : 'Registrar Nuevo Proyecto B2B / Contrato Adjudicado'}
-                </h4>
-              </div>
-              <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
-                <button
-                  type="button"
-                  onClick={() => setIsProposalMode(false)}
-                  className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                    !isProposalMode ? 'bg-[#00e03c] text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  💼 Proyecto B2B
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsProposalMode(true)}
-                  className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                    isProposalMode ? 'bg-amber-400 text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  📄 Propuesta Comercial
-                </button>
-              </div>
-            </div>
-
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              if (!newProjClient.trim() || !newProjType.trim() || !newProjLead) {
-                triggerToast('Completa cliente, tipo de servicio y socio líder', 'error');
-                return;
-              }
-              setPdfUploading(true);
-              try {
-                let finalPdfUrl = null;
-                let finalPdfName = null;
-
-                if (pdfFile) {
-                  const docRes = await uploadProjectDocument(pdfFile, Date.now(), 'projects');
-                  finalPdfUrl = docRes.url;
-                  finalPdfName = docRes.name;
-                } else if (useSamplePdf) {
-                  finalPdfUrl = '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf';
-                  finalPdfName = 'Propuesta_Tecnica_Oficial_SERAM_2026.pdf';
-                }
-
-                const prefix = isProposalMode ? 'PROP' : 'B2B';
-                const generatedCode = newProjCode.trim() || `SRM-2026-${prefix}-${String(activeServices.length + 1).padStart(2, '0')}`;
-
-                await handleAddProject({
-                  code: generatedCode,
-                  client: newProjClient.trim(),
-                  type: newProjType.trim(),
-                  lead: newProjLead,
-                  location: newProjLocation.trim() || 'Bolivia',
-                  description: newProjDesc.trim(),
-                  startDate: newProjStartDate || new Date().toISOString().split('T')[0],
-                  endDate: newProjEndDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                  involved: newProjInvolved.length > 0 ? newProjInvolved : [newProjLead],
-                  budget: parseFloat(newProjBudget) || 0,
-                  labCosts: parseFloat(newProjLabCosts) || 0,
-                  subcontractorCosts: parseFloat(newProjSubcontractorCosts) || 0,
-                  taxRegime: newProjTaxRegime,
-                  pdfUrl: finalPdfUrl,
-                  pdfName: finalPdfName,
-                  isProposal: isProposalMode,
-                  tag: isProposalMode ? 'Propuesta' : 'Proyecto B2B',
-                  progress: isProposalMode ? 0 : 10
-                });
-
-                // Clear form
-                setNewProjClient('');
-                setNewProjType('');
-                setNewProjCode('');
-                setNewProjLocation('');
-                setNewProjDesc('');
-                setNewProjStartDate('');
-                setNewProjEndDate('');
-                setNewProjInvolved([]);
-                setNewProjBudget('');
-                setNewProjLabCosts('');
-                setNewProjSubcontractorCosts('');
-                setPdfFile(null);
-                setUseSamplePdf(false);
-                setShowAdvancedOptions(false);
-              } catch (err) {
-                console.error('Error registrando proyecto:', err);
-                triggerToast('Error al registrar proyecto', 'error');
-              } finally {
-                setPdfUploading(false);
-              }
-            }} className="space-y-4">
-              
-              {/* Sección Principal y Esencial */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">
-                    Cliente / Municipio / Entidad *
-                  </label>
-                  <input
-                    required
-                    className={inputCls}
-                    placeholder="Ej: G.A.M. Palos Blancos, Minera San Cristóbal, etc."
-                    value={newProjClient}
-                    onChange={e => setNewProjClient(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">
-                    {isProposalMode ? 'Título de la Propuesta / Servicio Técnico *' : 'Nombre del Proyecto / Servicio Técnico *'}
-                  </label>
-                  <input
-                    required
-                    className={inputCls}
-                    placeholder="Ej: Línea Base Hidrogeoquímica, Mitigación de Mercurio, etc."
-                    value={newProjType}
-                    onChange={e => setNewProjType(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">
-                    Socio Responsable / Líder *
-                  </label>
-                  <select
-                    required
-                    className={selectCls}
-                    value={newProjLead}
-                    onChange={e => setNewProjLead(e.target.value)}
-                  >
-                    {registeredEngineers.map(e => (
-                      <option key={e.email} value={e.name}>{e.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">
-                    Presupuesto Ofertado (Bs.)
-                  </label>
-                  <input
-                    className={inputCls}
-                    type="number"
-                    min="0"
-                    placeholder="Ej: 68000"
-                    value={newProjBudget}
-                    onChange={e => setNewProjBudget(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* UPLOADER DE DOCUMENTO PDF EN SUPABASE STORAGE */}
-              <div className="p-3.5 bg-white/[0.02] border border-white/[0.08] rounded-xl space-y-2.5">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-emerald-400" />
-                    <div>
-                      <span className="text-xs font-bold text-white block">
-                        Documento Técnico / Términos de Referencia (PDF)
-                      </span>
-                      <span className="text-[10px] text-slate-400">
-                        Se guardará en Supabase Storage vinculado a la base de datos
-                      </span>
-                    </div>
-                  </div>
-                  <label className="flex items-center gap-2 text-[11px] text-slate-300 font-semibold cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={useSamplePdf}
-                      disabled={!!pdfFile}
-                      onChange={e => setUseSamplePdf(e.target.checked)}
-                      className="rounded border-white/20 bg-white/5 text-[#00e03c] focus:ring-0"
-                    />
-                    <span>Usar PDF Modelo SERAM</span>
-                  </label>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-center gap-3">
-                  <label className="w-full sm:w-auto cursor-pointer px-4 py-2 bg-white/[0.05] hover:bg-white/[0.09] border border-dashed border-white/20 hover:border-emerald-400/50 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-2 transition-all">
-                    <UploadCloud className="w-4 h-4 text-emerald-400" />
-                    <span>{pdfFile ? 'Reemplazar archivo PDF' : 'Seleccionar PDF del equipo'}</span>
-                    <input
-                      type="file"
-                      accept=".pdf,application/pdf"
-                      className="hidden"
-                      onChange={e => {
-                        if (e.target.files?.[0]) {
-                          setPdfFile(e.target.files[0]);
-                          setUseSamplePdf(false);
-                        }
-                      }}
-                    />
-                  </label>
-
-                  {pdfFile && (
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-300 text-xs">
-                      <FileCheck className="w-4 h-4 text-emerald-400" />
-                      <span className="font-mono truncate max-w-[200px]">{pdfFile.name}</span>
-                      <span className="text-[10px] opacity-75">({(pdfFile.size / 1024).toFixed(1)} KB)</span>
-                      <button
-                        type="button"
-                        onClick={() => setPdfFile(null)}
-                        className="text-slate-400 hover:text-white ml-1"
-                        title="Quitar archivo"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  )}
-
-                  {!pdfFile && useSamplePdf && (
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-400/10 border border-amber-400/20 rounded-lg text-amber-300 text-xs">
-                      <FileCheck className="w-4 h-4 text-amber-400" />
-                      <span className="font-mono">ejemplo_propuesta_tecnica_seram.pdf</span>
-                      <a
-                        href="/assets/documents/ejemplo_propuesta_tecnica_seram.pdf"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-amber-400 hover:text-amber-200 ml-1"
-                        title="Ver PDF modelo"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Botón Acordeón para Opciones Avanzadas */}
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
-                  className="text-xs font-semibold text-slate-400 hover:text-[#00e03c] flex items-center gap-1.5 transition-colors py-1"
-                >
-                  <span>{showAdvancedOptions ? '▼ Ocultar detalles adicionales' : '▶ Configurar fechas, desglose financiero o ubicación (Opcional)'}</span>
-                </button>
-
-                {showAdvancedOptions && (
-                  <div className="mt-3 p-4 bg-white/[0.015] border border-white/[0.06] rounded-xl space-y-3">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                      <div>
-                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Código Personalizado SRM</label>
-                        <input
-                          className={inputCls}
-                          placeholder={`Auto: SRM-2026-${isProposalMode ? 'PROP' : 'B2B'}-${String(activeServices.length + 1).padStart(2, '0')}`}
-                          value={newProjCode}
-                          onChange={e => setNewProjCode(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Ubicación / Municipio</label>
-                        <input
-                          className={inputCls}
-                          placeholder="Ej: Cobija, Pando / Palos Blancos"
-                          value={newProjLocation}
-                          onChange={e => setNewProjLocation(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Fecha de Inicio</label>
-                        <input
-                          className={inputCls}
-                          type="date"
-                          value={newProjStartDate}
-                          onChange={e => setNewProjStartDate(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Fecha de Conclusión</label>
-                        <input
-                          className={inputCls}
-                          type="date"
-                          value={newProjEndDate}
-                          onChange={e => setNewProjEndDate(e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div>
-                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Régimen Tributario</label>
-                        <select
-                          className={selectCls}
-                          value={newProjTaxRegime}
-                          onChange={e => setNewProjTaxRegime(e.target.value)}
-                        >
-                          <option value="Régimen General">Régimen General (16% Impuestos)</option>
-                          <option value="Régimen SIETE (5%)">Régimen SIETE (5% Monotributo)</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Costos Lab / Equipos (Bs.)</label>
-                        <input
-                          className={inputCls}
-                          type="number"
-                          min="0"
-                          placeholder="Ej: 12000"
-                          value={newProjLabCosts}
-                          onChange={e => setNewProjLabCosts(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Costos Tercerizados (Bs.)</label>
-                        <input
-                          className={inputCls}
-                          type="number"
-                          min="0"
-                          placeholder="Ej: 8000"
-                          value={newProjSubcontractorCosts}
-                          onChange={e => setNewProjSubcontractorCosts(e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Descripción / Alcance Técnico</label>
-                      <textarea
-                        rows="2"
-                        className={`${inputCls} resize-none`}
-                        placeholder="Entregables, marco regulatorio o metodologías..."
-                        value={newProjDesc}
-                        onChange={e => setNewProjDesc(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Submit button */}
-              <button
-                type="submit"
-                disabled={pdfUploading}
-                className="w-full bg-[#00e03c] text-slate-950 py-3 rounded-xl font-black text-xs uppercase hover:bg-emerald-400 flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(0,224,60,0.2)] disabled:opacity-50"
-              >
-                {pdfUploading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Guardando en Supabase y Subiendo Documento Técnico...</span>
-                  </>
-                ) : isProposalMode ? (
-                  <>
-                    <FileText className="w-4 h-4" />
-                    <span>Guardar Propuesta Comercial en Base de Datos</span>
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-4 h-4" />
-                    <span>Registrar Proyecto Operativo en Base de Datos</span>
-                  </>
-                )}
-              </button>
-            </form>
-          </GlassCard>
         </div>
       )}
 
@@ -3168,7 +3344,10 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
   const partnersConfig = DEFAULT_PARTNERS_CONFIG;
 
   // Calcular horas totales registradas por este socio
-  const myLogs = timeLogs.filter(l => l.partner_id === currentSocio?.email || l.partner_id === currentSocio?.id || l.partner_name === currentSocio?.name);
+  const myLogs = useMemo(() => {
+    return timeLogs.filter(l => l.partner_id === currentSocio?.email || l.partner_id === currentSocio?.id || l.partner_name === currentSocio?.name);
+  }, [timeLogs, currentSocio?.email, currentSocio?.id, currentSocio?.name]);
+
   const totalHours = myLogs.reduce((acc, curr) => acc + curr.hours, 0);
 
   // Calcular racha de días activos consecutivos (Core Drive 8: Aversión a la Pérdida)
@@ -3230,7 +3409,7 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
         feeMultiplier: rpg.feeMultiplier || 1.0,
       };
     });
-  }, [activities, timeLogs]);
+  }, [partnersConfig, activities, timeLogs]);
 
   // Calcular honorarios meritocráticos y balance de horas por proyecto (incluyendo proyectos internos y desarrollo web)
   const meritocraticShares = activeServices
