@@ -328,17 +328,16 @@ export default function AcademyPage() {
             {/* 1. Fondo Dinámico de Video Ambiental con Velo Cinematográfico Neuform */}
             <div className="fixed inset-0 w-full h-full z-0 pointer-events-none overflow-hidden">
                 <video
-                    src="/assets/videos/cambio_climatico_bolivia.mp4"
-                    className="w-full h-full object-cover"
+                    src="/assets/3d-backend/bg_home.mp4"
+                    className="w-full h-full object-cover opacity-35"
                     muted
                     loop
                     playsInline
                     autoPlay
                     onError={(e) => {
-                        // Fallback suave a bg_home.mp4 si el video primario no responde
                         if (!e.currentTarget.dataset.fallbackApplied) {
                             e.currentTarget.dataset.fallbackApplied = 'true';
-                            e.currentTarget.src = '/assets/3d-backend/bg_home.mp4';
+                            e.currentTarget.src = '/assets/videos/cambio_climatico_bolivia.mp4';
                         }
                     }}
                 />
