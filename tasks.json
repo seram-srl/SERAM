@@ -1,10 +1,18 @@
 {
   "version": "1.0",
   "project": "SERAM",
-  "last_updated": "2026-10-15",
+  "last_updated": "2026-10-16",
   "tasks": [],
   "in_progress": [],
   "completed": [
+    {
+      "id": "TASK-085",
+      "title": "Rediseño de SERAM Academy y Módulo de Concientización: Paneles Split-Screen con Modo Activo, H1 SEO de Dolor Empresarial, Nuevas Pestañas de Necesidad y Fondo Dinámico de Video",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-16",
+      "completed_at": "2026-10-16"
+    },
     {
       "id": "TASK-084",
       "title": "Reubicación de Tarjeta Registrar Propuesta Técnica al Principio de SERAM Service (B2B), Soporte de Enlaces de Google Drive/Docs Compartidos y Descarga Fácil de Documentos",
