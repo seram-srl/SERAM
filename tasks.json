@@ -6,6 +6,14 @@
   "in_progress": [],
   "completed": [
     {
+      "id": "TASK-087",
+      "title": "Alineación de SERAM ACADEMY al Enfoque Formativo: Eliminación de Secciones de Servicio (Paneles 1 y 2), Inicio Directo en Catálogo y Categorización por Niveles de Ticket (Gratis, Ticket Bajo, Medio y Alto)",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-16",
+      "completed_at": "2026-10-16"
+    },
+    {
       "id": "TASK-086",
       "title": "Segmentación Modular de SERAM ACADEMY: Fondo de Capacitación Ambiental, Paneles Diferenciados (Hero, Soluciones Corporativas, Campus Formativo, Certificaciones) y Sistema de Clasificación Multidimensional de Cursos",
       "status": "completed",

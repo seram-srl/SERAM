@@ -4,10 +4,8 @@ import { useApp } from '../../context/AppContext';
 import { motion } from 'framer-motion';
 import { 
     BookOpen, Download, Compass, Award, User, Clock, ArrowRight, 
-    ShieldAlert, AlertTriangle, CheckCircle2, FileText, PhoneCall, 
-    ExternalLink, Scale, Building2, Flame, Search, Filter,
-    GraduationCap, Briefcase, ShieldCheck, Sparkles, ChevronRight,
-    X, Layers, RotateCcw
+    Search, Filter, GraduationCap, ShieldCheck, Sparkles,
+    X, Layers, RotateCcw, Building2, PhoneCall
 } from 'lucide-react';
 import '../../styles/academy-cinematic.css';
 
@@ -158,7 +156,7 @@ const FALLBACK_COURSES = [
         type: 'high_ticket',
         format: 'video',
         hasVideo: true,
-        price: 180,
+        price: 240,
         image: '/assets/3d-backend/gis_satellite_mapping.webp',
         duration: '26 horas',
         desc: 'Modelado avanzado de escorrentía, balance hídrico, índices NDVI e integración de cartografía oficial WGS-84 para estudios EEIA.',
@@ -169,7 +167,61 @@ const FALLBACK_COURSES = [
     }
 ];
 
-// Opciones de Clasificación
+// Opciones de Pestañas de Ticket / Inversión
+const TICKET_TABS = [
+    {
+        id: 'todos',
+        label: 'Todos los Recursos',
+        badge: 'Catálogo',
+        priceRange: 'Todos los niveles',
+        desc: 'Catálogo integral: cursos en video, e-books y entregables técnicos',
+        icon: Layers,
+        activeClass: 'border-[#00e03c] bg-[#00e03c]/15 text-white shadow-[0_0_20px_rgba(0,224,60,0.25)]',
+        badgeClass: 'bg-[#00e03c]/20 text-[#00e03c] border-[#00e03c]/40'
+    },
+    {
+        id: 'gratis',
+        label: 'Gratis (Lead Magnets)',
+        badge: 'Bs. 0',
+        priceRange: '100% Gratuito',
+        desc: 'E-books, carimbos, planos y guías descargables en PDF - Bs. 0',
+        icon: Download,
+        activeClass: 'border-emerald-500 bg-emerald-500/15 text-white shadow-[0_0_20px_rgba(16,185,129,0.25)]',
+        badgeClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+    },
+    {
+        id: 'low_ticket',
+        label: 'Ticket Bajo (Base)',
+        badge: 'Hasta Bs. 50',
+        priceRange: 'Hasta Bs. 50',
+        desc: 'Cursos fundamentales y herramientas técnicas de software GIS',
+        icon: BookOpen,
+        activeClass: 'border-blue-500 bg-blue-500/15 text-white shadow-[0_0_20px_rgba(59,130,246,0.25)]',
+        badgeClass: 'bg-blue-500/20 text-blue-300 border-blue-500/40'
+    },
+    {
+        id: 'mid_ticket',
+        label: 'Ticket Medio (Talleres)',
+        badge: 'Bs. 51 a 200',
+        priceRange: 'Bs. 51 a Bs. 200',
+        desc: 'Talleres prácticos y metodologías de evaluación de impacto',
+        icon: Compass,
+        activeClass: 'border-amber-500 bg-amber-500/15 text-white shadow-[0_0_20px_rgba(245,158,11,0.25)]',
+        badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+    },
+    {
+        id: 'high_ticket',
+        label: 'Ticket Alto (Mentoría)',
+        badge: '> Bs. 200',
+        priceRange: 'Más de Bs. 200',
+        desc: 'Mentorías directas 1-on-1 y consultoría de proyectos de élite',
+        icon: Award,
+        activeClass: 'border-purple-500 bg-purple-500/15 text-white shadow-[0_0_20px_rgba(168,85,247,0.25)]',
+        badgeClass: 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+    }
+];
+
+// Opciones de Clasificación Complementaria
 const TRACKS = [
     { id: 'todos', label: 'Todos los Ejes' },
     { id: 'Derecho & Normativa', label: 'Derecho & Normativa' },
@@ -256,29 +308,49 @@ const getTrackBadge = (track) => {
     }
 };
 
-const scrollToSection = (id) => {
-    const el = document.getElementById(id);
-    if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+const getTicketBadge = (type, price) => {
+    if (type === 'gratis' || price === 0) {
+        return {
+            label: 'Gratis · Lead Magnet',
+            classes: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+        };
     }
+    if (type === 'low_ticket' || (price > 0 && price <= 50)) {
+        return {
+            label: 'Ticket Bajo · Base',
+            classes: 'bg-blue-500/15 text-blue-400 border-blue-500/30'
+        };
+    }
+    if (type === 'mid_ticket' || (price > 50 && price <= 200)) {
+        return {
+            label: 'Ticket Medio · Taller',
+            classes: 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+        };
+    }
+    if (type === 'high_ticket' || price > 200) {
+        return {
+            label: 'Ticket Alto · Mentoría',
+            classes: 'bg-purple-500/15 text-purple-400 border-purple-500/30'
+        };
+    }
+    return {
+        label: 'Recurso Técnico',
+        classes: 'bg-gray-500/15 text-gray-300 border-gray-500/30'
+    };
 };
 
 export default function AcademyPage() {
     const navigate = useNavigate();
     const { courses } = useApp();
 
-    // Filtros de clasificación del catálogo
+    // Pestaña principal de categorización por inversión / ticket
+    const [selectedTicket, setSelectedTicket] = useState('todos');
+
+    // Filtros de búsqueda y clasificación complementaria
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedTrack, setSelectedTrack] = useState('todos');
     const [selectedLevel, setSelectedLevel] = useState('todos');
     const [selectedFormat, setSelectedFormat] = useState('todos');
-
-    // Estado del autodiagnóstico empresarial de 3 preguntas
-    const [auditAnswers, setAuditAnswers] = useState({
-        licencia: null,   // 'sin_licencia' | 'en_tramite' | 'vigente'
-        monitoreo: null,  // 'nunca' | 'atrasado' | 'al_dia'
-        cartografia: null // 'sin_plano' | 'desactualizado' | 'georreferenciado'
-    });
 
     // Fusión de catálogo dinámico con catálogo base clasificado
     const allAvailableCourses = useMemo(() => {
@@ -298,10 +370,44 @@ export default function AcademyPage() {
         return Array.from(mergedMap.values());
     }, [courses]);
 
-    // Filtrado en tiempo real por búsqueda, eje temático, nivel técnico y formato
+    // Conteo dinámico de cursos por cada nivel de ticket
+    const ticketCounts = useMemo(() => {
+        const counts = {
+            todos: allAvailableCourses.length,
+            gratis: 0,
+            low_ticket: 0,
+            mid_ticket: 0,
+            high_ticket: 0
+        };
+        allAvailableCourses.forEach(c => {
+            if (c.type === 'gratis' || c.price === 0) counts.gratis++;
+            if (c.type === 'low_ticket' || (c.price > 0 && c.price <= 50)) counts.low_ticket++;
+            if (c.type === 'mid_ticket' || (c.price > 50 && c.price <= 200)) counts.mid_ticket++;
+            if (c.type === 'high_ticket' || c.price > 200) counts.high_ticket++;
+        });
+        return counts;
+    }, [allAvailableCourses]);
+
+    // Filtrado en tiempo real por nivel de ticket, búsqueda, eje temático, nivel técnico y formato
     const filteredCourses = useMemo(() => {
         return allAvailableCourses.filter(course => {
-            // Filtro por Eje Temático
+            // 1. Filtro por Nivel de Ticket / Inversión
+            if (selectedTicket !== 'todos') {
+                if (selectedTicket === 'gratis') {
+                    if (course.type !== 'gratis' && course.price !== 0) return false;
+                } else if (selectedTicket === 'low_ticket') {
+                    const isLow = course.type === 'low_ticket' || (course.price > 0 && course.price <= 50);
+                    if (!isLow) return false;
+                } else if (selectedTicket === 'mid_ticket') {
+                    const isMid = course.type === 'mid_ticket' || (course.price > 50 && course.price <= 200);
+                    if (!isMid) return false;
+                } else if (selectedTicket === 'high_ticket') {
+                    const isHigh = course.type === 'high_ticket' || course.price > 200;
+                    if (!isHigh) return false;
+                }
+            }
+
+            // 2. Filtro por Eje Temático
             if (selectedTrack !== 'todos') {
                 const courseTrack = course.track || '';
                 if (courseTrack !== selectedTrack) {
@@ -311,19 +417,19 @@ export default function AcademyPage() {
                 }
             }
 
-            // Filtro por Nivel Técnico
+            // 3. Filtro por Nivel Técnico
             if (selectedLevel !== 'todos') {
                 const courseLevel = course.level || 'Intermedio / Aplicado';
                 if (courseLevel !== selectedLevel) return false;
             }
 
-            // Filtro por Formato (video / pdf)
+            // 4. Filtro por Formato (video / pdf)
             if (selectedFormat !== 'todos') {
                 const courseFormat = course.format || (course.hasVideo ? 'video' : 'pdf');
                 if (courseFormat !== selectedFormat) return false;
             }
 
-            // Filtro por buscador de texto en tiempo real
+            // 5. Filtro por buscador de texto en tiempo real
             if (searchQuery.trim() !== '') {
                 const q = searchQuery.toLowerCase().trim();
                 const corpus = `${course.title || ''} ${course.desc || ''} ${course.instructor || ''} ${course.track || ''} ${course.level || ''}`.toLowerCase();
@@ -332,74 +438,12 @@ export default function AcademyPage() {
 
             return true;
         });
-    }, [allAvailableCourses, selectedTrack, selectedLevel, selectedFormat, searchQuery]);
+    }, [allAvailableCourses, selectedTicket, selectedTrack, selectedLevel, selectedFormat, searchQuery]);
 
-    // Cálculo dinámico del semáforo de riesgo ambiental corporativo
-    const riskAnalysis = useMemo(() => {
-        const { licencia, monitoreo, cartografia } = auditAnswers;
-        const totalAnswered = [licencia, monitoreo, cartografia].filter(Boolean).length;
-
-        const hasCritical = licencia === 'sin_licencia' || monitoreo === 'nunca' || cartografia === 'sin_plano';
-        const hasWarning = licencia === 'en_tramite' || monitoreo === 'atrasado' || cartografia === 'desactualizado';
-
-        if (hasCritical) {
-            return {
-                level: 'CRÍTICO',
-                color: 'text-rose-400',
-                border: 'border-rose-500/60',
-                bg: 'bg-rose-950/30',
-                glow: 'shadow-[0_0_25px_rgba(244,63,94,0.3)]',
-                title: 'Riesgo Crítico de Multa Patrimonial o Clausura (AACN / AACD)',
-                message: 'Tu actividad u obra se encuentra en infracción directa ante la Ley 1333 y el D.S. 3549. Ante una fiscalización sorpresa, te expones a multas de hasta el 3 por mil de activos y suspensión inmediata de operaciones.',
-                recommendation: 'Requiere regularización prioritaria con auditoría de pasivos ambientales e ingreso formal de formulario FNCA/DAA.',
-                answered: totalAnswered
-            };
-        }
-
-        if (hasWarning) {
-            return {
-                level: 'MODERADO',
-                color: 'text-amber-400',
-                border: 'border-amber-500/60',
-                bg: 'bg-amber-950/30',
-                glow: 'shadow-[0_0_25px_rgba(245,158,11,0.25)]',
-                title: 'Contingencia Administrativa Pendiente de Subsanación',
-                message: 'Existen trámites demorados o informes pendientes de recepción que pueden derivar en conminatorias y sumarios administrativos por la Autoridad Ambiental Competente.',
-                recommendation: 'Recomendamos actualizar compromisos PPM-PASA y regularizar cartografía oficial con consultor RENCA.',
-                answered: totalAnswered
-            };
-        }
-
-        if (totalAnswered === 3) {
-            return {
-                level: 'CONTROLADO',
-                color: 'text-emerald-400',
-                border: 'border-emerald-500/60',
-                bg: 'bg-emerald-950/30',
-                glow: 'shadow-[0_0_25px_rgba(16,185,129,0.2)]',
-                title: 'Cumplimiento Normativo Favorable',
-                message: 'Tu empresa cuenta con documentación de base. Sugerimos auditorías preventivas periódicas para garantizar la trazabilidad de los compromisos ante inspecciones rutinarias.',
-                recommendation: 'Mantén capacitado a tu personal técnico con nuestros cursos y formatos oficiales.',
-                answered: totalAnswered
-            };
-        }
-
-        return {
-            level: 'PENDIENTE',
-            color: 'text-gray-400',
-            border: 'border-white/10',
-            bg: 'bg-white/[0.02]',
-            glow: '',
-            title: 'Responde las 3 preguntas para obtener tu diagnóstico de riesgo',
-            message: 'Selecciona una opción en cada punto para calcular tu exposición legal ante inspecciones de la Autoridad Ambiental Competente en Bolivia.',
-            recommendation: 'Evaluación confidencial y validada por consultores RENCA.',
-            answered: totalAnswered
-        };
-    }, [auditAnswers]);
-
-    const hasActiveFilters = searchQuery.trim() !== '' || selectedTrack !== 'todos' || selectedLevel !== 'todos' || selectedFormat !== 'todos';
+    const hasActiveFilters = selectedTicket !== 'todos' || searchQuery.trim() !== '' || selectedTrack !== 'todos' || selectedLevel !== 'todos' || selectedFormat !== 'todos';
 
     const handleResetFilters = () => {
+        setSelectedTicket('todos');
         setSearchQuery('');
         setSelectedTrack('todos');
         setSelectedLevel('todos');
@@ -409,14 +453,13 @@ export default function AcademyPage() {
     return (
         <div className="inner-page min-h-screen relative w-full overflow-hidden bg-[#020202]">
             
-            {/* 1. Fondo de Escena de Capacitación Ambiental con Velo Cinematográfico Neuform */}
+            {/* Fondo de Escena de Capacitación Ambiental con Velo Cinematográfico Neuform */}
             <div className="fixed inset-0 w-full h-full z-0 pointer-events-none overflow-hidden">
                 <img
                     src="/assets/3d-backend/bg_academy.webp"
                     alt="Capacitación y Educación Ambiental SERAM"
                     className="w-full h-full object-cover opacity-25"
                     onError={(e) => {
-                        // Resiliencia por si el formato webp no se visualiza
                         if (!e.currentTarget.dataset.fallbackApplied) {
                             e.currentTarget.dataset.fallbackApplied = 'true';
                             e.currentTarget.src = '/assets/3d-backend/bg_home.webp';
@@ -429,381 +472,94 @@ export default function AcademyPage() {
                 <div className="absolute inset-0 neuform-grid-bg opacity-15" />
             </div>
 
-            {/* Contenido Principal Organizado en 5 Segmentos Visuales Diferenciados */}
+            {/* Contenido Principal Formativo */}
             <main className="academy-viewport min-h-screen flex flex-col items-center justify-start pt-12 pb-28 px-4 md:px-8 relative z-10 w-full max-w-7xl mx-auto space-y-24">
                 
                 {/* ========================================================================= */}
-                {/* SEGMENTO 1: PANEL HERO & MISIÓN DE CONCIENTIZACIÓN AMBIENTAL              */}
-                {/* ========================================================================= */}
-                <motion.section 
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="w-full flex flex-col items-center text-center max-w-5xl pointer-events-auto"
-                >
-
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight uppercase font-display max-w-4xl">
-                        ¿Tu Empresa Cumple con la <span className="text-gradient-premium">Normativa Ambiental</span> en Bolivia?
-                    </h1>
-                    
-                    <p className="text-amber-400 font-extrabold text-base md:text-xl tracking-wide uppercase mt-4">
-                        Identifica Riesgos, Previene Sanciones y Capacita a tu Equipo Técnico
-                    </p>
-                    
-                    <p className="text-gray-300 font-light text-sm md:text-base leading-relaxed max-w-3xl mt-4">
-                        Diagnostica pasivos ambientales, licencias pendientes (DAA, CD, EEIA) y contingencias ante la Autoridad Ambiental Competente (AACN / AACD) antes de una inspección sorpresa, o accede a herramientas y formación técnica especializada impartida por consultores con registro ministerial.
-                    </p>
-
-                    {/* 4 Tarjetas de Métricas de la Academia */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full mt-10">
-                        <div className="neuform-card p-5 border border-white/10 bg-black/50 text-left">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-2xl md:text-3xl font-black text-[#00e03c] font-display">+1,200</span>
-                                <Clock className="w-5 h-5 text-[#00e03c]/70" />
-                            </div>
-                            <h2 className="text-xs font-bold text-white uppercase tracking-wider">Horas Técnicas</h2>
-                            <p className="text-[11px] text-gray-400 font-light mt-1">Formación en SIG, trámites y adecuación ambiental.</p>
-                        </div>
-
-                        <div className="neuform-card p-5 border border-white/10 bg-black/50 text-left">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-2xl md:text-3xl font-black text-amber-400 font-display">100%</span>
-                                <Scale className="w-5 h-5 text-amber-400/70" />
-                            </div>
-                            <h2 className="text-xs font-bold text-white uppercase tracking-wider">Ley 1333 & D.S. 3549</h2>
-                            <p className="text-[11px] text-gray-400 font-light mt-1">Alineación rigurosa a normativas bolivianas vigentes.</p>
-                        </div>
-
-                        <div className="neuform-card p-5 border border-white/10 bg-black/50 text-left">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-2xl md:text-3xl font-black text-cyan-400 font-display">RENCA</span>
-                                <Award className="w-5 h-5 text-cyan-400/70" />
-                            </div>
-                            <h2 className="text-xs font-bold text-white uppercase tracking-wider">Docentes Colegiados</h2>
-                            <p className="text-[11px] text-gray-400 font-light mt-1">Consultores con registro activo ante el MMAyA.</p>
-                        </div>
-
-                        <div className="neuform-card p-5 border border-white/10 bg-black/50 text-left">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-2xl md:text-3xl font-black text-purple-400 font-display">+450</span>
-                                <ShieldCheck className="w-5 h-5 text-purple-400/70" />
-                            </div>
-                            <h2 className="text-xs font-bold text-white uppercase tracking-wider">Certificados Oficiales</h2>
-                            <p className="text-[11px] text-gray-400 font-light mt-1">Profesionales y empresas formadas a nivel nacional.</p>
-                        </div>
-                    </div>
-
-                    {/* Barra de Accesos Directos a los 4 Paneles Siguientes */}
-                    <div className="flex flex-wrap items-center justify-center gap-2.5 mt-8 w-full max-w-4xl">
-                        <button
-                            type="button"
-                            onClick={() => scrollToSection('soluciones-corporativas')}
-                            className="px-4 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
-                        >
-                            <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
-                            1. Diagnóstico B2B & Sanciones
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => scrollToSection('campus-academico')}
-                            className="px-4 py-2 rounded-xl bg-[#00e03c]/15 hover:bg-[#00e03c]/25 border border-[#00e03c]/30 text-[#00e03c] text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
-                        >
-                            <BookOpen className="w-3.5 h-3.5 text-[#00e03c]" />
-                            2. Campus & Catálogo de Cursos
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => scrollToSection('certificaciones-seram')}
-                            className="px-4 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
-                        >
-                            <Award className="w-3.5 h-3.5 text-amber-400" />
-                            3. Sellos & Aval Técnico
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => scrollToSection('in-company')}
-                            className="px-4 py-2 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/30 text-blue-300 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
-                        >
-                            <Building2 className="w-3.5 h-3.5 text-blue-400" />
-                            4. Formación In-Company
-                        </button>
-                    </div>
-                </motion.section>
-
-                {/* ========================================================================= */}
-                {/* SEGMENTO 2: PANEL DE SOLUCIONES CORPORATIVAS & PREVENCIÓN DE SANCIONES (B2B) */}
-                {/* ========================================================================= */}
-                <section 
-                    id="soluciones-corporativas" 
-                    className="w-full max-w-5xl flex flex-col gap-10 pointer-events-auto scroll-mt-24"
-                >
-                    <div className="flex flex-col items-center text-center space-y-3">
-                        <span className="flex items-center gap-2 text-[10px] md:text-xs font-black uppercase tracking-wider px-3.5 py-1.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                            <ShieldAlert className="w-4 h-4 text-rose-400" />
-                            Panel B2B · Soluciones Corporativas & Prevención de Sanciones
-                        </span>
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white uppercase tracking-tight font-display">
-                            Diagnóstico Express y Regularización ante la AACN / AACD
-                        </h2>
-                        <p className="text-gray-300 text-xs sm:text-sm font-light max-w-2xl leading-relaxed">
-                            Calcula tu nivel de exposición legal y actúa antes de que una fiscalización derive en multas pecuniarias o paralización de operaciones.
-                        </p>
-                    </div>
-
-                    {/* Autodiagnóstico Rápido de Cumplimiento Empresarial */}
-                    <div className="neuform-card p-6 sm:p-10 border border-white/10 bg-black/60 relative overflow-hidden">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-white/10">
-                            <div>
-                                <span className="text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                                    Autoevaluación Inmediata (3 Preguntas)
-                                </span>
-                                <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-2">
-                                    Calculadora de Riesgo ante Fiscalización Ambiental
-                                </h3>
-                            </div>
-                            <span className="text-xs font-mono text-gray-400">
-                                Respondidas: <strong className="text-white">{riskAnalysis.answered} / 3</strong>
-                            </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-8">
-                            
-                            {/* Pregunta 1: Licencia Ambiental */}
-                            <div className="space-y-3">
-                                <label className="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center gap-1.5">
-                                    <FileText className="w-3.5 h-3.5 text-rose-400" />
-                                    1. Licencia Ambiental
-                                </label>
-                                <div className="space-y-2">
-                                    {[
-                                        { id: 'sin_licencia', label: 'Sin Licencia (Operando)', desc: 'Riesgo Crítico de Clausura' },
-                                        { id: 'en_tramite', label: 'En Trámite / Observada', desc: 'Riesgo de Conminatoria' },
-                                        { id: 'vigente', label: 'Vigente con DAA / CD', desc: 'Cumplimiento Legal' }
-                                    ].map((opt) => (
-                                        <button
-                                            key={opt.id}
-                                            type="button"
-                                            onClick={() => setAuditAnswers(prev => ({ ...prev, licencia: opt.id }))}
-                                            className={`w-full text-left p-3 rounded-xl border text-xs transition-all cursor-pointer ${
-                                                auditAnswers.licencia === opt.id
-                                                    ? 'border-rose-500 bg-rose-500/20 text-white font-bold ring-1 ring-rose-500/50'
-                                                    : 'border-white/5 bg-white/[0.02] text-gray-400 hover:border-white/20 hover:text-white'
-                                            }`}
-                                        >
-                                            <div className="font-semibold">{opt.label}</div>
-                                            <div className="text-[10px] opacity-70 font-light mt-0.5">{opt.desc}</div>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Pregunta 2: Monitoreo Anual */}
-                            <div className="space-y-3">
-                                <label className="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center gap-1.5">
-                                    <Scale className="w-3.5 h-3.5 text-amber-400" />
-                                    2. Informes de Monitoreo (IMA)
-                                </label>
-                                <div className="space-y-2">
-                                    {[
-                                        { id: 'nunca', label: 'Nunca Hemos Presentado', desc: 'Multas Acumulativas' },
-                                        { id: 'atrasado', label: 'Atrasado (>1 Año)', desc: 'Sumario Administrativo' },
-                                        { id: 'al_dia', label: 'Al Día con Sello Oficial', desc: 'Monitoreo Periódico' }
-                                    ].map((opt) => (
-                                        <button
-                                            key={opt.id}
-                                            type="button"
-                                            onClick={() => setAuditAnswers(prev => ({ ...prev, monitoreo: opt.id }))}
-                                            className={`w-full text-left p-3 rounded-xl border text-xs transition-all cursor-pointer ${
-                                                auditAnswers.monitoreo === opt.id
-                                                    ? 'border-amber-500 bg-amber-500/20 text-white font-bold ring-1 ring-amber-500/50'
-                                                    : 'border-white/5 bg-white/[0.02] text-gray-400 hover:border-white/20 hover:text-white'
-                                            }`}
-                                        >
-                                            <div className="font-semibold">{opt.label}</div>
-                                            <div className="text-[10px] opacity-70 font-light mt-0.5">{opt.desc}</div>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Pregunta 3: Cartografía / Planos */}
-                            <div className="space-y-3">
-                                <label className="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center gap-1.5">
-                                    <Compass className="w-3.5 h-3.5 text-emerald-400" />
-                                    3. Georreferenciación WGS-84
-                                </label>
-                                <div className="space-y-2">
-                                    {[
-                                        { id: 'sin_plano', label: 'Sin Plano o Croquis Básico', desc: 'Incertidumbre Catastral' },
-                                        { id: 'desactualizado', label: 'Plano Local sin WGS-84', desc: 'Riesgo de Superposición' },
-                                        { id: 'georreferenciado', label: 'Plano Digital Oficial', desc: 'Carimbo Técnico Válido' }
-                                    ].map((opt) => (
-                                        <button
-                                            key={opt.id}
-                                            type="button"
-                                            onClick={() => setAuditAnswers(prev => ({ ...prev, cartografia: opt.id }))}
-                                            className={`w-full text-left p-3 rounded-xl border text-xs transition-all cursor-pointer ${
-                                                auditAnswers.cartografia === opt.id
-                                                    ? 'border-emerald-500 bg-emerald-500/20 text-white font-bold ring-1 ring-emerald-500/50'
-                                                    : 'border-white/5 bg-white/[0.02] text-gray-400 hover:border-white/20 hover:text-white'
-                                            }`}
-                                        >
-                                            <div className="font-semibold">{opt.label}</div>
-                                            <div className="text-[10px] opacity-70 font-light mt-0.5">{opt.desc}</div>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Cuadro de Resultado de Diagnóstico Dinámico */}
-                        <div className={`p-6 rounded-2xl border transition-all ${riskAnalysis.border} ${riskAnalysis.bg} ${riskAnalysis.glow}`}>
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
-                                <div className="flex items-center gap-2">
-                                    <ShieldAlert className={`w-5 h-5 ${riskAnalysis.color}`} />
-                                    <span className={`text-xs font-extrabold uppercase tracking-widest ${riskAnalysis.color}`}>
-                                        ESTADO: {riskAnalysis.level}
-                                    </span>
-                                </div>
-                                <span className="text-[11px] text-gray-400 font-mono">
-                                    Diagnóstico Preliminar SERAM Legal & Técnico
-                                </span>
-                            </div>
-
-                            <h4 className="text-base sm:text-lg font-black text-white tracking-tight mb-2">
-                                {riskAnalysis.title}
-                            </h4>
-                            <p className="text-xs sm:text-sm text-gray-300 font-light leading-relaxed mb-4">
-                                {riskAnalysis.message}
-                            </p>
-                            <p className="text-xs text-amber-300 font-medium mb-6">
-                                💡 {riskAnalysis.recommendation}
-                            </p>
-
-                            {/* Acciones de Contacto Inmediato */}
-                            <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-white/10">
-                                <button
-                                    type="button"
-                                    onClick={() => navigate('/cotizar')}
-                                    className="px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] active:scale-95 flex items-center gap-2 cursor-pointer"
-                                >
-                                    Solicitar Cotización de Regularización Urgente
-                                    <ArrowRight className="w-4 h-4" />
-                                </button>
-
-                                <a
-                                    href="https://wa.me/59176200109?text=Hola%20SERAM,%20necesito%20asesoria%20urgente%20sobre%20cumplimiento%20y%20regularizacion%20ambiental%20para%20mi%20empresa"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="px-5 py-3 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer"
-                                >
-                                    <PhoneCall className="w-4 h-4 text-emerald-400" />
-                                    Consultar Caso RENCA por WhatsApp
-                                    <ExternalLink className="w-3.5 h-3.5 opacity-60" />
-                                </a>
-
-                                <button
-                                    type="button"
-                                    onClick={() => scrollToSection('campus-academico')}
-                                    className="px-4 py-3 rounded-xl border border-white/10 hover:border-white/20 text-gray-400 hover:text-white font-medium text-xs tracking-wider transition-all ml-auto cursor-pointer"
-                                >
-                                    Ver cursos y herramientas para mi equipo ↓
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Matriz de las 4 Contingencias Ambientales Críticas en Bolivia */}
-                    <div className="space-y-6">
-                        <div className="text-center max-w-2xl mx-auto space-y-2">
-                            <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight font-display">
-                                Principales Contingencias Ambientales en Bolivia
-                            </h3>
-                            <p className="text-gray-400 text-xs sm:text-sm font-light">
-                                Aspectos sancionatorios que auditan el Viceministerio de Medio Ambiente (AACN) y las Gobernaciones Departamentales (AACD).
-                            </p>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            
-                            {/* Riesgo 1 */}
-                            <div className="p-6 rounded-2xl border border-rose-500/20 bg-rose-950/15 space-y-3">
-                                <div className="flex items-center gap-2 text-rose-400 font-extrabold text-xs uppercase tracking-wider">
-                                    <Flame className="w-4 h-4 text-rose-500" />
-                                    1. Operar sin Licencia Ambiental (Ley 1333)
-                                </div>
-                                <p className="text-xs text-gray-300 font-light leading-relaxed">
-                                    Las actividades en funcionamiento sin Declaratoria de Adecuación Ambiental (DAA) o Certificado de Dispensación (CD) son pasibles a <strong>clausura preventiva inmediata</strong> y multas de hasta el 3 por mil de su patrimonio financiero.
-                                </p>
-                                <div className="text-[11px] text-rose-300 font-medium pt-2 border-t border-rose-500/20">
-                                    Solución SERAM: Regularización express con formulario FNCA o DAA y presentación formal.
-                                </div>
-                            </div>
-
-                            {/* Riesgo 2 */}
-                            <div className="p-6 rounded-2xl border border-amber-500/20 bg-amber-950/15 space-y-3">
-                                <div className="flex items-center gap-2 text-amber-400 font-extrabold text-xs uppercase tracking-wider">
-                                    <AlertTriangle className="w-4 h-4 text-amber-500" />
-                                    2. Omisión de Informes de Monitoreo (IMA)
-                                </div>
-                                <p className="text-xs text-gray-300 font-light leading-relaxed">
-                                    El no presentar el Informe de Monitoreo Ambiental Anual incumple los compromisos del Plan de Manejo (PPM-PASA), activando <strong>sumarios administrativos sancionatorios</strong> con cargos contra los representantes legales.
-                                </p>
-                                <div className="text-[11px] text-amber-300 font-medium pt-2 border-t border-amber-500/20">
-                                    Solución SERAM: Ejecución de campañas de campo, análisis de laboratorio e informe con firma RENCA.
-                                </div>
-                            </div>
-
-                            {/* Riesgo 3 */}
-                            <div className="p-6 rounded-2xl border border-blue-500/20 bg-blue-950/15 space-y-3">
-                                <div className="flex items-center gap-2 text-blue-400 font-extrabold text-xs uppercase tracking-wider">
-                                    <Compass className="w-4 h-4 text-blue-500" />
-                                    3. Superposición Territorial y Áreas Protegidas
-                                </div>
-                                <p className="text-xs text-gray-300 font-light leading-relaxed">
-                                    La falta de coordenadas georreferenciadas oficiales (WGS-84) expone a las obras a <strong>paralización por el SERNAP o la ABT</strong> si se detecta invasión involuntaria a reservas fiscales o manchas urbanas municipales.
-                                </p>
-                                <div className="text-[11px] text-blue-300 font-medium pt-2 border-t border-blue-500/20">
-                                    Solución SERAM: Cartografía satelital certificada y carimbos técnicos con código catastral.
-                                </div>
-                            </div>
-
-                            {/* Riesgo 4 */}
-                            <div className="p-6 rounded-2xl border border-emerald-500/20 bg-emerald-950/15 space-y-3">
-                                <div className="flex items-center gap-2 text-emerald-400 font-extrabold text-xs uppercase tracking-wider">
-                                    <Building2 className="w-4 h-4 text-emerald-500" />
-                                    4. Gestión de Residuos Sólidos y Peligrosos (Ley 755)
-                                </div>
-                                <p className="text-xs text-gray-300 font-light leading-relaxed">
-                                    La descarga de efluentes no tratados o almacenamiento inadecuado de sustancias peligrosas genera <strong>responsabilidad civil y penal ambiental</strong> por daño acumulativo a cuerpos hídricos o suelos.
-                                </p>
-                                <div className="text-[11px] text-emerald-300 font-medium pt-2 border-t border-emerald-500/20">
-                                    Solución SERAM: Plan de Manejo Integral de Residuos, Manifiestos y diseño de trampas de grasa/PTAR.
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                </section>
-
-                {/* ========================================================================= */}
-                {/* SEGMENTO 3: PANEL DEL CAMPUS ACADÉMICO & CATÁLOGO CLASIFICADO             */}
+                {/* SECCIÓN 1: ENCABEZADO FORMATIVO & CATÁLOGO CLASIFICADO POR TICKET         */}
                 {/* ========================================================================= */}
                 <section 
                     id="campus-academico" 
-                    className="w-full flex flex-col items-center pointer-events-auto scroll-mt-24"
+                    className="w-full flex flex-col items-center pointer-events-auto"
                 >
-                    <div className="flex flex-col items-center text-center space-y-3 mb-10">
-                        <span className="flex items-center gap-2 text-[10px] md:text-xs font-black uppercase tracking-wider px-3.5 py-1.5 rounded-full bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/30">
-                            <BookOpen className="w-4 h-4 text-[#00e03c]" />
-                            Panel 3 · Campus Académico & Catálogo Clasificado
-                        </span>
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white uppercase tracking-tight font-display">
-                            Catálogo de Cursos Técnicos, Dossiers y Entregables
-                        </h2>
-                        <p className="text-gray-300 text-xs sm:text-sm font-light max-w-2xl leading-relaxed">
-                            Formación técnica aplicada y herramientas normativas para profesionales, consultores e ingenieros de planta.
+                    {/* Cabecera Educativa Principal */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="flex flex-col items-center text-center space-y-3 mb-10 max-w-4xl"
+                    >
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight uppercase font-display">
+                            CATÁLOGO DE FORMACIÓN & <span className="text-gradient-premium">RECURSOS TÉCNICOS</span>
+                        </h1>
+                        <p className="text-gray-300 text-xs sm:text-sm md:text-base font-light max-w-2xl leading-relaxed">
+                            Capacitación de alto nivel y recursos técnicos para ingenieros, consultores y profesionales en el marco de la normativa ambiental de Bolivia.
                         </p>
+                    </motion.div>
+
+                    {/* 5 Pestañas Principales de Categorización por Nivel de Ticket */}
+                    <div className="w-full max-w-5xl mb-8">
+                        <div className="flex items-center justify-between mb-3 px-1">
+                            <span className="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center gap-1.5">
+                                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                                Nivel de Inversión / Ticket:
+                            </span>
+                            <span className="text-[11px] font-mono text-gray-500 hidden sm:inline">
+                                Filtra entre recursos gratuitos, base, talleres o mentoría
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                            {TICKET_TABS.map((tab) => {
+                                const Icon = tab.icon;
+                                const isSelected = selectedTicket === tab.id;
+                                const count = ticketCounts[tab.id] || 0;
+
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        type="button"
+                                        onClick={() => setSelectedTicket(tab.id)}
+                                        className={`p-3.5 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between relative overflow-hidden group cursor-pointer ${
+                                            isSelected
+                                                ? `${tab.activeClass} ring-1`
+                                                : 'border-white/10 bg-black/40 hover:border-white/25 hover:bg-white/[0.04] text-gray-300'
+                                        }`}
+                                    >
+                                        <div>
+                                            <div className="flex items-center justify-between gap-1 mb-2">
+                                                <span className={`p-1.5 rounded-lg border ${
+                                                    isSelected ? tab.badgeClass : 'bg-white/5 border-white/10 text-gray-400'
+                                                }`}>
+                                                    <Icon className="w-3.5 h-3.5" />
+                                                </span>
+                                                <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                                                    isSelected ? tab.badgeClass : 'bg-white/5 border-white/10 text-gray-400'
+                                                }`}>
+                                                    {tab.badge}
+                                                </span>
+                                            </div>
+                                            <h3 className={`text-xs font-bold leading-snug tracking-tight ${
+                                                isSelected ? 'text-white' : 'text-gray-200 group-hover:text-white'
+                                            }`}>
+                                                {tab.label}
+                                            </h3>
+                                        </div>
+
+                                        <div className="flex items-center justify-between mt-3 pt-2 border-t border-white/5 text-[10px]">
+                                            <span className="text-gray-400 font-light truncate max-w-[90px]">
+                                                {tab.priceRange}
+                                            </span>
+                                            <span className={`font-mono font-bold px-1.5 py-0.5 rounded ${
+                                                isSelected ? 'bg-white/20 text-white' : 'bg-white/5 text-gray-400'
+                                            }`}>
+                                                {count}
+                                            </span>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
 
                     {/* Barra de Clasificación y Búsqueda Interactiva */}
@@ -823,7 +579,8 @@ export default function AcademyPage() {
                                 <button
                                     type="button"
                                     onClick={() => setSearchQuery('')}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white p-1"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white p-1 cursor-pointer"
+                                    aria-label="Limpiar búsqueda"
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
@@ -931,7 +688,7 @@ export default function AcademyPage() {
                         {filteredCourses.length === 0 ? (
                             <div className="col-span-full academy-glass-card p-12 text-center text-gray-400 border border-white/5 space-y-3">
                                 <p className="text-base font-semibold text-white">No se encontraron cursos con los filtros seleccionados.</p>
-                                <p className="text-xs text-gray-400 font-light">Prueba ajustando los términos de búsqueda o restableciendo los selectores de eje temático y nivel.</p>
+                                <p className="text-xs text-gray-400 font-light">Prueba cambiando la categoría de ticket, ajustando los términos de búsqueda o restableciendo los filtros.</p>
                                 <button
                                     type="button"
                                     onClick={handleResetFilters}
@@ -945,6 +702,7 @@ export default function AcademyPage() {
                                 const isPdf = course.format === 'pdf' || course.hasVideo === false;
                                 const levelBadge = getLevelBadge(course.level);
                                 const trackBadgeStyle = getTrackBadge(course.track);
+                                const ticketBadge = getTicketBadge(course.type, course.price);
 
                                 return (
                                     <article
@@ -993,8 +751,11 @@ export default function AcademyPage() {
                                         <div className="p-6 flex-1 flex flex-col justify-between gap-5">
                                             <div className="space-y-3">
                                                 
-                                                {/* Badges de Clasificación: Eje Temático & Nivel Técnico */}
-                                                <div className="flex flex-wrap items-center gap-2">
+                                                {/* Badges de Clasificación: Ticket, Eje Temático & Nivel Técnico */}
+                                                <div className="flex flex-wrap items-center gap-1.5">
+                                                    <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border ${ticketBadge.classes}`}>
+                                                        {ticketBadge.label}
+                                                    </span>
                                                     {course.track && (
                                                         <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border ${trackBadgeStyle}`}>
                                                             {course.track}
@@ -1056,16 +817,16 @@ export default function AcademyPage() {
                 </section>
 
                 {/* ========================================================================= */}
-                {/* SEGMENTO 4: PANEL DE SELLOS DE CERTIFICACIÓN Y VALIDEZ TÉCNICA SERAM      */}
+                {/* SECCIÓN 2: SELLOS DE CERTIFICACIÓN Y VALIDEZ TÉCNICA SERAM               */}
                 {/* ========================================================================= */}
                 <section 
                     id="certificaciones-seram" 
-                    className="w-full max-w-5xl flex flex-col gap-10 pointer-events-auto scroll-mt-24"
+                    className="w-full max-w-5xl flex flex-col gap-10 pointer-events-auto"
                 >
                     <div className="flex flex-col items-center text-center space-y-3">
                         <span className="flex items-center gap-2 text-[10px] md:text-xs font-black uppercase tracking-wider px-3.5 py-1.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
                             <ShieldCheck className="w-4 h-4 text-amber-400" />
-                            Panel 4 · Sellos de Certificación & Respaldo Regulatorio
+                            Sellos de Certificación & Respaldo Regulatorio
                         </span>
                         <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white uppercase tracking-tight font-display">
                             Validez Legal y Acreditación Técnica SERAM
@@ -1141,16 +902,16 @@ export default function AcademyPage() {
                 </section>
 
                 {/* ========================================================================= */}
-                {/* SEGMENTO 5: PANEL DE CAPACITACIÓN IN-COMPANY PARA EMPRESAS                */}
+                {/* SECCIÓN 3: CAPACITACIÓN IN-COMPANY PARA EMPRESAS                          */}
                 {/* ========================================================================= */}
                 <section 
                     id="in-company" 
-                    className="w-full max-w-5xl flex flex-col gap-10 pointer-events-auto scroll-mt-24"
+                    className="w-full max-w-5xl flex flex-col gap-10 pointer-events-auto"
                 >
                     <div className="flex flex-col items-center text-center space-y-3">
                         <span className="flex items-center gap-2 text-[10px] md:text-xs font-black uppercase tracking-wider px-3.5 py-1.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
                             <Building2 className="w-4 h-4 text-blue-400" />
-                            Panel 5 · Capacitación In-Company para Empresas
+                            Capacitación In-Company para Empresas
                         </span>
                         <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white uppercase tracking-tight font-display">
                             Formación a Medida para Equipos de Ingeniería y Plantas Industriales
@@ -1223,7 +984,7 @@ export default function AcademyPage() {
                         <div className="flex flex-wrap items-center justify-center gap-3 shrink-0">
                             <button
                                 type="button"
-                                onClick={() => navigate('/cotizar')}
+                                onClick={() => navigate('/quote')}
                                 className="px-5 py-3 rounded-xl bg-blue-500 hover:bg-blue-400 text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)] active:scale-95 flex items-center gap-2 cursor-pointer"
                             >
                                 Solicitar Cotización In-Company
