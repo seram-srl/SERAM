@@ -1,36 +1,32 @@
-# Plan de Implementación — TASK-064
+# Plan de Implementación — TASK-089
 
 ## Objetivo
-Resolver el bloqueo de inicio de sesión de los socios directivos (específicamente `barrientoso2401@gmail.com` - Ing. Diego Barrientos) en `LoginPage.jsx`, permitiendo:
-1. Autenticación exitosa tanto con la contraseña registrada en Supabase como con el pase de acceso institucional (`socio2026` / `seram2026`).
-2. Detección automática del rol de Socio Directivo (`AdminMod`), asignación de `currentSocio` y persistencia en `sessionStorage`.
-3. Redirección automática directa a `/dashboard` (en lugar de enviar al socio a `/academy`).
-4. Detección visual en tiempo real del socio al ingresar su correo institucional en `LoginPage.jsx`, indicando que es un Socio Fundador reconocido y recordando la disponibilidad del pase de acceso institucional.
-5. Acceso directo e interconexión con el portal de socios directivos desde `LoginPage.jsx`.
+Unificar el Footer de SERAM de manera global en todas las páginas públicas de la plataforma web, aplicando los siguientes cambios de marca y localización requeridos por el usuario:
+1. **Actualización de Dirección:** Modificar la dirección a `"Calle Los Álamos N° 140, Obrajes, La Paz, Bolivia."`.
+2. **Reemplazo de Socios Fundadores por Logotipo Centrado:** En la columna izquierda, eliminar la etiqueta `"SOCIOS FUNDADORES"` y la lista de socios, y en su lugar colocar el logotipo oficial de SERAM bien centrado, con interactividad para que al hacer clic redirija a la Home (hero) y realice scroll suave a la cabecera.
+3. **Disponibilidad Global:** Asegurar que el footer esté visible en todas las páginas públicas de la web (`/`, `/services`, `/academy`, `/quote`, `/experience`, `/shop`, `/contact`, `/privacidad`, `/terminos`, `/cookies`, `/reembolsos`, `/login`, `/register`), exceptuando únicamente vistas de pantalla completa dedicadas como `/dashboard` y `/academy/workspace`.
 
 ---
 
-## Causa Raíz Diagnosticada
-1. `LoginPage.jsx` únicamente invocaba `supabase.auth.signInWithPassword({ email, password })`.
-2. Supabase Auth tiene habilitada la confirmación de correo electrónico (`confirmation_sent_at`), por lo que cualquier usuario recién registrado que no haya abierto el enlace de verificación en su correo es rechazado por Supabase con `Invalid login credentials`.
-3. Cuando el socio intentaba ingresar con el pase de acceso institucional (`socio2026` o `seram2026`), `LoginPage.jsx` enviaba ese pase a Supabase en vez de procesarlo como pase maestro local, fallando también en Supabase.
-4. Incluso si el login en Supabase hubiera tenido éxito, `handleLoginSupabase` no asignaba `activeRole: 'AdminMod'` ni `currentSocio`, y `LoginPage.jsx` redirigía ciegamente a `/academy` en vez de `/dashboard`.
+## Archivos a Modificar / Crear
+1. **`src/components/shared/Footer.jsx` (Nuevo componente compartido):**
+   - Extraer la lógica y maquetación de `FooterSection` de `HomePage.jsx`.
+   - Columna 1 (Izquierda): Eliminar `SOCIOS FUNDADORES` y nombres. Colocar botón centrado con el logotipo oficial de SERAM (`ícono_logo.png` + `SERAM` estilizado), con `onClick` que navega a `/` y ejecuta `window.scrollTo({ top: 0, behavior: 'smooth' })`.
+   - Columna 2 (Centro): Redes sociales (Instagram, Facebook, LinkedIn) y lema corporativo.
+   - Columna 3 (Derecha): Título "Ubicación y Legalidad", texto "Oficina Central Bolivia: Calle Los Álamos N° 140, Obrajes, La Paz, Bolivia.", enlaces legales (`/contact`, `/terminos`, `/privacidad`, `/cookies`, `/reembolsos`) y copyright.
+2. **`src/App.jsx`:**
+   - Importar `Footer` desde `./components/shared/Footer`.
+   - Renderizar `<Footer />` al final de `<main>`, condicionado a rutas públicas (oculto en `/dashboard` y `/academy/workspace`).
+3. **`src/features/home/HomePage.jsx`:**
+   - Reemplazar la definición local de `FooterSection` por la importación de `Footer` o retirar la invocación duplicada al final de la página para que el footer global de `App.jsx` tome el control.
+4. **`src/features/legal/LegalPage.jsx`:**
+   - Actualizar la dirección de domicilio operativo en la cláusula 1 a "Calle Los Álamos N° 140, Obrajes, La Paz, Bolivia." para mantener coherencia jurídica total.
+5. **`tasks.json` y `progress/TASK-089.md`:**
+   - Registro y control según el protocolo de gobernanza.
 
 ---
 
-## Archivos a Modificar
-1. `src/context/AppContext.jsx`:
-   - Enriquecer `handleLoginSupabase` para detectar correos de socios fundadores y validar contra pase maestro institucional (`socio2026` / `seram2026`) además de Supabase Auth.
-   - Si se autentica un socio fundador (por pase maestro o por Supabase exitoso), conceder inmediatamente `activeRole: 'AdminMod'`, configurar `currentSocio` y retornar `{ success: true, isPartner: true, redirectTo: '/dashboard' }`.
-2. `src/features/auth/LoginPage.jsx`:
-   - Redireccionar dinámicamente según el rol: si `result.isPartner` o `result.redirectTo`, navegar a `/dashboard`; si es alumno/cliente, navegar a `/academy`.
-   - Detección en vivo de correo de socio: desplegar badge `🏛️ Socio Fundador Reconocido` con soporte para pase de acceso.
-   - Acceso alternativo rápido para abrir el modal secreto de socios directivos (`setShowSecretPortal(true)`).
-3. `progress/TASK-064.md` y `tasks.json`: Registro y seguimiento estricto del protocolo.
-
----
-
-## Verificación
-- ESLint en archivos modificados.
-- `npm run build` sin errores.
-- Prueba funcional de login con `barrientoso2401@gmail.com` usando pase `socio2026` y redirección a `/dashboard`.
+## Verificación de Calidad
+- ESLint: 0 errores y 0 warnings en todos los archivos modificados.
+- Build de producción: `npm run build` con código de salida 0.
+- Validación en navegador con `chrome-devtools-mcp`: verificar la presencia y renderizado del Footer en Home (`/`), Academy (`/academy`), Services (`/services`), y verificar que al hacer clic en el logo regrese al hero de Home con scroll suave.

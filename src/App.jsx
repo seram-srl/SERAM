@@ -11,6 +11,7 @@ import SecretAuthModal from './components/ui/SecretAuthModal';
 
 // ── Componentes globales de soporte
 import Navbar          from './components/shared/Navbar';
+import Footer          from './components/shared/Footer';
 import Toast           from './components/shared/Toast';
 import PartnerModal    from './components/shared/PartnerModal';
 import ChatbotFAB      from './components/ui/ChatbotFAB';
@@ -46,6 +47,9 @@ export default function App() {
   const isLegalRoute = ['/privacidad', '/terminos', '/cookies', '/reembolsos'].includes(location.pathname);
   const routeKey = isLegalRoute ? '/legal' : location.pathname;
 
+  // Ocultar Footer en Dashboard y vistas dedicadas de Workspace
+  const hideFooter = location.pathname === '/dashboard' || location.pathname.startsWith('/academy/workspace');
+
   return (
     /*
      * CAPA DE COMPOSICIÓN DE LA UI (DOM)
@@ -59,7 +63,7 @@ export default function App() {
      * z-index: 200 → CustomCursor (siempre encima de todo)
      */
     <div
-      className={`min-h-screen text-slate-100 font-sans ${location.pathname === '/' ? 'cinematic-bg' : 'neuform-bg'}`}
+      className={`min-h-screen flex flex-col text-slate-100 font-sans ${location.pathname === '/' ? 'cinematic-bg' : 'neuform-bg'}`}
       style={{ position: 'relative' }}
     >
       {/* ── Control de Scroll a cabecera en navegación independiente ────── */}
@@ -106,7 +110,7 @@ export default function App() {
         Cada página se monta con AnimatePresence y Framer Motion.
         El contenido HTML siempre tiene z-index relativo sobre el canvas.
       */}
-      <main style={{ position: 'relative', zIndex: 10 }}>
+      <main className="flex-1" style={{ position: 'relative', zIndex: 10 }}>
         <AnimatePresence mode="wait">
           <Routes location={location} key={routeKey}>
             <Route path="/"           element={<HomePage />}         />
@@ -129,6 +133,9 @@ export default function App() {
           </Routes>
         </AnimatePresence>
       </main>
+
+      {/* ── FOOTER GLOBAL REUTILIZABLE ───────────────────────────────────── */}
+      {!hideFooter && <Footer />}
     </div>
   );
 }

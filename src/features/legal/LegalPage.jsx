@@ -137,7 +137,7 @@ export default function LegalPage() {
                   <MapPin className="w-5 h-5 text-[#00e03c] shrink-0 mt-1" />
                   <div>
                     <strong className="text-white text-base sm:text-lg block mb-1">Oficina Central de Operaciones:</strong>
-                    <p>Calle Presbítero Medina N° 2026, Sopocachi, La Paz, Estado Plurinacional de Bolivia.</p>
+                    <p>Calle Los Álamos N° 140, Obrajes, La Paz, Bolivia.</p>
                     <div className="mt-2 text-slate-300 flex items-center gap-2">
                       <span>Canal exclusivo de atención:</span>
                       <button

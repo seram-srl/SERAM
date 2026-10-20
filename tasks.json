@@ -1,10 +1,26 @@
 {
   "version": "1.0",
   "project": "SERAM",
-  "last_updated": "2026-10-16",
+  "last_updated": "2026-10-20",
   "tasks": [],
   "in_progress": [],
   "completed": [
+    {
+      "id": "TASK-089",
+      "title": "Unificación Global del Footer en Toda la Web: Actualización de Dirección Operativa (Calle Los Álamos N° 140, Obrajes), Reemplazo de Socios Fundadores por Logotipo Centrado con Retorno al Hero de Home y Componente Reutilizable Shared Footer",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-19",
+      "completed_at": "2026-10-20"
+    },
+    {
+      "id": "TASK-088",
+      "title": "Reingeniería Integral de Actividades Clave: Sincronización Realtime Supabase, Multi-Modalidad de Hitos (Días, Fases, Subtareas Personalizadas), Matriz de Aprobación Anti-Cheat (Bolsa Provisional de Horas), Cascada OKR, Módulo Clientes Desacoplado y Métricas Dinámicas",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-19",
+      "completed_at": "2026-10-19"
+    },
     {
       "id": "TASK-087",
       "title": "Alineación de SERAM ACADEMY al Enfoque Formativo: Eliminación de Secciones de Servicio (Paneles 1 y 2), Inicio Directo en Catálogo y Categorización por Niveles de Ticket (Gratis, Ticket Bajo, Medio y Alto)",

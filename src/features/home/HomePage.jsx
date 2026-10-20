@@ -8,7 +8,7 @@ import React, { useEffect, useRef } from 'react';
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  BookOpen, Briefcase, Award, ChevronRight, ShoppingCart, Instagram, Facebook, Linkedin,
+  BookOpen, Briefcase, Award, ChevronRight, ShoppingCart,
 } from 'lucide-react';
 import { useApp, AppContext } from '../../context/AppContext';
 import EnvironmentalCanvas from '../../components/ui/EnvironmentalCanvas';
@@ -55,24 +55,6 @@ const TikTokIcon = ({ className }) => (
     <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.17-2.89-.74-3.94-1.78-.22-.22-.41-.47-.58-.73v6.52c0 2.22-.73 4.56-2.5 5.97-1.81 1.44-4.5 1.76-6.79 1.03-2.76-.88-4.71-3.66-4.58-6.57.12-3.13 2.76-5.87 5.92-5.83.69-.01 1.38.12 2.03.38v3.96c-.63-.22-1.32-.28-1.98-.17-1.39.22-2.51 1.48-2.61 2.89-.14 1.8 1.49 3.4 3.28 3.19 1.25-.15 2.19-1.21 2.21-2.47V.02z"/>
   </svg>
 );
-
-const SOCIAL_LINKS = [
-  {
-    label: 'Instagram',
-    href: 'https://www.instagram.com/seram.world/',
-    Icon: Instagram,
-  },
-  {
-    label: 'Facebook',
-    href: 'https://www.facebook.com/seramconsultora',
-    Icon: Facebook,
-  },
-  {
-    label: 'LinkedIn',
-    href: 'https://www.linkedin.com/company/consultoraseram',
-    Icon: Linkedin,
-  },
-];
 
 // ─── DATOS DE PILARES ─────────────────────────────────────────────────────────
 const PILLARS = [
@@ -1225,71 +1207,6 @@ function StoreHorizontalSection() {
   );
 }
 
-// ─── FOOTER SECTION ───────────────────────────────────────────────────────────
-function FooterSection() {
-  return (
-    <footer className="w-full bg-[#010409] border-t border-white/10 py-16 px-6 sm:px-12 md:px-24 select-none relative z-10">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 text-left">
-        {/* Columna 1: Socios Fundadores */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <img src="/assets/brand/ícono_logo.png" alt="SERAM" className="w-6 h-6 object-contain" />
-            <span className="text-xs font-black text-white uppercase tracking-widest font-tech">SERAM</span>
-          </div>
-          <p className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Socios Fundadores</p>
-          <ul className="space-y-2 text-xs font-bold text-slate-300">
-            <li className="hover:text-[#00e03c] transition-colors">Ing. Diego Barrientos</li>
-            <li className="hover:text-[#00e03c] transition-colors">Ing. Fernando Araujo</li>
-            <li className="hover:text-[#00e03c] transition-colors">Ing. Fabricio Orosco</li>
-          </ul>
-        </div>
-
-        {/* Columna 2: Redes Sociales */}
-        <div className="space-y-4">
-          <p className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Conéctate con nosotros</p>
-          <div className="flex items-center gap-4 pt-1">
-            {SOCIAL_LINKS.map(({ label, href, Icon }) => (
-              <a
-                key={label}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`SERAM en ${label}`}
-                className="w-11 h-11 rounded-xl bg-white/5 border border-white/10 hover:border-[#00e03c] text-slate-400 hover:text-[#00e03c] flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md pointer-events-auto"
-                data-cursor-text={label.toUpperCase()}
-              >
-                <Icon className="w-5 h-5" />
-              </a>
-            ))}
-          </div>
-          <p className="text-[10px] text-slate-500 leading-relaxed font-tech">
-            Innovación tecnológica y compromiso socio-ambiental de élite.
-          </p>
-        </div>
-
-        {/* Columna 3: Información de Contacto e Enlaces Legales */}
-        <div className="space-y-4">
-          <p className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Ubicación y Legalidad</p>
-          <div className="text-xs text-slate-400 leading-relaxed">
-            <p className="font-bold text-slate-300">Oficina Central Bolivia:</p>
-            <p>Calle Presbítero Medina N° 2026, Sopocachi, La Paz</p>
-          </div>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-            <Link to="/contact" className="hover:text-white transition-colors pointer-events-auto">Contacto</Link>
-            <Link to="/terminos" className="hover:text-white transition-colors pointer-events-auto">Términos</Link>
-            <Link to="/privacidad" className="hover:text-white transition-colors pointer-events-auto">Privacidad</Link>
-            <Link to="/cookies" className="hover:text-white transition-colors pointer-events-auto">Cookies</Link>
-            <Link to="/reembolsos" className="hover:text-white transition-colors pointer-events-auto">Reembolsos</Link>
-          </div>
-          <p className="text-[10px] text-slate-600 font-mono mt-4">
-            © 2026 SERAM SRL. Todos los derechos reservados.
-          </p>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
 // ─── HOME PAGE PRINCIPAL ──────────────────────────────────────────────────────
 export default function HomePage() {
   const outsideAppValue = useApp();
@@ -1336,9 +1253,6 @@ export default function HomePage() {
 
             {/* ── TIENDA HORIZONTAL ── */}
             <StoreHorizontalSection />
-
-            {/* ── FOOTER FINAL ── */}
-            <FooterSection />
           </motion.div>
         </AppContext.Provider>
       </div>
