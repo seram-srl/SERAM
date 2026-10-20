@@ -26,6 +26,7 @@ import { uploadProjectDocument } from '../../services/projectStorageService';
 import MunicipalProposalsView, { MunicipalProposalModal } from './MunicipalProposalsView';
 import VirtualOfficeView from './VirtualOfficeView';
 import ActivitiesAndClientsModule from './ActivitiesAndClientsModule';
+import ClientsModule from './ClientsModule';
 import PartnerProfileRPGModule from './PartnerProfileRPGModule';
 import { calculatePartnerTotalXP } from './gamification/xpEngine';
 
@@ -46,7 +47,8 @@ const SIDEBAR_MODULE_GROUPS = [
   {
     category: '1. Actividades Clave',
     modules: [
-      { id: 'activities',  icon: <CheckSquare className="w-4 h-4" />,  label: 'Actividades & Clientes' },
+      { id: 'activities',  icon: <CheckSquare className="w-4 h-4" />,  label: 'Actividades y Tareas' },
+      { id: 'clients',     icon: <Building2 className="w-4 h-4" />,    label: 'Clientes' },
       { id: 'timetracker', icon: <Clock className="w-4 h-4" />,        label: 'Control de Horas (Time Tracker)' },
     ]
   },
@@ -4691,6 +4693,7 @@ export default function PartnerDashboard() {
             {activeModule === 'overview'    && <OverviewModule kpis={kpis} metrics={metrics} partnerPresences={partnerPresences} timeLogs={timeLogs || []} onNavigate={setActiveModule} activeServices={activeServices || []} courses={courses || []} currentSocio={activeSocio} />}
             {activeModule === 'office'      && <VirtualOfficeView activeServices={activeServices || []} courses={courses || []} timeLogs={timeLogs || []} partnerPresences={partnerPresences || {}} currentSocio={activeSocio} onNavigateModule={setActiveModule} />}
             {activeModule === 'activities'  && <ActivitiesAndClientsModule currentSocio={activeSocio} />}
+            {activeModule === 'clients'     && <ClientsModule currentSocio={activeSocio} onNavigate={setActiveModule} />}
             {activeModule === 'profiles'    && <PartnerProfileRPGModule currentSocio={activeSocio} timeLogs={timeLogs || []} />}
             {activeModule === 'services'    && <ServicesModule activeServices={activeServices || []} registeredEngineers={safeEngineers} handlers={handlers} publicServices={publicServices || []} specialists={specialists || []} municipalProposals={municipalProposals || []} />}
             {activeModule === 'timetracker' && <TimeTrackerModule timeLogs={timeLogs || []} activeServices={activeServices || []} currentSocio={activeSocio} handlers={handlers} onNavigate={setActiveModule} />}

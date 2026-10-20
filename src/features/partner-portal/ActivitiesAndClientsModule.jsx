@@ -85,7 +85,27 @@ const getPartnerInitials = (name) => {
 };
 
 const getProgressPercent = (act) => {
+  if (!act) return 0;
   if (act.status === 'Concluido') return 100;
+  const mType = act.milestoneType || 'phases';
+  if (mType === 'weekdays') {
+    const days = act.weekdays || {};
+    const dayKeys = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
+    const checkedCount = dayKeys.filter(d => Boolean(days[d])).length;
+    return Math.round((checkedCount / 7) * 100);
+  }
+  if (mType === 'custom_subtasks') {
+    const subs = Array.isArray(act.customSubtasks) ? act.customSubtasks : [];
+    if (subs.length === 0) return act.status === 'En curso' ? 50 : (act.status === 'En revisión' ? 80 : 0);
+    const doneCount = subs.filter(s => s.done).length;
+    return Math.round((doneCount / subs.length) * 100);
+  }
+  if (mType === 'numeric') {
+    const curr = Number(act.currentValue) || 0;
+    const target = Number(act.targetValue) || 1;
+    return Math.min(100, Math.round((curr / target) * 100));
+  }
+  // Default 'phases' (5 standard milestones)
   const step = act.milestoneStep !== undefined && act.milestoneStep !== null ? Number(act.milestoneStep) : 0;
   if (step > 0) return Math.min(100, step * 20);
   if (act.status === 'En revisión') return 80;
@@ -358,39 +378,29 @@ const handleDownloadDeliverable = (act, triggerToast = null) => {
 export default function ActivitiesAndClientsModule({ currentSocio }) {
   const {
     activities = [],
-    clients = [],
-    prospects = [],
     activeServices = [],
     handleAddActivity,
     handleUpdateActivityStatus,
     handleEditActivity,
     handleDeleteActivity,
-    handleAddClient,
-    handleEditClient,
-    handleDeleteClient,
-    handleUpdateProspect,
-    handleConvertProspectToClient,
     triggerToast
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState('table'); // 'table' (Notion), 'kanban', 'clients', 'prospects', 'progress', 'missions', 'synergies'
+  const [activeTab, setActiveTab] = useState('table'); // 'table', 'kanban', 'missions', 'progress', 'synergies'
   const [scopeFilter, setScopeFilter] = useState('all'); // 'all' (Grupal) | 'personal' (Mis actividades)
   const [pageSize, setPageSize] = useState(10); // 10 (default: últimas 10) | 25 | 'all'
   const [currentPage, setCurrentPage] = useState(1);
   const [partnerFilter, setPartnerFilter] = useState('all');
   const [projectFilter, setProjectFilter] = useState('all');
+  const [okrFilter, setOkrFilter] = useState('all'); // 'all' | 'anual' | 'semestral' | 'trimestral' | 'mensual' | 'semanal' | 'diario'
+  const [missionFilter, setMissionFilter] = useState('all'); // 'all' | 'flash' | 'principal' | 'secundaria' | 'combo'
+  const [missionSubTab, setMissionSubTab] = useState('missions'); // 'missions' | 'chests'
   const [searchQuery, setSearchQuery] = useState('');
   const [expandAllConcluido, setExpandAllConcluido] = useState(false);
-
-  // Estados Prospección B2B Global
-  const [prospectSearch, setProspectSearch] = useState('');
-  const [prospectDept, setProspectDept] = useState('all');
-  const [prospectStatusFilter, setProspectStatusFilter] = useState('all');
-  const [prospectServiceFilter, setProspectServiceFilter] = useState('all');
+  const [drawerNewSubtaskInput, setDrawerNewSubtaskInput] = useState('');
 
   // Modales
   const [showNewActivityModal, setShowNewActivityModal] = useState(false);
-  const [showNewClientModal, setShowNewClientModal] = useState(false);
   const [editingActivity, setEditingActivity] = useState(null);
 
   // Slide-over Drawer lateral (Ficha detallada sin modales invasivos)
@@ -457,7 +467,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
   // Resetear paginación al cambiar cualquier filtro
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [scopeFilter, partnerFilter, projectFilter, searchQuery, pageSize]);
+  }, [scopeFilter, partnerFilter, projectFilter, okrFilter, searchQuery, pageSize]);
 
   const handleApproveActivity = (act) => {
     const validation = validateCrossApproval(currentSocio, act);
@@ -528,17 +538,91 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     triggerToast(`Entregable devuelto a "En curso" para corrección de observaciones`, 'info');
   };
 
-  const handleRequestStatusChange = (act, targetStatus) => {
-    if (targetStatus === 'Concluido') {
-      if (currentSocio?.name === act.assignedPartner) {
-        handleEditActivity(act.id, {
-          status: 'En revisión',
-          milestoneStep: 4,
-        });
-        triggerToast('Entregable enviado a "En revisión". Para garantizar equidad imparcial, otro socio debe auditar y aprobar el trabajo.', 'info');
+  const handleCompleteActivityValidation = (act, finalFields = {}) => {
+    const criteria = act.validationCriteria || 'cross_audit';
+
+    // 1. Bolsa Provisional de Horas (Sin bloqueo operativo, ratificación en Directorio)
+    if (criteria === 'provisional_pool') {
+      const hours = Number(act.actualHours) || Number(act.estimatedHours) || 2;
+      const diff = act.priority === 'Alta' ? 'Alta' : (act.priority === 'Urgente' ? 'Critica' : 'Media');
+      const xpResult = calculateTaskXP({ hours, difficulty: diff, deadline: act.dueDate, completedAt: new Date() });
+      const comboMultiplier = act.coPartner ? 1.35 : 1.0;
+      const finalXP = Math.round(xpResult.finalXP * comboMultiplier);
+
+      const updateObj = {
+        ...finalFields,
+        status: 'Concluido',
+        milestoneStep: 5,
+        isProvisional: true,
+        xp_awarded: finalXP,
+        approved_by: 'Bolsa Provisional (Directorio)',
+        approved_at: new Date().toISOString()
+      };
+      handleEditActivity(act.id, updateObj);
+      if (drawerActivity && drawerActivity.id === act.id) {
+        setDrawerData(prev => ({ ...prev, ...updateObj }));
+      }
+      triggerToast(`¡Concluido en Bolsa Provisional de Horas (+${finalXP} XP)! Se ratificará en la reunión de Directorio semanal.`, 'success');
+      return;
+    }
+
+    // 2. Auto-completar con Comprobante Obligatorio
+    if (criteria === 'auto_proof') {
+      const activeObj = (drawerActivity && drawerActivity.id === act.id && drawerData) ? drawerData : act;
+      const hasProof = Boolean(
+        activeObj.deliverableUrl || activeObj.url || activeObj.deliverableName ||
+        (Array.isArray(activeObj.attachments) && activeObj.attachments.length > 0) ||
+        finalFields.deliverableUrl || finalFields.url
+      );
+      if (!hasProof) {
+        triggerToast('⚠️ Se requiere URL o comprobante obligatorio para concluir este entregable al 100%.', 'error');
+        if (!drawerActivity || drawerActivity.id !== act.id) {
+          setDrawerActivity(act);
+        }
         return;
       }
-      handleApproveActivity(act);
+      const hours = Number(act.actualHours) || Number(act.estimatedHours) || 2;
+      const diff = act.priority === 'Alta' ? 'Alta' : (act.priority === 'Urgente' ? 'Critica' : 'Media');
+      const xpResult = calculateTaskXP({ hours, difficulty: diff, deadline: act.dueDate, completedAt: new Date() });
+      const comboMultiplier = act.coPartner ? 1.35 : 1.0;
+      const finalXP = Math.round(xpResult.finalXP * comboMultiplier);
+
+      const updateObj = {
+        ...finalFields,
+        status: 'Concluido',
+        milestoneStep: 5,
+        xp_awarded: finalXP,
+        approved_by: `${act.assignedPartner} (Comprobante)`,
+        approved_at: new Date().toISOString()
+      };
+      handleEditActivity(act.id, updateObj);
+      if (drawerActivity && drawerActivity.id === act.id) {
+        setDrawerData(prev => ({ ...prev, ...updateObj }));
+      }
+      triggerToast(`¡Comprobante validado y entregable concluido al 100%! (+${finalXP} XP)`, 'success');
+      return;
+    }
+
+    // 3. Auditoría Cruzada Pericial (cross_audit)
+    if (currentSocio?.name === act.assignedPartner) {
+      handleEditActivity(act.id, {
+        ...finalFields,
+        milestoneStep: 4,
+        status: 'En revisión',
+      });
+      if (drawerActivity && drawerActivity.id === act.id) {
+        setDrawerData(prev => ({ ...prev, ...finalFields, milestoneStep: 4, status: 'En revisión' }));
+      }
+      triggerToast('Entregable pericial enviado a "En revisión". Para garantizar equidad, otro socio directivo debe auditarlo.', 'info');
+      return;
+    }
+
+    handleApproveActivity(act);
+  };
+
+  const handleRequestStatusChange = (act, targetStatus) => {
+    if (targetStatus === 'Concluido') {
+      handleCompleteActivityValidation(act);
       return;
     }
 
@@ -559,18 +643,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     const newStep = currentStep === targetStep ? Math.max(0, targetStep - 1) : targetStep;
 
     if (newStep === 5) {
-      if (currentSocio?.name === act.assignedPartner) {
-        handleEditActivity(act.id, {
-          milestoneStep: 4,
-          status: 'En revisión',
-        });
-        if (drawerActivity && drawerActivity.id === act.id) {
-          setDrawerData(prev => ({ ...prev, milestoneStep: 4, status: 'En revisión' }));
-        }
-        triggerToast('Hito 4 completado. Entregable enviado a "En revisión". Requiere auditoría de otro socio para completar el Hito 5.', 'info');
-        return;
-      }
-      handleApproveActivity(act);
+      handleCompleteActivityValidation(act, { milestoneStep: 5 });
       return;
     }
 
@@ -591,6 +664,103 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         status: newStatus
       }));
     }
+  };
+
+  const handleToggleWeekday = (act, dayKey) => {
+    const targetAct = (drawerActivity && drawerActivity.id === act.id && drawerData) ? drawerData : act;
+    const currentWeekdays = targetAct.weekdays || { lun: false, mar: false, mie: false, jue: false, vie: false, sab: false, dom: false };
+    const updatedWeekdays = {
+      ...currentWeekdays,
+      [dayKey]: !currentWeekdays[dayKey]
+    };
+    const dayKeys = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
+    const checkedCount = dayKeys.filter(k => updatedWeekdays[k]).length;
+
+    if (checkedCount === 7) {
+      handleCompleteActivityValidation(targetAct, { weekdays: updatedWeekdays });
+      return;
+    }
+
+    const newStatus = checkedCount > 0 ? 'En curso' : 'Pendiente';
+    handleEditActivity(act.id, {
+      weekdays: updatedWeekdays,
+      status: newStatus
+    });
+    if (drawerActivity && drawerActivity.id === act.id) {
+      setDrawerData(prev => ({
+        ...prev,
+        weekdays: updatedWeekdays,
+        status: newStatus
+      }));
+    }
+  };
+
+  const handleToggleCustomSubtask = (act, subtaskId) => {
+    const targetAct = (drawerActivity && drawerActivity.id === act.id && drawerData) ? drawerData : act;
+    const subs = Array.isArray(targetAct.customSubtasks) ? targetAct.customSubtasks : [];
+    const updatedSubs = subs.map(s => s.id === subtaskId ? { ...s, done: !s.done } : s);
+    const doneCount = updatedSubs.filter(s => s.done).length;
+
+    if (updatedSubs.length > 0 && doneCount === updatedSubs.length) {
+      handleCompleteActivityValidation(targetAct, { customSubtasks: updatedSubs });
+      return;
+    }
+
+    const newStatus = doneCount > 0 ? 'En curso' : 'Pendiente';
+    handleEditActivity(act.id, {
+      customSubtasks: updatedSubs,
+      status: newStatus
+    });
+    if (drawerActivity && drawerActivity.id === act.id) {
+      setDrawerData(prev => ({
+        ...prev,
+        customSubtasks: updatedSubs,
+        status: newStatus
+      }));
+    }
+  };
+
+  const handleNumericChange = (act, delta) => {
+    const targetAct = (drawerActivity && drawerActivity.id === act.id && drawerData) ? drawerData : act;
+    const curr = Number(targetAct.currentValue) || 0;
+    const target = Number(targetAct.targetValue) || 10;
+    const newCurr = Math.max(0, curr + delta);
+
+    if (newCurr >= target) {
+      handleCompleteActivityValidation(targetAct, { currentValue: newCurr });
+      return;
+    }
+
+    const newStatus = newCurr > 0 ? 'En curso' : 'Pendiente';
+    handleEditActivity(act.id, {
+      currentValue: newCurr,
+      status: newStatus
+    });
+    if (drawerActivity && drawerActivity.id === act.id) {
+      setDrawerData(prev => ({
+        ...prev,
+        currentValue: newCurr,
+        status: newStatus
+      }));
+    }
+  };
+
+  const handleAddDrawerSubtask = () => {
+    if (!drawerNewSubtaskInput.trim() || !drawerData || !drawerActivity) return;
+    const currentSubs = Array.isArray(drawerData.customSubtasks) ? [...drawerData.customSubtasks] : [];
+    const newSub = { id: `st_${Date.now()}`, label: drawerNewSubtaskInput.trim(), done: false };
+    const updated = [...currentSubs, newSub];
+    setDrawerData(prev => ({ ...prev, customSubtasks: updated }));
+    handleEditActivity(drawerActivity.id, { customSubtasks: updated });
+    setDrawerNewSubtaskInput('');
+  };
+
+  const handleRemoveDrawerSubtask = (stId) => {
+    if (!drawerData || !drawerActivity) return;
+    const currentSubs = Array.isArray(drawerData.customSubtasks) ? [...drawerData.customSubtasks] : [];
+    const updated = currentSubs.filter(s => s.id !== stId);
+    setDrawerData(prev => ({ ...prev, customSubtasks: updated }));
+    handleEditActivity(drawerActivity.id, { customSubtasks: updated });
   };
 
   const saveDrawerData = () => {
@@ -627,16 +797,18 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
   const [actDeliverableName, setActDeliverableName] = useState('');
   const [actAttachments, setActAttachments] = useState([]);
 
-  // Form State Cliente
-  const [clName, setClName] = useState('');
-  const [clType, setClType] = useState('Municipal / Público');
-  const [clContact, setClContact] = useState('');
-  const [clPhone, setClPhone] = useState('');
-  const [clEmail, setClEmail] = useState('');
-  const [clLocation, setClLocation] = useState('');
-  const [clNotes, setClNotes] = useState('');
+  // Multi-modal milestone & governance states
+  const [actMilestoneType, setActMilestoneType] = useState('phases'); // 'phases' | 'weekdays' | 'custom_subtasks' | 'numeric'
+  const [actCustomSubtasks, setActCustomSubtasks] = useState([]);
+  const [newSubtaskText, setNewSubtaskText] = useState('');
+  const [actWeekdays, setActWeekdays] = useState({ lun: false, mar: false, mie: false, jue: false, vie: false, sab: false, dom: false });
+  const [actCurrentValue, setActCurrentValue] = useState(0);
+  const [actTargetValue, setActTargetValue] = useState(10);
+  const [actValidationCriteria, setActValidationCriteria] = useState('cross_audit'); // 'cross_audit' | 'auto_proof' | 'provisional_pool'
+  const [actOkrLevel, setActOkrLevel] = useState('semanal'); // 'anual' | 'semestral' | 'trimestral' | 'mensual' | 'semanal' | 'diario'
+  const [actTimeLimitHours, setActTimeLimitHours] = useState('');
 
-  // Filtro de Actividades (Personal vs Grupal, Proyectos, Búsqueda y Ordenamiento)
+  // Filtro de Actividades (Personal vs Grupal, Proyectos, Búsqueda, OKR y Ordenamiento)
   const filteredActivities = useMemo(() => {
     const list = activities.filter((act) => {
       // 1. Filtro Personal (Mis Actividades) vs Grupal (Todo el Equipo)
@@ -672,12 +844,15 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         (act.projectTitle && act.projectTitle.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (act.assignedPartner && act.assignedPartner.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      return matchPartner && matchProject && matchSearch;
+      // 5. Filtro por Jerarquía OKR
+      const matchOkr = okrFilter === 'all' || (act.okrLevel || 'semanal') === okrFilter;
+
+      return matchPartner && matchProject && matchSearch && matchOkr;
     });
 
     // Ordenar por ID o fecha descendente (últimas actividades primero)
     return [...list].sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
-  }, [activities, scopeFilter, partnerFilter, projectFilter, searchQuery, currentSocio]);
+  }, [activities, scopeFilter, partnerFilter, projectFilter, okrFilter, searchQuery, currentSocio]);
 
   // Paginación (Por defecto: últimas 10 actividades)
   const totalPages = pageSize === 'all' ? 1 : Math.ceil(filteredActivities.length / pageSize) || 1;
@@ -839,7 +1014,15 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         deliverableUrl: actDeliverableUrl || editingActivity.deliverableUrl || null,
         deliverableName: actDeliverableName || editingActivity.deliverableName || null,
         url: actDeliverableUrl || editingActivity.url || null,
-        attachments: actAttachments.length > 0 ? actAttachments : (editingActivity.attachments || [])
+        attachments: actAttachments.length > 0 ? actAttachments : (editingActivity.attachments || []),
+        milestoneType: actMilestoneType,
+        customSubtasks: actCustomSubtasks,
+        weekdays: actWeekdays,
+        currentValue: Number(actCurrentValue) || 0,
+        targetValue: Number(actTargetValue) || 10,
+        validationCriteria: actValidationCriteria,
+        okrLevel: actOkrLevel,
+        timeLimitHours: actTimeLimitHours ? parseFloat(actTimeLimitHours) : null
       });
       setEditingActivity(null);
     } else {
@@ -863,7 +1046,15 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         deliverableUrl: actDeliverableUrl || null,
         deliverableName: actDeliverableName || null,
         url: actDeliverableUrl || null,
-        attachments: actAttachments
+        attachments: actAttachments,
+        milestoneType: actMilestoneType,
+        customSubtasks: actCustomSubtasks,
+        weekdays: actWeekdays,
+        currentValue: Number(actCurrentValue) || 0,
+        targetValue: Number(actTargetValue) || 10,
+        validationCriteria: actValidationCriteria,
+        okrLevel: actOkrLevel,
+        timeLimitHours: actTimeLimitHours ? parseFloat(actTimeLimitHours) : null
       });
     }
 
@@ -879,32 +1070,16 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     setActDeliverableUrl('');
     setActDeliverableName('');
     setActAttachments([]);
+    setActMilestoneType('phases');
+    setActCustomSubtasks([]);
+    setNewSubtaskText('');
+    setActWeekdays({ lun: false, mar: false, mie: false, jue: false, vie: false, sab: false, dom: false });
+    setActCurrentValue(0);
+    setActTargetValue(10);
+    setActValidationCriteria('cross_audit');
+    setActOkrLevel('semanal');
+    setActTimeLimitHours('');
     setShowNewActivityModal(false);
-  };
-
-  // Submit Nuevo Cliente
-  const onSubmitClient = (e) => {
-    e.preventDefault();
-    if (!clName.trim()) {
-      triggerToast('Ingresa el nombre o razón social del cliente', 'error');
-      return;
-    }
-    handleAddClient({
-      name: clName,
-      type: clType,
-      contactPerson: clContact,
-      contactPhone: clPhone,
-      contactEmail: clEmail,
-      location: clLocation,
-      notes: clNotes,
-    });
-    setClName('');
-    setClContact('');
-    setClPhone('');
-    setClEmail('');
-    setClLocation('');
-    setClNotes('');
-    setShowNewClientModal(false);
   };
 
   const openEditActivity = (act) => {
@@ -923,139 +1098,139 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     setActDeliverableUrl(act.deliverableUrl || act.url || '');
     setActDeliverableName(act.deliverableName || '');
     setActAttachments(Array.isArray(act.attachments) ? act.attachments : []);
+    setActMilestoneType(act.milestoneType || 'phases');
+    setActCustomSubtasks(Array.isArray(act.customSubtasks) ? act.customSubtasks : []);
+    setActWeekdays(act.weekdays || { lun: false, mar: false, mie: false, jue: false, vie: false, sab: false, dom: false });
+    setActCurrentValue(act.currentValue !== undefined ? Number(act.currentValue) : 0);
+    setActTargetValue(act.targetValue !== undefined ? Number(act.targetValue) : 10);
+    setActValidationCriteria(act.validationCriteria || 'cross_audit');
+    setActOkrLevel(act.okrLevel || 'semanal');
+    setActTimeLimitHours(act.timeLimitHours || '');
     setShowNewActivityModal(true);
   };
 
-  // Estadísticas Rápidas
-  const totalAct = activities.length;
-  const doneAct = activities.filter((a) => a.status === 'Concluido').length;
-  const inProgressAct = activities.filter((a) => a.status === 'En curso').length;
-  const pendingAct = activities.filter((a) => a.status === 'Pendiente').length;
-  const progressPercent = totalAct > 0 ? Math.round((doneAct / totalAct) * 100) : 0;
+  // ── CÁLCULO DE MÉTRICAS DINÁMICAS SUPERIORES (SEGÚN PESTAÑA ACTIVA) ──
+  const tabMetrics = useMemo(() => {
+    if (activeTab === 'kanban') {
+      const pending = activities.filter(a => a.status === 'Pendiente').length;
+      const inProg = activities.filter(a => a.status === 'En curso').length;
+      const inRev = activities.filter(a => a.status === 'En revisión').length;
+      const done = activities.filter(a => a.status === 'Concluido').length;
+      return [
+        { label: 'Backlog / Pendientes', value: pending, sub: 'Por iniciar en sprint', color: 'text-slate-300', icon: Layers, bg: 'bg-slate-500/10 border-slate-500/30' },
+        { label: 'En Ejecución Activa', value: inProg, sub: 'En proceso de gabinete', color: 'text-blue-400', icon: Clock, bg: 'bg-blue-500/10 border-blue-500/30' },
+        { label: 'En Revisión Pericial', value: inRev, sub: 'Auditoría entre pares', color: 'text-amber-400', icon: Scale, bg: 'bg-amber-500/10 border-amber-500/30' },
+        { label: 'Tareas Finalizadas', value: done, sub: 'Completadas al 100%', color: 'text-[#00e03c]', icon: CheckCircle2, bg: 'bg-[#00e03c]/10 border-[#00e03c]/30' },
+      ];
+    }
+    if (activeTab === 'missions') {
+      const flash = activities.filter(a => a.isFlash || a.activityType === 'flash').length;
+      const primary = activities.filter(a => !a.isFlash && (a.activityType === 'principal' || !a.activityType)).length;
+      const secondary = activities.filter(a => a.activityType === 'secundaria' || a.coPartner).length;
+      const totalXP = activities.reduce((sum, a) => sum + (Number(a.xp_awarded) || 50), 0);
+      return [
+        { label: 'Misiones Flash ⚡', value: flash, sub: 'Contingencias con countdown', color: 'text-amber-400', icon: Flame, bg: 'bg-amber-500/10 border-amber-500/30' },
+        { label: 'Misiones Primarias', value: primary, sub: 'Objetivos troncales SERAM', color: 'text-sky-400', icon: Target, bg: 'bg-sky-500/10 border-sky-500/30' },
+        { label: 'Secundarias & Combos', value: secondary, sub: 'Sinergias interdisciplinarias', color: 'text-purple-400', icon: Zap, bg: 'bg-purple-500/10 border-purple-500/30' },
+        { label: 'Bolsa Global XP', value: `${totalXP.toLocaleString()} XP`, sub: 'Meritocracia acumulada', color: 'text-[#00e03c]', icon: Award, bg: 'bg-[#00e03c]/10 border-[#00e03c]/30' },
+      ];
+    }
+    if (activeTab === 'progress') {
+      const totalHours = activities.reduce((sum, a) => sum + (Number(a.actualHours) || 0), 0);
+      const doneCount = activities.filter(a => a.status === 'Concluido').length;
+      const totalCount = activities.length;
+      const pct = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
+      return [
+        { label: 'Socios Fundadores', value: '3 Socios', sub: 'Diego, Fernando, Fabricio', color: 'text-purple-400', icon: Users, bg: 'bg-purple-500/10 border-purple-500/30' },
+        { label: 'Horas Homologadas', value: `${totalHours.toFixed(1)}h`, sub: 'Dedicación registrada', color: 'text-blue-400', icon: Clock, bg: 'bg-blue-500/10 border-blue-500/30' },
+        { label: 'Rendimiento Global', value: `${pct}%`, sub: `${doneCount} de ${totalCount} concluidas`, color: 'text-[#00e03c]', icon: TrendingUp, bg: 'bg-[#00e03c]/10 border-[#00e03c]/30' },
+        { label: 'Rango Promedio', value: 'Grado 11', sub: 'Consultor Senior Certificado', color: 'text-amber-400', icon: Award, bg: 'bg-amber-500/10 border-amber-500/30' },
+      ];
+    }
+    if (activeTab === 'synergies') {
+      const coExecCount = activities.filter(a => a.coPartner).length;
+      return [
+        { label: 'Sinergias Activas', value: '3 Troncales', sub: 'Combos habilitados CD3/CD5', color: 'text-purple-400', icon: Sparkles, bg: 'bg-purple-500/10 border-purple-500/30' },
+        { label: 'Multiplicador Combo', value: '+35% XP', sub: 'Bono por co-ejecución', color: 'text-amber-400', icon: Zap, bg: 'bg-amber-500/10 border-amber-500/30' },
+        { label: 'Impacto Planetario', value: '+2,850 PIP', sub: 'Puntos de impacto biofísico', color: 'text-[#00e03c]', icon: ShieldCheck, bg: 'bg-[#00e03c]/10 border-[#00e03c]/30' },
+        { label: 'Proyectos Cruzados', value: `${coExecCount} Tareas`, sub: 'Colaboración entre socios', color: 'text-sky-400', icon: Briefcase, bg: 'bg-sky-500/10 border-sky-500/30' },
+      ];
+    }
+    // Default: 'table' (Base de Datos Notion)
+    const total = activities.length;
+    const inProg = activities.filter(a => a.status === 'En curso').length;
+    const done = activities.filter(a => a.status === 'Concluido').length;
+    const totalEst = activities.reduce((sum, a) => sum + (Number(a.estimatedHours) || 0), 0);
+    const totalAct = activities.reduce((sum, a) => sum + (Number(a.actualHours) || 0), 0);
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    return [
+      { label: 'Avance General', value: `${pct}%`, sub: `${done} de ${total} concluidas`, color: 'text-[#00e03c]', icon: CheckSquare, bg: 'bg-[#00e03c]/10 border-[#00e03c]/30' },
+      { label: 'En Ejecución', value: inProg, sub: 'Gabinete y peritaje activo', color: 'text-blue-400', icon: Clock, bg: 'bg-blue-500/10 border-blue-500/30' },
+      { label: 'Total Registros BD', value: total, sub: 'Tareas sincronizadas Notion', color: 'text-purple-400', icon: Table, bg: 'bg-purple-500/10 border-purple-500/30' },
+      { label: 'Horas Reales / Est.', value: `${totalAct.toFixed(0)}h / ${totalEst.toFixed(0)}h`, sub: 'Balance de carga horaria', color: 'text-amber-400', icon: BarChart2, bg: 'bg-amber-500/10 border-amber-500/30' },
+    ];
+  }, [activeTab, activities]);
 
   return (
-    <div className="space-y-3.5 relative z-10">
-      {/* ── BARRA SUPERIOR DE RESUMEN Y CONTROLES ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <GlassCard className="p-4 flex items-center justify-between border-emerald-500/20">
-          <div>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Avance Actividades</span>
-            <h3 className="text-2xl font-black text-[#00e03c] mt-0.5">{progressPercent}%</h3>
-            <p className="text-[11px] text-slate-400">{doneAct} de {totalAct} tareas concluidas</p>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-[#00e03c]/10 border border-[#00e03c]/30 flex items-center justify-center text-[#00e03c]">
-            <CheckSquare className="w-6 h-6" />
-          </div>
-        </GlassCard>
-
-        <GlassCard className="p-4 flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">En Curso</span>
-            <h3 className="text-2xl font-black text-blue-400 mt-0.5">{inProgressAct}</h3>
-            <p className="text-[11px] text-slate-400">Actividades en ejecución</p>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
-            <Clock className="w-6 h-6" />
-          </div>
-        </GlassCard>
-
-        <GlassCard className="p-4 flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Clientes / Entidades</span>
-            <h3 className="text-2xl font-black text-purple-400 mt-0.5">{clients.length}</h3>
-            <p className="text-[11px] text-slate-400">Alcaldías, mineras e industrias</p>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
-            <Building2 className="w-6 h-6" />
-          </div>
-        </GlassCard>
-
-        <GlassCard className="p-4 flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Proyectos Activos</span>
-            <h3 className="text-2xl font-black text-amber-400 mt-0.5">{activeServices.length}</h3>
-            <p className="text-[11px] text-slate-400">Monitoreo & Consultoría B2B</p>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-            <Briefcase className="w-6 h-6" />
-          </div>
-        </GlassCard>
+    <div className="space-y-4 relative z-10">
+      {/* ── ENCABEZADO DEL MÓDULO: ACTIVIDADES Y TAREAS ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
+            Actividades y Tareas
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 font-bold">
+              Notion BD & OKRs
+            </span>
+          </h2>
+          <p className="text-xs text-slate-400">
+            Base de datos sincronizada en tiempo real, matriz de gobernanza y seguimiento meritocrático de socios.
+          </p>
+        </div>
       </div>
 
-      {/* ── BOTONES DE NAVEGACIÓN DE VISTAS Y ACCIONES RÁPIDAS ── */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-white/[0.08] pb-2.5 relative z-10">
-        {/* Pestañas de Vista */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-white/[0.04] p-1.5 rounded-xl border border-white/[0.08]">
-          <button
-            onClick={() => setActiveTab('table')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'table'
-                ? 'bg-blue-600 text-white shadow-md font-black shadow-blue-600/30'
-                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
-            }`}
-          >
-            <Table className="w-3.5 h-3.5 text-sky-300" /> ⊞ Base de Datos (Notion)
-          </button>
-          <button
-            onClick={() => setActiveTab('kanban')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'kanban'
-                ? 'bg-[#00e03c] text-slate-950 shadow-md font-black'
-                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" /> Tablero Kanban
-          </button>
-          <button
-            onClick={() => setActiveTab('clients')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'clients'
-                ? 'bg-[#00e03c] text-slate-950 shadow-md font-black'
-                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
-            }`}
-          >
-            <Building2 className="w-3.5 h-3.5" /> Clientes ({clients.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('prospects')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'prospects'
-                ? 'bg-[#00e03c] text-slate-950 shadow-md font-black'
-                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Prospección B2B Global ({prospects.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('progress')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'progress'
-                ? 'bg-[#00e03c] text-slate-950 shadow-md font-black'
-                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
-            }`}
-          >
-            <BarChart2 className="w-3.5 h-3.5" /> Progreso de Socios
-          </button>
-          <button
-            onClick={() => setActiveTab('missions')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'missions'
-                ? 'bg-amber-400 text-slate-950 shadow-md font-black'
-                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
-            }`}
-          >
-            <Gift className="w-3.5 h-3.5 text-amber-400" /> Misiones Especiales
-          </button>
-          <button
-            onClick={() => setActiveTab('synergies')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'synergies'
-                ? 'bg-purple-500 text-white shadow-md font-black'
-                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-purple-400" /> Sinergias & Combos
-          </button>
+      {/* ── TARJETAS MÉTRICAS SUPERIORES DINÁMICAS (CAMBIAN SEGÚN PESTAÑA ACTIVA) ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {tabMetrics.map((m, idx) => {
+          const Icon = m.icon;
+          return (
+            <GlassCard key={idx} className="p-4 flex items-center justify-between hover:border-white/[0.2] transition-all">
+              <div>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{m.label}</span>
+                <h3 className={`text-2xl font-black mt-0.5 ${m.color}`}>{m.value}</h3>
+                <p className="text-[11px] text-slate-400">{m.sub}</p>
+              </div>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center border ${m.bg} ${m.color}`}>
+                <Icon className="w-6 h-6" />
+              </div>
+            </GlassCard>
+          );
+        })}
+      </div>
+
+      {/* ── BARRA DE PESTAÑAS (PILL SEGMENTED SIMÉTRICO SIN ÍCONOS) Y ACCIONES ── */}
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 border-b border-white/[0.08] pb-2.5 relative z-10">
+        {/* Pestañas de Vista en un solo segmento simétrico */}
+        <div className="flex items-center gap-1 bg-white/[0.04] p-1.5 rounded-2xl border border-white/[0.08] w-full lg:max-w-3xl">
+          {[
+            { id: 'table', label: 'Base de Datos' },
+            { id: 'kanban', label: 'Tablero Kanban' },
+            { id: 'missions', label: 'Tablero de Misiones' },
+            { id: 'progress', label: 'Progreso de Socios' },
+            { id: 'synergies', label: 'Sinergias & Combos' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-black transition-all text-center cursor-pointer ${
+                activeTab === tab.id
+                  ? 'bg-[#00e03c] text-slate-950 shadow-md font-black shadow-[#00e03c]/20'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         {/* Botones de Creación y Misión Rápida */}
@@ -1086,12 +1261,6 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
             className="px-3.5 py-2 rounded-xl bg-[#00e03c] hover:bg-[#00e03c]/90 text-slate-950 font-black text-xs flex items-center gap-1.5 transition-all shadow-lg shadow-[#00e03c]/10 cursor-pointer"
           >
             <Plus className="w-4 h-4 stroke-[3]" /> Registrar Actividad Clave
-          </button>
-          <button
-            onClick={() => setShowNewClientModal(true)}
-            className="px-3.5 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.15] text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
-          >
-            <Building2 className="w-4 h-4 text-purple-400" /> Inscribir Cliente
           </button>
         </div>
       </div>
@@ -1193,6 +1362,23 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                 {activeServices.map((p) => (
                   <option key={p.id} value={p.id}>{p.client || p.type}</option>
                 ))}
+              </select>
+            </div>
+
+            {/* Filtro por Jerarquía OKR */}
+            <div className="flex items-center gap-1.5">
+              <select
+                value={okrFilter}
+                onChange={(e) => setOkrFilter(e.target.value)}
+                className="text-xs px-2.5 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
+              >
+                <option value="all">Todas las Jerarquías OKR</option>
+                <option value="anual">🎯 Macro Anual</option>
+                <option value="semestral">🧭 Semestral</option>
+                <option value="trimestral">📈 Trimestral</option>
+                <option value="mensual">🗓️ Mensual</option>
+                <option value="semanal">⚡ Semanal</option>
+                <option value="diario">✅ Diario</option>
               </select>
             </div>
 
@@ -1643,6 +1829,14 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                                     Secundaria
                                   </span>
                                 )}
+                                <span className="px-1.5 py-0.2 rounded text-[8px] font-black uppercase bg-sky-500/15 text-sky-300 border border-sky-500/25">
+                                  {act.okrLevel ? `OKR: ${act.okrLevel}` : 'OKR: Semanal'}
+                                </span>
+                                {act.isProvisional && (
+                                  <span className="px-1.5 py-0.2 rounded text-[8px] font-black uppercase bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                    Bolsa Provisional
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </td>
@@ -1674,31 +1868,75 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                             </div>
                           </td>
 
-                          {/* 5. 5 Checkboxes Interactivos estilo Notion (Azul con Check Blanco) */}
+                          {/* 5. Checkboxes / Hitos Multi-modal según tipo */}
                           <td className="p-3 text-center whitespace-nowrap">
-                            <div className="flex items-center justify-center gap-1">
-                              {[1, 2, 3, 4, 5].map((step) => {
-                                const isChecked = currentStep >= step;
-                                return (
-                                  <button
-                                    key={step}
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleMilestoneClick(act, step);
-                                    }}
-                                    title={`Hito ${step}: ${STANDARD_MILESTONES[step - 1]?.label || ''}`}
-                                    className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center transition-all cursor-pointer ${
-                                      isChecked
-                                        ? 'bg-[#0070f3] hover:bg-blue-500 text-white shadow-sm ring-1 ring-blue-400/40'
-                                        : 'border border-white/20 hover:border-white/50 bg-white/[0.04]'
-                                    }`}
-                                  >
-                                    {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
-                                  </button>
-                                );
-                              })}
-                            </div>
+                            {act.milestoneType === 'weekdays' ? (
+                              <div className="flex items-center justify-center gap-0.5">
+                                {['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'].map((d) => {
+                                  const isDone = Boolean(act.weekdays?.[d]);
+                                  return (
+                                    <button
+                                      key={d}
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleToggleWeekday(act, d);
+                                      }}
+                                      title={`Día ${d.toUpperCase()}: ${isDone ? 'Completado' : 'Pendiente'}`}
+                                      className={`w-4 h-4 rounded text-[9px] font-black uppercase flex items-center justify-center cursor-pointer transition-all ${
+                                        isDone ? 'bg-sky-500 text-white shadow-sm ring-1 ring-sky-400/40' : 'bg-white/[0.04] text-slate-500 hover:bg-white/[0.1] border border-white/10'
+                                      }`}
+                                    >
+                                      {d.slice(0, 1).toUpperCase()}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            ) : act.milestoneType === 'custom_subtasks' ? (
+                              <div className="flex items-center justify-center gap-1">
+                                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">
+                                  {(act.customSubtasks || []).filter(s => s.done).length}/{(act.customSubtasks || []).length} subs
+                                </span>
+                              </div>
+                            ) : act.milestoneType === 'numeric' ? (
+                              <div className="flex items-center justify-center gap-1 font-mono text-[11px]">
+                                <span className="text-amber-400 font-bold">{act.currentValue || 0} / {act.targetValue || 10}</span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleNumericChange(act, 1);
+                                  }}
+                                  className="px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 hover:bg-amber-400/30 text-[10px] font-black"
+                                >
+                                  +1
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-center gap-1">
+                                {[1, 2, 3, 4, 5].map((step) => {
+                                  const isChecked = currentStep >= step;
+                                  return (
+                                    <button
+                                      key={step}
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleMilestoneClick(act, step);
+                                      }}
+                                      title={`Hito ${step}: ${STANDARD_MILESTONES[step - 1]?.label || ''}`}
+                                      className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center transition-all cursor-pointer ${
+                                        isChecked
+                                          ? 'bg-[#0070f3] hover:bg-blue-500 text-white shadow-sm ring-1 ring-blue-400/40'
+                                          : 'border border-white/20 hover:border-white/50 bg-white/[0.04]'
+                                      }`}
+                                    >
+                                      {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
                           </td>
 
                           {/* 6. Progreso circular */}
@@ -1934,283 +2172,242 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         </div>
       )}
 
-      {/* ── VISTA 3: DIRECTORIO DE CLIENTES E INSTITUCIONES ── */}
-      {activeTab === 'clients' && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {clients.map((cl) => {
-              const clientProjects = activeServices.filter(
-                (p) => String(p.client).toLowerCase().includes(cl.name.toLowerCase()) || String(p.clientId) === String(cl.id)
-              );
-              return (
-                <GlassCard key={cl.id} className="p-5 space-y-3 hover:border-purple-500/40 transition-all flex flex-col justify-between">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                        {cl.type}
-                      </span>
-                      <button
-                        onClick={() => handleDeleteClient(cl.id)}
-                        className="text-slate-500 hover:text-rose-400 p-1 transition-colors"
-                        title="Eliminar cliente"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-
-                    <h4 className="text-sm font-black text-white leading-snug">{cl.name}</h4>
-
-                    {cl.location && (
-                      <p className="text-[11px] text-slate-400 flex items-center gap-1.5">
-                        <MapPin className="w-3 h-3 text-emerald-400 shrink-0" />
-                        <span>{cl.location}</span>
-                      </p>
-                    )}
-
-                    <div className="space-y-1 pt-1 text-[11px] text-slate-300">
-                      {cl.contactPerson && (
-                        <p className="flex items-center gap-1.5 text-slate-300 font-medium">
-                          <User className="w-3 h-3 text-[#00e03c]" /> {cl.contactPerson}
-                        </p>
-                      )}
-                      {cl.contactPhone && (
-                        <p className="flex items-center gap-1.5 text-slate-400 font-mono">
-                          <Phone className="w-3 h-3 text-blue-400" /> {cl.contactPhone}
-                        </p>
-                      )}
-                      {cl.contactEmail && (
-                        <p className="flex items-center gap-1.5 text-slate-400 font-mono">
-                          <Mail className="w-3 h-3 text-purple-400" /> {cl.contactEmail}
-                        </p>
-                      )}
-                    </div>
-
-                    {cl.notes && (
-                      <p className="text-[10px] text-slate-400 bg-white/[0.04] p-2 rounded-lg border border-white/[0.06] italic">
-                        &ldquo;{cl.notes}&rdquo;
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400 font-bold">Proyectos Asociados:</span>
-                    <span className="font-black text-[#00e03c] bg-[#00e03c]/10 px-2 py-0.5 rounded-full border border-[#00e03c]/20">
-                      {clientProjects.length} Activo(s)
-                    </span>
-                  </div>
-                </GlassCard>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ── VISTA 4: PROSPECCIÓN B2B GLOBAL (BASE DE DATOS EMPRESAS SEPREC) ── */}
-      {activeTab === 'prospects' && (
-        <div className="space-y-4">
-          {/* Barra de Filtros de Prospección */}
-          <div className="bg-white/[0.03] border border-white/[0.08] p-4 rounded-2xl space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
-              <div>
-                <h4 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-400" /> Base de Datos Global SERAM (SEPREC Bolivia)
-                </h4>
-                <p className="text-[11px] text-slate-400">
-                  Directorio de empresas con datos de contacto verificados para captación de trámites (RAI, FNCA, SIG, etc.)
-                </p>
-              </div>
-              <span className="text-[10px] font-black px-3 py-1 rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/20">
-                {prospects.length} Empresas Objetivo
-              </span>
+      {/* ── VISTA 3: TABLERO DE MISIONES (OCTALYSIS GAMIFICATION & CONTINGENCIAS FLASH) ── */}
+      {activeTab === 'missions' && (
+        <div className="space-y-5">
+          {/* Sub-selector de Pestañas de Misiones */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
+            <div className="flex items-center gap-1.5 bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
+              <button
+                type="button"
+                onClick={() => setMissionSubTab('missions')}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  missionSubTab === 'missions' ? 'bg-[#00e03c] text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Misiones Operativas & Flash ({activities.filter(a => a.status !== 'Concluido').length} activas)
+              </button>
+              <button
+                type="button"
+                onClick={() => setMissionSubTab('chests')}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  missionSubTab === 'chests' ? 'bg-amber-400 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                🎁 Cofres de Resplandor & Impacto Planetario
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {/* Búsqueda */}
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Buscar empresa, rubro..."
-                  value={prospectSearch}
-                  onChange={(e) => setProspectSearch(e.target.value)}
-                  className="w-full text-xs pl-9 pr-3 py-2 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
-                />
-              </div>
-
-              {/* Filtro Departamento */}
-              <div>
-                <select
-                  value={prospectDept}
-                  onChange={(e) => setProspectDept(e.target.value)}
-                  className="w-full text-xs px-3 py-2 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white"
+            {missionSubTab === 'missions' && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowQuickMissionModal(true)}
+                  className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-md shadow-amber-500/20 cursor-pointer"
                 >
-                  <option value="all">Todos los Departamentos</option>
-                  <option value="LA PAZ">La Paz</option>
-                  <option value="SANTA CRUZ">Santa Cruz</option>
-                  <option value="COCHABAMBA">Cochabamba</option>
-                  <option value="ORURO">Oruro</option>
-                  <option value="POTOSI">Potosí</option>
-                  <option value="CHUQUISACA">Chuquisaca</option>
-                  <option value="TARIJA">Tarija</option>
-                  <option value="BENI">Beni</option>
-                  <option value="PANDO">Pando</option>
-                </select>
+                  <Flame className="w-3.5 h-3.5 fill-current animate-pulse" />
+                  <span>+ Misión Flash</span>
+                </button>
               </div>
-
-              {/* Filtro Estado Gestión */}
-              <div>
-                <select
-                  value={prospectStatusFilter}
-                  onChange={(e) => setProspectStatusFilter(e.target.value)}
-                  className="w-full text-xs px-3 py-2 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white"
-                >
-                  <option value="all">Todos los Estados</option>
-                  <option value="Prospecto Nuevo">Prospecto Nuevo</option>
-                  <option value="Contactado">Contactado</option>
-                  <option value="Cotización Enviada">Cotización Enviada</option>
-                  <option value="Cliente Cerrado">Cliente Cerrado</option>
-                </select>
-              </div>
-
-              {/* Filtro Servicio Sugerido */}
-              <div>
-                <select
-                  value={prospectServiceFilter}
-                  onChange={(e) => setProspectServiceFilter(e.target.value)}
-                  className="w-full text-xs px-3 py-2 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white"
-                >
-                  <option value="all">Todos los Servicios</option>
-                  <option value="RAI">Registro Industrial (RAI)</option>
-                  <option value="FNCA">Categorización (FNCA)</option>
-                  <option value="EMAP">Formulario Minero (EMAP)</option>
-                  <option value="Auditoría">Auditoría Ambiental</option>
-                </select>
-              </div>
-            </div>
+            )}
           </div>
 
-          {/* Grid de Prospectos */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {prospects
-              .filter((p) => {
-                const matchSearch =
-                  p.razonSocial.toLowerCase().includes(prospectSearch.toLowerCase()) ||
-                  p.actividad.toLowerCase().includes(prospectSearch.toLowerCase()) ||
-                  p.matricula.includes(prospectSearch);
-                const matchDept = prospectDept === 'all' || p.departamento === prospectDept;
-                const matchStatus = prospectStatusFilter === 'all' || p.estadoGestion === prospectStatusFilter;
-                const matchService =
-                  prospectServiceFilter === 'all' || p.servicioInteres.includes(prospectServiceFilter);
-                return matchSearch && matchDept && matchStatus && matchService;
-              })
-              .map((p) => (
-                <GlassCard key={p.id} className="p-4 space-y-3 flex flex-col justify-between hover:border-amber-400/30 transition-all">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-1">
-                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                        {p.departamento} · {p.municipio}
-                      </span>
-                      <span
-                        className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
-                          p.estadoGestion === 'Cliente Cerrado'
-                            ? 'bg-[#00e03c]/20 text-[#00e03c] border-[#00e03c]/30'
-                            : p.estadoGestion === 'Cotización Enviada'
-                            ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-                            : 'bg-white/[0.08] text-slate-300 border-white/[0.12]'
+          {missionSubTab === 'chests' ? (
+            <SpecialMissionsModule currentSocio={currentSocio} />
+          ) : (
+            <div className="space-y-4">
+              {/* Filtros de Misiones */}
+              <div className="flex flex-wrap items-center justify-between gap-2.5 bg-[#0d1522]/90 p-3 rounded-2xl border border-white/[0.08]">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {[
+                    { id: 'all', label: 'Todas las Misiones' },
+                    { id: 'flash', label: '⚡ Flash (Urgentes)' },
+                    { id: 'principal', label: '🎯 Primarias' },
+                    { id: 'secundaria', label: '🛡️ Secundarias' },
+                    { id: 'combo', label: '👥 Combos Interdisciplinarios' }
+                  ].map(mf => (
+                    <button
+                      key={mf.id}
+                      type="button"
+                      onClick={() => setMissionFilter(mf.id)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        missionFilter === mf.id
+                          ? 'bg-[#00e03c] text-slate-950 font-black shadow-md'
+                          : 'bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06]'
+                      }`}
+                    >
+                      {mf.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <select
+                    value={okrFilter}
+                    onChange={(e) => setOkrFilter(e.target.value)}
+                    className="text-xs px-2.5 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
+                  >
+                    <option value="all">Jerarquía OKR</option>
+                    <option value="anual">🎯 Macro Anual</option>
+                    <option value="semestral">🧭 Semestral</option>
+                    <option value="trimestral">📈 Trimestral</option>
+                    <option value="mensual">🗓️ Mensual</option>
+                    <option value="semanal">⚡ Semanal</option>
+                    <option value="diario">✅ Diario</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Grid de Tarjetas de Misiones */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {activities
+                  .filter(act => {
+                    if (missionFilter === 'flash') return act.isFlash || act.activityType === 'flash';
+                    if (missionFilter === 'principal') return !act.isFlash && (act.activityType === 'principal' || !act.activityType);
+                    if (missionFilter === 'secundaria') return act.activityType === 'secundaria';
+                    if (missionFilter === 'combo') return Boolean(act.coPartner);
+                    return true;
+                  })
+                  .filter(act => okrFilter === 'all' || (act.okrLevel || 'semanal') === okrFilter)
+                  .filter(act => {
+                    if (scopeFilter === 'personal') {
+                      const myName = currentSocio?.name || '';
+                      return act.assignedPartner === myName || act.coPartner === myName;
+                    }
+                    return true;
+                  })
+                  .map(act => {
+                    const isDone = act.status === 'Concluido';
+                    const isFlash = act.isFlash || act.activityType === 'flash';
+                    const hasCombo = Boolean(act.coPartner);
+                    const progressPct = getProgressPercent(act);
+
+                    return (
+                      <GlassCard
+                        key={act.id}
+                        className={`p-5 space-y-3 flex flex-col justify-between transition-all hover:scale-[1.01] ${
+                          isFlash
+                            ? 'border-amber-500/50 shadow-amber-500/10'
+                            : hasCombo
+                            ? 'border-purple-500/40 shadow-purple-500/10'
+                            : 'hover:border-[#00e03c]/40'
                         }`}
                       >
-                        {p.estadoGestion}
-                      </span>
-                    </div>
+                        <div className="space-y-2.5">
+                          {/* Badges superiores */}
+                          <div className="flex items-center justify-between gap-1 flex-wrap">
+                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${
+                              isFlash
+                                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 animate-pulse'
+                                : hasCombo
+                                ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                                : act.activityType === 'secundaria'
+                                ? 'bg-slate-500/20 text-slate-300 border-slate-500/40'
+                                : 'bg-sky-500/20 text-sky-300 border-sky-500/40'
+                            }`}>
+                              {isFlash ? '⚡ Flash Contingencia' : hasCombo ? '👥 Combo +35% XP' : act.activityType === 'secundaria' ? '🛡️ Secundaria' : '🎯 Troncal'}
+                            </span>
 
-                    <h4 className="text-xs font-black text-white leading-tight">{p.razonSocial}</h4>
-                    <p className="text-[9px] text-slate-500 font-mono">Matrícula: {p.matricula}</p>
+                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-white/[0.06] text-slate-300 border border-white/[0.1]">
+                              {act.okrLevel ? `OKR: ${act.okrLevel}` : 'OKR: Semanal'}
+                            </span>
 
-                    <p className="text-[10px] text-slate-300 line-clamp-2 leading-relaxed">
-                      {p.actividad}
-                    </p>
+                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
+                              act.status === 'Concluido' ? 'bg-[#00e03c]/20 text-[#00e03c] border-[#00e03c]/30' :
+                              act.status === 'En revisión' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
+                              act.status === 'En curso' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' :
+                              'bg-slate-500/20 text-slate-400 border border-slate-500/30'
+                            }`}>
+                              {act.status}
+                            </span>
+                          </div>
 
-                    {/* Servicio sugerido de SERAM */}
-                    <div className="bg-white/[0.04] p-2 rounded-lg border border-white/[0.06] text-[10px]">
-                      <span className="text-slate-400 font-bold block">Servicio sugerido SERAM:</span>
-                      <span className="text-emerald-400 font-black">{p.servicioInteres}</span>
-                    </div>
+                          {/* Countdown o Fecha Límite */}
+                          <div className="flex items-center justify-between text-xs">
+                            {isFlash && act.flashExpiresAt ? (
+                              <FlashCountdownBadge expiresAt={act.flashExpiresAt} />
+                            ) : (
+                              <span className="text-[10px] text-slate-400 font-mono flex items-center gap-1.5">
+                                <Clock className="w-3.5 h-3.5 text-sky-400" />
+                                {act.dueDate ? `Límite: ${act.dueDate}` : 'Sin deadline estricto'}
+                              </span>
+                            )}
 
-                    {/* Contacto */}
-                    <div className="space-y-1 pt-1 text-[11px]">
-                      {p.telefono && (
-                        <div className="flex items-center justify-between text-slate-300">
-                          <span className="flex items-center gap-1.5 font-mono">
-                            <Phone className="w-3 h-3 text-blue-400" /> {p.telefono}
-                          </span>
-                          <a
-                            href={`https://wa.me/591${p.telefono.replace(/[^0-9]/g, '')}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[9px] font-black text-[#00e03c] bg-[#00e03c]/10 hover:bg-[#00e03c]/20 px-2 py-0.5 rounded transition-colors"
-                          >
-                            WhatsApp ➔
-                          </a>
+                            <span className="text-[10px] font-black text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-md border border-amber-400/20">
+                              +{Number(act.xp_awarded) || 50} XP
+                            </span>
+                          </div>
+
+                          {/* Título y Proyecto */}
+                          <div>
+                            <h4 className="text-sm font-black text-white leading-snug group-hover:text-[#00e03c] transition-colors">
+                              {act.title}
+                            </h4>
+                            <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1">
+                              <Briefcase className="w-3 h-3 text-emerald-400 shrink-0" />
+                              <span className="truncate">{act.projectTitle || 'Proyecto General'}</span>
+                            </p>
+                          </div>
+
+                          {/* Socios Asignados */}
+                          <div className="p-2 rounded-xl bg-white/[0.03] border border-white/[0.06] text-xs space-y-1">
+                            <div className="flex items-center justify-between text-[11px]">
+                              <span className="text-slate-400">Responsable:</span>
+                              <span className="font-bold text-white">{act.assignedPartner}</span>
+                            </div>
+                            {act.coPartner && (
+                              <div className="flex items-center justify-between text-[11px] text-amber-300">
+                                <span>Co-ejecutor:</span>
+                                <span className="font-bold flex items-center gap-1">
+                                  <Zap className="w-3 h-3" /> {act.coPartner}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Barra y Modalidad de Hitos */}
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between text-[10px] font-bold text-slate-400">
+                              <span>Progreso de Hitos ({act.milestoneType || '5 fases'}):</span>
+                              <span className="font-mono text-[#00e03c] font-black">{progressPct}%</span>
+                            </div>
+                            <div className="w-full bg-white/[0.06] rounded-full h-1.5 overflow-hidden">
+                              <div
+                                className="bg-[#00e03c] h-full transition-all duration-300"
+                                style={{ width: `${progressPct}%` }}
+                              />
+                            </div>
+                          </div>
                         </div>
-                      )}
-                      {p.email && (
-                        <div className="flex items-center justify-between text-slate-300">
-                          <span className="flex items-center gap-1.5 font-mono text-[10px] truncate max-w-[170px]">
-                            <Mail className="w-3 h-3 text-purple-400 shrink-0" /> {p.email}
-                          </span>
-                          <a
-                            href={`mailto:${p.email}?subject=Asesoramiento%20Ambiental%20SERAM`}
-                            className="text-[9px] font-black text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 px-2 py-0.5 rounded transition-colors"
+
+                        {/* Botones de acción */}
+                        <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setDrawerActivity(act)}
+                            className="px-3 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
                           >
-                            Email
-                          </a>
+                            <span>Ver Ficha</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </button>
+
+                          {!isDone && (
+                            <button
+                              type="button"
+                              onClick={() => handleCompleteActivityValidation(act)}
+                              className="px-3 py-1.5 rounded-xl bg-[#00e03c] hover:bg-[#00e03c]/90 text-slate-950 font-black text-xs transition-all shadow-md shadow-[#00e03c]/15 cursor-pointer flex items-center gap-1"
+                            >
+                              <Check className="w-3.5 h-3.5 stroke-[3]" />
+                              <span>Completar</span>
+                            </button>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Acciones de Gestión y Conversión a Cliente */}
-                  <div className="pt-3 border-t border-white/[0.06] space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <select
-                        value={p.estadoGestion}
-                        onChange={(e) => handleUpdateProspect(p.id, { estadoGestion: e.target.value })}
-                        className="text-[10px] font-bold px-2 py-1 rounded bg-white/[0.06] border border-white/[0.1] text-white focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white flex-1"
-                      >
-                        <option value="Prospecto Nuevo">Prospecto Nuevo</option>
-                        <option value="Contactado">Contactado</option>
-                        <option value="Cotización Enviada">Cotización Enviada</option>
-                        <option value="Cliente Cerrado">Cliente Cerrado</option>
-                      </select>
-
-                      <select
-                        value={p.socioAsignado}
-                        onChange={(e) => handleUpdateProspect(p.id, { socioAsignado: e.target.value })}
-                        className="text-[10px] font-bold px-2 py-1 rounded bg-white/[0.06] border border-white/[0.1] text-white focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white flex-1"
-                      >
-                        <option value="Sin Asignar">Sin Asignar</option>
-                        <option value="Ing. Diego Barrientos">Diego</option>
-                        <option value="Ing. Fernando Araujo">Fernando</option>
-                        <option value="Ing. Fabricio Orosco">Fabricio</option>
-                      </select>
-                    </div>
-
-                    {p.estadoGestion !== 'Cliente Cerrado' ? (
-                      <button
-                        onClick={() => handleConvertProspectToClient(p.id)}
-                        className="w-full py-1.5 rounded-lg bg-gradient-to-r from-emerald-500 to-[#00e03c] text-slate-950 font-black text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-[#00e03c]/10 hover:brightness-110 transition-all"
-                      >
-                        <Sparkles className="w-3 h-3" /> Convertir en Cliente SERAM
-                      </button>
-                    ) : (
-                      <div className="text-center py-1 text-[10px] font-black text-[#00e03c] bg-[#00e03c]/10 rounded-lg border border-[#00e03c]/20 flex items-center justify-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" /> Cliente Oficial Registrado
-                      </div>
-                    )}
-                  </div>
-                </GlassCard>
-              ))}
-          </div>
+                      </GlassCard>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -2273,12 +2470,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         </div>
       )}
 
-      {/* ── VISTA 6: MISIONES ESPECIALES & COFRES DE RESPLANDOR (OCTALYSIS) ── */}
-      {activeTab === 'missions' && (
-        <SpecialMissionsModule currentSocio={currentSocio} />
-      )}
-
-      {/* ── VISTA 7: SINERGIAS & COMBOS INTERDISCIPLINARIOS (OCTALYSIS CD3 & CD5) ── */}
+      {/* ── VISTA 5: SINERGIAS & COMBOS INTERDISCIPLINARIOS (OCTALYSIS CD3 & CD5) ── */}
       {activeTab === 'synergies' && (
         <InterdisciplinarySynergies currentSocio={currentSocio} />
       )}
@@ -2580,6 +2772,45 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                   )}
                 </div>
 
+                {/* Jerarquía OKR & Criterio de Validación Anti-Cheat */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-2xl bg-white/[0.03] border border-amber-500/25">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-slate-400">Jerarquía Estratégica OKR</label>
+                    <select
+                      value={actOkrLevel}
+                      onChange={(e) => setActOkrLevel(e.target.value)}
+                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
+                    >
+                      <option value="anual">🎯 Macro Anual (Visión SEPREC)</option>
+                      <option value="semestral">🧭 Semestral (Hitos Clave)</option>
+                      <option value="trimestral">📈 Trimestral (OKRs Q1 - Q4)</option>
+                      <option value="mensual">🗓️ Mensual (Entregables)</option>
+                      <option value="semanal">⚡ Semanal (Sprint de Gabinete)</option>
+                      <option value="diario">✅ Diario (Checklist & Tareas)</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-amber-400 flex items-center gap-1">
+                      <Scale className="w-3 h-3 text-amber-400" /> Criterio Validación (Anti-Cheat)
+                    </label>
+                    <select
+                      value={actValidationCriteria}
+                      onChange={(e) => setActValidationCriteria(e.target.value)}
+                      className="w-full px-3 py-2 bg-white/[0.06] border border-amber-500/30 rounded-xl text-white font-bold focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
+                    >
+                      <option value="cross_audit">⚖️ Auditoría Cruzada Pericial</option>
+                      <option value="auto_proof">📎 Comprobante Obligatorio</option>
+                      <option value="provisional_pool">🛡️ Bolsa Provisional de Horas</option>
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2 text-[10px] text-slate-400 italic">
+                    {actValidationCriteria === 'cross_audit' && '⚖️ Auditoría Cruzada: Al llegar a 100%, requiere aprobación pericial de otro socio directivo.'}
+                    {actValidationCriteria === 'auto_proof' && '📎 Auto-completar: Concluye al 100% de inmediato exigiendo link o archivo de respaldo adjunto.'}
+                    {actValidationCriteria === 'provisional_pool' && '🛡️ Bolsa Provisional: Concluye al instante sin bloquear al socio; se ratifica semanalmente en Directorio.'}
+                  </div>
+                </div>
+
                 {/* Título */}
                 <div className="space-y-1">
                   <label className="text-[10px] font-black uppercase text-slate-400">Título de la Actividad / Tarea *</label>
@@ -2767,6 +2998,150 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                   </div>
                 </div>
 
+                {/* Modalidad de Hitos de Ejecución */}
+                <div className="space-y-2 p-3 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black uppercase text-slate-300">Modalidad de Hitos & Seguimiento</label>
+                    <span className="text-[9px] font-mono text-emerald-400 font-bold uppercase">
+                      {actMilestoneType === 'phases' ? '5 Fases Estándar' :
+                       actMilestoneType === 'weekdays' ? 'Días Semana (Lun-Dom)' :
+                       actMilestoneType === 'custom_subtasks' ? 'Subtareas Personalizadas' : 'Avance Numérico'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { id: 'phases', label: '5 Fases', desc: 'Estándar SERAM' },
+                      { id: 'weekdays', label: 'Semanal', desc: 'Lun a Dom' },
+                      { id: 'custom_subtasks', label: 'Subtareas', desc: 'Texto custom' },
+                      { id: 'numeric', label: 'Numérico', desc: 'Meta cuant.' }
+                    ].map(m => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => setActMilestoneType(m.id)}
+                        className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
+                          actMilestoneType === m.id
+                            ? 'bg-[#00e03c]/20 border-[#00e03c] text-white font-black shadow-sm'
+                            : 'bg-white/[0.02] border-white/[0.08] text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        <div className="text-xs font-bold">{m.label}</div>
+                        <div className="text-[9px] text-slate-500">{m.desc}</div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Configuración de Modalidad */}
+                  {actMilestoneType === 'phases' && (
+                    <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] text-[11px] text-slate-400 space-y-1">
+                      <span className="font-bold text-slate-300">5 Fases Técnicas:</span>
+                      <div className="grid grid-cols-5 gap-1 text-[9px] text-center pt-1 font-mono">
+                        <span className="p-1 rounded bg-white/[0.04]">1. Datos</span>
+                        <span className="p-1 rounded bg-white/[0.04]">2. SIG</span>
+                        <span className="p-1 rounded bg-white/[0.04]">3. Redac.</span>
+                        <span className="p-1 rounded bg-white/[0.04]">4. Calidad</span>
+                        <span className="p-1 rounded bg-white/[0.04]">5. Entrega</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {actMilestoneType === 'weekdays' && (
+                    <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2">
+                      <span className="text-[10px] font-bold text-slate-300 block">Días de la semana para completar la rutina:</span>
+                      <div className="grid grid-cols-7 gap-1">
+                        {['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'].map((d) => (
+                          <button
+                            key={d}
+                            type="button"
+                            onClick={() => setActWeekdays(prev => ({ ...prev, [d]: !prev[d] }))}
+                            className={`py-1.5 rounded-lg text-[10px] font-black uppercase text-center transition-all cursor-pointer ${
+                              actWeekdays[d] ? 'bg-sky-500 text-white shadow-sm ring-1 ring-sky-400/50' : 'bg-white/[0.04] text-slate-400 border border-white/[0.08]'
+                            }`}
+                          >
+                            {d.slice(0, 2)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {actMilestoneType === 'custom_subtasks' && (
+                    <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          placeholder="Escribir subtarea específica..."
+                          value={newSubtaskText}
+                          onChange={(e) => setNewSubtaskText(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (newSubtaskText.trim()) {
+                                setActCustomSubtasks(prev => [...prev, { id: Date.now().toString(), label: newSubtaskText.trim(), done: false }]);
+                                setNewSubtaskText('');
+                              }
+                            }
+                          }}
+                          className="flex-1 px-2.5 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-lg text-white text-xs placeholder-slate-500 focus:outline-none focus:border-[#00e03c]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (newSubtaskText.trim()) {
+                              setActCustomSubtasks(prev => [...prev, { id: Date.now().toString(), label: newSubtaskText.trim(), done: false }]);
+                              setNewSubtaskText('');
+                            }
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-black text-xs hover:bg-emerald-400 cursor-pointer"
+                        >
+                          + Añadir
+                        </button>
+                      </div>
+
+                      {actCustomSubtasks.length > 0 && (
+                        <div className="space-y-1 max-h-36 overflow-y-auto pt-1">
+                          {actCustomSubtasks.map((st) => (
+                            <div key={st.id} className="flex items-center justify-between p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs">
+                              <span className="text-slate-300 truncate max-w-[220px]">{st.label}</span>
+                              <button
+                                type="button"
+                                onClick={() => setActCustomSubtasks(prev => prev.filter(item => item.id !== st.id))}
+                                className="text-slate-500 hover:text-rose-400 p-0.5 cursor-pointer"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {actMilestoneType === 'numeric' && (
+                    <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-slate-400 font-bold">Valor Actual</label>
+                        <input
+                          type="number"
+                          value={actCurrentValue}
+                          onChange={(e) => setActCurrentValue(Number(e.target.value))}
+                          className="w-full px-2.5 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-lg text-white font-mono text-xs focus:outline-none focus:border-[#00e03c]"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-slate-400 font-bold">Meta Numérica (Target)</label>
+                        <input
+                          type="number"
+                          value={actTargetValue}
+                          onChange={(e) => setActTargetValue(Number(e.target.value))}
+                          className="w-full px-2.5 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-lg text-white font-mono text-xs focus:outline-none focus:border-[#00e03c]"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* Descripción Detallada */}
                 <div className="space-y-1">
                   <label className="text-[10px] font-black uppercase text-slate-400">Detalles Técnicos / Entregable</label>
@@ -2793,136 +3168,6 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                     className="px-5 py-2 rounded-xl bg-[#00e03c] hover:bg-[#00e03c]/90 text-slate-950 font-black shadow-lg shadow-[#00e03c]/20 cursor-pointer"
                   >
                     {editingActivity ? 'Guardar Cambios' : 'Registrar Actividad'}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* ── MODAL: INSCRIBIR NUEVO CLIENTE ── */}
-      <AnimatePresence>
-        {showNewClientModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-lg bg-[#0e1622] border border-white/[0.15] rounded-3xl p-6 shadow-2xl space-y-5"
-            >
-              <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
-                <div className="flex items-center gap-2.5">
-                  <Building2 className="w-5 h-5 text-purple-400" />
-                  <h3 className="text-base font-black text-white">Inscribir Nuevo Cliente / Entidad</h3>
-                </div>
-                <button
-                  onClick={() => setShowNewClientModal(false)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08]"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <form onSubmit={onSubmitClient} className="space-y-4 text-xs">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-400">Razón Social / Nombre de la Institución *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ej: Gobierno Autónomo Municipal de Mapiri"
-                    value={clName}
-                    onChange={(e) => setClName(e.target.value)}
-                    className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-purple-400"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Sector / Tipo</label>
-                    <select
-                      value={clType}
-                      onChange={(e) => setClType(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-purple-400 [&>option]:bg-[#0d1622] [&>option]:text-white"
-                    >
-                      <option value="Municipal / Público">Municipal / Público</option>
-                      <option value="Minería / Cooperativa">Minería / Cooperativa</option>
-                      <option value="Industrial / Fabril">Industrial / Fabril</option>
-                      <option value="Privado / Particular">Privado / Particular</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Persona de Contacto / Cargo</label>
-                    <input
-                      type="text"
-                      placeholder="Ej: Ing. Jefe de Medio Ambiente"
-                      value={clContact}
-                      onChange={(e) => setClContact(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-purple-400"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Teléfono / WhatsApp</label>
-                    <input
-                      type="text"
-                      placeholder="+591 7XXXXXXX"
-                      value={clPhone}
-                      onChange={(e) => setClPhone(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-purple-400"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Correo Electrónico</label>
-                    <input
-                      type="email"
-                      placeholder="contacto@entidad.gob.bo"
-                      value={clEmail}
-                      onChange={(e) => setClEmail(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-purple-400"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-400">Ubicación / Municipio</label>
-                  <input
-                    type="text"
-                    placeholder="Ej: Mapiri, Larecaja - La Paz"
-                    value={clLocation}
-                    onChange={(e) => setClLocation(e.target.value)}
-                    className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-purple-400"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-400">Notas / Antecedentes</label>
-                  <textarea
-                    rows="2"
-                    placeholder="Requerimientos iniciales, antecedentes de fiscalización..."
-                    value={clNotes}
-                    onChange={(e) => setClNotes(e.target.value)}
-                    className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-purple-400 resize-none"
-                  />
-                </div>
-
-                <div className="pt-2 flex items-center justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowNewClientModal(false)}
-                    className="px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-slate-300 font-bold"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-black shadow-lg shadow-purple-500/20"
-                  >
-                    Registrar Cliente
                   </button>
                 </div>
               </form>
@@ -2962,6 +3207,32 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                       <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${PRIORITY_STYLES[drawerData.priority] || PRIORITY_STYLES.Media}`}>
                         Prioridad {drawerData.priority}
                       </span>
+                      {drawerData.okrLevel && (
+                        <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                          {drawerData.okrLevel === 'anual' ? 'OKR Anual' :
+                           drawerData.okrLevel === 'semestral' ? 'OKR Semestral' :
+                           drawerData.okrLevel === 'trimestral' ? 'OKR Trimestral' :
+                           drawerData.okrLevel === 'mensual' ? 'OKR Mensual' :
+                           drawerData.okrLevel === 'semanal' ? 'OKR Semanal' : 'Tarea Diaria'}
+                        </span>
+                      )}
+                      {drawerData.validationCriteria && (
+                        <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border flex items-center gap-1 ${
+                          drawerData.validationCriteria === 'provisional_pool' ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' :
+                          drawerData.validationCriteria === 'auto_proof' ? 'bg-sky-500/20 text-sky-300 border-sky-500/30' :
+                          'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                        }`}>
+                          <Scale className="w-3 h-3" />
+                          {drawerData.validationCriteria === 'provisional_pool' ? 'Bolsa Provisional' :
+                           drawerData.validationCriteria === 'auto_proof' ? 'Comprobante Obligatorio' :
+                           'Auditoría Cruzada'}
+                        </span>
+                      )}
+                      {drawerData.isProvisional && (
+                        <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1 animate-pulse">
+                          <Clock className="w-3 h-3" /> Bolsa Provisional (Por Regularizar)
+                        </span>
+                      )}
                       {(drawerData.isFlash || drawerData.activityType === 'flash') && (
                         <FlashCountdownBadge expiresAt={drawerData.flashExpiresAt} />
                       )}
@@ -3010,14 +3281,18 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                   </div>
                 </div>
 
-                {/* Sección de 5 Hitos Interactivos */}
+                {/* Sección de Hitos Multi-Modales Interactivos */}
                 <div className="space-y-3 bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4">
                   <div className="flex items-center justify-between">
                     <h5 className="text-xs font-black uppercase text-slate-300 tracking-wider flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-[#00e03c]" /> Hitos de Ejecución Técnica (5 Fases)
+                      <CheckCircle2 className="w-4 h-4 text-[#00e03c]" />
+                      {(drawerData.milestoneType === 'weekdays' && 'Checklist Semanal (Lun - Dom)') ||
+                       (drawerData.milestoneType === 'custom_subtasks' && 'Subtareas Específicas') ||
+                       (drawerData.milestoneType === 'numeric' && 'Métrica Cuantitativa') ||
+                       'Hitos de Ejecución Técnica (5 Fases)'}
                     </h5>
-                    <span className="text-[11px] font-black text-[#00e03c] bg-[#00e03c]/10 px-2 py-0.5 rounded-full border border-[#00e03c]/20">
-                      {Math.round(((drawerData.milestoneStep || 0) / 5) * 100)}% Completado
+                    <span className="text-[11px] font-black text-[#00e03c] bg-[#00e03c]/10 px-2 py-0.5 rounded-full border border-[#00e03c]/20 font-mono">
+                      {getProgressPercent(drawerData)}% Completado
                     </span>
                   </div>
 
@@ -3025,41 +3300,241 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                   <div className="w-full bg-white/[0.06] rounded-full h-1.5 overflow-hidden">
                     <div
                       className="bg-[#00e03c] h-full transition-all duration-300 shadow-sm shadow-[#00e03c]"
-                      style={{ width: `${((drawerData.milestoneStep || 0) / 5) * 100}%` }}
+                      style={{ width: `${getProgressPercent(drawerData)}%` }}
                     />
                   </div>
 
-                  {/* Lista de hitos interactivos */}
-                  <div className="space-y-2 pt-1">
-                    {STANDARD_MILESTONES.map((m) => {
-                      const isDone = (drawerData.milestoneStep || 0) >= m.step;
-                      return (
-                        <div
-                          key={m.step}
-                          onClick={() => handleMilestoneClick(drawerActivity, m.step)}
-                          className={`flex items-center justify-between p-2.5 rounded-xl border text-xs cursor-pointer transition-all ${
-                            isDone
-                              ? 'bg-[#00e03c]/10 border-[#00e03c]/30 text-white'
-                              : 'bg-white/[0.02] border-white/[0.06] text-slate-400 hover:bg-white/[0.05]'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <div className={`w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-black transition-all ${
-                              isDone ? 'bg-[#00e03c] text-slate-950 font-black' : 'border border-white/20 text-slate-500'
-                            }`}>
-                              {isDone ? <Check className="w-3 h-3 stroke-[3]" /> : m.step}
+                  {/* Modalidad 1: 5 Fases Estándar */}
+                  {(!drawerData.milestoneType || drawerData.milestoneType === 'phases') && (
+                    <div className="space-y-2 pt-1">
+                      {STANDARD_MILESTONES.map((m) => {
+                        const isDone = (drawerData.milestoneStep || 0) >= m.step;
+                        return (
+                          <div
+                            key={m.step}
+                            onClick={() => handleMilestoneClick(drawerActivity, m.step)}
+                            className={`flex items-center justify-between p-2.5 rounded-xl border text-xs cursor-pointer transition-all ${
+                              isDone
+                                ? 'bg-[#00e03c]/10 border-[#00e03c]/30 text-white'
+                                : 'bg-white/[0.02] border-white/[0.06] text-slate-400 hover:bg-white/[0.05]'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <div className={`w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-black transition-all ${
+                                isDone ? 'bg-[#00e03c] text-slate-950 font-black' : 'border border-white/20 text-slate-500'
+                              }`}>
+                                {isDone ? <Check className="w-3 h-3 stroke-[3]" /> : m.step}
+                              </div>
+                              <span className={isDone ? 'font-bold text-white' : 'font-medium'}>
+                                {m.label}
+                              </span>
                             </div>
-                            <span className={isDone ? 'font-bold text-white' : 'font-medium'}>
-                              {m.label}
+                            <span className={`text-[10px] font-bold ${isDone ? 'text-[#00e03c]' : 'text-slate-500'}`}>
+                              {isDone ? 'Completado' : 'Pendiente'}
                             </span>
                           </div>
-                          <span className={`text-[10px] font-bold ${isDone ? 'text-[#00e03c]' : 'text-slate-500'}`}>
-                            {isDone ? 'Completado' : 'Pendiente'}
-                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Modalidad 2: Días de la Semana */}
+                  {drawerData.milestoneType === 'weekdays' && (
+                    <div className="space-y-2 pt-1">
+                      <div className="grid grid-cols-7 gap-1.5">
+                        {[
+                          { key: 'lun', label: 'Lun' },
+                          { key: 'mar', label: 'Mar' },
+                          { key: 'mie', label: 'Mié' },
+                          { key: 'jue', label: 'Jue' },
+                          { key: 'vie', label: 'Vie' },
+                          { key: 'sab', label: 'Sáb' },
+                          { key: 'dom', label: 'Dom' },
+                        ].map((day) => {
+                          const isDone = Boolean(drawerData.weekdays?.[day.key]);
+                          return (
+                            <button
+                              key={day.key}
+                              type="button"
+                              onClick={() => handleToggleWeekday(drawerActivity, day.key)}
+                              className={`flex flex-col items-center justify-center py-2.5 px-1 rounded-xl border text-center transition-all cursor-pointer ${
+                                isDone
+                                  ? 'bg-[#00e03c]/20 border-[#00e03c]/50 text-[#00e03c] shadow-sm shadow-[#00e03c]/20 font-black'
+                                  : 'bg-white/[0.02] border-white/[0.08] text-slate-400 hover:bg-white/[0.06] hover:text-white'
+                              }`}
+                            >
+                              <span className="text-[10px] font-bold text-slate-400 uppercase">{day.label}</span>
+                              <span className="text-xs font-black mt-0.5">{isDone ? '✓' : '—'}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="text-[10px] text-slate-400 text-center italic pt-1">
+                        Marca los días ejecutados. Al completar los 7 días se iniciará la validación societaria.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Modalidad 3: Subtareas Personalizadas */}
+                  {drawerData.milestoneType === 'custom_subtasks' && (
+                    <div className="space-y-2 pt-1">
+                      {Array.isArray(drawerData.customSubtasks) && drawerData.customSubtasks.length > 0 ? (
+                        <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                          {drawerData.customSubtasks.map((st) => (
+                            <div
+                              key={st.id}
+                              className={`flex items-center justify-between p-2 rounded-xl border text-xs transition-all ${
+                                st.done
+                                  ? 'bg-[#00e03c]/10 border-[#00e03c]/30 text-white'
+                                  : 'bg-white/[0.02] border-white/[0.06] text-slate-300 hover:bg-white/[0.05]'
+                              }`}
+                            >
+                              <div
+                                onClick={() => handleToggleCustomSubtask(drawerActivity, st.id)}
+                                className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer"
+                              >
+                                <div className={`w-4 h-4 rounded flex items-center justify-center text-[10px] transition-colors shrink-0 ${
+                                  st.done ? 'bg-[#00e03c] text-slate-950 font-black' : 'border border-white/20'
+                                }`}>
+                                  {st.done && <Check className="w-3 h-3 stroke-[3]" />}
+                                </div>
+                                <span className={`truncate ${st.done ? 'line-through text-slate-400' : 'font-medium'}`}>
+                                  {st.label}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveDrawerSubtask(st.id)}
+                                className="p-1 text-slate-500 hover:text-rose-400 transition-colors shrink-0 ml-2 cursor-pointer"
+                                title="Eliminar subtarea"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ))}
                         </div>
-                      );
-                    })}
-                  </div>
+                      ) : (
+                        <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-center text-xs text-slate-400">
+                          No hay subtareas añadidas todavía.
+                        </div>
+                      )}
+
+                      {/* Input para agregar subtarea */}
+                      <div className="flex items-center gap-2 pt-1">
+                        <input
+                          type="text"
+                          placeholder="Nueva subtarea específica..."
+                          value={drawerNewSubtaskInput}
+                          onChange={(e) => setDrawerNewSubtaskInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleAddDrawerSubtask();
+                            }
+                          }}
+                          className="flex-1 px-3 py-1.5 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white text-xs placeholder-slate-500 focus:outline-none focus:border-[#00e03c]"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddDrawerSubtask}
+                          className="px-3 py-1.5 rounded-xl bg-white/[0.08] hover:bg-[#00e03c]/20 hover:text-[#00e03c] border border-white/[0.12] text-xs font-bold transition-colors cursor-pointer shrink-0 flex items-center gap-1"
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Añadir
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Modalidad 4: Métrica Cuantitativa */}
+                  {drawerData.milestoneType === 'numeric' && (
+                    <div className="space-y-3 pt-1">
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-slate-400 block">Progreso Cuantitativo</span>
+                          <div className="text-xl font-black text-white font-mono mt-0.5">
+                            <span className="text-[#00e03c]">{drawerData.currentValue || 0}</span>
+                            <span className="text-slate-500 text-sm font-normal"> / {drawerData.targetValue || 10}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleNumericChange(drawerActivity, -5)}
+                            className="px-2 py-1 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] text-white text-xs font-mono font-bold cursor-pointer"
+                            title="-5 unidades"
+                          >
+                            -5
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleNumericChange(drawerActivity, -1)}
+                            className="px-2 py-1 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] text-white text-xs font-mono font-bold cursor-pointer"
+                            title="-1 unidad"
+                          >
+                            -1
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleNumericChange(drawerActivity, 1)}
+                            className="px-2.5 py-1 rounded-lg bg-[#00e03c]/20 hover:bg-[#00e03c]/30 text-[#00e03c] border border-[#00e03c]/30 text-xs font-mono font-black cursor-pointer"
+                            title="+1 unidad"
+                          >
+                            +1
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleNumericChange(drawerActivity, 5)}
+                            className="px-2.5 py-1 rounded-lg bg-[#00e03c]/20 hover:bg-[#00e03c]/30 text-[#00e03c] border border-[#00e03c]/30 text-xs font-mono font-black cursor-pointer"
+                            title="+5 unidades"
+                          >
+                            +5
+                          </button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-slate-400">Valor Actual:</label>
+                          <input
+                            type="number"
+                            value={drawerData.currentValue ?? 0}
+                            onChange={(e) => {
+                              const val = Number(e.target.value) || 0;
+                              setDrawerData(prev => ({ ...prev, currentValue: val }));
+                              handleEditActivity(drawerActivity.id, { currentValue: val });
+                            }}
+                            className="w-full px-3 py-1.5 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-mono text-xs focus:outline-none focus:border-[#00e03c]"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-slate-400">Meta Objetivo:</label>
+                          <input
+                            type="number"
+                            value={drawerData.targetValue ?? 10}
+                            onChange={(e) => {
+                              const val = Number(e.target.value) || 10;
+                              setDrawerData(prev => ({ ...prev, targetValue: val }));
+                              handleEditActivity(drawerActivity.id, { targetValue: val });
+                            }}
+                            className="w-full px-3 py-1.5 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-mono text-xs focus:outline-none focus:border-[#00e03c]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Botón de Validación Inmediata al 100% */}
+                  {drawerData.status !== 'Concluido' && (
+                    <div className="pt-2 border-t border-white/[0.06]">
+                      <button
+                        type="button"
+                        onClick={() => handleCompleteActivityValidation(drawerActivity, drawerData)}
+                        className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#00e03c] to-emerald-400 hover:from-[#00e03c]/90 hover:to-emerald-400/90 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#00e03c]/20 transition-all cursor-pointer"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>Validar & Completar Actividad (100%)</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Panel de Auditoría Pericial y Validación Cruzada (Anti-Cheat) */}
@@ -3240,6 +3715,56 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                         <option value="Urgente">Urgente</option>
                       </select>
                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Modalidad de Hitos */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-slate-400">Modalidad de Hitos</label>
+                      <select
+                        value={drawerData.milestoneType || 'phases'}
+                        onChange={(e) => setDrawerData(prev => ({ ...prev, milestoneType: e.target.value }))}
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
+                      >
+                        <option value="phases">5 Fases Estándar</option>
+                        <option value="weekdays">Días de la Semana (Lun - Dom)</option>
+                        <option value="custom_subtasks">Tareas Específicas Personalizadas</option>
+                        <option value="numeric">Cuantitativo / Numérico</option>
+                      </select>
+                    </div>
+
+                    {/* Cascada OKR */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-slate-400">Cascada OKR</label>
+                      <select
+                        value={drawerData.okrLevel || 'semanal'}
+                        onChange={(e) => setDrawerData(prev => ({ ...prev, okrLevel: e.target.value }))}
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
+                      >
+                        <option value="anual">OKR Anual (Misión Estratégica)</option>
+                        <option value="semestral">OKR Semestral</option>
+                        <option value="trimestral">OKR Trimestral (Hito Pericial)</option>
+                        <option value="mensual">OKR Mensual</option>
+                        <option value="semanal">OKR Semanal (Sprint Operativo)</option>
+                        <option value="diario">Tarea Diaria / Rutina</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Criterio de Validación Anti-Cheat */}
+                  <div className="p-3 rounded-2xl bg-white/[0.02] border border-amber-500/20 space-y-1">
+                    <label className="text-[10px] font-black uppercase text-amber-400 flex items-center gap-1.5">
+                      <Scale className="w-3.5 h-3.5" /> Criterio de Validación Anti-Cheat
+                    </label>
+                    <select
+                      value={drawerData.validationCriteria || 'cross_audit'}
+                      onChange={(e) => setDrawerData(prev => ({ ...prev, validationCriteria: e.target.value }))}
+                      className="w-full px-3 py-2 bg-white/[0.06] border border-amber-500/30 rounded-xl text-white font-bold focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
+                    >
+                      <option value="cross_audit">🛡️ Auditoría Cruzada Pericial (Aprobación de otro socio)</option>
+                      <option value="auto_proof">📎 Comprobante Obligatorio (Exige link o documento adjunto)</option>
+                      <option value="provisional_pool">⏱️ Bolsa Provisional de Horas (Sin bloqueo, ratificación semanal)</option>
+                    </select>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -3590,6 +4115,15 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                   </button>
 
                   <div className="flex items-center gap-2">
+                    {drawerData.status !== 'Concluido' && (
+                      <button
+                        type="button"
+                        onClick={() => handleCompleteActivityValidation(drawerActivity, drawerData)}
+                        className="px-3.5 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-[#00e03c] border border-emerald-500/40 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Validar 100%
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => setDrawerActivity(null)}

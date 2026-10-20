@@ -11,6 +11,8 @@ import {
 export const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
+  // --- REALTIME SYNC REF ---
+  const portalChannelRef = useRef(null);
   // --- AUTH & ROLES ---
   const [supabaseUser, setSupabaseUser] = useState(null);
   const [activeRole, setActiveRole] = useState(() => {
@@ -1955,7 +1957,16 @@ export function AppProvider({ children }) {
             xp_awarded: act.xp_awarded || 0,
             approved_by: act.approved_by || null,
             approved_at: act.approved_at || null,
-            reviewNotes: act.review_notes || null
+            reviewNotes: act.review_notes || null,
+            milestoneType: act.milestone_type || act.milestoneType || 'phases',
+            customSubtasks: Array.isArray(act.custom_subtasks) ? act.custom_subtasks : (Array.isArray(act.customSubtasks) ? act.customSubtasks : []),
+            weekdays: act.weekdays || { lun: false, mar: false, mie: false, jue: false, vie: false, sab: false, dom: false },
+            currentValue: act.current_value !== undefined ? Number(act.current_value) : (act.currentValue !== undefined ? Number(act.currentValue) : 0),
+            targetValue: act.target_value !== undefined ? Number(act.target_value) : (act.targetValue !== undefined ? Number(act.targetValue) : 10),
+            validationCriteria: act.validation_criteria || act.validationCriteria || 'cross_audit',
+            okrLevel: act.okr_level || act.okrLevel || 'semanal',
+            timeLimitHours: act.time_limit_hours !== undefined ? Number(act.time_limit_hours) : (act.timeLimitHours !== undefined ? Number(act.timeLimitHours) : null),
+            isProvisional: Boolean(act.is_provisional || act.isProvisional)
           }));
           setActivities(mappedActivities);
         }
@@ -1982,10 +1993,58 @@ export function AppProvider({ children }) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'time_logs' }, () => {
         loadDataFromSupabase();
       })
+      .on('broadcast', { event: 'activity_change' }, ({ payload }) => {
+        if (!payload) return;
+        const { action, activity, id, updatedFields } = payload;
+        setActivities(prev => {
+          if (action === 'add' && activity) {
+            if (prev.some(a => a.id === activity.id)) return prev;
+            return [activity, ...prev];
+          }
+          if (action === 'update' && id) {
+            return prev.map(a => a.id === id ? { ...a, ...updatedFields } : a);
+          }
+          if (action === 'delete' && id) {
+            return prev.filter(a => a.id !== id);
+          }
+          return prev;
+        });
+      })
       .subscribe();
+
+    portalChannelRef.current = channel;
+
+    // Canal local BroadcastChannel (sincronización instantánea entre pestañas del navegador)
+    let localBc = null;
+    try {
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        localBc = new BroadcastChannel('seram_activity_sync');
+        localBc.onmessage = (event) => {
+          const { action, activity, id, updatedFields } = event.data || {};
+          setActivities(prev => {
+            if (action === 'add' && activity) {
+              if (prev.some(a => a.id === activity.id)) return prev;
+              return [activity, ...prev];
+            }
+            if (action === 'update' && id) {
+              return prev.map(a => a.id === id ? { ...a, ...updatedFields } : a);
+            }
+            if (action === 'delete' && id) {
+              return prev.filter(a => a.id !== id);
+            }
+            return prev;
+          });
+        };
+      }
+    } catch (e) {
+      console.debug('[Local BroadcastChannel Init Error]:', e);
+    }
 
     return () => {
       supabase.removeChannel(channel);
+      if (localBc) {
+        try { localBc.close(); } catch (_) {}
+      }
     };
   }, []);
 
@@ -2758,10 +2817,35 @@ export function AppProvider({ children }) {
     }
   };
 
+  // ─── REALTIME BROADCAST DISPATCHER ───
+  const broadcastActivityChange = useCallback((action, payload) => {
+    // 1. Supabase Broadcast Channel (tiempo real distribuido a todos los socios)
+    try {
+      if (portalChannelRef.current) {
+        portalChannelRef.current.send({
+          type: 'broadcast',
+          event: 'activity_change',
+          payload: { action, ...payload }
+        }).catch(err => {
+          console.debug('[Realtime Broadcast dispatch]:', err?.message);
+        });
+      }
+    } catch (_) {}
+
+    // 2. BroadcastChannel local del navegador (multi-tab instantáneo)
+    try {
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        const localBc = new BroadcastChannel('seram_activity_sync');
+        localBc.postMessage({ action, ...payload });
+        localBc.close();
+      }
+    } catch (_) {}
+  }, []);
+
   // ─── ACTIVITIES HANDLERS (CENTRAL DE ACTIVIDADES CLAVES) ───
   const handleAddActivity = async (actData) => {
     const newAct = {
-      id: Date.now(),
+      id: actData.id || Date.now(),
       title: actData.title,
       description: actData.description || '',
       projectId: actData.projectId || null,
@@ -2787,10 +2871,21 @@ export function AppProvider({ children }) {
       coPartner: actData.coPartner || null,
       strategicObjectives: Array.isArray(actData.strategicObjectives)
         ? actData.strategicObjectives
-        : (actData.strategicObjectives ? [actData.strategicObjectives] : [])
+        : (actData.strategicObjectives ? [actData.strategicObjectives] : []),
+      // Multi-modal milestone & governance fields
+      milestoneType: actData.milestoneType || 'phases',
+      customSubtasks: Array.isArray(actData.customSubtasks) ? actData.customSubtasks : [],
+      weekdays: actData.weekdays || { lun: false, mar: false, mie: false, jue: false, vie: false, sab: false, dom: false },
+      currentValue: Number(actData.currentValue) || 0,
+      targetValue: Number(actData.targetValue) || 10,
+      validationCriteria: actData.validationCriteria || 'cross_audit',
+      okrLevel: actData.okrLevel || 'semanal',
+      timeLimitHours: actData.timeLimitHours || null,
+      isProvisional: Boolean(actData.isProvisional)
     };
 
     setActivities(prev => [newAct, ...prev]);
+    broadcastActivityChange('add', { activity: newAct });
     triggerToast('Actividad clave registrada correctamente', 'success');
 
     try {
@@ -2817,7 +2912,16 @@ export function AppProvider({ children }) {
         start_date: newAct.startDate || null,
         co_partner: newAct.coPartner || null,
         strategic_objectives: newAct.strategicObjectives || [],
-        milestone_step: newAct.milestoneStep || 0
+        milestone_step: newAct.milestoneStep || 0,
+        milestone_type: newAct.milestoneType,
+        custom_subtasks: newAct.customSubtasks,
+        weekdays: newAct.weekdays,
+        current_value: newAct.currentValue,
+        target_value: newAct.targetValue,
+        validation_criteria: newAct.validationCriteria,
+        okr_level: newAct.okrLevel,
+        time_limit_hours: newAct.timeLimitHours,
+        is_provisional: newAct.isProvisional
       }]);
       if (error && error.code !== 'PGRST205') {
         console.warn('[Supabase Insert Activity Warning]:', error.message);
@@ -2829,6 +2933,7 @@ export function AppProvider({ children }) {
 
   const handleUpdateActivityStatus = async (id, newStatus) => {
     setActivities(prev => prev.map(a => a.id === id ? { ...a, status: newStatus } : a));
+    broadcastActivityChange('update', { id, updatedFields: { status: newStatus } });
     triggerToast(`Estado actualizado: ${newStatus}`, 'info');
 
     try {
@@ -2846,6 +2951,7 @@ export function AppProvider({ children }) {
 
   const handleEditActivity = async (id, updatedFields) => {
     setActivities(prev => prev.map(a => a.id === id ? { ...a, ...updatedFields } : a));
+    broadcastActivityChange('update', { id, updatedFields });
     triggerToast('Actividad actualizada', 'success');
 
     try {
@@ -2877,6 +2983,16 @@ export function AppProvider({ children }) {
       if (updatedFields.startDate !== undefined) dbFields.start_date = updatedFields.startDate;
       if (updatedFields.coPartner !== undefined) dbFields.co_partner = updatedFields.coPartner;
       if (updatedFields.strategicObjectives !== undefined) dbFields.strategic_objectives = updatedFields.strategicObjectives;
+      // Multi-modal milestone & governance fields
+      if (updatedFields.milestoneType !== undefined) dbFields.milestone_type = updatedFields.milestoneType;
+      if (updatedFields.customSubtasks !== undefined) dbFields.custom_subtasks = updatedFields.customSubtasks;
+      if (updatedFields.weekdays !== undefined) dbFields.weekdays = updatedFields.weekdays;
+      if (updatedFields.currentValue !== undefined) dbFields.current_value = updatedFields.currentValue;
+      if (updatedFields.targetValue !== undefined) dbFields.target_value = updatedFields.targetValue;
+      if (updatedFields.validationCriteria !== undefined) dbFields.validation_criteria = updatedFields.validationCriteria;
+      if (updatedFields.okrLevel !== undefined) dbFields.okr_level = updatedFields.okrLevel;
+      if (updatedFields.timeLimitHours !== undefined) dbFields.time_limit_hours = updatedFields.timeLimitHours;
+      if (updatedFields.isProvisional !== undefined) dbFields.is_provisional = updatedFields.isProvisional;
 
       const { error } = await supabase
         .from('activities')
@@ -2892,6 +3008,7 @@ export function AppProvider({ children }) {
 
   const handleDeleteActivity = async (id) => {
     setActivities(prev => prev.filter(a => a.id !== id));
+    broadcastActivityChange('delete', { id });
     triggerToast('Actividad eliminada', 'info');
 
     try {
@@ -3564,6 +3681,7 @@ export function AppProvider({ children }) {
       handleAddProject, handleUpdateProjectProgress, handleDeleteProject,
       handleEditProject, handleConcludeProject,
       handleAddActivity, handleUpdateActivityStatus, handleEditActivity, handleDeleteActivity,
+      broadcastActivityChange,
       handleAddClient, handleEditClient, handleDeleteClient,
       handleUpdateProspect, handleConvertProspectToClient,
       handleAddMunicipalProposal, handleEditMunicipalProposal, handleDeleteMunicipalProposal,
