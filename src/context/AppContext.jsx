@@ -8,6 +8,33 @@ import {
   legacySkinFromConfig
 } from '../features/partner-portal/avatar/avatarCatalog';
 
+// --- METADATA SERIALIZATION HELPERS FOR SUPABASE ACTIVITIES (TASK-091) ---
+export const parseActivityMeta = (rawDescription) => {
+  if (!rawDescription || typeof rawDescription !== 'string') {
+    return { cleanDesc: rawDescription || '', meta: {} };
+  }
+  const match = rawDescription.match(/<!--SERAM_META:(\{.*?\})-->/s);
+  if (!match) {
+    return { cleanDesc: rawDescription, meta: {} };
+  }
+  try {
+    const meta = JSON.parse(match[1]);
+    const cleanDesc = rawDescription.replace(/\n?<!--SERAM_META:\{.*?\}-->/s, '').trim();
+    return { cleanDesc, meta: meta && typeof meta === 'object' ? meta : {} };
+  } catch (e) {
+    console.warn('[parseActivityMeta] Error parsing metadata:', e);
+    return { cleanDesc: rawDescription, meta: {} };
+  }
+};
+
+export const serializeActivityWithMeta = (cleanDesc, meta) => {
+  const baseDesc = (cleanDesc || '').replace(/\n?<!--SERAM_META:\{.*?\}-->/s, '').trim();
+  if (!meta || Object.keys(meta).length === 0) {
+    return baseDesc;
+  }
+  return `${baseDesc}\n<!--SERAM_META:${JSON.stringify(meta)}-->`;
+};
+
 export const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
@@ -638,11 +665,22 @@ export function AppProvider({ children }) {
         const saved = localStorage.getItem('seram_activities');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length >= 18) {
-            return parsed.map(a => a.assignedPartner === 'Ing. Sebastian Orosco' ? { ...a, assignedPartner: 'Ing. Fabricio Orosco' } : a);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed.map(a => {
+              const cleaned = a.assignedPartner === 'Ing. Sebastian Orosco' ? { ...a, assignedPartner: 'Ing. Fabricio Orosco' } : a;
+              if (cleaned.description && typeof cleaned.description === 'string' && cleaned.description.includes('<!--SERAM_META:')) {
+                const { cleanDesc, meta } = parseActivityMeta(cleaned.description);
+                return {
+                  ...cleaned,
+                  description: cleanDesc,
+                  milestoneStep: cleaned.milestoneStep !== undefined ? cleaned.milestoneStep : (meta.milestoneStep !== undefined ? Number(meta.milestoneStep) : 0)
+                };
+              }
+              return cleaned;
+            });
           }
         }
-      } catch (e) {}
+      } catch (_) { /* ignore */ }
     }
     return verifiedActivities;
   });
@@ -1951,51 +1989,148 @@ export function AppProvider({ children }) {
           setClients(mappedClients);
         }
 
-        // 6. Activities (Central de Actividades Claves de Socios)
+        // 6. Activities (Central de Actividades Claves de Socios con Metadatos Embebidos TASK-091)
         if (activitiesRes.status === 'fulfilled' && !activitiesRes.value.error && activitiesRes.value.data?.length > 0) {
-          const mappedActivities = activitiesRes.value.data.map(act => ({
-            id: act.id,
-            title: act.title,
-            description: act.description || '',
-            projectId: act.project_id,
-            projectTitle: act.project_title || 'Proyecto General',
-            assignedPartner: act.assigned_partner || 'Ing. Diego Barrientos',
-            assignedPartnerEmail: act.assigned_partner_email || '',
-            category: act.category || 'Consultoría Técnica',
-            status: act.status || 'En curso',
-            priority: act.priority || 'Media',
-            dueDate: act.due_date,
-            estimatedHours: parseFloat(act.estimated_hours) || 0,
-            actualHours: parseFloat(act.actual_hours) || 0,
-            url: act.deliverable_url || act.url || null,
-            deliverableUrl: act.deliverable_url || act.url || null,
-            deliverableName: act.deliverable_name || null,
-            deliverableType: act.deliverable_type || null,
-            attachments: Array.isArray(act.attachments) ? act.attachments : [],
-            isFlash: Boolean(act.is_flash),
-            flashExpiresAt: act.flash_expires_at || null,
-            activityType: act.activity_type || 'principal',
-            milestoneStep: act.milestone_step !== undefined ? Number(act.milestone_step) : 0,
-            startDate: act.start_date || null,
-            coPartner: act.co_partner || null,
-            strategicObjectives: Array.isArray(act.strategic_objectives)
-              ? act.strategic_objectives
-              : (act.strategic_objectives ? [act.strategic_objectives] : []),
-            xp_awarded: act.xp_awarded || 0,
-            approved_by: act.approved_by || null,
-            approved_at: act.approved_at || null,
-            reviewNotes: act.review_notes || null,
-            milestoneType: act.milestone_type || act.milestoneType || 'phases',
-            customSubtasks: Array.isArray(act.custom_subtasks) ? act.custom_subtasks : (Array.isArray(act.customSubtasks) ? act.customSubtasks : []),
-            weekdays: act.weekdays || { lun: false, mar: false, mie: false, jue: false, vie: false, sab: false, dom: false },
-            currentValue: act.current_value !== undefined ? Number(act.current_value) : (act.currentValue !== undefined ? Number(act.currentValue) : 0),
-            targetValue: act.target_value !== undefined ? Number(act.target_value) : (act.targetValue !== undefined ? Number(act.targetValue) : 10),
-            validationCriteria: act.validation_criteria || act.validationCriteria || 'cross_audit',
-            okrLevel: act.okr_level || act.okrLevel || 'semanal',
-            timeLimitHours: act.time_limit_hours !== undefined ? Number(act.time_limit_hours) : (act.timeLimitHours !== undefined ? Number(act.timeLimitHours) : null),
-            isProvisional: Boolean(act.is_provisional || act.isProvisional)
-          }));
-          setActivities(mappedActivities);
+          const mappedActivities = activitiesRes.value.data.map(act => {
+            const { cleanDesc, meta } = parseActivityMeta(act.description || '');
+            return {
+              id: act.id,
+              title: act.title,
+              description: cleanDesc,
+              projectId: act.project_id,
+              projectTitle: act.project_title || 'Proyecto General',
+              assignedPartner: act.assigned_partner || 'Ing. Diego Barrientos',
+              assignedPartnerEmail: act.assigned_partner_email || '',
+              category: act.category || 'Consultoría Técnica',
+              status: act.status || 'En curso',
+              priority: act.priority || 'Media',
+              dueDate: act.due_date,
+              estimatedHours: parseFloat(act.estimated_hours) || 0,
+              actualHours: parseFloat(act.actual_hours) || 0,
+              url: act.deliverable_url || act.url || null,
+              deliverableUrl: act.deliverable_url || act.url || null,
+              deliverableName: act.deliverable_name || null,
+              deliverableType: act.deliverable_type || null,
+              attachments: Array.isArray(act.attachments) ? act.attachments : (Array.isArray(meta.attachments) ? meta.attachments : []),
+              isFlash: meta.isFlash !== undefined ? Boolean(meta.isFlash) : Boolean(act.is_flash),
+              flashExpiresAt: meta.flashExpiresAt || act.flash_expires_at || null,
+              activityType: meta.activityType || act.activity_type || 'principal',
+              milestoneStep: meta.milestoneStep !== undefined ? Number(meta.milestoneStep) : (act.milestone_step !== undefined ? Number(act.milestone_step) : 0),
+              startDate: meta.startDate || act.start_date || null,
+              coPartner: meta.coPartner || act.co_partner || null,
+              strategicObjectives: Array.isArray(meta.strategicObjectives)
+                ? meta.strategicObjectives
+                : (Array.isArray(act.strategic_objectives)
+                    ? act.strategic_objectives
+                    : (act.strategic_objectives ? [act.strategic_objectives] : [])),
+              xp_awarded: meta.xp_awarded !== undefined ? Number(meta.xp_awarded) : (act.xp_awarded || 0),
+              approved_by: meta.approved_by || act.approved_by || null,
+              approved_at: meta.approved_at || act.approved_at || null,
+              reviewNotes: meta.reviewNotes || act.review_notes || null,
+              milestoneType: meta.milestoneType || act.milestone_type || act.milestoneType || 'phases',
+              customSubtasks: Array.isArray(meta.customSubtasks)
+                ? meta.customSubtasks
+                : (Array.isArray(act.custom_subtasks) ? act.custom_subtasks : (Array.isArray(act.customSubtasks) ? act.customSubtasks : [])),
+              weekdays: meta.weekdays || act.weekdays || { lun: false, mar: false, mie: false, jue: false, vie: false, sab: false, dom: false },
+              currentValue: meta.currentValue !== undefined
+                ? Number(meta.currentValue)
+                : (act.current_value !== undefined ? Number(act.current_value) : (act.currentValue !== undefined ? Number(act.currentValue) : 0)),
+              targetValue: meta.targetValue !== undefined
+                ? Number(meta.targetValue)
+                : (act.target_value !== undefined ? Number(act.target_value) : (act.targetValue !== undefined ? Number(act.targetValue) : 10)),
+              validationCriteria: meta.validationCriteria || act.validation_criteria || act.validationCriteria || 'cross_audit',
+              okrLevel: meta.okrLevel || act.okr_level || act.okrLevel || 'semanal',
+              timeLimitHours: meta.timeLimitHours !== undefined
+                ? Number(meta.timeLimitHours)
+                : (act.time_limit_hours !== undefined ? Number(act.time_limit_hours) : (act.timeLimitHours !== undefined ? Number(act.timeLimitHours) : null)),
+              isProvisional: meta.isProvisional !== undefined
+                ? Boolean(meta.isProvisional)
+                : Boolean(act.is_provisional || act.isProvisional)
+            };
+          });
+
+          setActivities(prev => {
+            const localMap = new Map();
+            try {
+              const saved = typeof window !== 'undefined' ? localStorage.getItem('seram_activities') : null;
+              if (saved) {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed)) {
+                  parsed.forEach(a => localMap.set(String(a.id), a));
+                }
+              }
+            } catch (_) { /* ignore */ }
+
+            if (Array.isArray(prev)) {
+              prev.forEach(a => {
+                const existing = localMap.get(String(a.id));
+                localMap.set(String(a.id), { ...(existing || {}), ...a });
+              });
+            }
+
+            const mergedActivities = mappedActivities.map(remoteAct => {
+              const localAct = localMap.get(String(remoteAct.id));
+              if (!localAct) return remoteAct;
+
+              const originalRawDesc = activitiesRes.value.data.find(r => String(r.id) === String(remoteAct.id))?.description || '';
+              const { meta } = parseActivityMeta(originalRawDesc);
+              const hasMeta = meta && Object.keys(meta).length > 0;
+
+              return {
+                ...localAct,
+                ...remoteAct,
+                milestoneStep: (hasMeta && meta.milestoneStep !== undefined)
+                  ? remoteAct.milestoneStep
+                  : (localAct.milestoneStep !== undefined ? Number(localAct.milestoneStep) : remoteAct.milestoneStep),
+                milestoneType: (hasMeta && meta.milestoneType)
+                  ? remoteAct.milestoneType
+                  : (localAct.milestoneType || remoteAct.milestoneType),
+                customSubtasks: (hasMeta && Array.isArray(meta.customSubtasks))
+                  ? remoteAct.customSubtasks
+                  : (Array.isArray(localAct.customSubtasks) ? localAct.customSubtasks : remoteAct.customSubtasks),
+                weekdays: (hasMeta && meta.weekdays)
+                  ? remoteAct.weekdays
+                  : (localAct.weekdays || remoteAct.weekdays),
+                currentValue: (hasMeta && meta.currentValue !== undefined)
+                  ? remoteAct.currentValue
+                  : (localAct.currentValue !== undefined ? Number(localAct.currentValue) : remoteAct.currentValue),
+                targetValue: (hasMeta && meta.targetValue !== undefined)
+                  ? remoteAct.targetValue
+                  : (localAct.targetValue !== undefined ? Number(localAct.targetValue) : remoteAct.targetValue),
+                validationCriteria: (hasMeta && meta.validationCriteria)
+                  ? remoteAct.validationCriteria
+                  : (localAct.validationCriteria || remoteAct.validationCriteria),
+                okrLevel: (hasMeta && meta.okrLevel)
+                  ? remoteAct.okrLevel
+                  : (localAct.okrLevel || remoteAct.okrLevel),
+                timeLimitHours: (hasMeta && meta.timeLimitHours !== undefined)
+                  ? remoteAct.timeLimitHours
+                  : (localAct.timeLimitHours !== undefined ? localAct.timeLimitHours : remoteAct.timeLimitHours),
+                isProvisional: (hasMeta && meta.isProvisional !== undefined)
+                  ? remoteAct.isProvisional
+                  : (localAct.isProvisional !== undefined ? Boolean(localAct.isProvisional) : remoteAct.isProvisional),
+                approved_by: remoteAct.approved_by || localAct.approved_by || null,
+                approved_at: remoteAct.approved_at || localAct.approved_at || null,
+                xp_awarded: remoteAct.xp_awarded || localAct.xp_awarded || 0,
+              };
+            });
+
+            // Preservar tareas añadidas localmente que no existan en Supabase todavía
+            const remoteIds = new Set(mappedActivities.map(a => String(a.id)));
+            localMap.forEach((localAct, id) => {
+              if (!remoteIds.has(String(id))) {
+                mergedActivities.push(localAct);
+              }
+            });
+
+            try {
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('seram_activities', JSON.stringify(mergedActivities));
+              }
+            } catch (_) { /* ignore */ }
+
+            return mergedActivities;
+          });
         }
       } catch (err) {
         console.warn('[Supabase AppContext Pull Warning]: Red/DNS no disponible. Usando catálogo local mock.', err.message);
@@ -2871,10 +3006,14 @@ export function AppProvider({ children }) {
 
   // ─── ACTIVITIES HANDLERS (CENTRAL DE ACTIVIDADES CLAVES) ───
   const handleAddActivity = async (actData) => {
+    const rawDesc = actData.description || '';
+    const { cleanDesc, meta: descMeta } = parseActivityMeta(rawDesc);
+
     const newAct = {
+      ...actData,
       id: actData.id || Date.now(),
       title: actData.title,
-      description: actData.description || '',
+      description: cleanDesc,
       projectId: actData.projectId || null,
       projectTitle: actData.projectTitle || 'General',
       assignedPartner: actData.assignedPartner || currentSocio?.name || 'Ing. Diego Barrientos',
@@ -2893,22 +3032,25 @@ export function AppProvider({ children }) {
       isFlash: Boolean(actData.isFlash),
       flashExpiresAt: actData.flashExpiresAt || null,
       activityType: actData.activityType || 'principal',
-      milestoneStep: actData.milestoneStep !== undefined ? Number(actData.milestoneStep) : 0,
+      milestoneStep: actData.milestoneStep !== undefined ? Number(actData.milestoneStep) : (descMeta.milestoneStep !== undefined ? Number(descMeta.milestoneStep) : 0),
       startDate: actData.startDate || null,
       coPartner: actData.coPartner || null,
       strategicObjectives: Array.isArray(actData.strategicObjectives)
         ? actData.strategicObjectives
         : (actData.strategicObjectives ? [actData.strategicObjectives] : []),
       // Multi-modal milestone & governance fields
-      milestoneType: actData.milestoneType || 'phases',
-      customSubtasks: Array.isArray(actData.customSubtasks) ? actData.customSubtasks : [],
-      weekdays: actData.weekdays || { lun: false, mar: false, mie: false, jue: false, vie: false, sab: false, dom: false },
-      currentValue: Number(actData.currentValue) || 0,
-      targetValue: Number(actData.targetValue) || 10,
-      validationCriteria: actData.validationCriteria || 'cross_audit',
-      okrLevel: actData.okrLevel || 'semanal',
-      timeLimitHours: actData.timeLimitHours || null,
-      isProvisional: Boolean(actData.isProvisional)
+      milestoneType: actData.milestoneType || descMeta.milestoneType || 'phases',
+      customSubtasks: Array.isArray(actData.customSubtasks) ? actData.customSubtasks : (Array.isArray(descMeta.customSubtasks) ? descMeta.customSubtasks : []),
+      weekdays: actData.weekdays || descMeta.weekdays || { lun: false, mar: false, mie: false, jue: false, vie: false, sab: false, dom: false },
+      currentValue: Number(actData.currentValue !== undefined ? actData.currentValue : (descMeta.currentValue || 0)),
+      targetValue: Number(actData.targetValue !== undefined ? actData.targetValue : (descMeta.targetValue || 10)),
+      validationCriteria: actData.validationCriteria || descMeta.validationCriteria || 'cross_audit',
+      okrLevel: actData.okrLevel || descMeta.okrLevel || 'semanal',
+      timeLimitHours: actData.timeLimitHours || descMeta.timeLimitHours || null,
+      isProvisional: Boolean(actData.isProvisional ?? descMeta.isProvisional),
+      approved_by: actData.approved_by || descMeta.approved_by || null,
+      approved_at: actData.approved_at || descMeta.approved_at || null,
+      xp_awarded: actData.xp_awarded || descMeta.xp_awarded || 0
     };
 
     setActivities(prev => [newAct, ...prev]);
@@ -2916,40 +3058,50 @@ export function AppProvider({ children }) {
     triggerToast('Actividad clave registrada correctamente', 'success');
 
     try {
-      const { error } = await supabase.from('activities').insert([{
+      const meta = {
+        milestoneStep: newAct.milestoneStep,
+        milestoneType: newAct.milestoneType,
+        customSubtasks: newAct.customSubtasks,
+        weekdays: newAct.weekdays,
+        currentValue: newAct.currentValue,
+        targetValue: newAct.targetValue,
+        validationCriteria: newAct.validationCriteria,
+        okrLevel: newAct.okrLevel,
+        timeLimitHours: newAct.timeLimitHours,
+        isProvisional: newAct.isProvisional,
+        approved_by: newAct.approved_by,
+        approved_at: newAct.approved_at,
+        xp_awarded: newAct.xp_awarded,
+        reviewNotes: newAct.reviewNotes || null,
+        isFlash: newAct.isFlash,
+        flashExpiresAt: newAct.flashExpiresAt,
+        activityType: newAct.activityType,
+        startDate: newAct.startDate,
+        coPartner: newAct.coPartner,
+        strategicObjectives: newAct.strategicObjectives
+      };
+      const finalDesc = serializeActivityWithMeta(cleanDesc, meta);
+
+      const dbFields = {
         title: newAct.title,
-        description: newAct.description,
-        project_id: newAct.projectId ? (typeof newAct.projectId === 'number' && newAct.projectId < 2147483647 ? newAct.projectId : null) : null,
-        project_title: newAct.projectTitle,
-        assigned_partner: newAct.assignedPartner,
-        assigned_partner_email: newAct.assignedPartnerEmail,
+        description: finalDesc,
         category: newAct.category,
         status: newAct.status,
         priority: newAct.priority,
         due_date: newAct.dueDate,
-        estimated_hours: newAct.estimatedHours,
+        assigned_partner: newAct.assignedPartner,
+        assigned_partner_email: newAct.assignedPartnerEmail,
         actual_hours: newAct.actualHours,
+        estimated_hours: newAct.estimatedHours,
         deliverable_url: newAct.deliverableUrl || newAct.url || null,
-        deliverable_name: newAct.deliverableName || null,
-        deliverable_type: newAct.deliverableType || null,
-        attachments: newAct.attachments || [],
-        is_flash: Boolean(newAct.isFlash),
-        flash_expires_at: newAct.flashExpiresAt || null,
-        activity_type: newAct.activityType || 'principal',
-        start_date: newAct.startDate || null,
-        co_partner: newAct.coPartner || null,
-        strategic_objectives: newAct.strategicObjectives || [],
-        milestone_step: newAct.milestoneStep || 0,
-        milestone_type: newAct.milestoneType,
-        custom_subtasks: newAct.customSubtasks,
-        weekdays: newAct.weekdays,
-        current_value: newAct.currentValue,
-        target_value: newAct.targetValue,
-        validation_criteria: newAct.validationCriteria,
-        okr_level: newAct.okrLevel,
-        time_limit_hours: newAct.timeLimitHours,
-        is_provisional: newAct.isProvisional
-      }]);
+        deliverable_name: newAct.deliverableName || null
+      };
+
+      if (typeof newAct.id === 'string' && newAct.id.includes('-') && newAct.id.length >= 30) {
+        dbFields.id = newAct.id;
+      }
+
+      const { error } = await supabase.from('activities').insert([dbFields]);
       if (error && error.code !== 'PGRST205') {
         console.warn('[Supabase Insert Activity Warning]:', error.message);
       }
@@ -2959,14 +3111,35 @@ export function AppProvider({ children }) {
   };
 
   const handleUpdateActivityStatus = async (id, newStatus) => {
+    let currentAct = activities.find(a => a.id === id);
+    if (!currentAct && typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('seram_activities');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          currentAct = parsed.find(a => a.id === id);
+        }
+      } catch (_) { /* ignore */ }
+    }
+
     setActivities(prev => prev.map(a => a.id === id ? { ...a, status: newStatus } : a));
     broadcastActivityChange('update', { id, updatedFields: { status: newStatus } });
     triggerToast(`Estado actualizado: ${newStatus}`, 'info');
 
     try {
+      const dbFields = { status: newStatus };
+      if (currentAct) {
+        const { cleanDesc, meta } = parseActivityMeta(currentAct.description || '');
+        const updatedMeta = { ...meta };
+        if (newStatus === 'Concluido' && (updatedMeta.milestoneStep === undefined || updatedMeta.milestoneStep < 5)) {
+          updatedMeta.milestoneStep = 5;
+        }
+        dbFields.description = serializeActivityWithMeta(cleanDesc, updatedMeta);
+      }
+
       const { error } = await supabase
         .from('activities')
-        .update({ status: newStatus })
+        .update(dbFields)
         .eq('id', id);
       if (error && error.code !== 'PGRST205') {
         console.warn('[Supabase Update Activity Status Warning]:', error.message);
@@ -2977,49 +3150,98 @@ export function AppProvider({ children }) {
   };
 
   const handleEditActivity = async (id, updatedFields) => {
-    setActivities(prev => prev.map(a => a.id === id ? { ...a, ...updatedFields } : a));
-    broadcastActivityChange('update', { id, updatedFields });
+    let currentAct = activities.find(a => a.id === id);
+    if (!currentAct && typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('seram_activities');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          currentAct = parsed.find(a => a.id === id);
+        }
+      } catch (_) { /* ignore */ }
+    }
+
+    // Extraer descripción limpia y metadatos existentes
+    const rawDesc = updatedFields.description !== undefined ? updatedFields.description : (currentAct?.description || '');
+    const { cleanDesc, meta: descMeta } = parseActivityMeta(rawDesc);
+
+    // Fusionar metadatos desde currentAct y updatedFields
+    const mergedMeta = {
+      ...(currentAct ? {
+        milestoneStep: currentAct.milestoneStep,
+        milestoneType: currentAct.milestoneType,
+        customSubtasks: currentAct.customSubtasks,
+        weekdays: currentAct.weekdays,
+        currentValue: currentAct.currentValue,
+        targetValue: currentAct.targetValue,
+        validationCriteria: currentAct.validationCriteria,
+        okrLevel: currentAct.okrLevel,
+        timeLimitHours: currentAct.timeLimitHours,
+        isProvisional: currentAct.isProvisional,
+        approved_by: currentAct.approved_by,
+        approved_at: currentAct.approved_at,
+        xp_awarded: currentAct.xp_awarded,
+        reviewNotes: currentAct.reviewNotes,
+        isFlash: currentAct.isFlash,
+        flashExpiresAt: currentAct.flashExpiresAt,
+        activityType: currentAct.activityType,
+        startDate: currentAct.startDate,
+        coPartner: currentAct.coPartner,
+        strategicObjectives: currentAct.strategicObjectives
+      } : {}),
+      ...descMeta,
+      ...(updatedFields.milestoneStep !== undefined ? { milestoneStep: updatedFields.milestoneStep } : {}),
+      ...(updatedFields.milestoneType !== undefined ? { milestoneType: updatedFields.milestoneType } : {}),
+      ...(updatedFields.customSubtasks !== undefined ? { customSubtasks: updatedFields.customSubtasks } : {}),
+      ...(updatedFields.weekdays !== undefined ? { weekdays: updatedFields.weekdays } : {}),
+      ...(updatedFields.currentValue !== undefined ? { currentValue: updatedFields.currentValue } : {}),
+      ...(updatedFields.targetValue !== undefined ? { targetValue: updatedFields.targetValue } : {}),
+      ...(updatedFields.validationCriteria !== undefined ? { validationCriteria: updatedFields.validationCriteria } : {}),
+      ...(updatedFields.okrLevel !== undefined ? { okrLevel: updatedFields.okrLevel } : {}),
+      ...(updatedFields.timeLimitHours !== undefined ? { timeLimitHours: updatedFields.timeLimitHours } : {}),
+      ...(updatedFields.isProvisional !== undefined ? { isProvisional: Boolean(updatedFields.isProvisional) } : {}),
+      ...(updatedFields.approved_by !== undefined ? { approved_by: updatedFields.approved_by } : {}),
+      ...(updatedFields.approved_at !== undefined ? { approved_at: updatedFields.approved_at } : {}),
+      ...(updatedFields.xp_awarded !== undefined ? { xp_awarded: updatedFields.xp_awarded } : {}),
+      ...(updatedFields.reviewNotes !== undefined ? { reviewNotes: updatedFields.reviewNotes } : {}),
+      ...(updatedFields.isFlash !== undefined ? { isFlash: Boolean(updatedFields.isFlash) } : {}),
+      ...(updatedFields.flashExpiresAt !== undefined ? { flashExpiresAt: updatedFields.flashExpiresAt } : {}),
+      ...(updatedFields.activityType !== undefined ? { activityType: updatedFields.activityType } : {}),
+      ...(updatedFields.startDate !== undefined ? { startDate: updatedFields.startDate } : {}),
+      ...(updatedFields.coPartner !== undefined ? { coPartner: updatedFields.coPartner } : {}),
+      ...(updatedFields.strategicObjectives !== undefined ? { strategicObjectives: updatedFields.strategicObjectives } : {})
+    };
+
+    const finalDescription = serializeActivityWithMeta(cleanDesc, mergedMeta);
+
+    // En memoria local y broadcast usamos la descripción limpia
+    const localUpdated = {
+      ...updatedFields,
+      ...(updatedFields.description !== undefined ? { description: cleanDesc } : {})
+    };
+
+    setActivities(prev => prev.map(a => a.id === id ? { ...a, ...localUpdated } : a));
+    broadcastActivityChange('update', { id, updatedFields: localUpdated });
     triggerToast('Actividad actualizada', 'success');
 
     try {
-      const dbFields = {};
+      // Enviar ÚNICAMENTE las columnas existentes en la tabla activities de Supabase
+      const dbFields = {
+        description: finalDescription
+      };
       if (updatedFields.title !== undefined) dbFields.title = updatedFields.title;
-      if (updatedFields.description !== undefined) dbFields.description = updatedFields.description;
       if (updatedFields.category !== undefined) dbFields.category = updatedFields.category;
       if (updatedFields.status !== undefined) dbFields.status = updatedFields.status;
       if (updatedFields.priority !== undefined) dbFields.priority = updatedFields.priority;
       if (updatedFields.dueDate !== undefined) dbFields.due_date = updatedFields.dueDate;
       if (updatedFields.assignedPartner !== undefined) dbFields.assigned_partner = updatedFields.assignedPartner;
+      if (updatedFields.assignedPartnerEmail !== undefined) dbFields.assigned_partner_email = updatedFields.assignedPartnerEmail;
       if (updatedFields.actualHours !== undefined) dbFields.actual_hours = parseFloat(updatedFields.actualHours);
       if (updatedFields.estimatedHours !== undefined) dbFields.estimated_hours = parseFloat(updatedFields.estimatedHours);
-      if (updatedFields.xp_awarded !== undefined) dbFields.xp_awarded = updatedFields.xp_awarded;
-      if (updatedFields.approved_by !== undefined) dbFields.approved_by = updatedFields.approved_by;
-      if (updatedFields.approved_at !== undefined) dbFields.approved_at = updatedFields.approved_at;
-      if (updatedFields.reviewNotes !== undefined) dbFields.review_notes = updatedFields.reviewNotes;
-      if (updatedFields.milestoneStep !== undefined) dbFields.milestone_step = updatedFields.milestoneStep;
-
       if (updatedFields.deliverableUrl !== undefined || updatedFields.url !== undefined) {
         dbFields.deliverable_url = updatedFields.deliverableUrl || updatedFields.url || null;
       }
       if (updatedFields.deliverableName !== undefined) dbFields.deliverable_name = updatedFields.deliverableName;
-      if (updatedFields.deliverableType !== undefined) dbFields.deliverable_type = updatedFields.deliverableType;
-      if (updatedFields.attachments !== undefined) dbFields.attachments = updatedFields.attachments;
-      if (updatedFields.isFlash !== undefined) dbFields.is_flash = Boolean(updatedFields.isFlash);
-      if (updatedFields.flashExpiresAt !== undefined) dbFields.flash_expires_at = updatedFields.flashExpiresAt;
-      if (updatedFields.activityType !== undefined) dbFields.activity_type = updatedFields.activityType;
-      if (updatedFields.startDate !== undefined) dbFields.start_date = updatedFields.startDate;
-      if (updatedFields.coPartner !== undefined) dbFields.co_partner = updatedFields.coPartner;
-      if (updatedFields.strategicObjectives !== undefined) dbFields.strategic_objectives = updatedFields.strategicObjectives;
-      // Multi-modal milestone & governance fields
-      if (updatedFields.milestoneType !== undefined) dbFields.milestone_type = updatedFields.milestoneType;
-      if (updatedFields.customSubtasks !== undefined) dbFields.custom_subtasks = updatedFields.customSubtasks;
-      if (updatedFields.weekdays !== undefined) dbFields.weekdays = updatedFields.weekdays;
-      if (updatedFields.currentValue !== undefined) dbFields.current_value = updatedFields.currentValue;
-      if (updatedFields.targetValue !== undefined) dbFields.target_value = updatedFields.targetValue;
-      if (updatedFields.validationCriteria !== undefined) dbFields.validation_criteria = updatedFields.validationCriteria;
-      if (updatedFields.okrLevel !== undefined) dbFields.okr_level = updatedFields.okrLevel;
-      if (updatedFields.timeLimitHours !== undefined) dbFields.time_limit_hours = updatedFields.timeLimitHours;
-      if (updatedFields.isProvisional !== undefined) dbFields.is_provisional = updatedFields.isProvisional;
 
       const { error } = await supabase
         .from('activities')
@@ -3797,7 +4019,7 @@ export function AppProvider({ children }) {
       handleAddProject, handleUpdateProjectProgress, handleDeleteProject,
       handleEditProject, handleConcludeProject,
       handleAddActivity, handleUpdateActivityStatus, handleEditActivity, handleDeleteActivity,
-      broadcastActivityChange,
+      broadcastActivityChange, parseActivityMeta, serializeActivityWithMeta,
       handleAddClient, handleEditClient, handleDeleteClient,
       handleUpdateProspect, handleConvertProspectToClient,
       handleAddMunicipalProposal, handleEditMunicipalProposal, handleDeleteMunicipalProposal,

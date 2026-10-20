@@ -455,14 +455,44 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
   // Sync drawer form state when an activity is selected
   React.useEffect(() => {
     if (drawerActivity) {
-      setDrawerData({
-        ...drawerActivity,
-        milestoneStep: getMilestoneStep(drawerActivity)
+      setDrawerData(prev => {
+        if (prev && prev.id === drawerActivity.id) {
+          return {
+            ...drawerActivity,
+            ...prev,
+            milestoneStep: getMilestoneStep(drawerActivity),
+            milestoneType: drawerActivity.milestoneType || 'phases',
+            customSubtasks: Array.isArray(drawerActivity.customSubtasks) ? drawerActivity.customSubtasks : (prev.customSubtasks || []),
+            weekdays: drawerActivity.weekdays || prev.weekdays,
+            currentValue: drawerActivity.currentValue !== undefined ? drawerActivity.currentValue : prev.currentValue,
+            targetValue: drawerActivity.targetValue !== undefined ? drawerActivity.targetValue : prev.targetValue,
+            status: drawerActivity.status || prev.status,
+            approved_by: drawerActivity.approved_by || prev.approved_by,
+            approved_at: drawerActivity.approved_at || prev.approved_at,
+            xp_awarded: drawerActivity.xp_awarded !== undefined ? drawerActivity.xp_awarded : prev.xp_awarded
+          };
+        }
+        return {
+          ...drawerActivity,
+          milestoneStep: getMilestoneStep(drawerActivity)
+        };
       });
     } else {
       setDrawerData(null);
     }
   }, [drawerActivity]);
+
+  // Sincronizar reactivamente el Drawer con el estado global de activities (Realtime, Hitos, Auditoría Cruzada)
+  React.useEffect(() => {
+    if (drawerActivity) {
+      const liveAct = activities.find(a => a.id === drawerActivity.id);
+      if (liveAct && liveAct !== drawerActivity) {
+        setDrawerActivity(liveAct);
+      } else if (!liveAct) {
+        setDrawerActivity(null);
+      }
+    }
+  }, [activities, drawerActivity]);
 
   // Resetear paginación al cambiar cualquier filtro
   React.useEffect(() => {
