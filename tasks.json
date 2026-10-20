@@ -6,6 +6,14 @@
   "in_progress": [],
   "completed": [
     {
+      "id": "TASK-090",
+      "title": "Blindaje Financiero del Time Tracker: Auto-Pausa por Inactividad (45 Minutos) con Traslado de Avatar a Cafetería/Descanso y Reinicio Automático a Medianoche (Ciclo de 24h)",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-20",
+      "completed_at": "2026-10-20"
+    },
+    {
       "id": "TASK-089",
       "title": "Unificación Global del Footer en Toda la Web: Actualización de Dirección Operativa (Calle Los Álamos N° 140, Obrajes), Reemplazo de Socios Fundadores por Logotipo Centrado con Retorno al Hero de Home y Componente Reutilizable Shared Footer",
       "status": "completed",

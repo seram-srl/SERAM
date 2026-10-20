@@ -973,7 +973,7 @@ export function AppProvider({ children }) {
     experience: { name: '11. EXPERIENCIA Y CAMPO', coords: { x: 12, y: 55 } },
     social_media: { name: '12. SOCIAL MEDIA', coords: { x: 71, y: 70 } },
     research: { name: '13. INVESTIGACIÓN', coords: { x: 91, y: 54 } },
-    recreation: { name: 'Área de Café & Descanso', coords: { x: 49, y: 82 } },
+    recreation: { name: '09. SALA RECREATIVA / Área de Café & Descanso', coords: { x: 28, y: 80 } },
     meeting: { name: 'Sala de Directorio', coords: { x: 52, y: 52 } }
   };
 
@@ -1053,13 +1053,30 @@ export function AppProvider({ children }) {
     };
   });
 
+  // Helper para obtener la fecha local en formato YYYY-MM-DD
+  const getTodayDateStr = () => new Date().toLocaleDateString('en-CA');
+
+  // Constante de tiempo de inactividad: 45 minutos (2.700.000 ms)
+  const IDLE_TIMEOUT_MS = 45 * 60 * 1000;
+
   // --- TIME TRACKER EN TIEMPO REAL (ESTADO GLOBAL COMPARTIDO) ---
   const [activeTimer, setActiveTimer] = useState(() => {
+    const today = getTodayDateStr();
     try {
       const saved = localStorage.getItem('seram_active_partner_timer');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && typeof parsed === 'object') {
+          // Si saved.timerDate existe y no coincide con la fecha de hoy, resetear por ciclo de 24h
+          if (parsed.timerDate && parsed.timerDate !== today) {
+            parsed.seconds = 0;
+            parsed.isRunning = false;
+            parsed.startedAt = null;
+            parsed.timerDate = today;
+          } else {
+            parsed.timerDate = parsed.timerDate || today;
+          }
+
           // Si el cronómetro guardado tenía el valor estático de prueba (13320 = 3h 42m), resetear a 0
           if ((parsed.seconds === 13320 || parsed.seconds === 9720 || parsed.seconds === 7200) && !parsed.isRunning) {
             parsed.seconds = 0;
@@ -1072,6 +1089,7 @@ export function AppProvider({ children }) {
       isRunning: false,
       seconds: 0,
       startedAt: null,
+      timerDate: today,
       projectId: 17,
       projectTitle: 'Plataforma Digital & Ecosistema SERAM',
       sectorId: 'direction',
@@ -1085,6 +1103,10 @@ export function AppProvider({ children }) {
     activeTimerRef.current = activeTimer;
   }, [activeTimer]);
 
+  // Referencias para el control de inactividad del usuario (Idle Timeout Anti-Vulnerabilidad)
+  const lastUserActivityRef = useRef(Date.now());
+  const lastActivityThrottledRef = useRef(0);
+
   // Guardar estado del timer en localStorage
   useEffect(() => {
     try {
@@ -1092,13 +1114,18 @@ export function AppProvider({ children }) {
     } catch (_) {}
   }, [activeTimer]);
 
-  // Ticker de 1 segundo para el activeTimer con cálculo matemático de timestamp
+  // Ticker de 1 segundo para el activeTimer con cálculo matemático de timestamp y protección de medianoche
   useEffect(() => {
     let interval = null;
     if (activeTimer.isRunning) {
       interval = setInterval(() => {
+        const today = getTodayDateStr();
+        if (activeTimerRef.current.timerDate && activeTimerRef.current.timerDate !== today) {
+          return;
+        }
         setActiveTimer(prev => {
           if (!prev.isRunning) return prev;
+          if (prev.timerDate && prev.timerDate !== today) return prev;
           const newSeconds = prev.startedAt 
             ? Math.max(prev.seconds + 1, Math.floor((Date.now() - prev.startedAt) / 1000))
             : (prev.seconds || 0) + 1;
@@ -3484,10 +3511,18 @@ export function AppProvider({ children }) {
     const pTitle = projectTitle || activeTimer.projectTitle || activeServices.find(p => p.id === pId)?.client || 'Proyecto General';
 
     const now = Date.now();
+    const today = getTodayDateStr();
+
+    lastUserActivityRef.current = now;
+
     setActiveTimer(prev => {
-      const effectiveStartedAt = now - ((prev.seconds || 0) * 1000);
+      const isNewDay = prev.timerDate && prev.timerDate !== today;
+      const baseSeconds = isNewDay ? 0 : (prev.seconds || 0);
+      const effectiveStartedAt = now - (baseSeconds * 1000);
       return {
         ...prev,
+        seconds: baseSeconds,
+        timerDate: today,
         isRunning: true,
         startedAt: effectiveStartedAt,
         projectId: pId,
@@ -3527,7 +3562,8 @@ export function AppProvider({ children }) {
       ...prev,
       isRunning: false,
       seconds: 0,
-      startedAt: null
+      startedAt: null,
+      timerDate: getTodayDateStr()
     }));
 
     updatePartnerPresence({
@@ -3570,6 +3606,86 @@ export function AppProvider({ children }) {
       roomCoords: finalCoords
     });
   };
+
+  // --- DETECCIÓN DE INACTIVIDAD (45 MINUTOS) & REINICIO AUTOMÁTICO A MEDIANOCHE (24H) ---
+  // Listeners globales de actividad de usuario en el navegador con throttle de 2s
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleUserActivity = () => {
+      const now = Date.now();
+      if (now - lastActivityThrottledRef.current >= 2000) {
+        lastActivityThrottledRef.current = now;
+        lastUserActivityRef.current = now;
+      }
+    };
+
+    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
+    events.forEach(evt => window.addEventListener(evt, handleUserActivity, { passive: true }));
+
+    return () => {
+      events.forEach(evt => window.removeEventListener(evt, handleUserActivity));
+    };
+  }, []);
+
+  // Intervalo periódico (cada 5s) para evaluar Idle Timeout y Cruce de Medianoche (Ciclo de 24h)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const currentTimer = activeTimerRef.current;
+      const today = getTodayDateStr();
+
+      // 1. Reinicio automático a medianoche (Ciclo de 24 horas / Protección Financiera)
+      if (currentTimer.timerDate && currentTimer.timerDate !== today) {
+        const resetTimer = {
+          ...currentTimer,
+          seconds: 0,
+          isRunning: false,
+          startedAt: null,
+          timerDate: today
+        };
+        setActiveTimer(resetTimer);
+        try {
+          localStorage.setItem('seram_active_partner_timer', JSON.stringify(resetTimer));
+        } catch (_) {}
+        updatePartnerPresence({
+          isTimerRunning: false,
+          timerSeconds: 0,
+          timerStartedAt: null
+        });
+        triggerToast('🌙 Cierre diario de jornada (24h completadas): el contador se ha reiniciado automáticamente a 00:00:00 para evitar acumulaciones de horas.', 'info');
+        return;
+      }
+
+      // 2. Detección de inactividad de 45 minutos (Idle Timeout Anti-Vulnerabilidad)
+      if (currentTimer.isRunning) {
+        if (now - lastUserActivityRef.current >= IDLE_TIMEOUT_MS) {
+          const pausedTimer = {
+            ...currentTimer,
+            isRunning: false,
+            startedAt: null,
+            sectorId: 'recreation',
+            sectorName: '09. SALA RECREATIVA / Área de Café & Descanso'
+          };
+          setActiveTimer(pausedTimer);
+          try {
+            localStorage.setItem('seram_active_partner_timer', JSON.stringify(pausedTimer));
+          } catch (_) {}
+          updatePartnerPresence({
+            isTimerRunning: false,
+            timerStartedAt: null,
+            timerSeconds: currentTimer.seconds || 0,
+            currentRoomId: 'recreation',
+            currentSectorName: '09. SALA RECREATIVA / Área de Café & Descanso',
+            roomCoords: { x: 28, y: 80 }
+          });
+          triggerToast('⏰ Jornada pausada por inactividad (45 min sin actividad). Tu avatar se ha trasladado al Área de Café & Descanso para proteger las finanzas de la consultora.', 'warning');
+        }
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // --- MUNICIPAL PROPOSALS HANDLERS ---
   const handleAddMunicipalProposal = (newProposal) => {
