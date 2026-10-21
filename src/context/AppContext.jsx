@@ -1022,10 +1022,20 @@ export function AppProvider({ children }) {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && typeof parsed === 'object') {
-          // Purgar valores antiguos congelados de 13320 / 9720 / 7200 si no están corriendo
+          // Purgar valores inflados/anómalos (> 14 horas = 50400s o estáticos de prueba)
           Object.keys(parsed).forEach(k => {
-            if (!parsed[k]?.isTimerRunning && (parsed[k]?.timerSeconds === 13320 || parsed[k]?.timerSeconds === 9720 || parsed[k]?.timerSeconds === 7200)) {
-              parsed[k].timerSeconds = 0;
+            const partnerData = parsed[k];
+            if (partnerData) {
+              if (
+                (partnerData.timerSeconds > 50400 || partnerData.timerSeconds < 0 || isNaN(partnerData.timerSeconds)) ||
+                (!partnerData.isTimerRunning && (partnerData.timerSeconds === 13320 || partnerData.timerSeconds === 9720 || partnerData.timerSeconds === 7200))
+              ) {
+                partnerData.timerSeconds = 0;
+                partnerData.isTimerRunning = false;
+                partnerData.currentRoomId = 'recreation';
+                partnerData.currentSectorName = '09. SALA RECREATIVA / Área de Café & Descanso';
+                partnerData.roomCoords = { x: 28, y: 80 };
+              }
             }
           });
           return parsed;
@@ -1094,8 +1104,8 @@ export function AppProvider({ children }) {
   // Helper para obtener la fecha local en formato YYYY-MM-DD
   const getTodayDateStr = () => new Date().toLocaleDateString('en-CA');
 
-  // Constante de tiempo de inactividad: 45 minutos (2.700.000 ms)
-  const IDLE_TIMEOUT_MS = 45 * 60 * 1000;
+  // Constante de tiempo de inactividad: 15 minutos (900.000 ms)
+  const IDLE_TIMEOUT_MS = 15 * 60 * 1000;
 
   // --- TIME TRACKER EN TIEMPO REAL (ESTADO GLOBAL COMPARTIDO) ---
   const [activeTimer, setActiveTimer] = useState(() => {
@@ -1111,8 +1121,25 @@ export function AppProvider({ children }) {
             parsed.isRunning = false;
             parsed.startedAt = null;
             parsed.timerDate = today;
+            parsed.sectorId = 'recreation';
+            parsed.sectorName = '09. SALA RECREATIVA / Área de Café & Descanso';
           } else {
             parsed.timerDate = parsed.timerDate || today;
+          }
+
+          // Blindaje anti-inflación al recargar o reabrir página:
+          // Si la sesión se cerró mientras el cronómetro corría, al volver debe iniciar estrictamente en PAUSA
+          // y en la Cafetería, esperando acción consciente del socio para iniciar jornada.
+          if (parsed.isRunning) {
+            parsed.isRunning = false;
+            parsed.startedAt = null;
+            parsed.sectorId = 'recreation';
+            parsed.sectorName = '09. SALA RECREATIVA / Área de Café & Descanso';
+          }
+
+          // Saneamiento de horas infladas (> 12h = 43200s, negativas o corruptas)
+          if (parsed.seconds > 43200 || parsed.seconds < 0 || isNaN(parsed.seconds)) {
+            parsed.seconds = 0;
           }
 
           // Si el cronómetro guardado tenía el valor estático de prueba (13320 = 3h 42m), resetear a 0
@@ -1130,8 +1157,8 @@ export function AppProvider({ children }) {
       timerDate: today,
       projectId: 17,
       projectTitle: 'Plataforma Digital & Ecosistema SERAM',
-      sectorId: 'direction',
-      sectorName: '02. DIRECCIÓN'
+      sectorId: 'recreation',
+      sectorName: '09. SALA RECREATIVA / Área de Café & Descanso'
     };
   });
 
@@ -1152,7 +1179,7 @@ export function AppProvider({ children }) {
     } catch (_) {}
   }, [activeTimer]);
 
-  // Ticker de 1 segundo para el activeTimer con cálculo matemático de timestamp y protección de medianoche
+  // Ticker de 1 segundo para el activeTimer con incremento estricto (Anti-Inflación) y protección de medianoche
   useEffect(() => {
     let interval = null;
     if (activeTimer.isRunning) {
@@ -1164,12 +1191,10 @@ export function AppProvider({ children }) {
         setActiveTimer(prev => {
           if (!prev.isRunning) return prev;
           if (prev.timerDate && prev.timerDate !== today) return prev;
-          const newSeconds = prev.startedAt 
-            ? Math.max(prev.seconds + 1, Math.floor((Date.now() - prev.startedAt) / 1000))
-            : (prev.seconds || 0) + 1;
+          // Incremento estricto segundo a segundo: evita saltos gigantes por suspensión del SO
           return {
             ...prev,
-            seconds: newSeconds
+            seconds: (prev.seconds || 0) + 1
           };
         });
       }, 1000);
@@ -3737,6 +3762,10 @@ export function AppProvider({ children }) {
 
     lastUserActivityRef.current = now;
 
+    const targetSector = (activeTimer.sectorId === 'recreation' || !activeTimer.sectorId) ? 'direction' : activeTimer.sectorId;
+    const targetName = targetSector === 'direction' ? '02. DIRECCIÓN' : activeTimer.sectorName;
+    const targetCoords = DEFAULT_OFFICE_ROOMS[targetSector]?.coords || { x: 35, y: 35 };
+
     setActiveTimer(prev => {
       const isNewDay = prev.timerDate && prev.timerDate !== today;
       const baseSeconds = isNewDay ? 0 : (prev.seconds || 0);
@@ -3748,7 +3777,9 @@ export function AppProvider({ children }) {
         isRunning: true,
         startedAt: effectiveStartedAt,
         projectId: pId,
-        projectTitle: pTitle
+        projectTitle: pTitle,
+        sectorId: targetSector,
+        sectorName: targetName
       };
     });
 
@@ -3757,7 +3788,10 @@ export function AppProvider({ children }) {
       timerSeconds: activeTimer.seconds || 0,
       timerStartedAt: now - ((activeTimer.seconds || 0) * 1000),
       activeTaskId: pId,
-      activeTaskTitle: pTitle
+      activeTaskTitle: pTitle,
+      currentRoomId: targetSector,
+      currentSectorName: targetName,
+      roomCoords: targetCoords
     });
 
     triggerToast(`Sesión en vivo iniciada: ${pTitle}`, 'success');
@@ -3767,16 +3801,21 @@ export function AppProvider({ children }) {
     setActiveTimer(prev => ({
       ...prev,
       isRunning: false,
-      startedAt: null
+      startedAt: null,
+      sectorId: 'recreation',
+      sectorName: '09. SALA RECREATIVA / Área de Café & Descanso'
     }));
 
     updatePartnerPresence({
       isTimerRunning: false,
       timerSeconds: activeTimer.seconds || 0,
-      timerStartedAt: null
+      timerStartedAt: null,
+      currentRoomId: 'recreation',
+      currentSectorName: '09. SALA RECREATIVA / Área de Café & Descanso',
+      roomCoords: { x: 28, y: 80 }
     });
 
-    triggerToast('Sesión de trabajo en pausa', 'info');
+    triggerToast('Sesión de trabajo en pausa. Tu avatar se trasladó a la Cafetería ☕', 'info');
   };
 
   const resetPartnerTimer = () => {
@@ -3785,14 +3824,21 @@ export function AppProvider({ children }) {
       isRunning: false,
       seconds: 0,
       startedAt: null,
-      timerDate: getTodayDateStr()
+      timerDate: getTodayDateStr(),
+      sectorId: 'recreation',
+      sectorName: '09. SALA RECREATIVA / Área de Café & Descanso'
     }));
 
     updatePartnerPresence({
       isTimerRunning: false,
       timerSeconds: 0,
-      timerStartedAt: null
+      timerStartedAt: null,
+      currentRoomId: 'recreation',
+      currentSectorName: '09. SALA RECREATIVA / Área de Café & Descanso',
+      roomCoords: { x: 28, y: 80 }
     });
+
+    triggerToast('Cronómetro reiniciado a 00:00:00. Avatar en Cafetería', 'info');
   };
 
   const savePartnerTimerLog = async (description, customHours = null) => {
@@ -3829,8 +3875,8 @@ export function AppProvider({ children }) {
     });
   };
 
-  // --- DETECCIÓN DE INACTIVIDAD (45 MINUTOS) & REINICIO AUTOMÁTICO A MEDIANOCHE (24H) ---
-  // Listeners globales de actividad de usuario en el navegador con throttle de 2s
+  // --- DETECCIÓN DE INACTIVIDAD (15 MINUTOS), PESTAÑA OCULTA & CIERRE DE JORNADA ---
+  // Listeners de actividad de usuario, visibilidad de pestaña y ciclo de vida de página
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -3842,11 +3888,74 @@ export function AppProvider({ children }) {
       }
     };
 
+    let backgroundPauseTimer = null;
+
+    // Manejo de pestaña oculta o minimizada (Pausa preventiva a los 3 minutos de estar oculta)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        backgroundPauseTimer = setTimeout(() => {
+          const cur = activeTimerRef.current;
+          if (cur.isRunning) {
+            const paused = {
+              ...cur,
+              isRunning: false,
+              startedAt: null,
+              sectorId: 'recreation',
+              sectorName: '09. SALA RECREATIVA / Área de Café & Descanso'
+            };
+            setActiveTimer(paused);
+            try {
+              localStorage.setItem('seram_active_partner_timer', JSON.stringify(paused));
+            } catch (_) {}
+            updatePartnerPresence({
+              isTimerRunning: false,
+              timerStartedAt: null,
+              timerSeconds: cur.seconds || 0,
+              currentRoomId: 'recreation',
+              currentSectorName: '09. SALA RECREATIVA / Área de Café & Descanso',
+              roomCoords: { x: 28, y: 80 }
+            });
+            triggerToast('☕ Pestaña en segundo plano prolongado: Jornada pausada en la Cafetería.', 'info');
+          }
+        }, 3 * 60 * 1000);
+      } else {
+        if (backgroundPauseTimer) {
+          clearTimeout(backgroundPauseTimer);
+          backgroundPauseTimer = null;
+        }
+        lastUserActivityRef.current = Date.now();
+      }
+    };
+
+    // Manejo antes de cerrar la ventana o refrescar
+    const handleBeforeUnload = () => {
+      const cur = activeTimerRef.current;
+      if (cur.isRunning) {
+        const paused = {
+          ...cur,
+          isRunning: false,
+          startedAt: null,
+          sectorId: 'recreation',
+          sectorName: '09. SALA RECREATIVA / Área de Café & Descanso'
+        };
+        try {
+          localStorage.setItem('seram_active_partner_timer', JSON.stringify(paused));
+        } catch (_) {}
+      }
+    };
+
     const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
     events.forEach(evt => window.addEventListener(evt, handleUserActivity, { passive: true }));
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handleBeforeUnload);
 
     return () => {
+      if (backgroundPauseTimer) clearTimeout(backgroundPauseTimer);
       events.forEach(evt => window.removeEventListener(evt, handleUserActivity));
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handleBeforeUnload);
     };
   }, []);
 
@@ -3864,7 +3973,9 @@ export function AppProvider({ children }) {
           seconds: 0,
           isRunning: false,
           startedAt: null,
-          timerDate: today
+          timerDate: today,
+          sectorId: 'recreation',
+          sectorName: '09. SALA RECREATIVA / Área de Café & Descanso'
         };
         setActiveTimer(resetTimer);
         try {
@@ -3873,17 +3984,25 @@ export function AppProvider({ children }) {
         updatePartnerPresence({
           isTimerRunning: false,
           timerSeconds: 0,
-          timerStartedAt: null
+          timerStartedAt: null,
+          currentRoomId: 'recreation',
+          currentSectorName: '09. SALA RECREATIVA / Área de Café & Descanso',
+          roomCoords: { x: 28, y: 80 }
         });
-        triggerToast('🌙 Cierre diario de jornada (24h completadas): el contador se ha reiniciado automáticamente a 00:00:00 para evitar acumulaciones de horas.', 'info');
+        triggerToast('🌙 Cierre diario de jornada (24h completadas): el contador se ha reiniciado automáticamente a 00:00:00.', 'info');
         return;
       }
 
-      // 2. Detección de inactividad de 45 minutos (Idle Timeout Anti-Vulnerabilidad)
+      // 2. Detección de inactividad de 15 minutos (Idle Timeout Anti-Vulnerabilidad)
       if (currentTimer.isRunning) {
         if (now - lastUserActivityRef.current >= IDLE_TIMEOUT_MS) {
+          // Descontar los 15 minutos inactivos que transcurrieron sin usuario en el puesto
+          const idleSeconds = Math.floor(IDLE_TIMEOUT_MS / 1000);
+          const sanitizedSeconds = Math.max(0, (currentTimer.seconds || 0) - idleSeconds);
+
           const pausedTimer = {
             ...currentTimer,
+            seconds: sanitizedSeconds,
             isRunning: false,
             startedAt: null,
             sectorId: 'recreation',
@@ -3896,12 +4015,12 @@ export function AppProvider({ children }) {
           updatePartnerPresence({
             isTimerRunning: false,
             timerStartedAt: null,
-            timerSeconds: currentTimer.seconds || 0,
+            timerSeconds: sanitizedSeconds,
             currentRoomId: 'recreation',
             currentSectorName: '09. SALA RECREATIVA / Área de Café & Descanso',
             roomCoords: { x: 28, y: 80 }
           });
-          triggerToast('⏰ Jornada pausada por inactividad (45 min sin actividad). Tu avatar se ha trasladado al Área de Café & Descanso para proteger las finanzas de la consultora.', 'warning');
+          triggerToast('⏰ Jornada suspendida por inactividad (15 min sin interacción). Tu avatar se trasladó a la Cafetería y el cronómetro se pausó automáticamente.', 'warning');
         }
       }
     }, 5000);

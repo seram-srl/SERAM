@@ -2254,7 +2254,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                     { id: 'flash', label: '⚡ Flash (Urgentes)' },
                     { id: 'principal', label: '🎯 Primarias' },
                     { id: 'secundaria', label: '🛡️ Secundarias' },
-                    { id: 'combo', label: '👥 Combos Interdisciplinarios' }
+                    { id: 'combo', label: '👥 Misiones Grupales' }
                   ].map(mf => (
                     <button
                       key={mf.id}
