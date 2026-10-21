@@ -6,6 +6,12 @@ export default {
   ],
   theme: {
     extend: {
+      fontSize: {
+        '2xs': ['0.75rem', { lineHeight: '1.15rem' }],
+        'xs': ['0.8125rem', { lineHeight: '1.25rem' }],
+        'sm': ['0.9375rem', { lineHeight: '1.45rem' }],
+        'base': ['1.0625rem', { lineHeight: '1.65rem' }],
+      },
       fontFamily: {
         display: ['Outfit', 'sans-serif'],
         tech: ['Space Grotesk', 'sans-serif'],

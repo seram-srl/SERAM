@@ -6,6 +6,14 @@
   "in_progress": [],
   "completed": [
     {
+      "id": "TASK-093",
+      "title": "Reingeniería Tipográfica Global Anti-Letra Hormiga: Elevación Sistemática de Legibilidad Ergonómica en Todas las Secciones y Subsecciones de SERAM (Tokens Neuform, Escala Tailwind y Utilidades de Alto Rendimiento)",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-20",
+      "completed_at": "2026-10-20"
+    },
+    {
       "id": "TASK-092",
       "title": "Blindaje Anti-Inflación del Time Tracker: Suspensión Automática en Cafetería, Detección de Inactividad y Visibilidad (15 min / 3 min background), Saneamiento de Horas Infladas y Renombrado a Misiones Grupales",
       "status": "completed",
