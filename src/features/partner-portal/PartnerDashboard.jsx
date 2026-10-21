@@ -4375,17 +4375,29 @@ export default function PartnerDashboard() {
 
       {/* ── CABECERA FIJA SUPERIOR DE COLOR SÓLIDO (DESKTOP & MOBILE) ───────── */}
       <header className="fixed top-0 left-0 right-0 h-20 bg-[#070d17] border-b border-white/[0.1] z-[100] flex items-center justify-between px-4 sm:px-6 shadow-xl shadow-black/50 select-none">
-        {/* Lado izquierdo: Botón Módulos solo en Mobile (oculto en escritorio) */}
-        <div className="flex items-center gap-3 pl-14 sm:pl-16">
+        {/* Lado izquierdo: Botón Módulos (Mobile) y Toggle Sidebar (Desktop) con separación del menú de hamburguesa */}
+        <div className="flex items-center gap-3 pl-20 sm:pl-24">
           <button
             type="button"
             onClick={() => setMobileDrawerOpen(true)}
-            className="md:hidden flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#00e03c]/10 hover:bg-[#00e03c]/20 border border-[#00e03c]/30 hover:border-[#00e03c]/50 text-xs sm:text-sm font-black text-[#00e03c] transition-all cursor-pointer shadow-sm shadow-[#00e03c]/10 active:scale-95"
+            className="md:hidden flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#00e03c]/15 hover:bg-[#00e03c]/25 border border-[#00e03c]/40 text-xs sm:text-sm font-black text-[#00e03c] transition-all cursor-pointer shadow-sm shadow-[#00e03c]/10 active:scale-95"
             title="Abrir panel de módulos"
           >
             <Layers className="w-4 h-4 text-[#00e03c] shrink-0" />
             <span className="tracking-wide">Módulos</span>
           </button>
+
+          {!sidebarOpen && (
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer"
+              title="Desplegar barra lateral de módulos"
+            >
+              <Menu className="w-4 h-4 text-[#00e03c]" />
+              <span>Desplegar Módulos</span>
+            </button>
+          )}
         </div>
 
         {/* Lado derecho: Espacio reservado para ChatbotFAB (right-4 sm:right-6) y badge socio */}

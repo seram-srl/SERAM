@@ -6,6 +6,14 @@
   "in_progress": [],
   "completed": [
     {
+      "id": "TASK-095",
+      "title": "Alineación Real de Perfiles RPG y Radar Pentagonal: Calibración Automática Anti-Sesgos (Cero Datos Ficticios, Puntuación de Credenciales Reales y Notas de Progresión) y Resolución de Colisión de Menú Lateral en Dashboard",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-21",
+      "completed_at": "2026-10-21"
+    },
+    {
       "id": "TASK-094",
       "title": "Actualización Integral del Logotipo Oficial en Toda la Web (Navbar, Footer, Favicon, Asistente) y en los Manuales de Marca de SERAM",
       "status": "completed",

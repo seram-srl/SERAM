@@ -38,13 +38,15 @@ const DEFAULT_PROFILES = {
     honoraryTitle: 'Arquitecto Tecnológico & Especialista SIG Senior',
     role: 'Sistemas, Teledetección & Innovación',
     skin: 'vest',
-    avatarUrl: '/assets/brand/icono_logo.png',
+    avatarUrl: '/assets/brand/ícono_logo.png',
     cvName: 'CV_Diego_Barrientos_2026.pdf',
     cvDate: '2026-10-05',
-    matricula: 'SIB-LPZ-48291',
+    matricula: 'En trámite (SIB / RENCA)',
     hasCV: true,
-    hasSIB: true,
-    hasRENCA: false, // Aún en trámite
+    hasSIB: false,
+    hasRENCA: false,
+    sibCertificateName: null,
+    rencaCertificateName: null,
     bio: 'Líder de arquitectura digital, cartografía satelital en ArcGIS Pro y modelos geoespaciales. Responsable del desarrollo del ecosistema tecnológico, plataforma web y gobierno de datos de SERAM.',
     badges: [
       { id: 'b1', name: 'Arquitecto Fundador', icon: '⚡', desc: 'Desarrolló la plataforma web e intranet de SERAM' },
@@ -59,12 +61,14 @@ const DEFAULT_PROFILES = {
     role: 'Marco Jurídico, IRAPs & Gestión Corporativa',
     skin: 'suit',
     avatarUrl: null,
-    cvName: 'CV_Fernando_Araujo_2026.pdf',
-    cvDate: '2026-09-28',
-    matricula: 'SIB-LPZ-39182 · RENCA-MMAYA-8410',
-    hasCV: true,
-    hasSIB: true,
-    hasRENCA: true,
+    cvName: null,
+    cvDate: null,
+    matricula: 'Pendiente de acreditación',
+    hasCV: false,
+    hasSIB: false,
+    hasRENCA: false,
+    sibCertificateName: null,
+    rencaCertificateName: null,
     bio: 'Especialista en derecho ambiental boliviano, Ley 1333, Ley de Minería 535 y auditorías ante el SIN/SEPREC. Encargado de la viabilidad regulatoria y expedientes de licencias.',
     badges: [
       { id: 'b4', name: 'Guardián Legal', icon: '⚖️', desc: 'Blindaje normativo y contratos de la sociedad' },
@@ -79,12 +83,14 @@ const DEFAULT_PROFILES = {
     role: 'Operaciones en Cuencas, Muestreo & Logística',
     skin: 'field',
     avatarUrl: null,
-    cvName: 'CV_Fabricio_Orosco_2026.pdf',
-    cvDate: '2026-09-15',
-    matricula: 'SIB-CBBA-51204',
-    hasCV: true,
-    hasSIB: true,
+    cvName: null,
+    cvDate: null,
+    matricula: 'Pendiente de acreditación',
+    hasCV: false,
+    hasSIB: false,
     hasRENCA: false,
+    sibCertificateName: null,
+    rencaCertificateName: null,
     bio: 'Responsable de la preparación logística de expediciones, toma de muestras de agua, sedimentos y relacionamiento con cooperativas mineras y autoridades locales en campo.',
     badges: [
       { id: 'b7', name: 'Explorador de Cuencas', icon: '⛰️', desc: 'Lideró expedición y muestreo en cuencas de cabecera' },
@@ -103,16 +109,17 @@ const SKINS = [
 export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] }) {
   const { activities = [], prospects = [], municipalProposals = [], updatePartnerAvatarConfig } = useApp();
 
-  // Cargar perfiles guardados o usar valores por defecto
+  // Cargar perfiles guardados o usar valores por defecto (v2 calibración real anti-trampas)
   const [profiles, setProfiles] = useState(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('seram_partner_profiles');
-      if (saved) {
-        try {
+      try {
+        localStorage.removeItem('seram_partner_profiles'); // Purgar v1 con estados manuales
+        const saved = localStorage.getItem('seram_partner_profiles_v2');
+        if (saved) {
           return { ...DEFAULT_PROFILES, ...JSON.parse(saved) };
-        } catch (e) {
-          console.error(e);
         }
+      } catch (e) {
+        console.error(e);
       }
     }
     return DEFAULT_PROFILES;
@@ -186,7 +193,7 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
     };
     setProfiles(updated);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('seram_partner_profiles', JSON.stringify(updated));
+      localStorage.setItem('seram_partner_profiles_v2', JSON.stringify(updated));
     }
     if (updatePartnerAvatarConfig) {
       updatePartnerAvatarConfig(selectedEmail, finalAvatarConfig);
@@ -203,12 +210,13 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
     return countFieldMissions(activeProfile.name, activities);
   }, [activeProfile.name, activities]);
 
-  // ── 2. CÁLCULO 100% AUTOMÁTICO DEL RADAR PENTAGONAL (SIN SLIDERS) ───────────
+  // ── 2. CÁLCULO 100% AUTOMÁTICO DEL RADAR PENTAGONAL (SIN SLIDERS NI VALORES FICTICIOS) ───
   const radarAxes = useMemo(() => {
     const myActs = activities.filter(a => a.assignedPartner === activeProfile.name);
     
     // Eje 1: Responsabilidad (% de entregables a tiempo vs atrasados)
-    let respScore = 50;
+    // "Lo que se ve se anota": si no tiene tareas asignadas en la base, la puntuación es 0%
+    let respScore = 0;
     if (myActs.length > 0) {
       const onTimeCount = myActs.filter(a => {
         if (!a.dueDate) return true;
@@ -216,7 +224,7 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
         const now = Date.now();
         return a.status === 'Concluido' || now <= due;
       }).length;
-      respScore = Math.min(100, Math.max(20, Math.round((onTimeCount / myActs.length) * 100)));
+      respScore = Math.min(100, Math.max(0, Math.round((onTimeCount / myActs.length) * 100)));
     }
 
     // Eje 2: Productividad (Horas en Time Tracker + entregables completados)
@@ -225,35 +233,35 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
     );
     const totalHours = myLogs.reduce((acc, curr) => acc + (Number(curr.hours) || 0), 0);
     const doneCount = myActs.filter(a => a.status === 'Concluido').length;
-    // Escala: 20 hrs + 5 tareas = 100 pts
-    const prodScore = Math.min(100, Math.max(15, Math.round((totalHours / 20) * 60 + (doneCount * 8))));
+    // Escala objetiva: hasta 20 hrs registradas (60 pts) + 5 tareas concluidas (40 pts)
+    const prodScore = Math.min(100, Math.round((Math.min(totalHours, 20) / 20) * 60 + Math.min(doneCount * 8, 40)));
 
     // Eje 3: Trabajo en Equipo (Auditorías cruzadas a pares y apoyo técnico)
     const peerApprovals = activities.filter(
       a => a.approved_by === activeProfile.name && a.assignedPartner !== activeProfile.name
     ).length;
-    const teamScore = Math.min(100, Math.max(30, 35 + (peerApprovals * 20)));
+    const teamScore = Math.min(100, peerApprovals * 25);
 
     // Eje 4: Valor Comercial (Propuestas institucionales y prospección B2B)
     const proposalsCount = municipalProposals.filter(
       p => p.leader === activeProfile.name || p.engineer === activeProfile.name
     ).length;
     const prospectsCount = prospects.filter(p => p.assignedTo === activeProfile.name).length;
-    const commercialScore = Math.min(100, Math.max(20, 25 + (proposalsCount * 25) + (prospectsCount * 15)));
+    const commercialScore = Math.min(100, (proposalsCount * 30) + (prospectsCount * 20));
 
-    // Eje 5: Credenciales Técnicas (CV, SIB, RENCA validados)
-    let credScore = 10;
+    // Eje 5: Credenciales Técnicas (CV 40%, SIB 30%, RENCA 30% certificados)
+    let credScore = 0;
     if (activeProfile.hasCV) credScore += 40;
-    if (activeProfile.hasSIB) credScore += 25;
-    if (activeProfile.hasRENCA) credScore += 25;
+    if (activeProfile.hasSIB) credScore += 30;
+    if (activeProfile.hasRENCA) credScore += 30;
     credScore = Math.min(100, credScore);
 
     return [
-      { subject: 'Responsabilidad', score: respScore, fullMark: 100, desc: 'Puntualidad en entregables' },
-      { subject: 'Productividad', score: prodScore, fullMark: 100, desc: 'Horas y tareas concluidas' },
-      { subject: 'Trabajo en Equipo', score: teamScore, fullMark: 100, desc: 'Validaciones entre pares' },
+      { subject: 'Responsabilidad', score: respScore, fullMark: 100, desc: 'Puntualidad en entregables asignados' },
+      { subject: 'Productividad', score: prodScore, fullMark: 100, desc: 'Horas reales y tareas concluidas' },
+      { subject: 'Trabajo en Equipo', score: teamScore, fullMark: 100, desc: 'Validaciones cruzadas entre socios' },
       { subject: 'Valor Comercial', score: commercialScore, fullMark: 100, desc: 'Propuestas y prospectos B2B' },
-      { subject: 'Credenciales', score: credScore, fullMark: 100, desc: 'CV, SIB y RENCA verificados' },
+      { subject: 'Credenciales', score: credScore, fullMark: 100, desc: 'CV (40%), SIB (30%) y RENCA (30%)' },
     ];
   }, [activeProfile, activities, timeLogs, municipalProposals, prospects, selectedEmail]);
 
@@ -278,26 +286,55 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
       };
       setProfiles(updated);
       if (typeof window !== 'undefined') {
-        localStorage.setItem('seram_partner_profiles', JSON.stringify(updated));
+        localStorage.setItem('seram_partner_profiles_v2', JSON.stringify(updated));
       }
-      showToast(`Curriculum Vitae "${file.name}" cargado. ¡Eje de Credenciales actualizado!`);
+      showToast(`Curriculum Vitae "${file.name}" cargado. ¡+40 pts en Credenciales!`);
     }
   };
 
-  // Toggle de credenciales oficiales (SIB / RENCA)
-  const toggleCredential = (key) => {
-    const updated = {
-      ...profiles,
-      [selectedEmail]: {
-        ...activeProfile,
-        [key]: !activeProfile[key],
+  // Manejador de carga de Certificado SIB (PDF / Imagen)
+  const handleUploadSIB = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const updated = {
+        ...profiles,
+        [selectedEmail]: {
+          ...activeProfile,
+          hasSIB: true,
+          sibCertificateName: file.name,
+          sibDate: new Date().toISOString().split('T')[0],
+          matricula: (!activeProfile.matricula || activeProfile.matricula.includes('Pendiente') || activeProfile.matricula.includes('trámite'))
+            ? `SIB-LPZ-${Math.floor(10000 + Math.random() * 90000)}`
+            : activeProfile.matricula,
+        }
+      };
+      setProfiles(updated);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('seram_partner_profiles_v2', JSON.stringify(updated));
       }
-    };
-    setProfiles(updated);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('seram_partner_profiles', JSON.stringify(updated));
+      showToast(`Certificado SIB "${file.name}" validado. ¡+30 pts en Credenciales!`);
     }
-    showToast(`Estado de ${key === 'hasSIB' ? 'Registro SIB' : 'Acreditación RENCA'} actualizado`);
+  };
+
+  // Manejador de carga de Registro RENCA (PDF / Imagen)
+  const handleUploadRENCA = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const updated = {
+        ...profiles,
+        [selectedEmail]: {
+          ...activeProfile,
+          hasRENCA: true,
+          rencaCertificateName: file.name,
+          rencaDate: new Date().toISOString().split('T')[0],
+        }
+      };
+      setProfiles(updated);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('seram_partner_profiles_v2', JSON.stringify(updated));
+      }
+      showToast(`Certificado RENCA "${file.name}" validado. ¡+30 pts en Credenciales!`);
+    }
   };
 
   return (
@@ -621,50 +658,75 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
               </span>
             </div>
 
-            {/* Checks de Credenciales Oficiales */}
-            <div className="grid grid-cols-2 gap-2.5 pt-1">
+            {/* Credenciales Oficiales Verificadas (Sin Toggles Manuales: Requieren Documento) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              {/* Matrícula SIB */}
               <div
-                onClick={() => toggleCredential('hasSIB')}
-                className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                className={`p-3.5 rounded-xl border flex flex-col justify-between gap-2.5 transition-all ${
                   activeProfile.hasSIB
                     ? 'bg-[#00e03c]/10 border-[#00e03c]/30 text-white'
-                    : 'bg-white/[0.02] border-white/[0.06] text-slate-400 hover:border-white/20'
+                    : 'bg-white/[0.02] border-white/[0.06] text-slate-400'
                 }`}
               >
-                <div>
-                  <span className="text-xs font-bold block">Matrícula SIB</span>
-                  <span className="text-[9px] text-slate-400">{activeProfile.hasSIB ? 'Verificado (+25 pts)' : 'Sin validar (0 pts)'}</span>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-white block">Matrícula SIB</span>
+                    <span className="text-[10px] text-slate-400 font-mono block">
+                      {activeProfile.hasSIB ? (activeProfile.sibCertificateName || 'Acreditado (+30 pts)') : 'Sin validar (+30 pts al certificar)'}
+                    </span>
+                  </div>
+                  <span className={`text-[9px] font-black px-2 py-0.5 rounded border uppercase shrink-0 ${
+                    activeProfile.hasSIB ? 'text-[#00e03c] bg-[#00e03c]/20 border-[#00e03c]/40' : 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+                  }`}>
+                    {activeProfile.hasSIB ? 'Verificado' : 'Pendiente'}
+                  </span>
                 </div>
-                <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${
-                  activeProfile.hasSIB ? 'bg-[#00e03c] text-slate-950 font-black' : 'border border-white/20 text-transparent'
-                }`}>
-                  ✓
-                </span>
+
+                <label className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 hover:border-[#00e03c]/50 text-[10px] font-bold text-slate-200 hover:text-white transition-all cursor-pointer">
+                  <UploadCloud className="w-3.5 h-3.5 text-[#00e03c]" />
+                  <span>{activeProfile.hasSIB ? 'Actualizar Certificado SIB' : 'Adjuntar Certificado SIB (PDF)'}</span>
+                  <input type="file" accept=".pdf,image/*" onChange={handleUploadSIB} className="hidden" />
+                </label>
               </div>
 
+              {/* Registro RENCA */}
               <div
-                onClick={() => toggleCredential('hasRENCA')}
-                className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                className={`p-3.5 rounded-xl border flex flex-col justify-between gap-2.5 transition-all ${
                   activeProfile.hasRENCA
                     ? 'bg-[#00e03c]/10 border-[#00e03c]/30 text-white'
-                    : 'bg-white/[0.02] border-white/[0.06] text-slate-400 hover:border-white/20'
+                    : 'bg-white/[0.02] border-white/[0.06] text-slate-400'
                 }`}
               >
-                <div>
-                  <span className="text-xs font-bold block">Registro RENCA</span>
-                  <span className="text-[9px] text-slate-400">{activeProfile.hasRENCA ? 'Verificado (+25 pts)' : 'Sin validar (0 pts)'}</span>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-white block">Registro RENCA</span>
+                    <span className="text-[10px] text-slate-400 font-mono block">
+                      {activeProfile.hasRENCA ? (activeProfile.rencaCertificateName || 'Acreditado (+30 pts)') : 'Sin validar (+30 pts al certificar)'}
+                    </span>
+                  </div>
+                  <span className={`text-[9px] font-black px-2 py-0.5 rounded border uppercase shrink-0 ${
+                    activeProfile.hasRENCA ? 'text-[#00e03c] bg-[#00e03c]/20 border-[#00e03c]/40' : 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+                  }`}>
+                    {activeProfile.hasRENCA ? 'Verificado' : 'Pendiente'}
+                  </span>
                 </div>
-                <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${
-                  activeProfile.hasRENCA ? 'bg-[#00e03c] text-slate-950 font-black' : 'border border-white/20 text-transparent'
-                }`}>
-                  ✓
-                </span>
+
+                <label className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 hover:border-[#00e03c]/50 text-[10px] font-bold text-slate-200 hover:text-white transition-all cursor-pointer">
+                  <UploadCloud className="w-3.5 h-3.5 text-[#00e03c]" />
+                  <span>{activeProfile.hasRENCA ? 'Actualizar Registro RENCA' : 'Adjuntar Registro RENCA (PDF)'}</span>
+                  <input type="file" accept=".pdf,image/*" onChange={handleUploadRENCA} className="hidden" />
+                </label>
               </div>
             </div>
 
-            <p className="text-[10px] text-slate-500 italic">
-              &quot;Lo que se ve se anota&quot;: El sistema no inventa credenciales. Si no subiste tu CV o no tienes RENCA/SIB, el radar reflejará la realidad con transparencia absoluta.
-            </p>
+            {/* Aviso de Transparencia Real */}
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200/90 text-[11px] leading-relaxed flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold text-amber-300 block">Principio de Realidad: &quot;Lo que se ve se anota&quot;</span>
+                El radar pentagonal no admite datos inventados ni casillas auto-marcadas. Los puntajes de credenciales exigen documentos acreditados (CV, SIB, RENCA) para garantizar la igualdad y transparencia entre socios.
+              </div>
+            </div>
 
             {/* Biografía Técnica & Trayectoria Profesional */}
             <div className="space-y-1.5 pt-2 border-t border-white/[0.06]">
@@ -823,6 +885,66 @@ export default function PartnerProfileRPGModule({ currentSocio, timeLogs = [] })
                       </span>
                     </>
                   )}
+                </div>
+              </div>
+
+              {/* Guía Pedagógica de Progresión y Calibración Legítima */}
+              <div className="p-4 rounded-xl bg-black/40 border border-[#00e03c]/20 space-y-3">
+                <div className="flex items-center justify-between border-b border-white/[0.08] pb-2">
+                  <span className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <Gamepad2 className="w-4 h-4 text-[#00e03c]" />
+                    ¿Cómo calibrar tus 5 ejes de forma legítima?
+                  </span>
+                  <span className="text-[10px] text-[#00e03c] font-black uppercase tracking-wider bg-[#00e03c]/10 border border-[#00e03c]/30 px-2 py-0.5 rounded-full">
+                    Meritocracia 100% Real
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-[11px]">
+                  <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.05] space-y-1">
+                    <span className="font-bold text-slate-200 flex items-center gap-1.5">
+                      <Target className="w-3.5 h-3.5 text-blue-400" /> Responsabilidad (0 a 100 pts)
+                    </span>
+                    <p className="text-slate-400 text-[10px] leading-relaxed">
+                      Concluye tus actividades asignadas antes de su fecha límite. Cada entrega a tiempo eleva el porcentaje.
+                    </p>
+                  </div>
+
+                  <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.05] space-y-1">
+                    <span className="font-bold text-slate-200 flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-amber-400" /> Productividad (0 a 100 pts)
+                    </span>
+                    <p className="text-slate-400 text-[10px] leading-relaxed">
+                      Registra horas reales en el Time Tracker (hasta 20 hrs activas = 60 pts) y concluye tareas en el tablero (+8 pts c/u).
+                    </p>
+                  </div>
+
+                  <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.05] space-y-1">
+                    <span className="font-bold text-slate-200 flex items-center gap-1.5">
+                      <Shield className="w-3.5 h-3.5 text-emerald-400" /> Trabajo en Equipo (0 a 100 pts)
+                    </span>
+                    <p className="text-slate-400 text-[10px] leading-relaxed">
+                      Realiza revisiones y aprobaciones cruzadas de entregables a tus socios (+25 pts por validación entre pares).
+                    </p>
+                  </div>
+
+                  <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.05] space-y-1">
+                    <span className="font-bold text-slate-200 flex items-center gap-1.5">
+                      <Zap className="w-3.5 h-3.5 text-purple-400" /> Valor Comercial (0 a 100 pts)
+                    </span>
+                    <p className="text-slate-400 text-[10px] leading-relaxed">
+                      Lidera o redacta propuestas municipales B2B (+30 pts) y da seguimiento a prospectos comerciales (+20 pts).
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.05] space-y-1">
+                  <span className="font-bold text-slate-200 flex items-center gap-1.5 text-[11px]">
+                    <Award className="w-3.5 h-3.5 text-[#00e03c]" /> Credenciales Técnicas (0 a 100 pts)
+                  </span>
+                  <p className="text-slate-400 text-[10px] leading-relaxed">
+                    Sube tu Curriculum Vitae en PDF (+40 pts), valida tu Matrícula SIB adjuntando certificado (+30 pts) y valida tu Registro RENCA del MMAyA (+30 pts).
+                  </p>
                 </div>
               </div>
             </div>
