@@ -45,24 +45,14 @@ export default function Footer() {
             type="button"
             onClick={handleLogoClick}
             aria-label="Volver al inicio de SERAM"
-            className="group flex flex-col items-center p-3.5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 hover:border-[#00e03c]/40 transition-all duration-300 pointer-events-auto cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#00e03c]/40"
+            className="group flex flex-col items-center p-3 sm:p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 hover:border-[#00e03c]/40 transition-all duration-300 pointer-events-auto cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#00e03c]/40"
             data-cursor-text="INICIO"
           >
-            <div className="relative w-14 h-14 shrink-0 flex items-center justify-center transition-transform duration-300 group-hover:scale-110 mb-1">
-              <img
-                src="/assets/brand/ícono_logo.png"
-                alt="SERAM"
-                className="w-full h-full object-contain drop-shadow-[0_0_12px_rgba(0,224,60,0.3)]"
-              />
-            </div>
-            <div className="flex items-baseline tracking-widest font-tech font-black text-2xl">
-              <span className="text-white">SER</span>
-              <span className="text-[#00e03c]">A</span>
-              <span className="text-white">M</span>
-            </div>
-            <span className="text-[10px] text-slate-400 font-mono tracking-widest uppercase mt-1">
-              Consultora Ambiental & Tecnológica
-            </span>
+            <img
+              src="/assets/brand/logo-seram-white.webp"
+              alt="SERAM - Una Experiencia Ambiental"
+              className="h-12 sm:h-14 w-auto object-contain drop-shadow-[0_0_16px_rgba(0,224,60,0.35)] transition-transform duration-300 group-hover:scale-105"
+            />
           </button>
         </div>
 

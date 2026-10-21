@@ -148,19 +148,12 @@ export default function Navbar({ isOpen, onToggle }) {
           handleLogoSecretClick();
         }}
       >
-        <div className="relative w-9 h-9 shrink-0 flex items-center justify-center">
+        <div className="relative h-8 sm:h-9 shrink-0 flex items-center justify-center py-0.5">
           <img
-            src="/assets/brand/ícono_logo.png"
-            alt="Logo SERAM"
-            className="w-full h-full object-contain"
+            src="/assets/brand/logo-seram-white.webp"
+            alt="SERAM - Una Experiencia Ambiental"
+            className="h-7 sm:h-8 w-auto object-contain drop-shadow-[0_2px_10px_rgba(0,224,60,0.3)] transition-transform duration-300 hover:scale-105"
           />
-        </div>
-        <div className="flex flex-col leading-none">
-          <div className="flex items-baseline">
-            <span className="text-lg font-black text-white tracking-tight" style={logoTextShadow}>SER</span>
-            <span className="text-lg font-black text-[#029907] tracking-tight" style={logoTextShadow}>A</span>
-            <span className="text-lg font-black text-white tracking-tight" style={logoTextShadow}>M</span>
-          </div>
         </div>
       </div>
 

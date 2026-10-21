@@ -50,6 +50,21 @@ Ser la consultora ambiental y geotecnológica de referencia en la región, recon
 
 Nuestra identidad visual combina la profundidad ambiental con la tecnología digital. Evitamos el verde corporativo plano tradicional y adoptamos una estética **cinemática, oscura y neomórfica-glassmorphic** ("Neuform").
 
+### 2.0 Anatomía del Imagotipo Oficial (Logotipo + Isotipo + Tagline)
+
+El identificador de marca definitivo de **SERAM** consta de tres elementos armónicos inseparables:
+
+1. **El Isotipo (Hoja Botánica Viva)**: Símbolo vertical a la izquierda con nervaduras detalladas que evoca biodiversidad, regeneración ecológica y base biológica.
+2. **El Logotipo (SERAM)**:
+   - Bloque tipográfico bold sans-serif para **S**, **E**, **R**, **M** en Blanco Puro (`#ffffff`) para interfaces web oscuras y Negro (`#000000`) para papelería e informes.
+   - Vértice central **A** en verde botánico (`#075918` / `#029907`), con un corte geométrico en espacio negativo con silueta de gota de agua o semilla vegetal.
+3. **El Tagline Institucional**:
+   - **"UNA EXPERIENCIA AMBIENTAL"**: Lema en mayúsculas negrita ubicado simétricamente bajo la palabra SERAM.
+4. **Recursos Oficiales Estandarizados (`src/public/assets/brand/`)**:
+   - **Modo Oscuro (Web / UI):** `/assets/brand/logo-seram-white.webp`
+   - **Modo Claro (Informes / PDF):** `/assets/brand/logo-seram-dark.webp` (`Logo-SERAM.webp`)
+   - **Isotipo Aislado (Favicon / Bot):** `/assets/brand/logo-seram-icon.png` (`ícono_logo.png`)
+
 ### Paleta de Colores Oficial
 
 | Rol de Color | Nombre técnico | Código HEX | Valores HSL / RGB | Uso Principal |

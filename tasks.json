@@ -6,6 +6,14 @@
   "in_progress": [],
   "completed": [
     {
+      "id": "TASK-094",
+      "title": "Actualización Integral del Logotipo Oficial en Toda la Web (Navbar, Footer, Favicon, Asistente) y en los Manuales de Marca de SERAM",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-20",
+      "completed_at": "2026-10-20"
+    },
+    {
       "id": "TASK-093",
       "title": "Reingeniería Tipográfica Global Anti-Letra Hormiga: Elevación Sistemática de Legibilidad Ergonómica en Todas las Secciones y Subsecciones de SERAM (Tokens Neuform, Escala Tailwind y Utilidades de Alto Rendimiento)",
       "status": "completed",

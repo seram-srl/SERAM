@@ -47,3 +47,13 @@ Las tarjetas del sitio (como `.neuform-card` o las tarjetas de la página de ini
 * **Nunca** uses texto blanco o verde vívido claro sobre fondo blanco translúcido o claro.
 * **Siempre** verifica que el texto de lectura de Academia, formularios o descripciones tenga un ratio de contraste adecuado.
 * El **Asistente SERAM (Chatbot)** sirve como referencia para la cabecera limpia, los iconos de 40px unificados y los layouts de navegación superior.
+
+---
+
+## 🌿 Imagotipo Oficial (Logotipo + Isotipo + Tagline)
+
+* **Isotipo**: Hoja botánica viva y realista con nervaduras verticales finas (`/assets/brand/logo-seram-icon.png`).
+* **Wordmark SERAM**: Letras S, E, R, M en tipografía sans-serif bold. Letra **A** central en trapecio verde botánico con silueta de gota/semilla en espacio negativo.
+  - Entornos Oscuros (Dark Mode): Letras en blanco puro (`/assets/brand/logo-seram-white.webp`).
+  - Entornos Claros (Light Mode): Letras en negro (`/assets/brand/logo-seram-dark.webp`).
+* **Tagline**: **"UNA EXPERIENCIA AMBIENTAL"** en mayúsculas negrita ubicado simétricamente bajo la palabra SERAM.

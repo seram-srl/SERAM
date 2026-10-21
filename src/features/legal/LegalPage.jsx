@@ -392,7 +392,7 @@ export default function LegalPage() {
           <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-5 text-sm sm:text-base font-mono">
             <span className="flex items-center gap-2.5 text-slate-300 font-semibold tracking-wide">
               <img
-                src="/assets/brand/ícono_logo.png"
+                src="/assets/brand/logo-seram-icon.png"
                 alt="SERAM"
                 className="w-5 h-5 object-contain shrink-0"
               />
