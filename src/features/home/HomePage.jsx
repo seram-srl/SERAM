@@ -274,7 +274,7 @@ function HeroSection() {
             <BrandParticleText />
           </motion.div>
 
-          {/* H2 con animación de entrada, hover verde y paralaje */}
+          {/* H2 con animación de entrada y paralaje */}
           <motion.h2
             id="hero-h2"
             custom={2}
@@ -284,10 +284,10 @@ function HeroSection() {
             style={{ x: h2X, y: h2Y }}
             className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-white font-display uppercase tracking-[0.3em] mt-4 text-center select-none will-change-transform"
           >
-            SERVICIOS <span className="hover:text-[#00e03c] transition-colors duration-300 cursor-pointer">AMBIENTALES.</span>
+            UNA EXPERIENCIA AMBIENTAL
           </motion.h2>
 
-          {/* H3 con animación de entrada, palabras clave subrayadas y paralaje sutil */}
+          {/* H3 miga de pan / subtítulo con tamaño aumentado y animación de entrada */}
           <motion.h3
             id="hero-desc"
             custom={3}
@@ -295,9 +295,12 @@ function HeroSection() {
             initial="initial"
             animate="animate"
             style={{ x: h3X, y: h3Y }}
-            className="text-xs sm:text-sm md:text-base text-slate-300/95 font-sans tracking-wide max-w-2xl mt-4 text-center leading-relaxed select-none will-change-transform"
+            className="text-sm sm:text-base md:text-lg text-slate-300 font-sans tracking-wide max-w-2xl mt-4 text-center leading-relaxed select-none will-change-transform flex items-center justify-center gap-2"
           >
-            Ingeniería y Consultoría de Precisión para el <span className="underline decoration-[#00e03c] decoration-2 underline-offset-2 font-medium text-slate-300">Cumplimiento Normativo</span>, <span className="underline decoration-[#00e03c] decoration-2 underline-offset-2 font-medium text-slate-300">Monitoreo Ambiental</span> y <span className="underline decoration-[#00e03c] decoration-2 underline-offset-2 font-medium text-slate-300">Desarrollo Sostenible</span> en Bolivia.
+            <span className="w-2 h-2 rounded-full bg-[#00e03c] shrink-0 animate-pulse" />
+            <span>
+              Servicios de Consultoría en <span className="underline decoration-[#00e03c] decoration-2 underline-offset-4 font-semibold text-white">Ingeniería en Gestión Ambiental Integral</span>
+            </span>
           </motion.h3>
         </div>
       </div>

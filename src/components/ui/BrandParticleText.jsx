@@ -2,8 +2,12 @@ import React, { useEffect, useRef } from 'react';
 
 /**
  * @component BrandParticleText
- * @description Renders "SERAM" brand logo using interactive, cursor-reactive canvas particles.
- * "SER" in white, "A" in emerald green, "M" in white.
+ * @description Renders the official "SERAM" brand wordmark using interactive, cursor-reactive canvas particles.
+ * Typography and letterforms are sampled directly from the official logo mask:
+ * - "SER" in pure white
+ * - "A" in botanical/emerald green (#00e03c) with official negative-space droplet cutout
+ * - "M" in pure white
+ * Interactive physics: Hooke's law spring return + mouse repulsion + organic spore micro-drift.
  */
 export default function BrandParticleText() {
   const canvasRef = useRef(null);
@@ -22,113 +26,80 @@ export default function BrandParticleText() {
     const parent = canvas.parentNode;
     if (!parent) return;
 
-    // Configuración de dimensiones responsivas con soporte para High-DPI Retina
-    const handleResize = (entries) => {
-      let width = 0;
-      if (entries && entries[0]) {
-        width = entries[0].contentRect.width;
-      } else {
-        width = parent.getBoundingClientRect().width;
-      }
-      
-      // Evitar inicialización si el ancho es 0 (elemento colapsado u oculto temporalmente)
-      if (width === 0) return;
-      
-      // Evitar reinicialización si el ancho no ha cambiado (previene bugs en móviles al ocultarse/mostrarse la barra de navegación que altera solo el alto)
-      if (width === lastWidthRef.current) return;
-      lastWidthRef.current = width;
+    let currentW = 0;
+    let currentH = 0;
 
-      const dpr = window.devicePixelRatio || 1;
-      const isMobile = window.innerWidth < 640;
-      const canvasHeight = isMobile ? 220 : 180;
-      const w = Math.floor(width);
-      
-      // Adaptar el radio de dispersión del mouse según resolución móvil/desktop
-      mouseRef.current.radius = isMobile ? 45 : 85;
-      
-      // Ajustar tamaño lógico y físico
-      canvas.width = w * dpr;
-      canvas.height = canvasHeight * dpr;
-      canvas.style.width = `${w}px`;
-      canvas.style.height = `${canvasHeight}px`;
-      
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.scale(dpr, dpr);
+    // Cargar imagen de las letras oficiales de SERAM
+    const img = new Image();
+    img.src = '/assets/brand/logo-seram-letters.png';
 
-      const runInit = () => initParticles(w, canvasHeight);
-      if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(runInit);
-      } else {
-        runInit();
-      }
-    };
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      handleResize(entries);
-    });
-    resizeObserver.observe(parent);
-
-    // Inicialización de partículas extrayendo píxeles de un canvas oculto con paso entero exacto
+    // Inicialización de partículas extrayendo píxeles de la máscara tipográfica oficial
     const initParticles = (w, h) => {
       if (w <= 0 || h <= 0) return;
+      currentW = w;
+      currentH = h;
+
+      if (!img.complete || img.naturalWidth === 0) {
+        img.onload = () => {
+          if (currentW > 0 && currentH > 0) {
+            initParticles(currentW, currentH);
+          }
+        };
+        return;
+      }
 
       const offscreen = document.createElement('canvas');
       const offCtx = offscreen.getContext('2d', { willReadFrequently: true });
-      
+      if (!offCtx) return;
+
       offscreen.width = w;
       offscreen.height = h;
-      
+
       const isMobile = window.innerWidth < 640;
-      const fontSize = isMobile 
-        ? Math.min(w / 4.2, 95)
-        : Math.min(w / 6.2, 135);
-      offCtx.font = `900 ${fontSize}px 'Outfit', 'Inter', sans-serif`;
-      offCtx.textAlign = 'left';
-      offCtx.textBaseline = 'middle';
-      
+      // Proporción original de las letras: 1365 x 293 (ratio: ~4.6587)
+      const letterRatio = 1365 / 293;
+      let drawW = isMobile ? Math.min(w * 0.94, 380) : Math.min(w * 0.88, 620);
+      let drawH = drawW / letterRatio;
+
+      // Asegurar que quepa en el alto del contenedor con margen
+      if (drawH > h * 0.85) {
+        drawH = h * 0.85;
+        drawW = drawH * letterRatio;
+      }
+
+      const startX = Math.floor((w - drawW) / 2);
+      const startY = Math.floor((h - drawH) / 2);
+
       offCtx.clearRect(0, 0, w, h);
-
-      const serWidth = offCtx.measureText('SER').width;
-      const aWidth = offCtx.measureText('A').width;
-      const mWidth = offCtx.measureText('M').width;
-      const totalWidth = serWidth + aWidth + mWidth;
-      const startX = (w - totalWidth) / 2;
-      const centerY = h / 2;
-
-      // Dibujar texto monocromático sólido para extracción precisa de máscara
-      offCtx.fillStyle = '#ffffff';
-      offCtx.fillText('SER', startX, centerY);
-      offCtx.fillText('A', startX + serWidth, centerY);
-      offCtx.fillText('M', startX + serWidth + aWidth, centerY);
+      offCtx.drawImage(img, startX, startY, drawW, drawH);
 
       const imgData = offCtx.getImageData(0, 0, w, h).data;
       const particles = [];
-      const step = isMobile ? 1.5 : 2.0;
-
-      const serEndX = startX + serWidth;
-      const aEndX = serEndX + aWidth;
+      const step = isMobile ? 2 : 3;
 
       for (let y = 0; y < h; y += step) {
-        const yInt = Math.floor(y);
         for (let x = 0; x < w; x += step) {
-          const xInt = Math.floor(x);
-          const index = (xInt + yInt * w) * 4;
+          const index = (x + y * w) * 4;
           const alpha = imgData[index + 3];
 
-          if (alpha > 120) {
-            // Color puro y exacto según la letra, garantizando cero aberración o franjas
-            const isA = xInt >= serEndX && xInt < aEndX;
-            const color = isA ? '#00e03c' : '#ffffff';
+          if (alpha > 110) {
+            const r = imgData[index];
+            const g = imgData[index + 1];
+            const b = imgData[index + 2];
+
+            // La letra 'A' oficial es verde botánico (G > R + 20 y G > B + 20)
+            const isGreenA = g > r + 20 && g > b + 20;
+            const color = isGreenA ? '#00e03c' : '#ffffff';
 
             particles.push({
-              x: xInt,
-              y: yInt,
-              baseX: xInt,
-              baseY: yInt,
+              x,
+              y,
+              baseX: x,
+              baseY: y,
               vx: 0,
               vy: 0,
-              color: color,
-              size: isMobile ? 1.6 : 1.35,
+              color,
+              size: isMobile ? 1.3 : 1.45,
               density: Math.random() * 25 + 15,
               noiseSeedX: Math.random() * 100,
               noiseSeedY: Math.random() * 100
@@ -138,6 +109,42 @@ export default function BrandParticleText() {
       }
       particlesRef.current = particles;
     };
+
+    // Configuración de dimensiones responsivas con soporte para High-DPI Retina
+    const handleResize = (entries) => {
+      let width = 0;
+      if (entries && entries[0]) {
+        width = entries[0].contentRect.width;
+      } else {
+        width = parent.getBoundingClientRect().width;
+      }
+
+      if (width === 0) return;
+      if (width === lastWidthRef.current) return;
+      lastWidthRef.current = width;
+
+      const dpr = window.devicePixelRatio || 1;
+      const isMobile = window.innerWidth < 640;
+      const canvasHeight = isMobile ? 160 : 180;
+      const w = Math.floor(width);
+
+      mouseRef.current.radius = isMobile ? 45 : 85;
+
+      canvas.width = w * dpr;
+      canvas.height = canvasHeight * dpr;
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${canvasHeight}px`;
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+
+      initParticles(w, canvasHeight);
+    };
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      handleResize(entries);
+    });
+    resizeObserver.observe(parent);
 
     // Escuchas del mouse locales al canvas para precisión posicional
     const handleMouseMove = (e) => {
@@ -173,13 +180,11 @@ export default function BrandParticleText() {
       mouseRef.current.y = -1000;
     };
 
-    // Vincular redimensionamiento y eventos de interacción
     const isMobileDevice = window.innerWidth < 640;
 
     canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('mouseleave', handleMouseLeave);
-    
-    // Desactivar interacción touch en móvil para que el scroll del usuario no disperse y deforme el logotipo
+
     if (!isMobileDevice) {
       canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
       canvas.addEventListener('touchmove', handleTouchMove, { passive: true });
@@ -187,21 +192,19 @@ export default function BrandParticleText() {
       canvas.addEventListener('touchcancel', handleTouchEnd, { passive: true });
     }
 
-    // Ejecución inicial de escala y renderizado
     handleResize();
 
-    // Variables de simulación adaptativas para móviles/escritorio
-    const springK = isMobileDevice ? 0.13 : 0.08; // Fuerza de retorno más alta en móviles para evitar letras rotas duraderas
-    const damping = isMobileDevice ? 0.80 : 0.82;  // Fricción adaptada
-    const repulseStrength = 180; // Fuerza de empuje del mouse
+    const springK = isMobileDevice ? 0.13 : 0.08;
+    const damping = isMobileDevice ? 0.80 : 0.82;
+    const repulseStrength = 180;
     let time = 0;
 
     // Bucle de animación por frame (Canvas 2D de 60fps)
     const animate = () => {
       time += 0.02;
-      const rect = canvas.getBoundingClientRect();
-      const logicalWidth = rect.width;
-      const logicalHeight = window.innerWidth < 640 ? 220 : 180;
+      const dpr = window.devicePixelRatio || 1;
+      const logicalWidth = canvas.width / dpr;
+      const logicalHeight = canvas.height / dpr;
 
       ctx.clearRect(0, 0, logicalWidth, logicalHeight);
 
@@ -217,13 +220,12 @@ export default function BrandParticleText() {
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < mouse.radius) {
-          const force = (mouse.radius - dist) / mouse.radius; // Rango de 0 a 1
+          const force = (mouse.radius - dist) / mouse.radius;
           const angle = Math.atan2(dy, dx);
-          
-          // Fuerza inversamente proporcional a la densidad física asignada
-          const repulseX = Math.cos(angle) * force * repulseStrength / p.density;
-          const repulseY = Math.sin(angle) * force * repulseStrength / p.density;
-          
+
+          const repulseX = (Math.cos(angle) * force * repulseStrength) / p.density;
+          const repulseY = (Math.sin(angle) * force * repulseStrength) / p.density;
+
           p.vx += repulseX;
           p.vy += repulseY;
         }
@@ -232,7 +234,7 @@ export default function BrandParticleText() {
         const ax = (p.baseX - p.x) * springK;
         const ay = (p.baseY - p.y) * springK;
 
-        // 3. Simulación e integración física LERP con fricción
+        // 3. Simulación e integración física con amortiguamiento
         p.vx = (p.vx + ax) * damping;
         p.vy = (p.vy + ay) * damping;
 
@@ -272,7 +274,7 @@ export default function BrandParticleText() {
   }, []);
 
   return (
-    <div className="w-full max-w-4xl mx-auto flex items-center justify-center h-[220px] sm:h-[180px] overflow-hidden select-none pointer-events-auto">
+    <div className="w-full max-w-4xl mx-auto flex items-center justify-center h-[160px] sm:h-[180px] overflow-hidden select-none pointer-events-auto">
       <canvas
         ref={canvasRef}
         className="block cursor-none"
