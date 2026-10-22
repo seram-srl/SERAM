@@ -35,11 +35,13 @@ export default function LoadingScreen() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-emerald-500/10 blur-[100px] pointer-events-none" />
           
           <div className="space-y-6 text-center z-10">
-            {/* Logotipo */}
-            <div className="flex items-baseline justify-center">
-              <span className="text-3xl font-black text-white tracking-tighter">SER</span>
-              <span className="text-3xl font-black text-[#00e03c] tracking-tighter">A</span>
-              <span className="text-3xl font-black text-white tracking-tighter">M</span>
+            {/* Logotipo Oficial */}
+            <div className="flex justify-center">
+              <img
+                src="/assets/brand/logo-seram-white.webp"
+                alt="SERAM - Una Experiencia Ambiental"
+                className="h-12 w-auto object-contain drop-shadow-[0_0_20px_rgba(0,224,60,0.4)]"
+              />
             </div>
             
             {/* Porcentaje */}

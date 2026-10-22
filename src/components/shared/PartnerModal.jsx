@@ -37,8 +37,8 @@ export default function PartnerModal() {
         {/* Header */}
         <div className="text-center mb-6 space-y-2">
           <div className="flex items-center justify-center mb-3">
-            <div className="bg-[#00e03c]/15 border border-[#00e03c]/40 p-4 rounded-2xl shadow-[0_0_20px_rgba(0,224,60,0.15)]">
-              <Shield className="w-8 h-8 text-[#00e03c] animate-pulse" />
+            <div className="bg-[#00e03c]/15 border border-[#00e03c]/40 p-3 rounded-2xl shadow-[0_0_20px_rgba(0,224,60,0.2)]">
+              <img src="/assets/brand/logo-seram-icon.png" alt="SERAM" className="w-9 h-9 object-contain drop-shadow-[0_0_8px_rgba(0,224,60,0.5)]" />
             </div>
           </div>
           <h2 className="text-xl font-black text-white uppercase tracking-tight font-tech">Portal de Socios Directivos</h2>

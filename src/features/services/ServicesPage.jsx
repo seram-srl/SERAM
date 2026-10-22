@@ -203,7 +203,7 @@ export default function ServicesPage() {
     "provider": {
       "@type": "LocalBusiness",
       "name": "SERAM",
-      "image": "https://seram.bo/assets/brand/logo.png"
+      "image": "https://seram.bo/assets/brand/logo-seram-white.png"
     },
     "areaServed": "BO",
     "description": "Estudios e instrumentos de regulación de alcance particular (IRAP), Licencias FNCA, Registro RAI, Prospección Minera EMAP y Sistemas de Información Geográfica (SIG) en Bolivia."

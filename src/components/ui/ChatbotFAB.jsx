@@ -127,7 +127,7 @@ function BotAvatar() {
   return (
     <div className="w-8 h-8 rounded-xl bg-[#061e0c] border border-[#00e03c]/40 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-[0_0_10px_rgba(0,224,60,0.25)] p-1.5">
       <img
-        src="/assets/brand/ícono_logo.png"
+        src="/assets/brand/logo-seram-icon.png"
         alt="SERAM"
         className="w-full h-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]"
       />
@@ -175,6 +175,13 @@ export default function ChatbotFAB() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const addBotMessage = useCallback((step) => {
+    setMessages(prev => [
+      ...prev,
+      { id: Date.now() + Math.random(), type: 'bot', text: step.bot, options: step.options, allowComment: step.allowComment, commentLabel: step.commentLabel },
+    ]);
+  }, []);
+
   useEffect(() => {
     if (isOpen && chatbotStartStep) {
       setView('diagnosis');
@@ -189,15 +196,7 @@ export default function ChatbotFAB() {
       }
       setChatbotStartStep(null);
     }
-  }, [isOpen, chatbotStartStep, setChatbotStartStep]);
-
-
-  const addBotMessage = useCallback((step) => {
-    setMessages(prev => [
-      ...prev,
-      { id: Date.now() + Math.random(), type: 'bot', text: step.bot, options: step.options, allowComment: step.allowComment, commentLabel: step.commentLabel },
-    ]);
-  }, []);
+  }, [isOpen, chatbotStartStep, setChatbotStartStep, addBotMessage]);
 
   const startDiagnosis = useCallback(() => {
     setView('diagnosis'); setMessages([]); setServiceId(null); setUrgency(null); setComment(''); setStepId('q1');
@@ -287,7 +286,7 @@ export default function ChatbotFAB() {
               <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[#1a3a1a]/60 bg-[#05100a]/60 flex-shrink-0">
                 <div className="relative w-9 h-9 rounded-xl bg-[#061e0c] border border-[#00e03c]/40 flex items-center justify-center flex-shrink-0 shadow-[0_0_12px_rgba(0,224,60,0.25)] p-1.5">
                   <img
-                    src="/assets/brand/ícono_logo.png"
+                    src="/assets/brand/logo-seram-icon.png"
                     alt="Isotipo SERAM"
                     className="w-full h-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]"
                   />

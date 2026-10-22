@@ -112,7 +112,7 @@ export default function EcosystemNucleus({ scrollRef }) {
   // Carga del logo y extracción de coordenadas de píxeles
   useEffect(() => {
     const img = new Image();
-    img.src = '/assets/brand/ícono_logo.png';
+    img.src = '/assets/brand/logo-seram-icon.png';
     img.crossOrigin = "anonymous";
     img.onload = () => {
       const canvas = document.createElement('canvas');

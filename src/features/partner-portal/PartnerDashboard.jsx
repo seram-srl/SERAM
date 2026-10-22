@@ -343,7 +343,7 @@ function MyPersonalPartnerPanel({ currentSocio, activities = [], timeLogs = [], 
 // ─────────────────────────────────────────────────────────────────────────────
 // MODULE: OVERVIEW
 // ─────────────────────────────────────────────────────────────────────────────
-function OverviewModule({ kpis, metrics, partnerPresences, timeLogs, onNavigate, activeServices, courses = [], currentSocio }) {
+function OverviewModule({ kpis, metrics, partnerPresences, timeLogs, onNavigate, currentSocio }) {
   const { activities = [] } = useApp();
   return (
     <div className="space-y-8">
@@ -379,18 +379,6 @@ function OverviewModule({ kpis, metrics, partnerPresences, timeLogs, onNavigate,
             </div>
           </div>
         ))}
-      </div>
-
-      {/* ── VENTANA PRINCIPAL DE LA OFICINA VIRTUAL / METAVERSO SERAM ── */}
-      <div className="space-y-3">
-        <VirtualOfficeView
-          activeServices={activeServices || []}
-          courses={courses || []}
-          timeLogs={timeLogs || []}
-          partnerPresences={partnerPresences || {}}
-          currentSocio={currentSocio}
-          onNavigateModule={onNavigate}
-        />
       </div>
 
       {/* ── EQUIPO DIRECTIVO: CONEXIÓN Y TRABAJO EN TIEMPO REAL ── */}
@@ -485,10 +473,10 @@ function OverviewModule({ kpis, metrics, partnerPresences, timeLogs, onNavigate,
                   )}
                 </div>
 
-                {/* Sector en Oficina 2.5D & Sesión en Vivo */}
+                {/* Área Técnica & Sesión en Vivo */}
                 <div className="space-y-1.5 pt-1 border-t border-white/[0.04]">
                   <div className="flex items-center justify-between text-[10px]">
-                    <span className="text-slate-400">Sector Oficina:</span>
+                    <span className="text-slate-400">Área Técnica:</span>
                     <span className="font-extrabold text-amber-300 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-full text-[9px] truncate max-w-[140px] flex items-center gap-1">
                       <Building2 className="w-2.5 h-2.5 shrink-0 text-amber-400" />
                       {p.currentSectorName || '02. DIRECCIÓN'}
@@ -541,7 +529,7 @@ function OverviewModule({ kpis, metrics, partnerPresences, timeLogs, onNavigate,
                   className="w-full py-1.5 px-2 bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/30 rounded-xl text-amber-300 font-black text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all active:scale-95"
                 >
                   <MapPin className="w-3 h-3 text-amber-400" />
-                  <span>Ubicar en Oficina Virtual</span>
+                  <span>Ver en Metaverso 2.5D</span>
                 </button>
 
                 {/* Trabajo Realizado Reciente */}
@@ -4421,7 +4409,7 @@ export default function PartnerDashboard() {
           <AnimatePresence>
             {sidebarOpen && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-[#00e03c] shrink-0" />
+                <img src="/assets/brand/logo-seram-icon.png" alt="SERAM" className="w-5 h-5 object-contain shrink-0 drop-shadow-[0_0_8px_rgba(0,224,60,0.4)]" />
                 <span className="text-xs font-black text-white uppercase tracking-widest whitespace-nowrap">Panel SERAM</span>
               </motion.div>
             )}
@@ -4560,7 +4548,7 @@ export default function PartnerDashboard() {
             >
               <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
                 <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-[#00e03c]" />
+                  <img src="/assets/brand/logo-seram-icon.png" alt="SERAM" className="w-5 h-5 object-contain shrink-0 drop-shadow-[0_0_8px_rgba(0,224,60,0.4)]" />
                   <span className="text-xs font-black text-white uppercase tracking-widest">Módulos SERAM</span>
                 </div>
                 <button
@@ -4702,7 +4690,7 @@ export default function PartnerDashboard() {
 
           {/* Module Content — Permanente al 100% sin desvanecimiento */}
           <div key={activeModule} className="opacity-100 visible space-y-8">
-            {activeModule === 'overview'    && <OverviewModule kpis={kpis} metrics={metrics} partnerPresences={partnerPresences} timeLogs={timeLogs || []} onNavigate={setActiveModule} activeServices={activeServices || []} courses={courses || []} currentSocio={activeSocio} />}
+            {activeModule === 'overview'    && <OverviewModule kpis={kpis} metrics={metrics} partnerPresences={partnerPresences} timeLogs={timeLogs || []} onNavigate={setActiveModule} currentSocio={activeSocio} />}
             {activeModule === 'office'      && <VirtualOfficeView activeServices={activeServices || []} courses={courses || []} timeLogs={timeLogs || []} partnerPresences={partnerPresences || {}} currentSocio={activeSocio} onNavigateModule={setActiveModule} />}
             {activeModule === 'activities'  && <ActivitiesAndClientsModule currentSocio={activeSocio} />}
             {activeModule === 'clients'     && <ClientsModule currentSocio={activeSocio} onNavigate={setActiveModule} />}

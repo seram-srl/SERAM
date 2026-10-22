@@ -40,6 +40,13 @@ export default function RegisterPage() {
       >
         {/* Header */}
         <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <img
+              src="/assets/brand/logo-seram-white.webp"
+              alt="SERAM - Una Experiencia Ambiental"
+              className="h-10 w-auto object-contain drop-shadow-[0_2px_12px_rgba(0,224,60,0.35)]"
+            />
+          </div>
           <span className="neuform-badge neuform-badge-accent mb-3">SERAM REGISTRO</span>
           <h2 className="text-3xl font-black text-white tracking-tight uppercase">
             Crear Cuenta

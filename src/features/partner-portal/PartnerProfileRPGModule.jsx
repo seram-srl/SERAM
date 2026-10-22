@@ -38,7 +38,7 @@ const DEFAULT_PROFILES = {
     honoraryTitle: 'Arquitecto Tecnológico & Especialista SIG Senior',
     role: 'Sistemas, Teledetección & Innovación',
     skin: 'vest',
-    avatarUrl: '/assets/brand/ícono_logo.png',
+    avatarUrl: '/assets/brand/logo-seram-icon.png',
     cvName: 'CV_Diego_Barrientos_2026.pdf',
     cvDate: '2026-10-05',
     matricula: 'En trámite (SIB / RENCA)',
