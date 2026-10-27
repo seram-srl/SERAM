@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldAlert, KeyRound, X, CheckCircle, Loader2, User, ArrowLeft, Mail } from 'lucide-react';
+import { ShieldAlert, KeyRound, X, CheckCircle, Loader2, User, ArrowLeft, Mail, RefreshCw, AlertCircle } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../services/supabaseClient';
 
@@ -25,6 +25,8 @@ export default function SecretAuthModal() {
     triggerToast,
     setActiveRole,
     setCurrentSocio,
+    handleResendConfirmation,
+    handleResetPassword,
   } = useApp();
 
   // Estados lógicos de control de flujo
@@ -35,6 +37,9 @@ export default function SecretAuthModal() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [authError, setAuthError] = useState(null);
   const [success, setSuccess] = useState(false);
 
   const activePartner = PARTNERS_LIST[selectedPartnerIndex] || PARTNERS_LIST[0];
@@ -45,6 +50,7 @@ export default function SecretAuthModal() {
     setPassword('');
     setSuccess(false);
     setIsRegister(false);
+    setAuthError(null);
   }, [setShowSecretPortal]);
 
   // Escuchar tecla Escape para cerrar el portal secreto
@@ -61,33 +67,29 @@ export default function SecretAuthModal() {
   const handleSelectPartner = (idx) => {
     setSelectedPartnerIndex(idx);
     setEmail(PARTNERS_LIST[idx].email);
+    setPassword('');
+    setAuthError(null);
     setMode('FORM');
+  };
+
+  const handleResend = async () => {
+    if (!email) return;
+    setIsResending(true);
+    await handleResendConfirmation(email);
+    setIsResending(false);
+  };
+
+  const handleReset = async () => {
+    if (!email) return;
+    setIsResetting(true);
+    await handleResetPassword(email);
+    setIsResetting(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-
-    const normalizedPwd = password.trim().toLowerCase();
-
-    // ── BYPASS LOCAL OFFLINE INSTANTÁNEO CON CONTRASEÑA MASTER ──
-    if (normalizedPwd === 'socio2026' || normalizedPwd === 'seram2026') {
-      setSuccess(true);
-      triggerToast('Firma directiva autorizada con éxito.', 'success');
-
-      setTimeout(() => {
-        setActiveRole('AdminMod');
-        setCurrentSocio({
-          name: activePartner.name,
-          email: email,
-          role: 'partner',
-        });
-
-        handleClose();
-        navigate('/dashboard');
-      }, 1000);
-      return;
-    }
+    setAuthError(null);
 
     try {
       let data, error;
@@ -122,29 +124,49 @@ export default function SecretAuthModal() {
       setSuccess(true);
       triggerToast(
         isRegister
-          ? 'Registro de Socio exitoso en Supabase.'
+          ? 'Registro de Socio exitoso en Supabase. Si se requiere activación, revisa tu correo.'
           : 'Firma directiva autorizada en Supabase.',
         'success'
       );
 
+      const partnerPayload = {
+        name: activePartner.name,
+        email: email,
+        role: 'AdminMod',
+        id: data.user?.id,
+      };
+
+      try {
+        sessionStorage.setItem('seram_partner_role', 'AdminMod');
+        sessionStorage.setItem('seram_current_socio', JSON.stringify(partnerPayload));
+        localStorage.removeItem('seram_partner_role');
+        localStorage.removeItem('seram_current_socio');
+      } catch (_) {
+        // Ignorar error de almacenamiento
+      }
+
       setTimeout(() => {
         // Conceder rol administrativo y guardar en el contexto global
         setActiveRole('AdminMod');
-        setCurrentSocio({
-          name: activePartner.name,
-          email: email,
-          role: 'partner',
-          id: data.user?.id,
-        });
+        setCurrentSocio(partnerPayload);
 
         // Cerrar y limpiar
         handleClose();
         navigate('/dashboard');
-      }, 2000);
+      }, 1500);
     } catch (err) {
       console.warn('[Supabase RBAC Auth Warning]:', err.message);
       setIsSubmitting(false);
-      triggerToast(`Error de autenticación: ${err.message}`, 'error');
+      const isEmailNotConfirmed = err.message?.toLowerCase().includes('email not confirmed');
+      setAuthError({
+        message: err.message,
+        isEmailNotConfirmed,
+      });
+      if (isEmailNotConfirmed) {
+        triggerToast('Correo no verificado en Supabase. Solicita el reenvío de activación.', 'warning');
+      } else {
+        triggerToast(`Error de autenticación: ${err.message}`, 'error');
+      }
     }
   };
 
@@ -164,7 +186,7 @@ export default function SecretAuthModal() {
         {/* Botón Cerrar */}
         <button
           onClick={handleClose}
-          className="absolute top-5 right-5 p-2 bg-white/[0.04] hover:bg-white/10 rounded-full border border-white/10 text-slate-400 hover:text-white transition-all"
+          className="absolute top-5 right-5 p-2 bg-white/[0.04] hover:bg-white/10 rounded-full border border-white/10 text-slate-400 hover:text-white transition-all cursor-pointer"
           data-cursor-text="CERRAR"
         >
           <X className="w-4 h-4" />
@@ -176,8 +198,9 @@ export default function SecretAuthModal() {
             onClick={() => {
               setMode('SELECTION');
               setPassword('');
+              setAuthError(null);
             }}
-            className="absolute top-5 left-5 p-2 bg-white/[0.04] hover:bg-white/10 rounded-full border border-white/10 text-slate-400 hover:text-white transition-all flex items-center justify-center"
+            className="absolute top-5 left-5 p-2 bg-white/[0.04] hover:bg-white/10 rounded-full border border-white/10 text-slate-400 hover:text-white transition-all flex items-center justify-center cursor-pointer"
             data-cursor-text="ATRÁS"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -206,7 +229,7 @@ export default function SecretAuthModal() {
                 <button
                   key={partner.email}
                   onClick={() => handleSelectPartner(idx)}
-                  className="p-4 rounded-2xl border border-[#1a3a1a]/80 bg-[#05100a]/70 hover:bg-[#126c0f]/20 hover:border-[#00e03c]/60 text-left transition-all duration-300 flex items-center gap-4 group shadow-sm hover:shadow-[0_0_20px_rgba(0,224,60,0.15)]"
+                  className="p-4 rounded-2xl border border-[#1a3a1a]/80 bg-[#05100a]/70 hover:bg-[#126c0f]/20 hover:border-[#00e03c]/60 text-left transition-all duration-300 flex items-center gap-4 group shadow-sm hover:shadow-[0_0_20px_rgba(0,224,60,0.15)] cursor-pointer"
                   data-cursor-text="SELECCIONAR"
                 >
                   <div className="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-center text-slate-300 group-hover:text-[#00e03c] group-hover:border-[#00e03c]/40 group-hover:bg-[#00e03c]/15 transition-all shrink-0">
@@ -226,17 +249,17 @@ export default function SecretAuthModal() {
 
         {/* ── ESTADO 2: FORMULARIO DE ACCESO / REGISTRO ───────────────────── */}
         {mode === 'FORM' && !success && (
-          <div className="animate-fadeIn space-y-6">
+          <div className="animate-fadeIn space-y-5">
             <div className="text-center">
               <span className="text-[10px] font-bold text-[#00e03c] uppercase tracking-widest bg-[#00e03c]/15 border border-[#00e03c]/35 px-3 py-1 rounded-full shadow-[0_0_10px_rgba(0,224,60,0.15)]">
                 {activePartner.name}
               </span>
               <h3 className="text-lg font-black text-white mt-4 uppercase tracking-tight">
-                {isRegister ? 'Registro de Socio' : 'Validación de Firma'}
+                {isRegister ? 'Registro de Socio' : 'Validación de Firma Directiva'}
               </h3>
               <p className="text-xs text-slate-300 mt-1.5 leading-relaxed font-medium">
                 {isRegister
-                  ? 'Registra tu clave maestra vinculada al metadato del proyecto.'
+                  ? 'Registra tu contraseña vinculada al perfil institucional de socio.'
                   : 'Ingresa tu contraseña directiva configurada en Supabase.'}
               </p>
             </div>
@@ -245,8 +268,11 @@ export default function SecretAuthModal() {
             <div className="grid grid-cols-2 p-1 bg-black/60 border border-[#1a3a1a] rounded-xl text-center">
               <button
                 type="button"
-                onClick={() => setIsRegister(false)}
-                className={`py-2 text-[10px] font-bold uppercase rounded-lg transition-all ${
+                onClick={() => {
+                  setIsRegister(false);
+                  setAuthError(null);
+                }}
+                className={`py-2 text-[10px] font-bold uppercase rounded-lg transition-all cursor-pointer ${
                   !isRegister ? 'bg-[#00e03c] text-slate-950 shadow-md shadow-emerald-500/20' : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -254,8 +280,11 @@ export default function SecretAuthModal() {
               </button>
               <button
                 type="button"
-                onClick={() => setIsRegister(true)}
-                className={`py-2 text-[10px] font-bold uppercase rounded-lg transition-all ${
+                onClick={() => {
+                  setIsRegister(true);
+                  setAuthError(null);
+                }}
+                className={`py-2 text-[10px] font-bold uppercase rounded-lg transition-all cursor-pointer ${
                   isRegister ? 'bg-[#00e03c] text-slate-950 shadow-md shadow-emerald-500/20' : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -263,7 +292,35 @@ export default function SecretAuthModal() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+            {/* Banner de error y asistencia */}
+            {authError && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-left space-y-2">
+                <div className="flex items-start gap-2 text-xs text-amber-400 font-semibold">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
+                  <div>
+                    <p className="font-bold">
+                      {authError.isEmailNotConfirmed ? 'Cuenta No Confirmada' : 'Error de Autenticación'}
+                    </p>
+                    <p className="text-[11px] text-slate-300 font-normal mt-0.5">
+                      {authError.message}
+                    </p>
+                  </div>
+                </div>
+                {authError.isEmailNotConfirmed && (
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={isResending}
+                    className="w-full py-2 px-3 bg-[#00e03c]/20 hover:bg-[#00e03c]/30 text-[#00e03c] border border-[#00e03c]/40 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isResending ? 'animate-spin' : ''}`} />
+                    {isResending ? 'Reenviando...' : 'Reenviar Correo de Activación'}
+                  </button>
+                )}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4 pt-1">
               {/* Campo Email */}
               <div className="space-y-1.5">
                 <label className="block text-[9px] font-extrabold text-slate-300 uppercase tracking-[0.2em]">
@@ -274,7 +331,10 @@ export default function SecretAuthModal() {
                     type="email"
                     required
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (authError) setAuthError(null);
+                    }}
                     placeholder="socio@seram.com"
                     disabled={isSubmitting}
                     className="w-full bg-[#05100a]/80 border border-[#1a3a1a] focus:border-[#00e03c] text-white text-xs px-4 py-3.5 pl-11 rounded-xl focus:outline-none transition-all font-mono placeholder:text-slate-600 focus:ring-1 focus:ring-[#00e03c]/40"
@@ -285,15 +345,30 @@ export default function SecretAuthModal() {
 
               {/* Campo Password */}
               <div className="space-y-1.5">
-                <label className="block text-[9px] font-extrabold text-slate-300 uppercase tracking-[0.2em]">
-                  Clave Cifrada / Firma
-                </label>
+                <div className="flex justify-between items-center">
+                  <label className="block text-[9px] font-extrabold text-slate-300 uppercase tracking-[0.2em]">
+                    Contraseña / Firma Directiva
+                  </label>
+                  {!isRegister && (
+                    <button
+                      type="button"
+                      onClick={handleReset}
+                      disabled={isResetting}
+                      className="text-[10px] text-[#00e03c] hover:underline cursor-pointer disabled:opacity-50"
+                    >
+                      {isResetting ? 'Enviando...' : '¿Olvidaste tu contraseña?'}
+                    </button>
+                  )}
+                </div>
                 <div className="relative">
                   <input
                     type="password"
                     required
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (authError) setAuthError(null);
+                    }}
                     placeholder="••••••••"
                     disabled={isSubmitting}
                     className="w-full bg-[#05100a]/80 border border-[#1a3a1a] focus:border-[#00e03c] text-white text-xs px-4 py-3.5 pl-11 rounded-xl focus:outline-none transition-all font-mono placeholder:text-slate-600 focus:ring-1 focus:ring-[#00e03c]/40"
@@ -321,10 +396,25 @@ export default function SecretAuthModal() {
                 )}
               </button>
             </form>
+
+            {/* Asistencia adicional de reenvío si no está en registro */}
+            {!isRegister && (
+              <div className="pt-2 text-center border-t border-[#1a3a1a]">
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={isResending}
+                  className="text-[10px] text-slate-400 hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3 h-3 ${isResending ? 'animate-spin' : ''}`} />
+                  ¿No recibiste el correo de confirmación? Reenviar aquí
+                </button>
+              </div>
+            )}
           </div>
         )}
 
-        {/* ── ESTADO 3: EXCESO CONCEDIDO CON ÉXITO ────────────────────────── */}
+        {/* ── ESTADO 3: ACCESO CONCEDIDO CON ÉXITO ────────────────────────── */}
         {success && (
           <div className="text-center py-6 space-y-6 animate-fadeIn">
             <div className="flex items-center justify-center">

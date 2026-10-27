@@ -2309,35 +2309,64 @@ export function AppProvider({ children }) {
   };
 
   // --- HANDLERS ---
-  const handlePartnerLogin = (e, customPassword = null, customIndex = null) => {
+  const handlePartnerLogin = async (e, customPassword = null, customIndex = null) => {
     if (e && e.preventDefault) e.preventDefault();
-    const pwd = (customPassword !== null ? customPassword : secretPassword || '').trim().toLowerCase();
+    const pwd = (customPassword !== null ? customPassword : secretPassword || '').trim();
     const idx = customIndex !== null ? customIndex : selectedPartnerIndex;
-    
-    if (pwd === 'seram2026' || pwd === 'socio2026') {
-      const partnersList = registeredUsers.filter(u => u.role === 'AdminMod');
-      const partner = partnersList[idx] || partnersList[0];
-      if (partner) {
-        setActiveRole('AdminMod');
-        setCurrentSocio(partner);
-        setShowSecretModal(false);
-        setShowSecretPortal(false);
-        setSecretPassword('');
-        try {
-          sessionStorage.setItem('seram_partner_role', 'AdminMod');
-          sessionStorage.setItem('seram_current_socio', JSON.stringify(partner));
-          localStorage.removeItem('seram_partner_role');
-          localStorage.removeItem('seram_current_socio');
-        } catch (_) {
-          // Ignorar error de almacenamiento
-        }
-        triggerToast(`¡Bienvenido, ${partner.name}! Acceso al Dashboard Directivo.`, 'success');
-        return { success: true, partner };
-      }
-    } else {
-      triggerToast('Contraseña incorrecta. Acceso denegado.', 'error');
+    const partnersList = registeredUsers.filter(u => u.role === 'AdminMod');
+    const partner = partnersList[idx] || partnersList[0];
+
+    if (!partner) {
+      triggerToast('Socio directivo no encontrado.', 'error');
+      return { success: false };
     }
-    return { success: false };
+
+    if (!pwd) {
+      triggerToast('Por favor ingresa tu contraseña.', 'warning');
+      return { success: false };
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: partner.email,
+        password: pwd
+      });
+
+      if (error) {
+        if (error.message?.toLowerCase().includes('email not confirmed')) {
+          triggerToast('El correo electrónico de este socio aún no ha sido confirmado en Supabase. Utiliza la opción de reenvío de confirmación.', 'error');
+        } else {
+          triggerToast(`Error de acceso: ${error.message}`, 'error');
+        }
+        return { success: false, error };
+      }
+
+      const partnerData = {
+        name: partner.name,
+        email: partner.email,
+        role: 'AdminMod',
+        id: data.user?.id
+      };
+
+      setActiveRole('AdminMod');
+      setCurrentSocio(partnerData);
+      setShowSecretModal(false);
+      setShowSecretPortal(false);
+      setSecretPassword('');
+      try {
+        sessionStorage.setItem('seram_partner_role', 'AdminMod');
+        sessionStorage.setItem('seram_current_socio', JSON.stringify(partnerData));
+        localStorage.removeItem('seram_partner_role');
+        localStorage.removeItem('seram_current_socio');
+      } catch (_) {
+        // Ignorar error de almacenamiento
+      }
+      triggerToast(`¡Bienvenido, ${partner.name}! Acceso al Dashboard Directivo.`, 'success');
+      return { success: true, partner: partnerData, data };
+    } catch (err) {
+      triggerToast(`Error de autenticación: ${err.message}`, 'error');
+      return { success: false, error: err };
+    }
   };
 
   const handleRegisterSupabase = async (email, password, name) => {
@@ -2364,29 +2393,15 @@ export function AppProvider({ children }) {
     const cleanEmail = (email || '').trim();
     const cleanPass = (password || '').trim();
 
+    if (!cleanEmail || !cleanPass) {
+      triggerToast('Por favor ingresa correo y contraseña.', 'warning');
+      return { success: false, message: 'Campos incompletos' };
+    }
+
     // Comprueba si el email corresponde a uno de los 3 socios fundadores registrados (o con role 'AdminMod'):
     const partner = registeredUsers.find(
       u => (u.role === 'AdminMod' || u.name?.startsWith('Ing.')) && u.email?.toLowerCase() === cleanEmail.toLowerCase()
     );
-
-    // Comprueba si la contraseña ingresada es la clave maestra institucional de socio:
-    const isMasterPass = (cleanPass.toLowerCase() === 'socio2026' || cleanPass.toLowerCase() === 'seram2026');
-
-    // Bypass de clave maestra para socios directivos
-    if (partner && isMasterPass) {
-      setActiveRole('AdminMod');
-      setCurrentSocio(partner);
-      try {
-        sessionStorage.setItem('seram_partner_role', 'AdminMod');
-        sessionStorage.setItem('seram_current_socio', JSON.stringify(partner));
-        localStorage.removeItem('seram_partner_role');
-        localStorage.removeItem('seram_current_socio');
-      } catch (_) {
-        // Ignorar error de almacenamiento
-      }
-      triggerToast(`¡Bienvenido, ${partner.name}! Acceso al Dashboard de Socios autorizado.`, 'success');
-      return { success: true, isPartner: true, partner, redirectTo: '/dashboard' };
-    }
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -2395,8 +2410,8 @@ export function AppProvider({ children }) {
       });
 
       if (error) {
-        if (partner) {
-          triggerToast(`Credenciales no válidas en Supabase: ${error.message}. Recuerda que puedes ingresar con tu pase de acceso institucional (socio2026 / seram2026).`, 'error');
+        if (error.message?.toLowerCase().includes('email not confirmed')) {
+          triggerToast('Tu cuenta aún no ha sido confirmada en Supabase. Revisa tu bandeja de entrada o solicita un reenvío.', 'error');
         } else {
           triggerToast(`Error de acceso: ${error.message}`, 'error');
         }
@@ -2406,10 +2421,11 @@ export function AppProvider({ children }) {
       // Supabase exitoso: comprobar si es socio o usuario general
       const isPartnerRole = partner || data.user?.user_metadata?.role === 'partner' || data.user?.user_metadata?.role === 'AdminMod';
       if (isPartnerRole) {
-        const partnerData = partner || {
-          name: data.user?.user_metadata?.name || 'Socio Directivo',
+        const partnerData = {
+          name: partner?.name || data.user?.user_metadata?.name || data.user?.user_metadata?.full_name || 'Socio Directivo',
           email: data.user?.email || cleanEmail,
-          role: 'AdminMod'
+          role: 'AdminMod',
+          id: data.user?.id
         };
         setActiveRole('AdminMod');
         setCurrentSocio(partnerData);
@@ -2428,11 +2444,7 @@ export function AppProvider({ children }) {
       triggerToast('Sesión iniciada correctamente.', 'success');
       return { success: true, isPartner: false, data, redirectTo: '/academy' };
     } catch (err) {
-      if (partner) {
-        triggerToast(`Credenciales no válidas en Supabase: ${err.message}. Recuerda que puedes ingresar con tu pase de acceso institucional (socio2026 / seram2026).`, 'error');
-      } else {
-        triggerToast(`Error de acceso: ${err.message}`, 'error');
-      }
+      triggerToast(`Error de acceso: ${err.message}`, 'error');
       return { success: false, error: err };
     }
   };
@@ -2444,6 +2456,52 @@ export function AppProvider({ children }) {
       triggerToast('Sesión cerrada.', 'info');
     } catch (err) {
       triggerToast(`Error al cerrar sesión: ${err.message}`, 'error');
+    }
+  };
+
+  const handleResendConfirmation = async (email) => {
+    const cleanEmail = (email || '').trim();
+    if (!cleanEmail) {
+      triggerToast('Ingresa un correo electrónico válido.', 'warning');
+      return { success: false, message: 'Correo no especificado' };
+    }
+
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: cleanEmail,
+        options: {
+          emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/login` : undefined
+        }
+      });
+      if (error) throw error;
+      triggerToast('Correo de confirmación reenviado con éxito. Revisa tu bandeja de entrada o spam.', 'success');
+      return { success: true };
+    } catch (err) {
+      console.warn('[Supabase Resend Confirmation Warning]:', err.message);
+      triggerToast(`No se pudo reenviar la confirmación: ${err.message}`, 'error');
+      return { success: false, error: err };
+    }
+  };
+
+  const handleResetPassword = async (email) => {
+    const cleanEmail = (email || '').trim();
+    if (!cleanEmail) {
+      triggerToast('Ingresa un correo electrónico para recuperar tu contraseña.', 'warning');
+      return { success: false, message: 'Correo no especificado' };
+    }
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+        redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/login` : undefined
+      });
+      if (error) throw error;
+      triggerToast('Enlace de restablecimiento enviado. Revisa tu correo para cambiar tu contraseña.', 'success');
+      return { success: true };
+    } catch (err) {
+      console.warn('[Supabase Reset Password Warning]:', err.message);
+      triggerToast(`Error al solicitar restablecimiento: ${err.message}`, 'error');
+      return { success: false, error: err };
     }
   };
 
@@ -4132,6 +4190,7 @@ export function AppProvider({ children }) {
       // Handlers
       handleLogoClick, handlePartnerLogin, handleRegister,
       handleRegisterSupabase, handleLoginSupabase, handleLogoutPublic,
+      handleResendConfirmation, handleResetPassword,
       toggleLessonCompleted, approveCourseExam, submitAssignment,
       handleAccessItem, handleAddToCart, handleRemoveFromCart, handleCheckout,
       handleAddCourse, handleUpdateCourse, handleDeleteCourse, handleToggleCoursePremium,

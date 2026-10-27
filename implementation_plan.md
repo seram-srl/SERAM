@@ -1,51 +1,40 @@
-# Plan de Implementación Integral — TASK-096 & TASK-097
+# Plan de Implementación Integral — TASK-098
 
-## Contexto y Diagnóstico
-1. **Oficina Virtual en Resumen Ejecutivo**:
-   - Se removió el bloque `<VirtualOfficeView ... />` de `OverviewModule` en `PartnerDashboard.jsx`.
-   - Sin embargo, debido a que no se realizó el commit ni el push al repositorio remoto de GitHub (`origin/main`), la versión desplegada en producción (Vercel) y las sesiones remotas continuaban mostrando la versión anterior con la oficina virtual embebida.
-   - Adicionalmente, en la tarjeta de equipo directivo dentro de `OverviewModule`, se saneará cualquier residuo de etiquetas o enlaces ambiguos hacia la maqueta para que la pestaña sea 100% ejecutiva, limpia y de mínimo peso de cómputo.
-
-2. **Estandarización del Logotipo Oficial en Todo el Proyecto**:
-   - Siguiendo el manual oficial de marca (`BRANDING_AND_DESIGN_SYSTEM.md`, `.agents/skills/brand-guidelines/SKILL.md` y `03_DOCUMENTOS/02-diseno/Logo SERAM.md`), los assets canónicos definitivos son:
-     - **Dark Mode (Fondo Oscuro):** `/assets/brand/logo-seram-white.webp` (y fallback `.png`).
-     - **Light Mode (Fondo Claro/Documental):** `/assets/brand/logo-seram-dark.webp`.
-     - **Isotipo / Icono Aislado:** `/assets/brand/logo-seram-icon.png` (512x512 px transparente).
-   - Existen componentes que aún utilizan iconos genéricos (`<Shield>`), texto plano o rutas no estándar con tilde (`/assets/brand/ícono_logo.png`) que presentan riesgo de codificación en servidores web.
+## Título de la Tarea
+**TASK-098: Blindaje Integral de Ciberseguridad: Erradicación de Master Passwords en Frontend, Flujo de Reseteo y Reenvío de Confirmación Supabase, Robustecimiento de Sesiones y Saneamiento de Dependencias.**
 
 ---
 
-## Matriz de Medición y Auditoría de Archivos
+## 1. Contexto y Diagnóstico
+1. **Credenciales en Claro en Frontend:**
+   - En `LoginPage.jsx`, `AppContext.jsx` y `SecretAuthModal.jsx`, se implementó en fase demo un bypass con contraseñas maestras (`socio2026` / `seram2026`).
+   - Esto expone el acceso al Dashboard Directivo a cualquier persona que examine el código en el inspector de elementos o el bundle JS.
+   - Debe ser erradicado por completo. La autenticación debe depender 100% de Supabase Auth criptográfico (`signInWithPassword`).
 
-| Componente / Archivo | Ubicación | Estado Anterior | Estado Deseado (Último Logo) |
-|---|---|---|---|
-| `Navbar.jsx` | Cabecera Global | Oculto en móvil en `/dashboard` (`hidden sm:flex`) | Visible y adaptativo en todos los viewports |
-| `PartnerDashboard.jsx` | Sidebar Desktop | Icono genérico `<Shield>` | Isotipo oficial `/assets/brand/logo-seram-icon.png` |
-| `PartnerDashboard.jsx` | Mobile Drawer | Icono genérico `<Shield>` | Isotipo oficial `/assets/brand/logo-seram-icon.png` |
-| `LoginPage.jsx` | Formulario Auth | Sin logo gráfico (solo badge de texto) | Imagotipo `/assets/brand/logo-seram-white.webp` |
-| `RegisterPage.jsx` | Formulario Registro | Sin logo gráfico (solo badge de texto) | Imagotipo `/assets/brand/logo-seram-white.webp` |
-| `LoadingScreen.jsx` | Overlay Drei/Three.js | Texto tipográfico plano `SER A M` | Imagotipo `/assets/brand/logo-seram-white.webp` con glow |
-| `PartnerModal.jsx` | Modal Secreto Socios | Icono genérico `<Shield>` | Isotipo oficial `/assets/brand/logo-seram-icon.png` con glow |
-| `ChatbotFAB.jsx` | Bot Avatar & Header | Ruta con tilde `/assets/brand/ícono_logo.png` | Ruta estándar `/assets/brand/logo-seram-icon.png` |
-| `EcosystemNucleus.jsx` | Partículas Fondo | Ruta con tilde `/assets/brand/ícono_logo.png` | Ruta estándar `/assets/brand/logo-seram-icon.png` |
-| `PartnerProfileRPGModule.jsx` | Avatar Socio Default | Ruta con tilde `/assets/brand/ícono_logo.png` | Ruta estándar `/assets/brand/logo-seram-icon.png` |
-| `ServicesPage.jsx` | Metadatos SEO Schema | `/assets/brand/logo.png` (ruta obsoleta) | `/assets/brand/logo-seram-white.png` |
-| `index.html` | Meta Tags & Favicon | Favicon presente, faltan metas OG/Twitter | Metas `og:image` y `twitter:image` canónicos |
+2. **Dilema de Confirmación de Correo y Cuentas No Confirmadas:**
+   - Si un socio se registró pero el correo de confirmación de Supabase no le llegó (por rate limiting o spam), Supabase bloquea el login con contraseña (`Email not confirmed`).
+   - Es necesario añadir un flujo de diagnóstico y asistencia: botón de **"Reenviar correo de confirmación"** (`supabase.auth.resend({ type: 'signup', email })`) y **"Recuperar / Cambiar Contraseña"** (`supabase.auth.resetPasswordForEmail(email)`) tanto en `LoginPage.jsx` como en `SecretAuthModal.jsx`.
+
+3. **Protección de Rutas y Sesión:**
+   - Fortalecer `ProtectedRoute.jsx` y `AppContext.jsx` para sincronizar con la sesión activa real de Supabase (`supabaseUser`) manteniendo la persistencia en `sessionStorage` para navegación reactiva sin fugas en `localStorage`.
+
+4. **Saneamiento de Dependencias:**
+   - Parchear las vulnerabilidades reportadas por `npm audit` que no generen rotura de API.
 
 ---
 
-## Pasos de Ejecución
-1. **Validar y Saneamiento de `PartnerDashboard.jsx`**:
-   - Confirmar eliminación total de la oficina virtual en `OverviewModule`.
-   - Reemplazar iconos `<Shield>` en Sidebar y Mobile Drawer por el Isotipo Oficial.
-2. **Actualizar `Navbar.jsx`**:
-   - Ajustar para que en `/dashboard` se muestre de forma compacta y responsive sin colisionar con los controles.
-3. **Actualizar `LoginPage.jsx` y `RegisterPage.jsx`**:
-   - Incorporar el imagotipo oficial en la cabecera de las tarjetas de autenticación.
-4. **Actualizar `LoadingScreen.jsx` y `PartnerModal.jsx`**:
-   - Incorporar el imagotipo/isotipo oficial con estética Neuform y drop-shadow esmeralda.
-5. **Estandarizar Rutas de Isotipo en `ChatbotFAB.jsx`, `EcosystemNucleus.jsx` y `PartnerProfileRPGModule.jsx`**:
-   - Reemplazar `ícono_logo.png` por `logo-seram-icon.png`.
-6. **Verificar Metadatos en `index.html` y `ServicesPage.jsx`**.
-7. **Auditoría con ESLint y Build de Producción (`npm run build`)**.
-8. **Commit y Push Git Atómico** para que los cambios se desplieguen inmediatamente en producción (Vercel/GitHub).
+## 2. Matriz de Archivos Afectados
+
+| Archivo | Ubicación | Modificaciones Planificadas |
+|---|---|---|
+| `LoginPage.jsx` | `src/features/auth/LoginPage.jsx` | - Eliminar banner visible de bypass de clave maestra.<br>- Añadir link y modal de "Reenviar confirmación / Olvidé mi contraseña" vía Supabase.<br>- Limpiar cualquier texto de claves en claro. |
+| `SecretAuthModal.jsx` | `src/components/ui/SecretAuthModal.jsx` | - Eliminar validación de `socio2026`/`seram2026`.<br>- Validar 100% vía `supabase.auth.signInWithPassword`.<br>- Manejar explícitamente errores de cuenta no confirmada con opción de reenvío inmediato. |
+| `AppContext.jsx` | `src/context/AppContext.jsx` | - Eliminar bypass `isMasterPass` en `handlePartnerLogin` y `handleLoginSupabase`.<br>- Mantener login estricto Supabase y fallback ordenado con mensajes claros.<br>- Agregar métodos exportables: `handleResendConfirmation(email)` y `handleResetPassword(email)`. |
+| `ProtectedRoute.jsx` | `src/components/shared/ProtectedRoute.jsx` | - Blindar la verificación de sesión directiva validando coherencia de token y rol. |
+
+---
+
+## 3. Plan de Pruebas y Validación
+1. **Build:** Ejecutar `npm run build` para asegurar cero errores de empaquetado.
+2. **Linting:** Ejecutar `npx eslint` sobre los archivos modificados según `runtime-validation.md`.
+3. **Flujo de Acceso:** Verificar que no existan strings de contraseñas maestras en el código fuente (`git grep -i "socio2026"` y `git grep -i "seram2026"` deben retornar 0 coincidencias en código activo de autenticación).

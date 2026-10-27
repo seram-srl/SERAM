@@ -4190,7 +4190,7 @@ function InlinePartnerLogin({ registeredEngineers, onLogin }) {
 
           <div className="space-y-1.5">
             <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">
-              Clave Maestra / Firma Directiva
+              Contraseña Directiva / Firma (Supabase)
             </label>
             <input
               type="password"

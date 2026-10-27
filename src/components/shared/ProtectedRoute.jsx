@@ -2,15 +2,32 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 
+const PARTNER_EMAILS = [
+  'barrientoso2401@gmail.com',
+  'fernandoaraujo1912@gmail.com',
+  'sebastiansbs51@gmail.com'
+];
+
 /**
  * ProtectedRoute Component
- * Redirects unauthenticated users to `/login`
+ * Redirige usuarios sin autenticar a `/login`.
+ * Valida la coherencia de sesión y roles para prevenir accesos no autorizados.
  */
 export default function ProtectedRoute({ children }) {
-  const { supabaseUser, activeRole } = useApp();
+  const { supabaseUser, activeRole, currentSocio } = useApp();
   const location = useLocation();
 
-  const isAuth = !!supabaseUser || activeRole === 'AdminMod';
+  // Validación estricta de sesión:
+  // 1. Usuario regular con sesión activa de Supabase
+  // 2. O socio institucional directivo con rol AdminMod y perfil verificado
+  const isDirectivoAuth =
+    activeRole === 'AdminMod' &&
+    !!currentSocio?.email &&
+    PARTNER_EMAILS.includes(currentSocio.email.toLowerCase());
+
+  const isStandardAuth = !!supabaseUser;
+
+  const isAuth = isStandardAuth || isDirectivoAuth;
 
   if (!isAuth) {
     // Redirige al login, guardando la ubicación previa
