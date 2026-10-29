@@ -6,6 +6,14 @@
   "in_progress": [],
   "completed": [
     {
+      "id": "TASK-099",
+      "title": "Optimización de H1 Institucional y Pantalla de Carga Cinematográfica del Hero con Detección de Video de Fondo y Frases Alternantes",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-29",
+      "completed_at": "2026-10-29"
+    },
+    {
       "id": "TASK-098",
       "title": "Blindaje Integral de Ciberseguridad: Erradicación de Master Passwords en Frontend, Flujo de Reseteo y Reenvío de Confirmación Supabase, Robustecimiento de Sesiones y Saneamiento de Dependencias",
       "status": "completed",

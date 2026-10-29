@@ -149,6 +149,10 @@ function InteractiveScene({ hProgressRef }) {
   useEffect(() => {
     if (isMobile) {
       setActiveVideoTexture(null);
+      if (typeof window !== 'undefined') {
+        window.__seram_hero_video_ready = true;
+        window.dispatchEvent(new CustomEvent('seram-hero-video-ready'));
+      }
       return;
     }
 
@@ -171,8 +175,16 @@ function InteractiveScene({ hProgressRef }) {
     videoTexture.magFilter = THREE.LinearFilter;
     videoTexture.generateMipmaps = false;
 
+    const notifyVideoReady = () => {
+      if (typeof window !== 'undefined') {
+        window.__seram_hero_video_ready = true;
+        window.dispatchEvent(new CustomEvent('seram-hero-video-ready'));
+      }
+    };
+
     // Activar la textura del video cuando esté listo para reproducirse
     const handleCanPlay = () => {
+      notifyVideoReady();
       if (video.readyState >= 2) {
         setActiveVideoTexture(videoTexture);
       } else {
@@ -183,10 +195,12 @@ function InteractiveScene({ hProgressRef }) {
     };
 
     video.addEventListener('canplaythrough', handleCanPlay);
+    video.addEventListener('loadeddata', notifyVideoReady);
     video.load();
 
     return () => {
       video.removeEventListener('canplaythrough', handleCanPlay);
+      video.removeEventListener('loadeddata', notifyVideoReady);
       video.pause();
       videoTexture.dispose();
       setActiveVideoTexture(null);

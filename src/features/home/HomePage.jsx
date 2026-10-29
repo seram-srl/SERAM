@@ -13,6 +13,7 @@ import {
 import { useApp, AppContext } from '../../context/AppContext';
 import EnvironmentalCanvas from '../../components/ui/EnvironmentalCanvas';
 import BrandParticleText from '../../components/ui/BrandParticleText';
+import HeroPreloader from '../../components/ui/HeroPreloader';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -287,8 +288,8 @@ function HeroSection() {
             UNA EXPERIENCIA AMBIENTAL
           </motion.h2>
 
-          {/* H3 miga de pan / subtítulo con tamaño aumentado y animación de entrada */}
-          <motion.h3
+          {/* H1 Principal Institucional — Máxima Jerarquía Semántica y SEO */}
+          <motion.h1
             id="hero-desc"
             custom={3}
             variants={staggerChild}
@@ -299,9 +300,9 @@ function HeroSection() {
           >
             <span className="w-2 h-2 rounded-full bg-[#00e03c] shrink-0 animate-pulse" />
             <span>
-              Servicios de Consultoría en <span className="underline decoration-[#00e03c] decoration-2 underline-offset-4 font-semibold text-white">Ingeniería en Gestión Ambiental Integral</span>
+              Empresa Consultora de Servicios en <span className="underline decoration-[#00e03c] decoration-2 underline-offset-4 font-semibold text-white">Ingeniería y Gestión Ambiental Integral</span>
             </span>
-          </motion.h3>
+          </motion.h1>
         </div>
       </div>
 
@@ -1229,6 +1230,9 @@ export default function HomePage() {
 
   return (
     <div className="relative w-full min-h-screen neuform-bg text-slate-100 overflow-x-clip">
+      {/* 0. Pantalla de Carga Cinematográfica con Logo, Spinner y Frases Alternantes */}
+      <HeroPreloader />
+
       {/* 1. Canvas WebGL Fijo — recibe la ref de progreso horizontal */}
       <EnvironmentalCanvas isStorytelling={true} hProgressRef={hProgressRef} />
 
