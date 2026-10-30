@@ -1,10 +1,18 @@
 {
   "version": "1.0",
   "project": "SERAM",
-  "last_updated": "2026-10-26",
+  "last_updated": "2026-10-30",
   "tasks": [],
   "in_progress": [],
   "completed": [
+    {
+      "id": "TASK-101",
+      "title": "Implementación del Flujo Completo de Restablecimiento de Contraseña (UpdatePasswordModal, Captura de PASSWORD_RECOVERY en AppContext, supabase.auth.updateUser) y Acceso Directivo Seguro",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-30",
+      "completed_at": "2026-10-30"
+    },
     {
       "id": "TASK-100",
       "title": "Resolución de Error 404 en Actualización Vercel (Reescrituras SPA) y Rediseño Cinematográfico de Página 404 con Fondo bg_menu.webp, Copy Ecológico y Botón Magnético Interactivo",

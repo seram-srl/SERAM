@@ -8,6 +8,7 @@ import FullscreenMenu  from './components/ui/FullscreenMenu';
 import CustomCursor    from './components/ui/CustomCursor';
 import EnvironmentalCanvas from './components/ui/EnvironmentalCanvas';
 import SecretAuthModal from './components/ui/SecretAuthModal';
+import UpdatePasswordModal from './components/ui/UpdatePasswordModal';
 
 // ── Componentes globales de soporte
 import Navbar          from './components/shared/Navbar';
@@ -106,6 +107,9 @@ export default function App() {
 
       {/* ── CAPA z-120: Modal de autenticación ultra-secreta de socios ──── */}
       <SecretAuthModal />
+
+      {/* ── CAPA z-125: Modal de recuperación / actualización de contraseña (TASK-101) ── */}
+      <UpdatePasswordModal />
 
       {/* ── CAPA z-100: Menú fullscreen + botón hamburger ────────────────── */}
       {/*

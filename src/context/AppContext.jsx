@@ -100,6 +100,9 @@ export function AppProvider({ children }) {
   const [secretPassword, setSecretPassword] = useState('');
   const [selectedPartnerIndex, setSelectedPartnerIndex] = useState(0);
 
+  // --- PASSWORD RECOVERY MODAL (TASK-101) ---
+  const [showUpdatePasswordModal, setShowUpdatePasswordModal] = useState(false);
+
   // --- CART ---
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
@@ -1803,6 +1806,11 @@ export function AppProvider({ children }) {
       });
     };
 
+    // Detección inicial de flujo de recuperación de contraseña por URL hash o search (TASK-101)
+    if (typeof window !== 'undefined' && (window.location.hash.includes('type=recovery') || window.location.search.includes('type=recovery'))) {
+      setShowUpdatePasswordModal(true);
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSupabaseUser(session?.user ?? null);
       if (session?.user) {
@@ -1813,7 +1821,10 @@ export function AppProvider({ children }) {
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setShowUpdatePasswordModal(true);
+      }
       setSupabaseUser(session?.user ?? null);
       if (session?.user) {
         setIsRegistered(true);
@@ -2501,6 +2512,40 @@ export function AppProvider({ children }) {
     } catch (err) {
       console.warn('[Supabase Reset Password Warning]:', err.message);
       triggerToast(`Error al solicitar restablecimiento: ${err.message}`, 'error');
+      return { success: false, error: err };
+    }
+  };
+
+  const handleUpdateUserPassword = async (newPassword) => {
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      if (error) throw error;
+      // Si es socio directivo, autenticar automáticamente
+      const partner = registeredUsers.find(
+        u => (u.role === 'AdminMod' || u.name?.startsWith('Ing.')) && u.email?.toLowerCase() === data.user?.email?.toLowerCase()
+      );
+      if (partner) {
+        const partnerData = {
+          name: partner.name,
+          email: partner.email,
+          role: 'AdminMod',
+          id: data.user?.id
+        };
+        setActiveRole('AdminMod');
+        setCurrentSocio(partnerData);
+        sessionStorage.setItem('seram_partner_role', 'AdminMod');
+        sessionStorage.setItem('seram_current_socio', JSON.stringify(partnerData));
+      }
+      triggerToast('Contraseña actualizada exitosamente.', 'success');
+      setShowUpdatePasswordModal(false);
+      if (typeof window !== 'undefined') {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+      return { success: true, user: data.user, isPartner: !!partner };
+    } catch (err) {
+      triggerToast(`Error al actualizar contraseña: ${err.message}`, 'error');
       return { success: false, error: err };
     }
   };
@@ -4185,12 +4230,13 @@ export function AppProvider({ children }) {
       showPremiumRegisterModal, setShowPremiumRegisterModal,
       showPremiumBlockedModal, setShowPremiumBlockedModal,
       blockedItemName,
+      showUpdatePasswordModal, setShowUpdatePasswordModal,
       // Toast
       toast, triggerToast,
       // Handlers
       handleLogoClick, handlePartnerLogin, handleRegister,
       handleRegisterSupabase, handleLoginSupabase, handleLogoutPublic,
-      handleResendConfirmation, handleResetPassword,
+      handleResendConfirmation, handleResetPassword, handleUpdateUserPassword,
       toggleLessonCompleted, approveCourseExam, submitAssignment,
       handleAccessItem, handleAddToCart, handleRemoveFromCart, handleCheckout,
       handleAddCourse, handleUpdateCourse, handleDeleteCourse, handleToggleCoursePremium,
