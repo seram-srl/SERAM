@@ -12,7 +12,9 @@ import {
   AlertCircle,
   X,
   HelpCircle,
-  CheckCircle2
+  CheckCircle2,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import AuthHeroBackground from '../../components/ui/AuthHeroBackground';
 
@@ -27,6 +29,7 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [lastError, setLastError] = useState(null);
 
@@ -214,17 +217,35 @@ export default function LoginPage() {
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-500" />
               <input
                 id="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
                   if (lastError) setLastError(null);
                 }}
-                className="w-full bg-slate-950/60 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#00e03c] transition-all"
+                className="w-full bg-slate-950/60 border border-white/10 rounded-xl py-3 pl-12 pr-11 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#00e03c] transition-all"
                 placeholder="••••••••"
                 style={{ cursor: 'none' }}
               />
+              <button
+                type="button"
+                onMouseDown={() => setShowPassword(true)}
+                onMouseUp={() => setShowPassword(false)}
+                onMouseLeave={() => setShowPassword(false)}
+                onTouchStart={() => setShowPassword(true)}
+                onTouchEnd={() => setShowPassword(false)}
+                onKeyDown={(e) => {
+                  if (e.key === ' ' || e.key === 'Enter') setShowPassword(true);
+                }}
+                onKeyUp={() => setShowPassword(false)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer p-1"
+                title="Mantén presionado para ver la contraseña"
+                aria-label="Mantén presionado para ver la contraseña"
+                tabIndex={-1}
+              >
+                {showPassword ? <Eye className="w-4 h-4 text-[#00e03c]" /> : <EyeOff className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 

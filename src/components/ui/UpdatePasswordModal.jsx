@@ -32,6 +32,8 @@ export default function UpdatePasswordModal() {
     setShowUpdatePasswordModal(false);
     setPassword('');
     setConfirmPassword('');
+    setShowPassword(false);
+    setShowConfirmPassword(false);
     setErrorMsg('');
     setIsSuccess(false);
     if (typeof window !== 'undefined') {
@@ -87,15 +89,28 @@ export default function UpdatePasswordModal() {
 
   return (
     <div
-      className="fixed inset-0 z-[125] flex items-center justify-center bg-black/85 backdrop-blur-md animate-fadeIn px-4"
+      className="fixed inset-0 z-[125] flex items-center justify-center overflow-hidden animate-fadeIn px-4"
       role="dialog"
       aria-modal="true"
     >
+      {/* FONDO CINEMATOGRÁFICO CON PAISAJE HERO */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none select-none" aria-hidden="true">
+        <img
+          src="/assets/3d-backend/bg_home.webp"
+          alt=""
+          className="w-full h-full object-cover object-center filter blur-[6px] brightness-[0.70] contrast-[1.05]"
+        />
+        {/* Capa de oscurecimiento y gradiente para contraste Neuform y legibilidad WCAG AAA */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/65 to-black/85" />
+        {/* Retícula técnica Neuform */}
+        <div className="absolute inset-0 neuform-grid-bg opacity-25" />
+      </div>
+
       {/* Círculos de luz atmosféricos */}
       <div className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-[#00e03c]/10 blur-[150px] pointer-events-none" />
 
-      <div className="rounded-3xl w-full max-w-md p-8 sm:p-10 shadow-2xl shadow-black/95 relative animate-fadeIn bg-[#080f08]/98 backdrop-blur-2xl border border-[#1a3a1a]/80">
+      <div className="rounded-3xl w-full max-w-md p-8 sm:p-10 shadow-2xl shadow-black/95 relative z-10 animate-fadeIn bg-[#080f08]/90 backdrop-blur-2xl border border-[#1a3a1a]/80">
         {/* Botón Cerrar */}
         <button
           onClick={handleClose}
@@ -177,11 +192,21 @@ export default function UpdatePasswordModal() {
                   <KeyRound className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(prev => !prev)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                    onMouseDown={() => setShowPassword(true)}
+                    onMouseUp={() => setShowPassword(false)}
+                    onMouseLeave={() => setShowPassword(false)}
+                    onTouchStart={() => setShowPassword(true)}
+                    onTouchEnd={() => setShowPassword(false)}
+                    onKeyDown={(e) => {
+                      if (e.key === ' ' || e.key === 'Enter') setShowPassword(true);
+                    }}
+                    onKeyUp={() => setShowPassword(false)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer p-1"
+                    title="Mantén presionado para ver la contraseña"
+                    aria-label="Mantén presionado para ver la contraseña"
                     tabIndex={-1}
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <Eye className="w-4 h-4 text-[#00e03c]" /> : <EyeOff className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
@@ -207,11 +232,21 @@ export default function UpdatePasswordModal() {
                   <Lock className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
                   <button
                     type="button"
-                    onClick={() => setShowConfirmPassword(prev => !prev)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                    onMouseDown={() => setShowConfirmPassword(true)}
+                    onMouseUp={() => setShowConfirmPassword(false)}
+                    onMouseLeave={() => setShowConfirmPassword(false)}
+                    onTouchStart={() => setShowConfirmPassword(true)}
+                    onTouchEnd={() => setShowConfirmPassword(false)}
+                    onKeyDown={(e) => {
+                      if (e.key === ' ' || e.key === 'Enter') setShowConfirmPassword(true);
+                    }}
+                    onKeyUp={() => setShowConfirmPassword(false)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer p-1"
+                    title="Mantén presionado para ver la contraseña"
+                    aria-label="Mantén presionado para ver la contraseña"
                     tabIndex={-1}
                   >
-                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showConfirmPassword ? <Eye className="w-4 h-4 text-[#00e03c]" /> : <EyeOff className="w-4 h-4" />}
                   </button>
                 </div>
               </div>

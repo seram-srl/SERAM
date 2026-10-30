@@ -1,6 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldAlert, KeyRound, X, CheckCircle, Loader2, User, ArrowLeft, Mail, RefreshCw, AlertCircle } from 'lucide-react';
+import {
+  ShieldAlert,
+  KeyRound,
+  X,
+  CheckCircle,
+  Loader2,
+  User,
+  ArrowLeft,
+  Mail,
+  RefreshCw,
+  AlertCircle,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../services/supabaseClient';
 
@@ -36,6 +49,7 @@ export default function SecretAuthModal() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -48,6 +62,7 @@ export default function SecretAuthModal() {
     setShowSecretPortal(false);
     setMode('SELECTION');
     setPassword('');
+    setShowPassword(false);
     setSuccess(false);
     setIsRegister(false);
     setAuthError(null);
@@ -68,6 +83,7 @@ export default function SecretAuthModal() {
     setSelectedPartnerIndex(idx);
     setEmail(PARTNERS_LIST[idx].email);
     setPassword('');
+    setShowPassword(false);
     setAuthError(null);
     setMode('FORM');
   };
@@ -174,15 +190,28 @@ export default function SecretAuthModal() {
 
   return (
     <div
-      className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-md animate-fadeIn px-4"
+      className="fixed inset-0 z-[120] flex items-center justify-center overflow-hidden animate-fadeIn px-4"
       role="dialog"
       aria-modal="true"
     >
+      {/* FONDO CINEMATOGRÁFICO CON PAISAJE HERO */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none select-none" aria-hidden="true">
+        <img
+          src="/assets/3d-backend/bg_home.webp"
+          alt=""
+          className="w-full h-full object-cover object-center filter blur-[6px] brightness-[0.70] contrast-[1.05]"
+        />
+        {/* Capa de oscurecimiento y gradiente para contraste Neuform y legibilidad WCAG AAA */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/65 to-black/85" />
+        {/* Retícula técnica Neuform */}
+        <div className="absolute inset-0 neuform-grid-bg opacity-25" />
+      </div>
+
       {/* CÍRCULOS DE LUZ ATMOSFÉRICOS */}
       <div className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-[#00e03c]/10 blur-[150px] pointer-events-none" />
 
-      <div className="rounded-3xl w-full max-w-md p-8 sm:p-10 shadow-2xl shadow-black/95 relative animate-fadeIn bg-[#080f08]/98 backdrop-blur-2xl border border-[#1a3a1a]/70">
+      <div className="rounded-3xl w-full max-w-md p-8 sm:p-10 shadow-2xl shadow-black/95 relative z-10 animate-fadeIn bg-[#080f08]/90 backdrop-blur-2xl border border-[#1a3a1a]/80">
         {/* Botón Cerrar */}
         <button
           onClick={handleClose}
@@ -198,6 +227,7 @@ export default function SecretAuthModal() {
             onClick={() => {
               setMode('SELECTION');
               setPassword('');
+              setShowPassword(false);
               setAuthError(null);
             }}
             className="absolute top-5 left-5 p-2 bg-white/[0.04] hover:bg-white/10 rounded-full border border-white/10 text-slate-400 hover:text-white transition-all flex items-center justify-center cursor-pointer"
@@ -362,7 +392,7 @@ export default function SecretAuthModal() {
                 </div>
                 <div className="relative">
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     required
                     value={password}
                     onChange={(e) => {
@@ -371,10 +401,28 @@ export default function SecretAuthModal() {
                     }}
                     placeholder="••••••••"
                     disabled={isSubmitting}
-                    className="w-full bg-[#05100a]/80 border border-[#1a3a1a] focus:border-[#00e03c] text-white text-xs px-4 py-3.5 pl-11 rounded-xl focus:outline-none transition-all font-mono placeholder:text-slate-600 focus:ring-1 focus:ring-[#00e03c]/40"
+                    className="w-full bg-[#05100a]/80 border border-[#1a3a1a] focus:border-[#00e03c] text-white text-xs px-4 py-3.5 pl-11 pr-11 rounded-xl focus:outline-none transition-all font-mono placeholder:text-slate-600 focus:ring-1 focus:ring-[#00e03c]/40"
                     autoFocus
                   />
                   <KeyRound className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                  <button
+                    type="button"
+                    onMouseDown={() => setShowPassword(true)}
+                    onMouseUp={() => setShowPassword(false)}
+                    onMouseLeave={() => setShowPassword(false)}
+                    onTouchStart={() => setShowPassword(true)}
+                    onTouchEnd={() => setShowPassword(false)}
+                    onKeyDown={(e) => {
+                      if (e.key === ' ' || e.key === 'Enter') setShowPassword(true);
+                    }}
+                    onKeyUp={() => setShowPassword(false)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer p-1"
+                    title="Mantén presionado para ver la contraseña"
+                    aria-label="Mantén presionado para ver la contraseña"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <Eye className="w-4 h-4 text-[#00e03c]" /> : <EyeOff className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 

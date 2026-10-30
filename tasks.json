@@ -6,6 +6,14 @@
   "in_progress": [],
   "completed": [
     {
+      "id": "TASK-102",
+      "title": "Estilizado Cinematográfico de Modales con Paisaje Hero (bg_home.webp) de Fondo y Sistema Hold-to-Reveal (Ojito de Seguridad Presionar-para-Ver) en Entradas de Contraseña",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-10-30",
+      "completed_at": "2026-10-30"
+    },
+    {
       "id": "TASK-101",
       "title": "Implementación del Flujo Completo de Restablecimiento de Contraseña (UpdatePasswordModal, Captura de PASSWORD_RECOVERY en AppContext, supabase.auth.updateUser) y Acceso Directivo Seguro",
       "status": "completed",
