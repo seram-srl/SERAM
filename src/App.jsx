@@ -36,6 +36,24 @@ import CookieBanner     from './components/ui/CookieBanner';
 import ScrollToTop      from './components/shared/ScrollToTop';
 
 
+// Rutas registradas oficialmente en la plataforma para control de layout
+const KNOWN_ROUTES = [
+  '/',
+  '/login',
+  '/register',
+  '/quote',
+  '/academy',
+  '/services',
+  '/experience',
+  '/shop',
+  '/dashboard',
+  '/contact',
+  '/privacidad',
+  '/terminos',
+  '/cookies',
+  '/reembolsos',
+];
+
 export default function App() {
   const location = useLocation();
 
@@ -43,12 +61,17 @@ export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const toggleMenu = () => setIsMenuOpen(prev => !prev);
 
+  // Determinar si la ruta actual es una página conocida o un 404
+  const isKnownRoute = KNOWN_ROUTES.includes(location.pathname) ||
+    location.pathname.startsWith('/academy/course/') ||
+    location.pathname.startsWith('/academy/workspace');
+
   // Agrupar rutas legales para permitir crossfade in-place entre pestañas sin desmontar LegalPage
   const isLegalRoute = ['/privacidad', '/terminos', '/cookies', '/reembolsos'].includes(location.pathname);
   const routeKey = isLegalRoute ? '/legal' : location.pathname;
 
-  // Ocultar Footer en Dashboard y vistas dedicadas de Workspace
-  const hideFooter = location.pathname === '/dashboard' || location.pathname.startsWith('/academy/workspace');
+  // Ocultar Footer en Dashboard, Workspace y rutas 404 (experiencia inmersiva limpia)
+  const hideFooter = location.pathname === '/dashboard' || location.pathname.startsWith('/academy/workspace') || !isKnownRoute;
 
   return (
     /*
@@ -69,8 +92,8 @@ export default function App() {
       {/* ── Control de Scroll a cabecera en navegación independiente ────── */}
       <ScrollToTop />
 
-      {/* ── CAPA z-0: Fondo WebGL tridimensional ─────────────────────────── */}
-      {location.pathname !== '/' && location.pathname !== '/dashboard' && location.pathname !== '/login' && location.pathname !== '/register' && <EnvironmentalCanvas />}
+      {/* ── CAPA z-0: Fondo WebGL tridimensional (excluido en 404 para priorizar bg_menu.webp) ─ */}
+      {isKnownRoute && location.pathname !== '/' && location.pathname !== '/dashboard' && location.pathname !== '/login' && location.pathname !== '/register' && <EnvironmentalCanvas />}
 
       {/* ── CAPA z-2: Vignette degradé lateral para el home y páginas ───── */}
       <div className="vignette-overlay-sides" />
