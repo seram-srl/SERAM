@@ -93,7 +93,7 @@ export const ROOM_SEATS = {
     y: 54,
     facing: 'left',
     name: '11. EXPERIENCIA Y CAMPO',
-    deskName: 'Estación Drones Ing. Fabricio Orosco'
+    deskName: 'Estación Central de Drones y Monitoreo'
   },
   social_media: {
     roomId: 'social_media',
@@ -498,7 +498,7 @@ export const EDGES = [
   ['door_operations', 'ops_inner'],
   ['ops_inner', 'seat_operations'],
 
-  // ── Despacho Experiencia & Campo (Fabricio) ──
+  // ── Despacho de Operaciones Técnicas y Campo ──
   ['door_experience', 'exp_inner'],
   ['exp_inner', 'seat_experience'],
 

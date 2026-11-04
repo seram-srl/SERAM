@@ -403,11 +403,10 @@ function OverviewModule({ kpis, metrics, partnerPresences, timeLogs, onNavigate,
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
             { email: 'barrientoso2401@gmail.com', name: 'Ing. Diego Barrientos', role: 'Socio Fundador · Especialista SIG & Hidráulica', defaultSector: '02. DIRECCIÓN' },
             { email: 'fernandoaraujo1912@gmail.com', name: 'Ing. Fernando Araujo', role: 'Socio Fundador · Especialista Ambiental & Legal', defaultSector: '03. OPERACIONES Y PLANIFICACIÓN' },
-            { email: 'sebastiansbs51@gmail.com', name: 'Ing. Fabricio Orosco', role: 'Socio Fundador · Especialista Residuos & Auditoría', defaultSector: '11. EXPERIENCIA Y CAMPO' },
           ].map((def) => {
             const email = def.email;
             const presence = (partnerPresences || {})[email] || {};
@@ -591,8 +590,8 @@ function OverviewModule({ kpis, metrics, partnerPresences, timeLogs, onNavigate,
         </div>
 
         {/* Mini lista de tareas en curso */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {['Ing. Diego Barrientos', 'Ing. Fernando Araujo', 'Ing. Fabricio Orosco'].map((pName) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {['Ing. Diego Barrientos', 'Ing. Fernando Araujo'].map((pName) => {
             const socioAct = (activities || []).filter(a => a.assignedPartner === pName);
             const activeAct = socioAct.find(a => a.status === 'En curso') || socioAct[0];
             const doneCount = socioAct.filter(a => a.status === 'Concluido').length;
@@ -710,7 +709,7 @@ function OverviewModule({ kpis, metrics, partnerPresences, timeLogs, onNavigate,
               <span className="text-[9px] font-black uppercase text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-full">Estratégica (Medio Plazo)</span>
               <p className="text-xs font-bold text-white">Certificación SySO Interna</p>
               <p className="text-[10px] text-slate-400 leading-relaxed">
-                Reinvertir el 20% de los honorarios acumulados del fondo de socios en capacitar y certificar a uno de los tres socios (Diego, Fernando o Fabricio) para obtener el carnet SySO del Ministerio de Trabajo. Esto eliminará la necesidad del brokerage y elevará el margen de utilidad en PSST del 52% al 85%.
+                Reinvertir el 20% de los honorarios acumulados del fondo de socios en capacitar y certificar a uno de los dos socios fundadores (Diego o Fernando) para obtener el carnet SySO del Ministerio de Trabajo. Esto eliminará la necesidad del brokerage y elevará el margen de utilidad en PSST del 52% al 85%.
               </p>
             </div>
           </div>
@@ -3249,8 +3248,7 @@ function FinancesModule() {
 // ─────────────────────────────────────────────────────────────────────────────
 const DEFAULT_PARTNERS_CONFIG = [
   { email: 'barrientoso2401@gmail.com', name: 'Ing. Diego Barrientos', role: 'Socio Fundador · Presidencia & SIG', defaultRoom: '02. DIRECCIÓN' },
-  { email: 'fernandoaraujo1912@gmail.com', name: 'Ing. Fernando Araujo', role: 'Socio Fundador · Hidráulica & Obras', defaultRoom: '03. OPERACIONES' },
-  { email: 'sebastiansbs51@gmail.com', name: 'Ing. Fabricio Orosco', role: 'Socio Fundador · Residuos & Campo', defaultRoom: '11. EXPERIENCIA Y CAMPO' }
+  { email: 'fernandoaraujo1912@gmail.com', name: 'Ing. Fernando Araujo', role: 'Socio Fundador · Hidráulica & Obras', defaultRoom: '03. OPERACIONES' }
 ];
 
 function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, onNavigate }) {
@@ -3433,8 +3431,7 @@ function TimeTrackerModule({ timeLogs, activeServices, currentSocio, handlers, o
           l.partner_id === u.email || 
           l.partner_name === u.name ||
           (u.email?.includes('barrientos') && (l.partner_id?.includes('barrientos') || l.partner_name?.includes('Diego'))) ||
-          (u.email?.includes('fernando') && (l.partner_id?.includes('fernando') || l.partner_name?.includes('Fernando'))) ||
-          (u.email?.includes('sebastian') && (l.partner_id?.includes('sebastian') || l.partner_name?.includes('Fabricio')))
+          (u.email?.includes('fernando') && (l.partner_id?.includes('fernando') || l.partner_name?.includes('Fernando')))
         );
         const partnerH = partnerLogs.reduce((acc, curr) => acc + (Number(curr.hours) || 0), 0);
         const weightedH = partnerH * u.feeMultiplier;
@@ -4323,11 +4320,10 @@ export default function PartnerDashboard() {
     return () => { mounted = false; };
   }, [activeRole]);
 
-  const registeredEngineers = (registeredUsers || []).filter(u => u.role === 'AdminMod' || u.name?.startsWith('Ing.'));
+  const registeredEngineers = (registeredUsers || []).filter(u => (u.role === 'AdminMod' || u.name?.startsWith('Ing.')) && u.email !== 'sebastiansbs51@gmail.com');
   const safeEngineers = registeredEngineers.length > 0 ? registeredEngineers : [
     { email: 'barrientoso2401@gmail.com', role: 'AdminMod', name: 'Ing. Diego Barrientos', isPremiumApproved: true },
     { email: 'fernandoaraujo1912@gmail.com', role: 'AdminMod', name: 'Ing. Fernando Araujo', isPremiumApproved: true },
-    { email: 'sebastiansbs51@gmail.com', role: 'AdminMod', name: 'Ing. Fabricio Orosco', isPremiumApproved: true },
   ];
 
   const activeSocio = currentSocio || safeEngineers[0] || { name: 'Socio Directivo', email: 'socio@seram.com' };

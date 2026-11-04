@@ -76,7 +76,6 @@ const formatDateRange = (startDate, dueDate) => {
 
 const getPartnerInitials = (name) => {
   if (!name) return { initials: 'SR', short: 'Socio' };
-  if (name.includes('Fabricio') || name.includes('Sebastian')) return { initials: 'FS', short: 'Fabricio Seb' };
   if (name.includes('Diego')) return { initials: 'DB', short: 'Diego Barrie' };
   if (name.includes('Fernando')) return { initials: 'FA', short: 'FAAJ 19' };
   const parts = name.replace('Ing. ', '').split(' ');
@@ -847,7 +846,6 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         const isMe =
           act.assignedPartner === myName ||
           act.coPartner === myName ||
-          (myName.includes('Fabricio') && (act.assignedPartner?.includes('Sebastian') || act.assignedPartner?.includes('Fabricio'))) ||
           (myName.includes('Diego') && act.assignedPartner?.includes('Diego')) ||
           (myName.includes('Fernando') && act.assignedPartner?.includes('Fernando'));
         if (!isMe) return false;
@@ -857,8 +855,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
       const matchPartner =
         partnerFilter === 'all' ||
         act.assignedPartner === partnerFilter ||
-        act.coPartner === partnerFilter ||
-        (partnerFilter.includes('Fabricio') && act.assignedPartner?.includes('Sebastian'));
+        act.coPartner === partnerFilter;
 
       // 3. Filtro por Proyecto
       const matchProject =
@@ -896,7 +893,6 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
   const partnersList = [
     { name: 'Ing. Diego Barrientos', email: 'barrientoso2401@gmail.com', role: 'Especialista SIG & Monitoreo' },
     { name: 'Ing. Fernando Araujo', email: 'fernandoaraujo1912@gmail.com', role: 'Gestión Legal & Ambiental' },
-    { name: 'Ing. Fabricio Orosco', email: 'sebastiansbs51@gmail.com', role: 'Operaciones & Campo' },
   ];
 
   // Asignar misión flash desde plantilla predefinida de contingencias
@@ -1171,7 +1167,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
       const totalCount = activities.length;
       const pct = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
       return [
-        { label: 'Socios Fundadores', value: '3 Socios', sub: 'Diego, Fernando, Fabricio', color: 'text-purple-400', icon: Users, bg: 'bg-purple-500/10 border-purple-500/30' },
+        { label: 'Socios Fundadores', value: '2 Socios Fundadores', sub: 'Diego y Fernando', color: 'text-purple-400', icon: Users, bg: 'bg-purple-500/10 border-purple-500/30' },
         { label: 'Horas Homologadas', value: `${totalHours.toFixed(1)}h`, sub: 'Dedicación registrada', color: 'text-blue-400', icon: Clock, bg: 'bg-blue-500/10 border-blue-500/30' },
         { label: 'Rendimiento Global', value: `${pct}%`, sub: `${doneCount} de ${totalCount} concluidas`, color: 'text-[#00e03c]', icon: TrendingUp, bg: 'bg-[#00e03c]/10 border-[#00e03c]/30' },
         { label: 'Rango Promedio', value: 'Grado 11', sub: 'Consultor Senior Certificado', color: 'text-amber-400', icon: Award, bg: 'bg-amber-500/10 border-amber-500/30' },
@@ -3593,7 +3589,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                             <Clock className="w-3.5 h-3.5" /> Entregable a la espera de auditoría técnica
                           </p>
                           <p className="text-[11px] text-slate-300 leading-relaxed">
-                            Principio Anti-Cheat: Como autor responsable no puedes auto-aprobarte esta actividad. Requiere que Fernando, Fabricio o Diego revisen el entregable para acreditarte los puntos de XP.
+                            Principio Anti-Cheat: Como autor responsable no puedes auto-aprobarte esta actividad. Requiere que Fernando o Diego revisen el entregable para acreditarte los puntos de XP.
                           </p>
                         </div>
                       ) : (

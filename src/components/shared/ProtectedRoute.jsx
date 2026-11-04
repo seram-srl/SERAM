@@ -4,8 +4,7 @@ import { useApp } from '../../context/AppContext';
 
 const PARTNER_EMAILS = [
   'barrientoso2401@gmail.com',
-  'fernandoaraujo1912@gmail.com',
-  'sebastiansbs51@gmail.com'
+  'fernandoaraujo1912@gmail.com'
 ];
 
 /**

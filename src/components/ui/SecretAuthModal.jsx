@@ -17,11 +17,10 @@ import {
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../services/supabaseClient';
 
-// Lista exclusiva de los 3 socios directivos fundadores del proyecto SERAM
+// Lista exclusiva de los 2 socios fundadores del proyecto SERAM
 const PARTNERS_LIST = [
   { name: 'Ing. Diego Barrientos', email: 'barrientoso2401@gmail.com' },
   { name: 'Ing. Fernando Araujo', email: 'fernandoaraujo1912@gmail.com' },
-  { name: 'Ing. Fabricio Orosco', email: 'sebastiansbs51@gmail.com' },
 ];
 
 /**

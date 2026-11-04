@@ -76,7 +76,7 @@ export const TALENT_BRANCHES = [
         desc: 'Conocimiento del marco ambiental boliviano, estatutos de sociedad y contratos.',
         mission: 'Aprobación del Acuerdo Societario o revisión del marco regulatorio.',
         xpReward: 250,
-        unlockedFor: ['fernandoaraujo1912@gmail.com', 'barrientoso2401@gmail.com', 'sebastiansbs51@gmail.com'],
+        unlockedFor: ['fernandoaraujo1912@gmail.com', 'barrientoso2401@gmail.com'],
       },
       {
         id: 'legal_2',
@@ -126,7 +126,7 @@ export const TALENT_BRANCHES = [
         desc: 'Dominio de los 4 pilares comerciales y propuesta de valor integral.',
         mission: 'Revisión y validación del Business Model Canvas de SERAM.',
         xpReward: 250,
-        unlockedFor: ['barrientoso2401@gmail.com', 'fernandoaraujo1912@gmail.com', 'sebastiansbs51@gmail.com'],
+        unlockedFor: ['barrientoso2401@gmail.com', 'fernandoaraujo1912@gmail.com'],
       },
       {
         id: 'b2b_2',
@@ -226,7 +226,7 @@ export const TALENT_BRANCHES = [
         desc: 'Protocolos de cadena de custodia, calibración de multiparámetros y EPP.',
         mission: 'Validación del manual de bioseguridad y equipos de campo.',
         xpReward: 250,
-        unlockedFor: ['sebastiansbs51@gmail.com', 'barrientoso2401@gmail.com'],
+        unlockedFor: ['barrientoso2401@gmail.com', 'fernandoaraujo1912@gmail.com'],
       },
       {
         id: 'field_2',

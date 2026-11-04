@@ -595,7 +595,6 @@ export default function ClientsModule({ currentSocio, onNavigate }) {
                         <option value="Sin Asignar">Sin Asignar</option>
                         <option value="Ing. Diego Barrientos">Diego</option>
                         <option value="Ing. Fernando Araujo">Fernando</option>
-                        <option value="Ing. Fabricio Orosco">Fabricio</option>
                       </select>
                     </div>
 

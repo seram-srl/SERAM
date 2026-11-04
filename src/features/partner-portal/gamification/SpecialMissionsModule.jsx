@@ -64,7 +64,7 @@ export const CHEST_TIERS = {
     bg: 'from-amber-500/15 to-transparent',
     textColor: 'text-amber-300',
     icon: '🟡',
-    badge: 'Misión Grupal Trinitaria (3 Socios)',
+    badge: 'Misión Grupal de Socios Fundadores',
     xpMin: 45,
     xpMax: 50,
     perks: ['+50% XP Aumentado Máximo', 'Multiplicador de Tarifa 1.50x (24h)', 'Voto Dirimente & Liderazgo de Consorcio', '+1,500 PIP Colectivo']
@@ -76,9 +76,9 @@ const INITIAL_SPECIAL_MISSIONS = [
   {
     id: 'sm_1',
     type: 'group', // 'group' | 'flash' | 'secondary' | 'complex'
-    title: 'Raid Trinitario: Expediente Integral Cuenca Madre de Dios',
-    desc: 'Los tres socios deben confluir sus ramas simultáneamente: Diego elabora el modelo de cuenca hidrológica satelital, Fabricio ejecuta el protocolo de muestreo de mercurio y Fernando blindará la viabilidad de la licencia ambiental.',
-    assignedPartners: ['Ing. Diego Barrientos', 'Ing. Fernando Araujo', 'Ing. Fabricio Orosco'],
+    title: 'Raid de Socios: Expediente Integral Cuenca Madre de Dios',
+    desc: 'Los dos socios fundadores deben confluir sus ramas simultáneamente: Diego elabora el modelo de cuenca hidrológica satelital y Fernando blindará la viabilidad técnica y regulatoria de la licencia ambiental.',
+    assignedPartners: ['Ing. Diego Barrientos', 'Ing. Fernando Araujo'],
     chestTier: 'gold',
     deadline: '2026-10-31',
     status: 'in_progress', // 'in_progress' | 'ready_to_open' | 'claimed'
@@ -117,7 +117,7 @@ const INITIAL_SPECIAL_MISSIONS = [
     type: 'complex',
     title: 'Peritaje Complejo: Modelación de Metales Pesados en Sedimentos',
     desc: 'Elaboración del informe de auditoría forense ambiental para el consorcio minero en Potosí con análisis de especiación química y cadena de custodia notariada.',
-    assignedPartners: ['Ing. Fabricio Orosco', 'Ing. Diego Barrientos'],
+    assignedPartners: ['Ing. Fernando Araujo', 'Ing. Diego Barrientos'],
     chestTier: 'blue',
     deadline: '2026-10-25',
     status: 'ready_to_open', // Listo para abrir el cofre
@@ -364,7 +364,7 @@ export default function SpecialMissionsModule({ currentSocio }) {
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <span>🟡 Grupales (3 Socios)</span>
+            <span>🟡 Grupales (Socios Fundadores)</span>
           </button>
           <button
             type="button"
@@ -461,7 +461,7 @@ export default function SpecialMissionsModule({ currentSocio }) {
                         border: `1px solid ${tier.border}`
                       }}
                     >
-                      {tier.icon} {mission.type === 'group' ? 'GRUPAL TRINITARIA' : isFlash ? 'FLASH (72-96h)' : mission.type === 'secondary' ? 'SECUNDARIA' : 'PERICIAL COMPLEJA'}
+                      {tier.icon} {mission.type === 'group' ? 'GRUPAL CONJUNTA' : isFlash ? 'FLASH (72-96h)' : mission.type === 'secondary' ? 'SECUNDARIA' : 'PERICIAL COMPLEJA'}
                     </span>
 
                     {/* Badge de Temporizador Digital en Vivo */}
@@ -523,7 +523,7 @@ export default function SpecialMissionsModule({ currentSocio }) {
                 {/* Socios Asignados */}
                 <div className="pt-2 flex items-center gap-2 flex-wrap">
                   <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                    {mission.type === 'group' ? 'Los 3 Socios:' : 'Asignado a:'}
+                    {mission.type === 'group' ? 'Socios Fundadores:' : 'Asignado a:'}
                   </span>
                   {mission.assignedPartners.map(p => (
                     <span

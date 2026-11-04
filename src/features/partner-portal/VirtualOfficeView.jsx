@@ -244,16 +244,16 @@ export const OFFICE_ROOMS = [
     color: '#06b6d4',
     xPercent: 91,
     yPercent: 54,
-    lead: 'Ing. Fabricio Orosco',
-    role: 'Socio Directivo · Calidad & Expansión',
-    leadInitials: 'FO',
+    lead: 'Dirección Técnica SERAM',
+    role: 'Operaciones Técnicas, Drones & Monitoreo',
+    leadInitials: 'DT',
     bot: {
       name: 'Bot Drones & Ortomosaicos',
       role: 'Fotogrametría & Nubes de Puntos',
       avatar: '🚁',
       status: 'Procesando ortomosaico LiDAR'
     },
-    description: 'Despacho del Ing. Fabricio Orosco: misiones de drones, expediciones científicas y turismo ambiental de alta montaña.',
+    description: 'Estación Central de Operaciones y Monitoreo Ambiental de SERAM S.R.L.',
     metrics: '2 misiones de campo programadas'
   },
   {
@@ -423,7 +423,6 @@ export default function VirtualOfficeView({
   const [avatarFacing, setAvatarFacing] = useState(() => {
     const currentEmail = currentSocio?.email || 'barrientoso2401@gmail.com';
     if (currentEmail === 'fernandoaraujo1912@gmail.com') return ROOM_SEATS.operations.facing;
-    if (currentEmail === 'sebastiansbs51@gmail.com') return ROOM_SEATS.experience.facing;
     return ROOM_SEATS.direction.facing;
   });
 
@@ -433,7 +432,6 @@ export default function VirtualOfficeView({
     const presence = (globalPresences || partnerPresences || {})[currentEmail];
     if (presence?.roomCoords) return presence.roomCoords;
     if (currentEmail === 'fernandoaraujo1912@gmail.com') return { x: ROOM_SEATS.operations.x, y: ROOM_SEATS.operations.y };
-    if (currentEmail === 'sebastiansbs51@gmail.com') return { x: ROOM_SEATS.experience.x, y: ROOM_SEATS.experience.y };
     return { x: ROOM_SEATS.direction.x, y: ROOM_SEATS.direction.y };
   });
   const [isWalking, setIsWalking] = useState(false);
@@ -847,8 +845,6 @@ export default function VirtualOfficeView({
       soundEngine.playDeskClick();
       const defaultRoomId = currentSocio?.email === 'fernandoaraujo1912@gmail.com'
         ? 'operations'
-        : currentSocio?.email === 'sebastiansbs51@gmail.com'
-        ? 'experience'
         : 'direction';
 
       const seat = ROOM_SEATS[defaultRoomId];
@@ -863,7 +859,7 @@ export default function VirtualOfficeView({
     return OFFICE_ROOMS.find(r => r.id === selectedRoomId) || OFFICE_ROOMS[1];
   }, [selectedRoomId]);
 
-  // Lista de los 3 socios humanos con chalecos SERAM y ubicación dinámica en tiempo real
+  // Lista de los 2 socios fundadores con chalecos SERAM y ubicación dinámica en tiempo real
   const partnerAvatars = useMemo(() => {
     const list = [
       {
@@ -883,15 +879,6 @@ export default function VirtualOfficeView({
         initials: 'FA',
         hairColor: '#1a1a1a',
         homeCoords: { x: 91, y: 31 }
-      },
-      {
-        id: 'fabricio',
-        email: 'sebastiansbs51@gmail.com',
-        name: 'Ing. Fabricio Orosco',
-        shortName: 'Fabricio',
-        initials: 'FO',
-        hairColor: '#3d2b1f',
-        homeCoords: { x: 91, y: 54 }
       }
     ];
 

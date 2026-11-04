@@ -72,7 +72,7 @@ const FALLBACK_COURSES = [
     {
         id: 4,
         title: 'Auditoría y Regularización de Emergencia ante la *AACD/AACN*',
-        instructor: 'Ing. Fabricio Orosco',
+        instructor: 'Equipo Técnico Especializado SERAM',
         students: 18,
         status: 'Activo',
         isPremium: true,

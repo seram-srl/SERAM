@@ -11,8 +11,7 @@ export const LEGACY_SKINS = ['vest', 'field', 'suit'];
 
 export const PARTNER_EMAILS = [
   'barrientoso2401@gmail.com',
-  'fernandoaraujo1912@gmail.com',
-  'sebastiansbs51@gmail.com'
+  'fernandoaraujo1912@gmail.com'
 ];
 
 // ── PALETAS CERRADAS ─────────────────────────────────────────────────────────
@@ -207,12 +206,6 @@ export const DEFAULT_AVATAR_CONFIGS = {
     hairColor: '#1a1a1a',
     outfit: 'suit',
     outfitColor: 'graphite'
-  },
-  'sebastiansbs51@gmail.com': {
-    ...BASE_AVATAR_CONFIG,
-    hairColor: '#3d2b1f',
-    outfit: 'field',
-    outfitColor: 'emerald'
   }
 };
 

@@ -102,7 +102,7 @@ export const TALENT_NODES = [
     desc: 'Fundamento científico colegiado (SIB) en ciencias de la tierra, química ambiental, ecología general y legislación marco boliviana (CPE Art. 342-347, Ley 1333). Jerarquía inicial de técnico en la función pública o Ingeniero Jr. que germina en la consultora.',
     seramApplication: 'Punto de partida troncal común para todo consultor e ingeniero de SERAM.',
     recommendedCert: 'Título en Provisión Nacional + Colegiatura SIB',
-    defaultUnlockedFor: ['barrientoso2401@gmail.com', 'fernandoaraujo1912@gmail.com', 'sebastiansbs51@gmail.com']
+    defaultUnlockedFor: ['barrientoso2401@gmail.com', 'fernandoaraujo1912@gmail.com']
   },
 
   // =========================================================================
@@ -123,7 +123,7 @@ export const TALENT_NODES = [
     desc: 'Calibración de sondas multiparamétricas (pH, CE, OD, turbidez), protocolos de muestreo de agua según Standard Methods y cadena de custodia.',
     seramApplication: 'Campañas de campo y levantamiento de línea base en ríos y cuencas mineras.',
     recommendedCert: 'Curso Práctico de Muestreo de Aguas (SERAM Academy)',
-    defaultUnlockedFor: ['barrientoso2401@gmail.com', 'sebastiansbs51@gmail.com']
+    defaultUnlockedFor: ['barrientoso2401@gmail.com']
   },
   {
     id: 'eia_reg_1',
@@ -424,7 +424,7 @@ export const TALENT_NODES = [
     desc: 'Levantamiento de parcelas botánicas de Gentry, identificación taxonómica y cálculo de índices ecológicos (Shannon-Wiener, Simpson, Margalef).',
     seramApplication: 'Capítulo biológico en estudios de impacto ambiental y diagnósticos de áreas protegidas.',
     recommendedCert: 'Metodologías de Inventario Botánico de Campo',
-    defaultUnlockedFor: ['sebastiansbs51@gmail.com']
+    defaultUnlockedFor: []
   },
   {
     id: 'bio_rest_1',
@@ -441,7 +441,7 @@ export const TALENT_NODES = [
     desc: 'Selección de especies nativas pioneras, inoculación de micorrizas y bioingeniería con fajinas y biomantas para taludes degradados.',
     seramApplication: 'Planes de cierre minero y restauración de márgenes ribereñas en los Yungas y Valles.',
     recommendedCert: 'Taller de Bioingeniería de Suelos',
-    defaultUnlockedFor: ['sebastiansbs51@gmail.com']
+    defaultUnlockedFor: []
   },
   {
     id: 'bio_sig_1',
@@ -530,7 +530,7 @@ export const TALENT_NODES = [
     desc: 'Muestreo por cuarteo, determinación de densidad y generación per cápita (PPC) de residuos sólidos conforme a la Norma Boliviana NB 742-760.',
     seramApplication: 'Estudios de diagnóstico y planes municipales de gestión integral de residuos sólidos.',
     recommendedCert: 'Taller de Caracterización y Gestión de Residuos (NB)',
-    defaultUnlockedFor: ['sebastiansbs51@gmail.com']
+    defaultUnlockedFor: []
   },
   {
     id: 'rec_bio_1',
@@ -547,7 +547,7 @@ export const TALENT_NODES = [
     desc: 'Manejo de lechos de Eisenia foetida, control de balance C/N, humedad y temperatura, cosecha y purificación de humus líquido y sólido.',
     seramApplication: 'Producción de insumos biológicos de la tienda SERAM Store y proyectos agroecológicos.',
     recommendedCert: 'Especialista en Biotecnología de Lombricultura',
-    defaultUnlockedFor: ['sebastiansbs51@gmail.com']
+    defaultUnlockedFor: []
   },
   {
     id: 'rec_sig_1',
@@ -581,7 +581,7 @@ export const TALENT_NODES = [
     desc: 'Dimensionamiento de canchas de compostaje termofílico, sistemas de volteo mecánico, aireación forzada y biofiltros de control de olores.',
     seramApplication: 'Proyectos llave en mano de plantas de abono orgánico municipal adjudicables por SICOES.',
     recommendedCert: 'Ingeniería de Plantas de Biocompostaje',
-    defaultUnlockedFor: ['sebastiansbs51@gmail.com']
+    defaultUnlockedFor: []
   },
   {
     id: 'rec_acv_1',

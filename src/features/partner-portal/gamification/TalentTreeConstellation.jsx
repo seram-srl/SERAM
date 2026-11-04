@@ -360,8 +360,6 @@ export default function TalentTreeConstellation({
         if (['eia_base', 'eia_sig_1', 'clim_sig_1'].includes(nodeId)) return true;
       } else if (activePartnerEmail === 'fernandoaraujo1912@gmail.com') {
         if (['eia_base', 'eia_audit_1', 'esg_iso_1'].includes(nodeId)) return true;
-      } else if (activePartnerEmail === 'sebastiansbs51@gmail.com') {
-        if (['eia_base', 'bio_eco_1', 'rec_girsu_1'].includes(nodeId)) return true;
       }
       return false;
     };

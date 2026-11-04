@@ -56,7 +56,7 @@ export function AppProvider({ children }) {
       localStorage.removeItem('seram_current_socio');
       const saved = sessionStorage.getItem('seram_current_socio');
       const parsed = saved ? JSON.parse(saved) : null;
-      const validEmails = ['barrientoso2401@gmail.com', 'fernandoaraujo1912@gmail.com', 'sebastiansbs51@gmail.com'];
+      const validEmails = ['barrientoso2401@gmail.com', 'fernandoaraujo1912@gmail.com'];
       if (parsed && (!parsed.email || !validEmails.includes(parsed.email.toLowerCase()))) {
         sessionStorage.removeItem('seram_current_socio');
         return null;
@@ -72,7 +72,6 @@ export function AppProvider({ children }) {
   const [registeredUsers, setRegisteredUsers] = useState([
     { email: 'barrientoso2401@gmail.com', role: 'AdminMod', name: 'Ing. Diego Barrientos', isPremiumApproved: true },
     { email: 'fernandoaraujo1912@gmail.com', role: 'AdminMod', name: 'Ing. Fernando Araujo', isPremiumApproved: true },
-    { email: 'sebastiansbs51@gmail.com', role: 'AdminMod', name: 'Ing. Fabricio Orosco', isPremiumApproved: true },
   ]);
 
   // Persistir sesión de socio únicamente en sessionStorage (volátil, expira al cerrar la pestaña/navegador)
@@ -165,7 +164,7 @@ export function AppProvider({ children }) {
         client: 'SERAM S.R.L. (Directorio)',
         type: 'Reunión de Directorio & Coordinación General',
         lead: 'Ing. Diego Barrientos',
-        involved: ['Ing. Diego Barrientos', 'Ing. Fernando Araujo', 'Ing. Fabricio Orosco'],
+        involved: ['Ing. Diego Barrientos', 'Ing. Fernando Araujo'],
         location: 'Sala de Directorio (Oficina 2.5D / Reunión General)',
         startDate: '2026-01-01',
         endDate: '2026-12-31',
@@ -184,7 +183,7 @@ export function AppProvider({ children }) {
         client: 'SERAM S.R.L. (Interno)',
         type: 'Plataforma Digital & Ecosistema SERAM',
         lead: 'Ing. Diego Barrientos',
-        involved: ['Ing. Diego Barrientos', 'Ing. Fernando Araujo', 'Ing. Fabricio Orosco'],
+        involved: ['Ing. Diego Barrientos', 'Ing. Fernando Araujo'],
         location: 'La Paz - Remoto',
         startDate: '2026-05-01',
         endDate: '2026-12-31',
@@ -268,8 +267,8 @@ export function AppProvider({ children }) {
         description: 'Plantilla del Reglamento y estatuto societario interno de SERAM S.R.L.',
         startDate: '2026-08-03',
         dueDate: '2026-08-07',
-        assignedPartner: 'Ing. Fabricio Orosco',
-        assignedPartnerEmail: 'sebastiansbs51@gmail.com',
+        assignedPartner: 'Ing. Fernando Araujo',
+        assignedPartnerEmail: 'fernandoaraujo1912@gmail.com',
         projectTitle: 'SERAM S.R.L.',
         strategicObjectives: ['LEGALIZAR Y FORMALIZAR'],
         category: 'Legal & Corporativo',
@@ -325,8 +324,8 @@ export function AppProvider({ children }) {
         description: 'Plantilla de contratos y formalización de acta de constitución societaria.',
         startDate: '2026-08-03',
         dueDate: '2026-08-07',
-        assignedPartner: 'Ing. Fabricio Orosco',
-        assignedPartnerEmail: 'sebastiansbs51@gmail.com',
+        assignedPartner: 'Ing. Fernando Araujo',
+        assignedPartnerEmail: 'fernandoaraujo1912@gmail.com',
         projectTitle: 'SERAM S.R.L.',
         strategicObjectives: ['LEGALIZAR Y FORMALIZAR'],
         category: 'Legal & Corporativo',
@@ -359,12 +358,12 @@ export function AppProvider({ children }) {
       },
       {
         id: 6,
-        title: '3 Videos p/Valle de las agujas (S)',
+        title: '3 Videos p/Valle de las agujas (F-Campo)',
         description: 'Tres videos cada uno formato vertical con tomas de campo en Valle de las Ánimas/Agujas.',
         startDate: '2026-08-11',
         dueDate: '2026-08-14',
-        assignedPartner: 'Ing. Fabricio Orosco',
-        assignedPartnerEmail: 'sebastiansbs51@gmail.com',
+        assignedPartner: 'Ing. Fernando Araujo',
+        assignedPartnerEmail: 'fernandoaraujo1912@gmail.com',
         projectTitle: 'Valle de las Agujas',
         strategicObjectives: ['LEGALIZAR Y FORMALIZAR'],
         category: 'Contenido & Redes',
@@ -397,12 +396,12 @@ export function AppProvider({ children }) {
       },
       {
         id: 8,
-        title: 'Contenido Técnico (S)',
+        title: 'Contenido Técnico (Flora y Fauna)',
         description: 'Contenido: temas Flora y Fauna Y Fisiografía para consultoría ambiental.',
         startDate: '2026-08-11',
         dueDate: '2026-08-14',
-        assignedPartner: 'Ing. Fabricio Orosco',
-        assignedPartnerEmail: 'sebastiansbs51@gmail.com',
+        assignedPartner: 'Ing. Fernando Araujo',
+        assignedPartnerEmail: 'fernandoaraujo1912@gmail.com',
         projectTitle: 'SERAM S.R.L.',
         strategicObjectives: ['LEGALIZAR Y FORMALIZAR', 'RENTABILIDAD'],
         category: 'Trabajo de Campo / Muestreo',
@@ -511,12 +510,12 @@ export function AppProvider({ children }) {
       },
       {
         id: 14,
-        title: 'Propuestas de proyectos (S)',
+        title: 'Propuestas de proyectos (Campo y Logística)',
         description: 'Estructuración operativa y logística de propuestas de proyectos mineros.',
         startDate: '2026-08-31',
         dueDate: '2026-09-04',
-        assignedPartner: 'Ing. Fabricio Orosco',
-        assignedPartnerEmail: 'sebastiansbs51@gmail.com',
+        assignedPartner: 'Ing. Fernando Araujo',
+        assignedPartnerEmail: 'fernandoaraujo1912@gmail.com',
         projectTitle: 'SERAM S.R.L.',
         strategicObjectives: ['LEGALIZAR Y FORMALIZAR', 'RENTABILIDAD'],
         category: 'Trabajo de Campo / Muestreo',
@@ -534,8 +533,8 @@ export function AppProvider({ children }) {
         description: 'Auditoría interna societaria, revisión de compromisos y asignación semanal.',
         startDate: '2026-08-31',
         dueDate: '2026-08-31',
-        assignedPartner: 'Ing. Fabricio Orosco',
-        assignedPartnerEmail: 'sebastiansbs51@gmail.com',
+        assignedPartner: 'Ing. Diego Barrientos',
+        assignedPartnerEmail: 'barrientoso2401@gmail.com',
         projectTitle: 'SERAM S.R.L.',
         strategicObjectives: ['LEGALIZAR Y FORMALIZAR'],
         category: 'Administración & Finanzas',
@@ -572,8 +571,8 @@ export function AppProvider({ children }) {
         description: 'Plantilla del Reglamento, modelo meritocrático y estatutos de fundadores.',
         startDate: '2026-08-31',
         dueDate: '2026-09-04',
-        assignedPartner: 'Ing. Fabricio Orosco',
-        assignedPartnerEmail: 'sebastiansbs51@gmail.com',
+        assignedPartner: 'Ing. Fernando Araujo',
+        assignedPartnerEmail: 'fernandoaraujo1912@gmail.com',
         projectTitle: 'SERAM S.R.L.',
         strategicObjectives: ['LEGALIZAR Y FORMALIZAR'],
         category: 'Legal & Corporativo',
@@ -670,7 +669,9 @@ export function AppProvider({ children }) {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed) && parsed.length > 0) {
             return parsed.map(a => {
-              const cleaned = a.assignedPartner === 'Ing. Sebastian Orosco' ? { ...a, assignedPartner: 'Ing. Fabricio Orosco' } : a;
+              const cleaned = (a.assignedPartner === 'Ing. Sebastian Orosco' || a.assignedPartner === 'Ing. Fabricio Orosco' || a.assignedPartnerEmail === 'sebastiansbs51@gmail.com')
+                ? { ...a, assignedPartner: 'Ing. Fernando Araujo', assignedPartnerEmail: 'fernandoaraujo1912@gmail.com' }
+                : a;
               if (cleaned.description && typeof cleaned.description === 'string' && cleaned.description.includes('<!--SERAM_META:')) {
                 const { cleanDesc, meta } = parseActivityMeta(cleaned.description);
                 return {
@@ -946,8 +947,8 @@ export function AppProvider({ children }) {
       },
       {
         id: 104,
-        partner_id: 'sebastiansbs51@gmail.com',
-        partner_name: 'Ing. Fabricio Orosco',
+        partner_id: 'fernandoaraujo1912@gmail.com',
+        partner_name: 'Ing. Fernando Araujo',
         project_id: 'srm-internal-web',
         project_title: 'Plataforma Digital & Ecosistema SERAM',
         hours: 27.0,
@@ -966,8 +967,8 @@ export function AppProvider({ children }) {
       },
       {
         id: 106,
-        partner_id: 'sebastiansbs51@gmail.com',
-        partner_name: 'Ing. Fabricio Orosco',
+        partner_id: 'barrientoso2401@gmail.com',
+        partner_name: 'Ing. Diego Barrientos',
         project_id: 10,
         project_title: 'G.A.M.L.P. - Propuesta Técnica de Lombricultura',
         hours: 4.0,
@@ -1082,24 +1083,6 @@ export function AppProvider({ children }) {
         activeTaskTitle: 'Bonos de Carbono & Minería Ecológica',
         device: 'Escritorio (Web)',
         location: 'Santa Cruz, Bolivia'
-      },
-      'sebastiansbs51@gmail.com': {
-        name: 'Ing. Fabricio Orosco',
-        role: 'Socio Fundador · Especialista Residuos & Auditoría',
-        isOnline: false,
-        lastLogin: new Date(Date.now() - 125 * 60 * 1000).toISOString(),
-        sessionStart: null,
-        lastPing: Date.now() - 125 * 60 * 1000,
-        currentRoomId: 'experience',
-        currentSectorName: '11. EXPERIENCIA Y CAMPO',
-        roomCoords: { x: 12, y: 55 },
-        isTimerRunning: false,
-        timerSeconds: 0,
-        timerStartedAt: null,
-        activeTaskId: 16,
-        activeTaskTitle: 'G.A.M.L.P. Lombricultura & Auditoría',
-        device: 'Dispositivo Móvil',
-        location: 'La Paz, Bolivia'
       }
     };
   });
@@ -1468,8 +1451,7 @@ export function AppProvider({ children }) {
             // 2. Socios no conectados en la red Supabase (salvo el usuario local actual)
             const knownPartnerEmails = [
               'barrientoso2401@gmail.com',
-              'fernandoaraujo1912@gmail.com',
-              'sebastiansbs51@gmail.com'
+              'fernandoaraujo1912@gmail.com'
             ];
             knownPartnerEmails.forEach(email => {
               if (email !== currentEmail && !activePresenceKeys.includes(email)) {
@@ -1958,7 +1940,7 @@ export function AppProvider({ children }) {
               client: 'SERAM S.R.L. (Interno)',
               type: 'Plataforma Digital & Ecosistema SERAM',
               lead: 'Ing. Diego Barrientos',
-              involved: ['Ing. Diego Barrientos', 'Ing. Fernando Araujo', 'Ing. Fabricio Orosco'],
+              involved: ['Ing. Diego Barrientos', 'Ing. Fernando Araujo'],
               location: 'La Paz - Remoto',
               startDate: '2026-05-01',
               endDate: '2026-12-31',

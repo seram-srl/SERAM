@@ -75,28 +75,6 @@ const DEFAULT_PROFILES = {
       { id: 'b5', name: 'Auditor RENCA', icon: '📜', desc: 'Acreditado ante el Ministerio de Medio Ambiente' },
       { id: 'b6', name: 'Negociador B2B', icon: '🤝', desc: 'Trato directo con clientes corporativos y municipios' }
     ]
-  },
-  'sebastiansbs51@gmail.com': {
-    name: 'Ing. Fabricio Orosco',
-    email: 'sebastiansbs51@gmail.com',
-    honoraryTitle: 'Coordinador de Operaciones & Logística de Campo',
-    role: 'Operaciones en Cuencas, Muestreo & Logística',
-    skin: 'field',
-    avatarUrl: null,
-    cvName: null,
-    cvDate: null,
-    matricula: 'Pendiente de acreditación',
-    hasCV: false,
-    hasSIB: false,
-    hasRENCA: false,
-    sibCertificateName: null,
-    rencaCertificateName: null,
-    bio: 'Responsable de la preparación logística de expediciones, toma de muestras de agua, sedimentos y relacionamiento con cooperativas mineras y autoridades locales en campo.',
-    badges: [
-      { id: 'b7', name: 'Explorador de Cuencas', icon: '⛰️', desc: 'Lideró expedición y muestreo en cuencas de cabecera' },
-      { id: 'b8', name: 'Logística Táctica', icon: '🎒', desc: 'Coordinación de reactivos y cadena de custodia' },
-      { id: 'b9', name: 'Operador de Muestreo', icon: '🧪', desc: 'Toma in-situ de parámetros fisicoquímicos' }
-    ]
   }
 };
 
