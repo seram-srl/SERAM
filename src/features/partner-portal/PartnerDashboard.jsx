@@ -11,7 +11,7 @@ import {
   PieChart as LucidePie, Activity, CreditCard, Building2,
   FileText, Smartphone, Laptop, Radio, Wifi,
   UploadCloud, ExternalLink, FileCheck, Paperclip, CheckSquare,
-  Play, Pause, RotateCcw, Scale, Menu, Flame,
+  Play, Pause, RotateCcw, Scale, Flame,
   Copy, Download, FileDown, Link2
 } from 'lucide-react';
 import {
@@ -4359,7 +4359,7 @@ export default function PartnerDashboard() {
 
       {/* ── CABECERA FIJA SUPERIOR DE COLOR SÓLIDO (DESKTOP & MOBILE) ───────── */}
       <header className="fixed top-0 left-0 right-0 h-20 bg-[#070d17] border-b border-white/[0.1] z-[100] flex items-center justify-between px-4 sm:px-6 shadow-xl shadow-black/50 select-none">
-        {/* Lado izquierdo: Botón Módulos (Mobile) y Toggle Sidebar (Desktop) con separación del menú de hamburguesa */}
+        {/* Lado izquierdo: Botón Módulos (Mobile) con separación del menú de hamburguesa */}
         <div className="flex items-center gap-3 pl-20 sm:pl-24">
           <button
             type="button"
@@ -4370,18 +4370,6 @@ export default function PartnerDashboard() {
             <Layers className="w-4 h-4 text-[#00e03c] shrink-0" />
             <span className="tracking-wide">Módulos</span>
           </button>
-
-          {!sidebarOpen && (
-            <button
-              type="button"
-              onClick={() => setSidebarOpen(true)}
-              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer"
-              title="Desplegar barra lateral de módulos"
-            >
-              <Menu className="w-4 h-4 text-[#00e03c]" />
-              <span>Desplegar Módulos</span>
-            </button>
-          )}
         </div>
 
         {/* Lado derecho: Espacio reservado para ChatbotFAB (right-4 sm:right-6) y badge socio */}

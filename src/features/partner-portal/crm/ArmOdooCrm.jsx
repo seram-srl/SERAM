@@ -15,6 +15,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutGrid, List, BarChart3, Plus, Search, Filter, Phone, Mail,
@@ -2072,16 +2073,17 @@ export default function ArmOdooCrm({ currentSocio }) {
       {/* ══════════════════════════════════════════════════════════════════════════
           4. MODAL FICHA 360° DE OPORTUNIDAD + CHATTER LATERAL (CAPTURA #5 DE ODOO)
          ══════════════════════════════════════════════════════════════════════════ */}
-      <AnimatePresence>
-        {selectedLead && (
-          <div
-            className="fixed inset-0 z-[200] flex items-start justify-center p-2 sm:p-4 md:p-6 bg-black/85 backdrop-blur-md overflow-y-auto"
-            onClick={handleCloseLeadDetail}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.97, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.97, y: 15 }}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {selectedLead && (
+            <div
+              className="fixed inset-0 z-[9999] flex items-start justify-center p-2 sm:p-4 md:p-6 pt-4 sm:pt-6 bg-black/90 backdrop-blur-md overflow-y-auto"
+              onClick={handleCloseLeadDetail}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.97, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.97, y: 15 }}
               onClick={e => e.stopPropagation()}
               className="w-full max-w-6xl bg-[#0a130b] border border-white/[0.14] rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col my-auto max-h-[92vh] sm:max-h-[90vh]"
             >
@@ -2629,14 +2631,17 @@ export default function ArmOdooCrm({ currentSocio }) {
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+    )}
 
       {/* ══════════════════════════════════════════════════════════════════════════
           5. MODAL PARA PROGRAMAR NUEVA MISIÓN / ACTIVIDAD EN EL LEAD
          ══════════════════════════════════════════════════════════════════════════ */}
-      <AnimatePresence>
-        {scheduleModalLead && (
-          <div className="fixed inset-0 z-[140] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {scheduleModalLead && (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -2760,14 +2765,17 @@ export default function ArmOdooCrm({ currentSocio }) {
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+    )}
 
       {/* ══════════════════════════════════════════════════════════════════════════
           6. MODAL PARA CREAR / EDITAR CLIENTE EN EL DIRECTORIO REAL
          ══════════════════════════════════════════════════════════════════════════ */}
-      <AnimatePresence>
-        {showClientModal && (
-          <div className="fixed inset-0 z-[140] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {showClientModal && (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -2870,7 +2878,9 @@ export default function ArmOdooCrm({ currentSocio }) {
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+    )}
     </div>
   );
 }
