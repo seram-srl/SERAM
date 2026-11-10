@@ -6,6 +6,7 @@ import {
   ExternalLink, TrendingUp, Users, ArrowRight, Check, AlertCircle
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import ArmOdooCrm from './crm/ArmOdooCrm';
 
 // ── COMPONENTE TARJETA DE CRISTAL GLASSMORPHIC (NEUFORM) ────────────────────
 const GlassCard = ({ children, className = '' }) => (
@@ -28,7 +29,7 @@ export default function ClientsModule({ currentSocio, onNavigate }) {
   } = useApp();
 
   // ── ESTADOS DE PESTAÑAS Y VISTA ──
-  const [activeTab, setActiveTab] = useState('directory'); // 'directory' | 'seprec'
+  const [activeTab, setActiveTab] = useState('arm_crm'); // 'arm_crm' | 'directory' | 'seprec'
   const [seprecViewMode, setSeprecViewMode] = useState('cards'); // 'cards' | 'table'
 
   // ── ESTADOS DE FILTRO PARA DIRECTORIO DE CLIENTES ──
@@ -229,11 +230,23 @@ export default function ClientsModule({ currentSocio, onNavigate }) {
 
       {/* ── BARRA DE PESTAÑAS SIMÉTRICA (PILL SEGMENTED) ── */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
-        <div className="flex items-center gap-1.5 bg-white/[0.04] p-1.5 rounded-2xl border border-white/[0.08] w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-1.5 bg-white/[0.04] p-1.5 rounded-2xl border border-white/[0.08] w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => setActiveTab('arm_crm')}
+            className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              activeTab === 'arm_crm'
+                ? 'bg-[#00e03c] text-slate-950 shadow-md font-black shadow-[#00e03c]/20'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            ARM · CRM Inbound (Odoo)
+          </button>
           <button
             type="button"
             onClick={() => setActiveTab('directory')}
-            className={`flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+            className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
               activeTab === 'directory'
                 ? 'bg-[#00e03c] text-slate-950 shadow-md font-black shadow-[#00e03c]/20'
                 : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
@@ -244,7 +257,7 @@ export default function ClientsModule({ currentSocio, onNavigate }) {
           <button
             type="button"
             onClick={() => setActiveTab('seprec')}
-            className={`flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+            className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
               activeTab === 'seprec'
                 ? 'bg-[#00e03c] text-slate-950 shadow-md font-black shadow-[#00e03c]/20'
                 : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
@@ -277,6 +290,11 @@ export default function ClientsModule({ currentSocio, onNavigate }) {
           </div>
         )}
       </div>
+
+      {/* ── CONTENIDO: PESTAÑA ARM · CRM ODOO (INBOUND IA) ── */}
+      {activeTab === 'arm_crm' && (
+        <ArmOdooCrm currentSocio={currentSocio} onConvertLeadToClient={handleAddClient} />
+      )}
 
       {/* ── CONTENIDO: PESTAÑA 1 - DIRECTORIO DE CLIENTES ── */}
       {activeTab === 'directory' && (

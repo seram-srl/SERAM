@@ -6,6 +6,14 @@
   "in_progress": [],
   "completed": [
     {
+      "id": "TASK-106",
+      "title": "Sistema de Ventas Automatizado ARM (Inbound Marketing con IA), Precalificación en Asistente SERAM, Protocolo Anti-Baneo de 14 Días (7 Contactos) y CRM Estilo Odoo en Portal de Socios y Supabase",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-11-10",
+      "completed_at": "2026-11-10"
+    },
+    {
       "id": "TASK-105",
       "title": "Rediseño Visual del Registro de Tareas y Misiones Grupales: Panel Lateral Derecho (Slide-over Estilo Asistente SERAM) y Paleta Integral en Verdes de Marca Neuform",
       "status": "completed",
