@@ -2726,870 +2726,911 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         </AnimatePresence>
       </div>
 
-      {/* ── MODAL: ASIGNACIÓN RÁPIDA DE MISIONES FLASH DE CONTINGENCIA ── */}
+      {/* ── SLIDE-OVER: ASIGNACIÓN RÁPIDA DE MISIONES FLASH DE CONTINGENCIA ── */}
       <AnimatePresence>
         {showQuickMissionModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+          <div className="fixed inset-0 z-50 overflow-hidden">
+            {/* Backdrop oscuro translúcido */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-2xl bg-[#0c141f] border border-amber-500/30 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto"
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                    <Flame className="w-5 h-5 animate-pulse" />
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowQuickMissionModal(false)}
+              className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+            />
+            <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
+              <motion.div
+                initial={{ x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+                className="w-screen max-w-lg sm:max-w-xl bg-[#080f08]/98 backdrop-blur-2xl border-l border-[#1a3a1a]/80 p-5 sm:p-7 flex flex-col justify-between shadow-2xl shadow-black/95 relative z-10 overflow-y-auto space-y-5 text-white"
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between border-b border-[#1a3a1a]/60 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-9 h-9 rounded-xl bg-[#1f1606] border border-amber-500/40 flex items-center justify-center flex-shrink-0 shadow-[0_0_12px_rgba(245,158,11,0.25)] p-1.5">
+                      <Flame className="w-4 h-4 text-amber-400 animate-pulse" />
+                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-amber-400 rounded-full border-2 border-[#080f08] animate-pulse" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-white uppercase tracking-wider font-tech leading-none flex items-center gap-2">
+                        ⚡ Misiones Flash de Contingencia
+                      </h3>
+                      <p className="text-[10px] text-amber-400 font-bold uppercase tracking-widest font-tech pt-0.5 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 bg-amber-400 rounded-full inline-block animate-pulse" />
+                        Licitaciones express y urgencias ambientales
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
-                      ⚡ Asignación Rápida de Misiones Flash
-                    </h3>
-                    <p className="text-[11px] text-slate-400">
-                      Contingencias ambientales críticas y licitaciones express con cuenta regresiva en tiempo real.
-                    </p>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowQuickMissionModal(false)}
+                    className="p-1.5 rounded-xl text-slate-400 hover:text-amber-400 hover:bg-[#1f1606]/60 border border-transparent hover:border-amber-500/30 transition-all cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowQuickMissionModal(false)}
-                  className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.08] cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
 
-              {/* Selector de Pestañas: Templates vs Personalizada */}
-              <div className="flex items-center gap-2 bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
-                <button
-                  type="button"
-                  onClick={() => setQuickMissionTab('templates')}
-                  className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                    quickMissionTab === 'templates'
-                      ? 'bg-amber-400 text-slate-950 font-black shadow-md'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <Flame className="w-3.5 h-3.5" />
-                  <span>Contingencias Predefinidas ({FLASH_CONTINGENCY_TEMPLATES.length})</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setQuickMissionTab('custom')}
-                  className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                    quickMissionTab === 'custom'
-                      ? 'bg-amber-400 text-slate-950 font-black shadow-md'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Misión Flash Personalizada</span>
-                </button>
-              </div>
+                {/* Selector de Pestañas: Templates vs Personalizada */}
+                <div className="flex items-center gap-2 bg-[#051309]/80 p-1.5 rounded-xl border border-[#1a3a1a]/80">
+                  <button
+                    type="button"
+                    onClick={() => setQuickMissionTab('templates')}
+                    className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                      quickMissionTab === 'templates'
+                        ? 'bg-amber-400 text-slate-950 font-black shadow-md'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Flame className="w-3.5 h-3.5" />
+                    <span>Contingencias Predefinidas ({FLASH_CONTINGENCY_TEMPLATES.length})</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuickMissionTab('custom')}
+                    className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                      quickMissionTab === 'custom'
+                        ? 'bg-amber-400 text-slate-950 font-black shadow-md'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Misión Flash Personalizada</span>
+                  </button>
+                </div>
 
-              {/* Tab 1: Plantillas Predefinidas */}
-              {quickMissionTab === 'templates' && (
-                <div className="space-y-3">
-                  {FLASH_CONTINGENCY_TEMPLATES.map((tpl, idx) => (
-                    <div
-                      key={idx}
-                      className="p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] hover:border-amber-500/40 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group"
-                    >
-                      <div className="space-y-1.5 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-black bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-1">
-                            <Timer className="w-3 h-3 text-rose-400" /> {tpl.durationHours} Horas Límite
-                          </span>
-                          <span className="text-[10px] font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
-                            {tpl.requiredRole}
-                          </span>
-                          <span className="text-[10px] text-slate-400 font-mono">
-                            {tpl.streakBonus}
-                          </span>
+                {/* Tab 1: Plantillas Predefinidas */}
+                {quickMissionTab === 'templates' && (
+                  <div className="space-y-3">
+                    {FLASH_CONTINGENCY_TEMPLATES.map((tpl, idx) => (
+                      <div
+                        key={idx}
+                        className="p-4 rounded-2xl bg-[#051309]/80 hover:bg-[#07190d] border border-[#1a3a1a]/80 hover:border-amber-500/40 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group"
+                      >
+                        <div className="space-y-1.5 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-black bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-1">
+                              <Timer className="w-3 h-3 text-rose-400" /> {tpl.durationHours} Horas Límite
+                            </span>
+                            <span className="text-[10px] font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+                              {tpl.requiredRole}
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-mono">
+                              {tpl.streakBonus}
+                            </span>
+                          </div>
+                          <h4 className="text-sm font-bold text-white group-hover:text-amber-300 transition-colors">
+                            {tpl.title}
+                          </h4>
+                          <p className="text-[11px] text-slate-400 leading-relaxed">
+                            {tpl.desc}
+                          </p>
+                          <div className="text-[10px] text-slate-500 flex items-center gap-1">
+                            <User className="w-3 h-3 text-sky-400" />
+                            <span>Responsables sugeridos: {tpl.defaultAssigned?.join(' y ')}</span>
+                          </div>
                         </div>
-                        <h4 className="text-sm font-bold text-white group-hover:text-amber-300 transition-colors">
-                          {tpl.title}
-                        </h4>
-                        <p className="text-[11px] text-slate-400 leading-relaxed">
-                          {tpl.desc}
-                        </p>
-                        <div className="text-[10px] text-slate-500 flex items-center gap-1">
-                          <User className="w-3 h-3 text-sky-400" />
-                          <span>Responsables sugeridos: {tpl.defaultAssigned?.join(' y ')}</span>
-                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleSelectFlashTemplate(tpl)}
+                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs transition-all shadow-md shadow-amber-500/20 shrink-0 cursor-pointer flex items-center gap-1.5 w-full sm:w-auto justify-center"
+                        >
+                          <Flame className="w-3.5 h-3.5 fill-current" />
+                          <span>⚡ Asignar Misión</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Tab 2: Personalizada */}
+                {quickMissionTab === 'custom' && (
+                  <form onSubmit={handleSubmitCustomQuickMission} className="space-y-4 text-xs">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-amber-400">Título de la Contingencia Flash *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Ej: Emergencia por Derrame de Ácido en Cuenca Alta 48h"
+                        value={customMissionTitle}
+                        onChange={(e) => setCustomMissionTitle(e.target.value)}
+                        className="w-full px-3 py-2 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-[#051309]/80 border border-[#1a3a1a]/80">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase text-amber-400 flex items-center gap-1">
+                          <Timer className="w-3 h-3" /> Duración de la Misión Flash
+                        </label>
+                        <select
+                          value={customMissionDuration}
+                          onChange={(e) => setCustomMissionDuration(Number(e.target.value))}
+                          className="w-full px-3 py-2 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white font-mono focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40 [&>option]:bg-[#08150a] [&>option]:text-white cursor-pointer"
+                        >
+                          <option value={24}>⚡ 24 Horas (Extrema Urgencia)</option>
+                          <option value={48}>⚡ 48 Horas (Fiscalización / Inspección)</option>
+                          <option value={72}>⚡ 72 Horas (Licitación SICOES / Decretos)</option>
+                          <option value={96}>⚡ 96 Horas (Cisne Negro / Modelación Hidrológica)</option>
+                          <option value={120}>⚡ 120 Horas (Expediente Ampliado)</option>
+                        </select>
                       </div>
 
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase text-[#00e03c]">Categoría Técnica</label>
+                        <select
+                          value={customMissionCategory}
+                          onChange={(e) => setCustomMissionCategory(e.target.value)}
+                          className="w-full px-3 py-2 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white focus:outline-none focus:border-[#00e03c] focus:ring-1 focus:ring-[#00e03c]/40 [&>option]:bg-[#08150a] [&>option]:text-white cursor-pointer"
+                        >
+                          <option value="EIA / Legal Ambiental">EIA / Legal Ambiental</option>
+                          <option value="Hidrología & SIG">Hidrología & SIG</option>
+                          <option value="Teledetección & Geomática">Teledetección & Geomática</option>
+                          <option value="Compliance & Legal">Compliance & Legal</option>
+                          <option value="Biodiversidad & Carbono">Biodiversidad & Carbono</option>
+                          <option value="Trabajo de Campo / Muestreo">Trabajo de Campo / Muestreo</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-[#051309]/80 border border-[#1a3a1a]/80">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase text-[#00e03c]">Socio Responsable Principal *</label>
+                        <select
+                          value={customMissionPartner}
+                          onChange={(e) => setCustomMissionPartner(e.target.value)}
+                          className="w-full px-3 py-2 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white focus:outline-none focus:border-[#00e03c] focus:ring-1 focus:ring-[#00e03c]/40 [&>option]:bg-[#08150a] [&>option]:text-white cursor-pointer"
+                        >
+                          {partnersList.map((p) => (
+                            <option key={p.name} value={p.name}>{p.name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase text-amber-400 flex items-center justify-between">
+                          <span>Co-Ejecutor (Combo +35% XP)</span>
+                        </label>
+                        <select
+                          value={customMissionCoPartner}
+                          onChange={(e) => setCustomMissionCoPartner(e.target.value)}
+                          className="w-full px-3 py-2 bg-[#06180a]/90 border border-amber-500/30 rounded-xl text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40 [&>option]:bg-[#08150a] [&>option]:text-white cursor-pointer"
+                        >
+                          <option value="">-- Sin co-ejecutor --</option>
+                          {partnersList.filter(p => p.name !== customMissionPartner).map((p) => (
+                            <option key={p.name} value={p.name}>⚡ {p.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-[#00e03c]">Instrucciones & Alcance Crítico</label>
+                      <textarea
+                        rows="3"
+                        placeholder="Objetivos periciales de esta contingencia ambiental..."
+                        value={customMissionDesc}
+                        onChange={(e) => setCustomMissionDesc(e.target.value)}
+                        className="w-full px-3 py-2 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#00e03c] focus:ring-1 focus:ring-[#00e03c]/40 resize-none"
+                      />
+                    </div>
+
+                    <div className="pt-2 flex items-center justify-end gap-3 border-t border-[#1a3a1a]/60">
                       <button
                         type="button"
-                        onClick={() => handleSelectFlashTemplate(tpl)}
-                        className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs transition-all shadow-md shadow-amber-500/20 shrink-0 cursor-pointer flex items-center gap-1.5 w-full sm:w-auto justify-center"
+                        onClick={() => setShowQuickMissionModal(false)}
+                        className="px-4 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 font-bold border border-[#1a3a1a] cursor-pointer transition-colors text-xs"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black shadow-[0_0_20px_rgba(245,158,11,0.3)] flex items-center gap-1.5 cursor-pointer transition-all text-xs"
                       >
                         <Flame className="w-3.5 h-3.5 fill-current" />
-                        <span>⚡ Asignar Misión</span>
+                        <span>⚡ Lanzar Misión Flash</span>
                       </button>
                     </div>
-                  ))}
-                </div>
-              )}
+                  </form>
+                )}
+              </motion.div>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
 
-              {/* Tab 2: Personalizada */}
-              {quickMissionTab === 'custom' && (
-                <form onSubmit={handleSubmitCustomQuickMission} className="space-y-4 text-xs">
+      {/* ── MODAL: REGISTRAR / EDITAR ACTIVIDAD CLAVE (SLIDE-OVER DERECHO) ── */}
+      <AnimatePresence>
+        {showNewActivityModal && (
+          <div className="fixed inset-0 z-50 overflow-hidden">
+            {/* Backdrop oscuro translúcido */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowNewActivityModal(false)}
+              className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+            />
+            <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
+              <motion.div
+                initial={{ x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+                className="w-screen max-w-lg sm:max-w-xl bg-[#080f08]/98 backdrop-blur-2xl border-l border-[#1a3a1a]/80 p-5 sm:p-7 flex flex-col justify-between shadow-2xl shadow-black/95 relative z-10 overflow-y-auto space-y-5 text-white"
+              >
+                {/* Cabecera Estilo Asistente SERAM */}
+                <div className="flex items-center justify-between border-b border-[#1a3a1a]/60 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-9 h-9 rounded-xl bg-[#061e0c] border border-[#00e03c]/40 flex items-center justify-center flex-shrink-0 shadow-[0_0_12px_rgba(0,224,60,0.25)] p-1.5">
+                      <img
+                        src="/assets/brand/logo-seram-icon.png"
+                        alt="Isotipo SERAM"
+                        className="w-full h-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]"
+                      />
+                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[#00e03c] rounded-full border-2 border-[#080f08] animate-pulse" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-white uppercase tracking-wider font-tech leading-none">
+                        {editingActivity ? 'Editar Actividad Clave' : 'Nueva Actividad Clave'}
+                      </h3>
+                      <p className="text-[10px] text-[#00e03c] font-bold uppercase tracking-widest font-tech pt-0.5 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 bg-[#00e03c] rounded-full inline-block animate-pulse" />
+                        Sincronización Notion ➔ SERAM Hub
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowNewActivityModal(false)}
+                    className="p-1.5 rounded-xl text-slate-400 hover:text-[#00e03c] hover:bg-[#061e0c]/60 border border-transparent hover:border-[#00e03c]/30 transition-all cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <form onSubmit={onSubmitActivity} className="space-y-4 text-xs">
+                  {/* Tipo de Actividad & Duración Flash */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-[#051309]/80 border border-[#1a3a1a]/80">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-[#00e03c]">Tipo de Actividad</label>
+                      <select
+                        value={actActivityType}
+                        onChange={(e) => setActActivityType(e.target.value)}
+                        className="w-full px-3 py-2 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] focus:ring-1 focus:ring-[#00e03c]/40 [&>option]:bg-[#08150a] [&>option]:text-white cursor-pointer"
+                      >
+                        <option value="principal">Actividad Principal</option>
+                        <option value="secundaria">Actividad Secundaria</option>
+                        <option value="grupal">👥 Actividad Grupal / Misión de Directorio</option>
+                        <option value="flash">⚡ Misión Flash (Contingencia)</option>
+                      </select>
+                    </div>
+
+                    {actActivityType === 'flash' ? (
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase text-amber-400 flex items-center gap-1">
+                          <Timer className="w-3 h-3" /> Duración Flash Límite
+                        </label>
+                        <select
+                          value={actFlashDuration}
+                          onChange={(e) => setActFlashDuration(Number(e.target.value))}
+                          className="w-full px-3 py-2 bg-[#06180a]/90 border border-amber-500/30 rounded-xl text-white font-mono font-bold focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40 [&>option]:bg-[#08150a] [&>option]:text-white cursor-pointer"
+                        >
+                          <option value={24}>24 Horas</option>
+                          <option value={48}>48 Horas</option>
+                          <option value={72}>72 Horas</option>
+                          <option value={96}>96 Horas</option>
+                          <option value={120}>120 Horas</option>
+                        </select>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase tracking-wider text-[#00e03c]">Fecha de Inicio</label>
+                        <input
+                          type="date"
+                          value={actStartDate}
+                          onChange={(e) => setActStartDate(e.target.value)}
+                          className="w-full px-3 py-2 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white focus:outline-none focus:border-[#00e03c] focus:ring-1 focus:ring-[#00e03c]/40"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Jerarquía OKR & Criterio de Validación Anti-Cheat */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-[#051309]/80 border border-[#1a3a1a]/80">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-[#00e03c]">Jerarquía Estratégica OKR</label>
+                      <select
+                        value={actOkrLevel}
+                        onChange={(e) => setActOkrLevel(e.target.value)}
+                        className="w-full px-3 py-2 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] focus:ring-1 focus:ring-[#00e03c]/40 [&>option]:bg-[#08150a] [&>option]:text-white cursor-pointer"
+                      >
+                        <option value="anual">🎯 Macro Anual (Visión SEPREC)</option>
+                        <option value="semestral">🧭 Semestral (Hitos Clave)</option>
+                        <option value="trimestral">📈 Trimestral (OKRs Q1 - Q4)</option>
+                        <option value="mensual">🗓️ Mensual (Entregables)</option>
+                        <option value="semanal">⚡ Semanal (Sprint de Gabinete)</option>
+                        <option value="diario">✅ Diario (Checklist & Tareas)</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1">
+                        <Scale className="w-3 h-3 text-amber-400" /> Criterio Validación (Anti-Cheat)
+                      </label>
+                      <select
+                        value={actValidationCriteria}
+                        onChange={(e) => setActValidationCriteria(e.target.value)}
+                        className="w-full px-3 py-2 bg-[#06180a]/90 border border-amber-500/30 rounded-xl text-white font-bold focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40 [&>option]:bg-[#08150a] [&>option]:text-white cursor-pointer"
+                      >
+                        <option value="cross_audit">⚖️ Auditoría Cruzada Pericial</option>
+                        <option value="auto_proof">📎 Comprobante Obligatorio</option>
+                        <option value="provisional_pool">🛡️ Bolsa Provisional de Horas</option>
+                      </select>
+                    </div>
+                    <div className="sm:col-span-2 text-[10px] text-slate-300 italic bg-[#06180a]/60 p-2 rounded-xl border border-[#1a3a1a]/60">
+                      {actValidationCriteria === 'cross_audit' && '⚖️ Auditoría Cruzada: Al llegar a 100%, requiere aprobación pericial de otro socio directivo.'}
+                      {actValidationCriteria === 'auto_proof' && '📎 Auto-completar: Concluye al 100% de inmediato exigiendo link o archivo de respaldo adjunto.'}
+                      {actValidationCriteria === 'provisional_pool' && '🛡️ Bolsa Provisional: Concluye al instante sin bloquear al socio; se ratifica semanalmente en Directorio.'}
+                    </div>
+                  </div>
+
+                  {/* Título */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Título de la Contingencia Flash *</label>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-[#00e03c]">Título de la Actividad / Tarea *</label>
                     <input
                       type="text"
                       required
-                      placeholder="Ej: Emergencia por Derrame de Ácido en Cuenca Alta 48h"
-                      value={customMissionTitle}
-                      onChange={(e) => setCustomMissionTitle(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                      placeholder="Ej: Análisis multitemporal satelital en ArcGIS Pro"
+                      value={actTitle}
+                      onChange={(e) => setActTitle(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#00e03c] focus:ring-1 focus:ring-[#00e03c]/40"
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-amber-400 flex items-center gap-1">
-                        <Timer className="w-3 h-3" /> Duración de la Misión Flash
-                      </label>
-                      <select
-                        value={customMissionDuration}
-                        onChange={(e) => setCustomMissionDuration(Number(e.target.value))}
-                        className="w-full px-3 py-2 bg-white/[0.06] border border-amber-500/30 rounded-xl text-white font-mono focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
-                      >
-                        <option value={24}>⚡ 24 Horas (Extrema Urgencia)</option>
-                        <option value={48}>⚡ 48 Horas (Fiscalización / Inspección)</option>
-                        <option value={72}>⚡ 72 Horas (Licitación SICOES / Decretos)</option>
-                        <option value={96}>⚡ 96 Horas (Cisne Negro / Modelación Hidrológica)</option>
-                        <option value={120}>⚡ 120 Horas (Expediente Ampliado)</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-slate-400">Categoría Técnica</label>
-                      <select
-                        value={customMissionCategory}
-                        onChange={(e) => setCustomMissionCategory(e.target.value)}
-                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
-                      >
-                        <option value="EIA / Legal Ambiental">EIA / Legal Ambiental</option>
-                        <option value="Hidrología & SIG">Hidrología & SIG</option>
-                        <option value="Teledetección & Geomática">Teledetección & Geomática</option>
-                        <option value="Compliance & Legal">Compliance & Legal</option>
-                        <option value="Biodiversidad & Carbono">Biodiversidad & Carbono</option>
-                        <option value="Trabajo de Campo / Muestreo">Trabajo de Campo / Muestreo</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-slate-400">Socio Responsable Principal *</label>
-                      <select
-                        value={customMissionPartner}
-                        onChange={(e) => setCustomMissionPartner(e.target.value)}
-                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
-                      >
-                        {partnersList.map((p) => (
-                          <option key={p.name} value={p.name}>{p.name}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-amber-400 flex items-center justify-between">
-                        <span>Co-Ejecutor (Combo +35% XP)</span>
-                      </label>
-                      <select
-                        value={customMissionCoPartner}
-                        onChange={(e) => setCustomMissionCoPartner(e.target.value)}
-                        className="w-full px-3 py-2 bg-white/[0.06] border border-amber-500/30 rounded-xl text-white focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
-                      >
-                        <option value="">-- Sin co-ejecutor --</option>
-                        {partnersList.filter(p => p.name !== customMissionPartner).map((p) => (
-                          <option key={p.name} value={p.name}>⚡ {p.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
+                  {/* Proyecto Vinculado */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Instrucciones & Alcance Crítico</label>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-[#00e03c]">Proyecto Vinculado</label>
+                    <select
+                      value={actProjectId}
+                      onChange={(e) => setActProjectId(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white focus:outline-none focus:border-[#00e03c] focus:ring-1 focus:ring-[#00e03c]/40 [&>option]:bg-[#08150a] [&>option]:text-white cursor-pointer"
+                    >
+                      <option value="">Proyecto General / Interno</option>
+                      <option value="SERAM S.R.L.">SERAM S.R.L. (Directorio)</option>
+                      <option value="Página Web">Página Web & Ecosistema Digital</option>
+                      <option value="Valle de las Agujas">Valle de las Agujas</option>
+                      <option value="Contenido Redes Sociales">Contenido Redes Sociales</option>
+                      <option value="Lanzamiento de SERAM Academy">SERAM Academy</option>
+                      {activeServices.map((p) => (
+                        <option key={p.id} value={p.id}>{p.client || p.type}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Equipo de Ejecución & Coordinador Responsable (Multi-selector con Checkboxes) */}
+                  <div className="space-y-3 p-3.5 rounded-2xl bg-[#061e0c]/40 border border-[#00e03c]/30">
+                    <div className="relative" ref={teamDropdownRef}>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[10px] font-black uppercase tracking-wider text-[#00e03c] flex items-center gap-1.5">
+                          <Users className="w-3.5 h-3.5 text-[#00e03c]" />
+                          Equipo Asignado (Socios & Consultores) *
+                        </label>
+                        <span className="text-[9px] font-mono font-bold text-[#00e03c] bg-[#00e03c]/15 px-2 py-0.5 rounded border border-[#00e03c]/30">
+                          {actAssignedTeam.length} {actAssignedTeam.length === 1 ? 'seleccionado' : 'seleccionados'}
+                        </span>
+                      </div>
+
+                      {/* Botón trigger del dropdown */}
+                      <button
+                        type="button"
+                        onClick={() => setIsTeamDropdownOpen(!isTeamDropdownOpen)}
+                        className="w-full px-3 py-2 bg-[#06180a]/90 hover:bg-[#071f0d] border border-[#1a3a1a] hover:border-[#00e03c]/50 rounded-xl text-left flex items-center justify-between text-white font-medium transition-all cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <Users className="w-4 h-4 text-[#00e03c] shrink-0" />
+                          <span className="truncate text-xs">
+                            {actAssignedTeam.length === 0 && 'Seleccionar miembros del equipo...'}
+                            {actAssignedTeam.length === 1 && actAssignedTeam[0]}
+                            {actAssignedTeam.length === 2 && actAssignedTeam.map(n => n.replace(/^(Ing\.|Dra\.)\s*/, '')).join(', ')}
+                            {actAssignedTeam.length > 2 && `${actAssignedTeam.slice(0, 2).map(n => n.replace(/^(Ing\.|Dra\.)\s*/, '')).join(', ')} (+${actAssignedTeam.length - 2} más)`}
+                          </span>
+                        </div>
+                        <ChevronDown className={`w-4 h-4 text-[#00e03c] shrink-0 transition-transform ${isTeamDropdownOpen ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {/* Menú desplegable interactivo con Checkboxes */}
+                      {isTeamDropdownOpen && (
+                        <div className="absolute left-0 right-0 top-full mt-1.5 bg-[#07160a] border border-[#00e03c]/40 rounded-xl shadow-2xl p-2.5 z-50 max-h-64 overflow-y-auto space-y-3 backdrop-blur-xl">
+                          {/* Grupo 1: Socios Fundadores */}
+                          <div>
+                            <div className="text-[10px] font-black uppercase text-[#00e03c] tracking-wider px-2 pb-1 border-b border-[#1a3a1a] flex items-center justify-between">
+                              <span>Socios Fundadores</span>
+                              <span className="text-[9px] text-slate-400 font-normal">Directorio SERAM</span>
+                            </div>
+                            <div className="space-y-1 pt-1.5">
+                              {SERAM_TEAM_CATALOG.filter(c => c.category === 'Socio Fundador').map((member) => {
+                                const isChecked = actAssignedTeam.includes(member.name);
+                                return (
+                                  <label
+                                    key={member.name}
+                                    className={`flex items-start gap-2.5 p-2 rounded-lg cursor-pointer transition-colors border ${
+                                      isChecked
+                                        ? 'bg-[#00e03c]/15 border-[#00e03c]/40 text-white'
+                                        : 'hover:bg-white/[0.04] border-transparent text-slate-300'
+                                    }`}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={() => {
+                                        let newTeam;
+                                        if (isChecked) {
+                                          newTeam = actAssignedTeam.filter(n => n !== member.name);
+                                          if (newTeam.length === 0) newTeam = [member.name]; // al menos 1
+                                        } else {
+                                          newTeam = [...actAssignedTeam, member.name];
+                                        }
+                                        setActAssignedTeam(newTeam);
+                                        if (!newTeam.includes(actPartner)) {
+                                          setActPartner(newTeam[0]);
+                                        }
+                                        if (newTeam.length > 1 && actActivityType === 'principal') {
+                                          setActActivityType('grupal');
+                                        }
+                                      }}
+                                      className="mt-0.5 rounded border-[#1a3a1a] text-[#00e03c] focus:ring-[#00e03c] focus:ring-offset-0 bg-[#08200f]"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="text-xs font-bold text-white flex items-center justify-between">
+                                        <span>{member.name}</span>
+                                        <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                          {member.initials}
+                                        </span>
+                                      </div>
+                                      <div className="text-[10px] text-slate-400">{member.role}</div>
+                                    </div>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {/* Grupo 2: Consultores Especialistas */}
+                          <div>
+                            <div className="text-[10px] font-black uppercase text-emerald-400 tracking-wider px-2 pb-1 border-b border-[#1a3a1a] flex items-center justify-between">
+                              <span>Red de Consultores SERAM</span>
+                              <span className="text-[9px] text-slate-400 font-normal">Especialistas</span>
+                            </div>
+                            <div className="space-y-1 pt-1.5">
+                              {SERAM_TEAM_CATALOG.filter(c => c.category !== 'Socio Fundador').map((member) => {
+                                const isChecked = actAssignedTeam.includes(member.name);
+                                return (
+                                  <label
+                                    key={member.name}
+                                    className={`flex items-start gap-2.5 p-2 rounded-lg cursor-pointer transition-colors border ${
+                                      isChecked
+                                        ? 'bg-[#00e03c]/15 border-[#00e03c]/40 text-white'
+                                        : 'hover:bg-white/[0.04] border-transparent text-slate-300'
+                                    }`}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={() => {
+                                        let newTeam;
+                                        if (isChecked) {
+                                          newTeam = actAssignedTeam.filter(n => n !== member.name);
+                                          if (newTeam.length === 0) newTeam = [member.name];
+                                        } else {
+                                          newTeam = [...actAssignedTeam, member.name];
+                                        }
+                                        setActAssignedTeam(newTeam);
+                                        if (!newTeam.includes(actPartner)) {
+                                          setActPartner(newTeam[0]);
+                                        }
+                                        if (newTeam.length > 1 && actActivityType === 'principal') {
+                                          setActActivityType('grupal');
+                                        }
+                                      }}
+                                      className="mt-0.5 rounded border-[#1a3a1a] text-[#00e03c] focus:ring-[#00e03c] focus:ring-offset-0 bg-[#08200f]"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="text-xs font-bold text-white flex items-center justify-between">
+                                        <span>{member.name}</span>
+                                        <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/30">
+                                          {member.initials}
+                                        </span>
+                                      </div>
+                                      <div className="text-[10px] text-slate-400">{member.role}</div>
+                                    </div>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {/* Botones de acción rápida dentro del dropdown */}
+                          <div className="pt-2 border-t border-[#1a3a1a] flex items-center justify-between gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActAssignedTeam(['Ing. Diego Barrientos', 'Ing. Fernando Araujo']);
+                                setActActivityType('grupal');
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-[#00e03c]/15 hover:bg-[#00e03c]/25 text-[#00e03c] text-[10px] font-bold border border-[#00e03c]/30 transition-all cursor-pointer"
+                            >
+                              🏛️ Directorio (Diego + Fernando)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setIsTeamDropdownOpen(false)}
+                              className="px-3 py-1 rounded-lg bg-[#00e03c] hover:bg-[#00e03c]/90 text-slate-950 text-[10px] font-black transition-all cursor-pointer"
+                            >
+                              Listo ✓
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Selector de Líder / Coordinador Responsable */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase tracking-wider text-[#00e03c] flex items-center gap-1">
+                          <User className="w-3 h-3 text-[#00e03c]" /> Líder / Coordinador Responsable *
+                        </label>
+                        <select
+                          value={actPartner}
+                          onChange={(e) => setActPartner(e.target.value)}
+                          className="w-full px-3 py-2 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] focus:ring-1 focus:ring-[#00e03c]/40 [&>option]:bg-[#08150a] [&>option]:text-white cursor-pointer"
+                        >
+                          {actAssignedTeam.map((name) => (
+                            <option key={name} value={name}>{name} (Seleccionado)</option>
+                          ))}
+                          {SERAM_TEAM_CATALOG.filter(c => !actAssignedTeam.includes(c.name)).map(c => (
+                            <option key={c.name} value={c.name}>{c.name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="flex flex-col justify-end">
+                        {actAssignedTeam.length > 1 ? (
+                          <div className="p-2.5 rounded-xl bg-[#00e03c]/10 border border-[#00e03c]/30 text-[10px] text-slate-200 flex items-center gap-1.5">
+                            <Users className="w-4 h-4 text-[#00e03c] shrink-0" />
+                            <span><strong className="text-[#00e03c]">Misión Grupal activa:</strong> +35% Bono de co-ejecución interdisciplinaria.</span>
+                          </div>
+                        ) : (
+                          <div className="p-2.5 rounded-xl bg-[#06180a]/60 border border-[#1a3a1a] text-[10px] text-slate-400 flex items-center gap-1.5">
+                            <User className="w-4 h-4 text-slate-500 shrink-0" />
+                            <span>Misión individual. Añade más miembros para combo grupal.</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Categoría y Prioridad */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-[#00e03c]">Categoría Técnica</label>
+                      <select
+                        value={actCategory}
+                        onChange={(e) => setActCategory(e.target.value)}
+                        className="w-full px-3 py-2 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white focus:outline-none focus:border-[#00e03c] focus:ring-1 focus:ring-[#00e03c]/40 [&>option]:bg-[#08150a] [&>option]:text-white cursor-pointer"
+                      >
+                        <option value="SIG / Cartografía">SIG / Cartografía</option>
+                        <option value="Desarrollo Web & Sistemas">Desarrollo Web & Sistemas</option>
+                        <option value="Propuestas Técnicas & Proyectos">Propuestas Técnicas & Proyectos</option>
+                        <option value="Legal & Corporativo">Legal & Corporativo</option>
+                        <option value="Trámite Ambiental FNCA/RAI">Trámite Ambiental FNCA/RAI</option>
+                        <option value="Trabajo de Campo / Muestreo">Trabajo de Campo / Muestreo</option>
+                        <option value="Elaboración Informe / TDR">Elaboración Informe / TDR</option>
+                        <option value="Gestión Comercial / Reunión">Gestión Comercial / Reunión</option>
+                        <option value="Administración & Finanzas">Administración & Finanzas</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-[#00e03c]">Prioridad</label>
+                      <select
+                        value={actPriority}
+                        onChange={(e) => setActPriority(e.target.value)}
+                        className="w-full px-3 py-2 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white focus:outline-none focus:border-[#00e03c] focus:ring-1 focus:ring-[#00e03c]/40 [&>option]:bg-[#08150a] [&>option]:text-white cursor-pointer"
+                      >
+                        <option value="Baja">Baja</option>
+                        <option value="Media">Media</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Urgente">Urgente</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Fecha Límite y Horas */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-[#00e03c]">Fecha Límite (Deadline)</label>
+                      <input
+                        type="date"
+                        value={actDueDate}
+                        onChange={(e) => setActDueDate(e.target.value)}
+                        className="w-full px-3 py-2 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white focus:outline-none focus:border-[#00e03c] focus:ring-1 focus:ring-[#00e03c]/40"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-[#00e03c]">Horas Estimadas</label>
+                      <input
+                        type="number"
+                        step="0.5"
+                        placeholder="Ej: 8"
+                        value={actEstHours}
+                        onChange={(e) => setActEstHours(e.target.value)}
+                        className="w-full px-3 py-2 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#00e03c] focus:ring-1 focus:ring-[#00e03c]/40"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Enlace y Entregable */}
+                  <div className="space-y-2 p-3.5 rounded-2xl bg-[#051309]/80 border border-[#1a3a1a]/80">
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-black uppercase tracking-wider text-[#00e03c] flex items-center gap-1">
+                          <Link2 className="w-3 h-3 text-[#00e03c]" /> URL del Entregable / Carpeta Drive
+                        </label>
+                        {actDeliverableUrl && (
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleCopyLink(actDeliverableUrl, 'modal-url')}
+                              className="text-[10px] text-slate-300 hover:text-[#00e03c] flex items-center gap-1 cursor-pointer transition-colors"
+                              title="Copiar enlace"
+                            >
+                              {copiedId === 'modal-url' ? <Check className="w-2.5 h-2.5 text-[#00e03c]" /> : <Copy className="w-2.5 h-2.5" />}
+                              <span>{copiedId === 'modal-url' ? '¡Copiado!' : 'Copiar'}</span>
+                            </button>
+                            <a
+                              href={actDeliverableUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[10px] text-[#00e03c] hover:underline flex items-center gap-0.5 font-medium"
+                            >
+                              <ExternalLink className="w-2.5 h-2.5" /> Abrir
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                      <input
+                        type="url"
+                        placeholder="https://docs.google.com/... o https://drive.google.com/..."
+                        value={actDeliverableUrl}
+                        onChange={(e) => setActDeliverableUrl(e.target.value)}
+                        className="w-full px-3 py-2 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white placeholder-slate-500 font-mono text-xs focus:outline-none focus:border-[#00e03c] focus:ring-1 focus:ring-[#00e03c]/40"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-[#00e03c] flex items-center gap-1">
+                        <Paperclip className="w-3 h-3 text-[#00e03c]" /> Subir Archivo Adjunto (.pdf, .jpg, .md)
+                      </label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png,.md"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            handleFileUpload(e.target.files[0], false);
+                          }
+                        }}
+                        className="w-full text-xs text-slate-400 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#00e03c]/15 file:text-[#00e03c] hover:file:bg-[#00e03c]/25 cursor-pointer"
+                      />
+                      {actDeliverableName && (
+                        <p className="text-[10px] text-[#00e03c] font-mono">
+                          ✓ Archivo cargado: {actDeliverableName}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Modalidad de Hitos de Ejecución */}
+                  <div className="space-y-2.5 p-3.5 rounded-2xl bg-[#051309]/80 border border-[#1a3a1a]/80">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-[#00e03c]">Modalidad de Hitos & Seguimiento</label>
+                      <span className="text-[9px] font-mono text-[#00e03c] font-bold uppercase bg-[#00e03c]/15 px-2 py-0.5 rounded border border-[#00e03c]/30">
+                        {actMilestoneType === 'phases' ? '5 Fases Estándar' :
+                         actMilestoneType === 'weekdays' ? 'Días Semana (Lun-Dom)' :
+                         actMilestoneType === 'custom_subtasks' ? 'Subtareas Personalizadas' : 'Avance Numérico'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {[
+                        { id: 'phases', label: '5 Fases', desc: 'Estándar SERAM' },
+                        { id: 'weekdays', label: 'Semanal', desc: 'Lun a Dom' },
+                        { id: 'custom_subtasks', label: 'Subtareas', desc: 'Texto custom' },
+                        { id: 'numeric', label: 'Numérico', desc: 'Meta cuant.' }
+                      ].map(m => (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => setActMilestoneType(m.id)}
+                          className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
+                            actMilestoneType === m.id
+                              ? 'bg-[#00e03c]/20 border-[#00e03c] text-white font-black shadow-sm shadow-[#00e03c]/20'
+                              : 'bg-[#06180a]/60 border-[#1a3a1a] text-slate-400 hover:text-white hover:border-[#00e03c]/30'
+                          }`}
+                        >
+                          <div className="text-xs font-bold">{m.label}</div>
+                          <div className="text-[9px] text-slate-500">{m.desc}</div>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Configuración de Modalidad */}
+                    {actMilestoneType === 'phases' && (
+                      <div className="p-2.5 rounded-xl bg-[#06180a]/90 border border-[#1a3a1a] text-[11px] text-slate-400 space-y-1">
+                        <span className="font-bold text-slate-300">5 Fases Técnicas:</span>
+                        <div className="grid grid-cols-5 gap-1 text-[9px] text-center pt-1 font-mono">
+                          <span className="p-1 rounded bg-[#08200f] border border-[#1a3a1a] text-[#00e03c]">1. Datos</span>
+                          <span className="p-1 rounded bg-[#08200f] border border-[#1a3a1a] text-[#00e03c]">2. SIG</span>
+                          <span className="p-1 rounded bg-[#08200f] border border-[#1a3a1a] text-[#00e03c]">3. Redac.</span>
+                          <span className="p-1 rounded bg-[#08200f] border border-[#1a3a1a] text-[#00e03c]">4. Calidad</span>
+                          <span className="p-1 rounded bg-[#08200f] border border-[#1a3a1a] text-[#00e03c]">5. Entrega</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {actMilestoneType === 'weekdays' && (
+                      <div className="p-2.5 rounded-xl bg-[#06180a]/90 border border-[#1a3a1a] space-y-2">
+                        <span className="text-[10px] font-bold text-slate-300 block">Días de la semana para completar la rutina:</span>
+                        <div className="grid grid-cols-7 gap-1">
+                          {['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'].map((d) => (
+                            <button
+                              key={d}
+                              type="button"
+                              onClick={() => setActWeekdays(prev => ({ ...prev, [d]: !prev[d] }))}
+                              className={`py-1.5 rounded-lg text-[10px] font-black uppercase text-center transition-all cursor-pointer ${
+                                actWeekdays[d]
+                                  ? 'bg-[#00e03c] text-slate-950 font-black shadow-sm'
+                                  : 'bg-[#08200f]/60 text-slate-400 border border-[#1a3a1a]'
+                              }`}
+                            >
+                              {d.slice(0, 2)}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {actMilestoneType === 'custom_subtasks' && (
+                      <div className="p-2.5 rounded-xl bg-[#06180a]/90 border border-[#1a3a1a] space-y-2">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            placeholder="Escribir subtarea específica..."
+                            value={newSubtaskText}
+                            onChange={(e) => setNewSubtaskText(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                if (newSubtaskText.trim()) {
+                                  setActCustomSubtasks(prev => [...prev, { id: Date.now().toString(), label: newSubtaskText.trim(), done: false }]);
+                                  setNewSubtaskText('');
+                                }
+                              }
+                            }}
+                            className="flex-1 px-2.5 py-1.5 bg-[#08200f]/80 border border-[#1a3a1a] rounded-lg text-white text-xs placeholder-slate-500 focus:outline-none focus:border-[#00e03c]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (newSubtaskText.trim()) {
+                                setActCustomSubtasks(prev => [...prev, { id: Date.now().toString(), label: newSubtaskText.trim(), done: false }]);
+                                setNewSubtaskText('');
+                              }
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-[#00e03c] text-slate-950 font-black text-xs hover:bg-[#00e03c]/90 cursor-pointer transition-all"
+                          >
+                            + Añadir
+                          </button>
+                        </div>
+
+                        {actCustomSubtasks.length > 0 && (
+                          <div className="space-y-1 max-h-36 overflow-y-auto pt-1">
+                            {actCustomSubtasks.map((st) => (
+                              <div key={st.id} className="flex items-center justify-between p-1.5 rounded-lg bg-[#08200f]/60 border border-[#1a3a1a] text-xs">
+                                <span className="text-slate-300 truncate max-w-[220px]">{st.label}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setActCustomSubtasks(prev => prev.filter(item => item.id !== st.id))}
+                                  className="text-slate-500 hover:text-rose-400 p-0.5 cursor-pointer transition-colors"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {actMilestoneType === 'numeric' && (
+                      <div className="p-2.5 rounded-xl bg-[#06180a]/90 border border-[#1a3a1a] grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[10px] text-slate-400 font-bold">Valor Actual</label>
+                          <input
+                            type="number"
+                            value={actCurrentValue}
+                            onChange={(e) => setActCurrentValue(Number(e.target.value))}
+                            className="w-full px-2.5 py-1.5 bg-[#08200f]/80 border border-[#1a3a1a] rounded-lg text-white font-mono text-xs focus:outline-none focus:border-[#00e03c]"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] text-slate-400 font-bold">Meta Numérica (Target)</label>
+                          <input
+                            type="number"
+                            value={actTargetValue}
+                            onChange={(e) => setActTargetValue(Number(e.target.value))}
+                            className="w-full px-2.5 py-1.5 bg-[#08200f]/80 border border-[#1a3a1a] rounded-lg text-white font-mono text-xs focus:outline-none focus:border-[#00e03c]"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Descripción Detallada */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-wider text-[#00e03c]">Detalles Técnicos / Entregable</label>
                     <textarea
                       rows="3"
-                      placeholder="Objetivos periciales de esta contingencia ambiental..."
-                      value={customMissionDesc}
-                      onChange={(e) => setCustomMissionDesc(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 resize-none"
+                      placeholder="Instrucciones o requerimientos específicos de este hito..."
+                      value={actDesc}
+                      onChange={(e) => setActDesc(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#00e03c] focus:ring-1 focus:ring-[#00e03c]/40 resize-none"
                     />
                   </div>
 
-                  <div className="pt-2 flex items-center justify-end gap-3 border-t border-white/[0.08]">
+                  {/* Botones */}
+                  <div className="pt-2 flex items-center justify-end gap-3 border-t border-[#1a3a1a]/60">
                     <button
                       type="button"
-                      onClick={() => setShowQuickMissionModal(false)}
-                      className="px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-slate-300 font-bold cursor-pointer"
+                      onClick={() => setShowNewActivityModal(false)}
+                      className="px-4 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 font-bold border border-[#1a3a1a] cursor-pointer transition-colors text-xs"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
-                      className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black shadow-lg shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer"
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#00e03c] via-emerald-400 to-[#00e03c] hover:from-[#00e03c]/90 hover:to-emerald-400/90 text-slate-950 font-black shadow-[0_0_20px_rgba(0,224,60,0.3)] transition-all flex items-center justify-center gap-2 cursor-pointer text-xs"
                     >
-                      <Flame className="w-3.5 h-3.5 fill-current" />
-                      <span>⚡ Lanzar Misión Flash</span>
+                      <CheckSquare className="w-4 h-4 text-slate-950" />
+                      <span>{editingActivity ? 'Guardar Cambios' : 'Registrar Actividad'}</span>
                     </button>
                   </div>
                 </form>
-              )}
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* ── MODAL: REGISTRAR / EDITAR ACTIVIDAD CLAVE ── */}
-      <AnimatePresence>
-        {showNewActivityModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-lg bg-[#0e1622] border border-white/[0.15] rounded-3xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto"
-            >
-              <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
-                <div className="flex items-center gap-2.5">
-                  <CheckSquare className="w-5 h-5 text-[#00e03c]" />
-                  <h3 className="text-base font-black text-white">
-                    {editingActivity ? 'Editar Actividad Clave' : 'Nueva Actividad Clave (Notion ➔ SERAM)'}
-                  </h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowNewActivityModal(false)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <form onSubmit={onSubmitActivity} className="space-y-4 text-xs">
-                {/* Tipo de Actividad & Duración Flash */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Tipo de Actividad</label>
-                    <select
-                      value={actActivityType}
-                      onChange={(e) => setActActivityType(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
-                    >
-                      <option value="principal">Actividad Principal</option>
-                      <option value="secundaria">Actividad Secundaria</option>
-                      <option value="grupal">👥 Actividad Grupal / Misión de Directorio</option>
-                      <option value="flash">⚡ Misión Flash (Contingencia)</option>
-                    </select>
-                  </div>
-
-                  {actActivityType === 'flash' ? (
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-amber-400 flex items-center gap-1">
-                        <Timer className="w-3 h-3" /> Duración Flash Límite
-                      </label>
-                      <select
-                        value={actFlashDuration}
-                        onChange={(e) => setActFlashDuration(Number(e.target.value))}
-                        className="w-full px-3 py-2 bg-white/[0.06] border border-amber-500/30 rounded-xl text-white font-mono font-bold focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
-                      >
-                        <option value={24}>24 Horas</option>
-                        <option value={48}>48 Horas</option>
-                        <option value={72}>72 Horas</option>
-                        <option value={96}>96 Horas</option>
-                        <option value={120}>120 Horas</option>
-                      </select>
-                    </div>
-                  ) : (
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-slate-400">Fecha de Inicio</label>
-                      <input
-                        type="date"
-                        value={actStartDate}
-                        onChange={(e) => setActStartDate(e.target.value)}
-                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-[#00e03c]"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Jerarquía OKR & Criterio de Validación Anti-Cheat */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-2xl bg-white/[0.03] border border-amber-500/25">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Jerarquía Estratégica OKR</label>
-                    <select
-                      value={actOkrLevel}
-                      onChange={(e) => setActOkrLevel(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
-                    >
-                      <option value="anual">🎯 Macro Anual (Visión SEPREC)</option>
-                      <option value="semestral">🧭 Semestral (Hitos Clave)</option>
-                      <option value="trimestral">📈 Trimestral (OKRs Q1 - Q4)</option>
-                      <option value="mensual">🗓️ Mensual (Entregables)</option>
-                      <option value="semanal">⚡ Semanal (Sprint de Gabinete)</option>
-                      <option value="diario">✅ Diario (Checklist & Tareas)</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-amber-400 flex items-center gap-1">
-                      <Scale className="w-3 h-3 text-amber-400" /> Criterio Validación (Anti-Cheat)
-                    </label>
-                    <select
-                      value={actValidationCriteria}
-                      onChange={(e) => setActValidationCriteria(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-amber-500/30 rounded-xl text-white font-bold focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
-                    >
-                      <option value="cross_audit">⚖️ Auditoría Cruzada Pericial</option>
-                      <option value="auto_proof">📎 Comprobante Obligatorio</option>
-                      <option value="provisional_pool">🛡️ Bolsa Provisional de Horas</option>
-                    </select>
-                  </div>
-                  <div className="sm:col-span-2 text-[10px] text-slate-400 italic">
-                    {actValidationCriteria === 'cross_audit' && '⚖️ Auditoría Cruzada: Al llegar a 100%, requiere aprobación pericial de otro socio directivo.'}
-                    {actValidationCriteria === 'auto_proof' && '📎 Auto-completar: Concluye al 100% de inmediato exigiendo link o archivo de respaldo adjunto.'}
-                    {actValidationCriteria === 'provisional_pool' && '🛡️ Bolsa Provisional: Concluye al instante sin bloquear al socio; se ratifica semanalmente en Directorio.'}
-                  </div>
-                </div>
-
-                {/* Título */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-400">Título de la Actividad / Tarea *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ej: Análisis multitemporal satelital en ArcGIS Pro"
-                    value={actTitle}
-                    onChange={(e) => setActTitle(e.target.value)}
-                    className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#00e03c]"
-                  />
-                </div>
-
-                {/* Proyecto Vinculado */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-400">Proyecto Vinculado</label>
-                  <select
-                    value={actProjectId}
-                    onChange={(e) => setActProjectId(e.target.value)}
-                    className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
-                  >
-                    <option value="">Proyecto General / Interno</option>
-                    <option value="SERAM S.R.L.">SERAM S.R.L. (Directorio)</option>
-                    <option value="Página Web">Página Web & Ecosistema Digital</option>
-                    <option value="Valle de las Agujas">Valle de las Agujas</option>
-                    <option value="Contenido Redes Sociales">Contenido Redes Sociales</option>
-                    <option value="Lanzamiento de SERAM Academy">SERAM Academy</option>
-                    {activeServices.map((p) => (
-                      <option key={p.id} value={p.id}>{p.client || p.type}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Equipo de Ejecución & Coordinador Responsable (Multi-selector con Checkboxes) */}
-                <div className="space-y-3 p-3.5 rounded-2xl bg-white/[0.03] border border-purple-500/30">
-                  <div className="relative" ref={teamDropdownRef}>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="text-[10px] font-black uppercase text-purple-300 flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5 text-purple-400" />
-                        Equipo Asignado (Socios & Consultores) *
-                      </label>
-                      <span className="text-[9px] font-mono font-bold text-purple-300 bg-purple-500/15 px-2 py-0.5 rounded border border-purple-500/30">
-                        {actAssignedTeam.length} {actAssignedTeam.length === 1 ? 'seleccionado' : 'seleccionados'}
-                      </span>
-                    </div>
-
-                    {/* Botón trigger del dropdown */}
-                    <button
-                      type="button"
-                      onClick={() => setIsTeamDropdownOpen(!isTeamDropdownOpen)}
-                      className="w-full px-3 py-2 bg-white/[0.06] hover:bg-white/[0.09] border border-white/[0.12] hover:border-purple-500/50 rounded-xl text-left flex items-center justify-between text-white font-medium transition-all cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2 truncate">
-                        <Users className="w-4 h-4 text-purple-400 shrink-0" />
-                        <span className="truncate text-xs">
-                          {actAssignedTeam.length === 0 && 'Seleccionar miembros del equipo...'}
-                          {actAssignedTeam.length === 1 && actAssignedTeam[0]}
-                          {actAssignedTeam.length === 2 && actAssignedTeam.map(n => n.replace(/^(Ing\.|Dra\.)\s*/, '')).join(', ')}
-                          {actAssignedTeam.length > 2 && `${actAssignedTeam.slice(0, 2).map(n => n.replace(/^(Ing\.|Dra\.)\s*/, '')).join(', ')} (+${actAssignedTeam.length - 2} más)`}
-                        </span>
-                      </div>
-                      <ChevronDown className={`w-4 h-4 text-purple-400 shrink-0 transition-transform ${isTeamDropdownOpen ? 'rotate-180' : ''}`} />
-                    </button>
-
-                    {/* Menú desplegable interactivo con Checkboxes */}
-                    {isTeamDropdownOpen && (
-                      <div className="absolute left-0 right-0 top-full mt-1.5 bg-[#0e1622] border border-purple-500/40 rounded-xl shadow-2xl p-2.5 z-50 max-h-64 overflow-y-auto space-y-3 backdrop-blur-xl">
-                        {/* Grupo 1: Socios Fundadores */}
-                        <div>
-                          <div className="text-[10px] font-black uppercase text-amber-400 tracking-wider px-2 pb-1 border-b border-white/[0.06] flex items-center justify-between">
-                            <span>Socios Fundadores</span>
-                            <span className="text-[9px] text-slate-400 font-normal">Directorio SERAM</span>
-                          </div>
-                          <div className="space-y-1 pt-1.5">
-                            {SERAM_TEAM_CATALOG.filter(c => c.category === 'Socio Fundador').map((member) => {
-                              const isChecked = actAssignedTeam.includes(member.name);
-                              return (
-                                <label
-                                  key={member.name}
-                                  className={`flex items-start gap-2.5 p-2 rounded-lg cursor-pointer transition-colors border ${
-                                    isChecked
-                                      ? 'bg-purple-500/15 border-purple-500/30'
-                                      : 'hover:bg-white/[0.04] border-transparent'
-                                  }`}
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={isChecked}
-                                    onChange={() => {
-                                      let newTeam;
-                                      if (isChecked) {
-                                        newTeam = actAssignedTeam.filter(n => n !== member.name);
-                                        if (newTeam.length === 0) newTeam = [member.name]; // al menos 1
-                                      } else {
-                                        newTeam = [...actAssignedTeam, member.name];
-                                      }
-                                      setActAssignedTeam(newTeam);
-                                      if (!newTeam.includes(actPartner)) {
-                                        setActPartner(newTeam[0]);
-                                      }
-                                      if (newTeam.length > 1 && actActivityType === 'principal') {
-                                        setActActivityType('grupal');
-                                      }
-                                    }}
-                                    className="mt-0.5 rounded border-white/20 text-purple-500 focus:ring-purple-500 focus:ring-offset-0 bg-white/10"
-                                  />
-                                  <div className="flex-1 min-w-0">
-                                    <div className="text-xs font-bold text-white flex items-center justify-between">
-                                      <span>{member.name}</span>
-                                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300">
-                                        {member.initials}
-                                      </span>
-                                    </div>
-                                    <div className="text-[10px] text-slate-400">{member.role}</div>
-                                  </div>
-                                </label>
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        {/* Grupo 2: Consultores Especialistas */}
-                        <div>
-                          <div className="text-[10px] font-black uppercase text-sky-400 tracking-wider px-2 pb-1 border-b border-white/[0.06] flex items-center justify-between">
-                            <span>Red de Consultores SERAM</span>
-                            <span className="text-[9px] text-slate-400 font-normal">Especialistas</span>
-                          </div>
-                          <div className="space-y-1 pt-1.5">
-                            {SERAM_TEAM_CATALOG.filter(c => c.category !== 'Socio Fundador').map((member) => {
-                              const isChecked = actAssignedTeam.includes(member.name);
-                              return (
-                                <label
-                                  key={member.name}
-                                  className={`flex items-start gap-2.5 p-2 rounded-lg cursor-pointer transition-colors border ${
-                                    isChecked
-                                      ? 'bg-purple-500/15 border-purple-500/30'
-                                      : 'hover:bg-white/[0.04] border-transparent'
-                                  }`}
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={isChecked}
-                                    onChange={() => {
-                                      let newTeam;
-                                      if (isChecked) {
-                                        newTeam = actAssignedTeam.filter(n => n !== member.name);
-                                        if (newTeam.length === 0) newTeam = [member.name];
-                                      } else {
-                                        newTeam = [...actAssignedTeam, member.name];
-                                      }
-                                      setActAssignedTeam(newTeam);
-                                      if (!newTeam.includes(actPartner)) {
-                                        setActPartner(newTeam[0]);
-                                      }
-                                      if (newTeam.length > 1 && actActivityType === 'principal') {
-                                        setActActivityType('grupal');
-                                      }
-                                    }}
-                                    className="mt-0.5 rounded border-white/20 text-purple-500 focus:ring-purple-500 focus:ring-offset-0 bg-white/10"
-                                  />
-                                  <div className="flex-1 min-w-0">
-                                    <div className="text-xs font-bold text-white flex items-center justify-between">
-                                      <span>{member.name}</span>
-                                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-300">
-                                        {member.initials}
-                                      </span>
-                                    </div>
-                                    <div className="text-[10px] text-slate-400">{member.role}</div>
-                                  </div>
-                                </label>
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        {/* Botones de acción rápida dentro del dropdown */}
-                        <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between gap-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setActAssignedTeam(['Ing. Diego Barrientos', 'Ing. Fernando Araujo']);
-                              setActActivityType('grupal');
-                            }}
-                            className="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-[10px] font-bold border border-amber-500/30 transition-all cursor-pointer"
-                          >
-                            🏛️ Directorio (Diego + Fernando)
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setIsTeamDropdownOpen(false)}
-                            className="px-3 py-1 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 text-[10px] font-bold border border-purple-500/40 transition-all cursor-pointer"
-                          >
-                            Listo ✓
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Selector de Líder / Coordinador Responsable */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1">
-                        <User className="w-3 h-3 text-[#00e03c]" /> Líder / Coordinador Responsable *
-                      </label>
-                      <select
-                        value={actPartner}
-                        onChange={(e) => setActPartner(e.target.value)}
-                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
-                      >
-                        {actAssignedTeam.map((name) => (
-                          <option key={name} value={name}>{name} (Seleccionado)</option>
-                        ))}
-                        {SERAM_TEAM_CATALOG.filter(c => !actAssignedTeam.includes(c.name)).map(c => (
-                          <option key={c.name} value={c.name}>{c.name}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="flex flex-col justify-end">
-                      {actAssignedTeam.length > 1 ? (
-                        <div className="p-2 rounded-xl bg-purple-500/15 border border-purple-500/30 text-[10px] text-purple-300 flex items-center gap-1.5">
-                          <Users className="w-4 h-4 text-purple-400 shrink-0" />
-                          <span><strong>Misión Grupal activa:</strong> +35% Bono de co-ejecución interdisciplinaria.</span>
-                        </div>
-                      ) : (
-                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/[0.08] text-[10px] text-slate-400 flex items-center gap-1.5">
-                          <User className="w-4 h-4 text-slate-500 shrink-0" />
-                          <span>Misión individual. Añade más miembros para combo grupal.</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Categoría y Prioridad */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Categoría Técnica</label>
-                    <select
-                      value={actCategory}
-                      onChange={(e) => setActCategory(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
-                    >
-                      <option value="SIG / Cartografía">SIG / Cartografía</option>
-                      <option value="Desarrollo Web & Sistemas">Desarrollo Web & Sistemas</option>
-                      <option value="Propuestas Técnicas & Proyectos">Propuestas Técnicas & Proyectos</option>
-                      <option value="Legal & Corporativo">Legal & Corporativo</option>
-                      <option value="Trámite Ambiental FNCA/RAI">Trámite Ambiental FNCA/RAI</option>
-                      <option value="Trabajo de Campo / Muestreo">Trabajo de Campo / Muestreo</option>
-                      <option value="Elaboración Informe / TDR">Elaboración Informe / TDR</option>
-                      <option value="Gestión Comercial / Reunión">Gestión Comercial / Reunión</option>
-                      <option value="Administración & Finanzas">Administración & Finanzas</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Prioridad</label>
-                    <select
-                      value={actPriority}
-                      onChange={(e) => setActPriority(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
-                    >
-                      <option value="Baja">Baja</option>
-                      <option value="Media">Media</option>
-                      <option value="Alta">Alta</option>
-                      <option value="Urgente">Urgente</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Fecha Límite y Horas */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Fecha Límite (Deadline)</label>
-                    <input
-                      type="date"
-                      value={actDueDate}
-                      onChange={(e) => setActDueDate(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-[#00e03c]"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Horas Estimadas</label>
-                    <input
-                      type="number"
-                      step="0.5"
-                      placeholder="Ej: 8"
-                      value={actEstHours}
-                      onChange={(e) => setActEstHours(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#00e03c]"
-                    />
-                  </div>
-                </div>
-
-                {/* Enlace y Entregable */}
-                <div className="space-y-2 p-3 rounded-2xl bg-white/[0.03] border border-sky-500/20">
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[10px] font-black uppercase text-sky-400 flex items-center gap-1">
-                        <Link2 className="w-3 h-3" /> URL del Entregable / Carpeta Drive
-                      </label>
-                      {actDeliverableUrl && (
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleCopyLink(actDeliverableUrl, 'modal-url')}
-                            className="text-[10px] text-slate-300 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
-                            title="Copiar enlace"
-                          >
-                            {copiedId === 'modal-url' ? <Check className="w-2.5 h-2.5 text-[#00e03c]" /> : <Copy className="w-2.5 h-2.5" />}
-                            <span>{copiedId === 'modal-url' ? '¡Copiado!' : 'Copiar'}</span>
-                          </button>
-                          <a
-                            href={actDeliverableUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[10px] text-sky-300 hover:text-white flex items-center gap-0.5 underline font-medium"
-                          >
-                            <ExternalLink className="w-2.5 h-2.5" /> Abrir
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                    <input
-                      type="url"
-                      placeholder="https://docs.google.com/... o https://drive.google.com/..."
-                      value={actDeliverableUrl}
-                      onChange={(e) => setActDeliverableUrl(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-sky-500/30 rounded-xl text-white placeholder-slate-500 font-mono text-xs focus:outline-none focus:border-sky-400"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1">
-                      <Paperclip className="w-3 h-3" /> Subir Archivo Adjunto (.pdf, .jpg, .md)
-                    </label>
-                    <input
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png,.md"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) {
-                          handleFileUpload(e.target.files[0], false);
-                        }
-                      }}
-                      className="w-full text-xs text-slate-400 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-sky-500/20 file:text-sky-300 hover:file:bg-sky-500/30 cursor-pointer"
-                    />
-                    {actDeliverableName && (
-                      <p className="text-[10px] text-emerald-400 font-mono">
-                        ✓ Archivo cargado: {actDeliverableName}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Modalidad de Hitos de Ejecución */}
-                <div className="space-y-2 p-3 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-black uppercase text-slate-300">Modalidad de Hitos & Seguimiento</label>
-                    <span className="text-[9px] font-mono text-emerald-400 font-bold uppercase">
-                      {actMilestoneType === 'phases' ? '5 Fases Estándar' :
-                       actMilestoneType === 'weekdays' ? 'Días Semana (Lun-Dom)' :
-                       actMilestoneType === 'custom_subtasks' ? 'Subtareas Personalizadas' : 'Avance Numérico'}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {[
-                      { id: 'phases', label: '5 Fases', desc: 'Estándar SERAM' },
-                      { id: 'weekdays', label: 'Semanal', desc: 'Lun a Dom' },
-                      { id: 'custom_subtasks', label: 'Subtareas', desc: 'Texto custom' },
-                      { id: 'numeric', label: 'Numérico', desc: 'Meta cuant.' }
-                    ].map(m => (
-                      <button
-                        key={m.id}
-                        type="button"
-                        onClick={() => setActMilestoneType(m.id)}
-                        className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
-                          actMilestoneType === m.id
-                            ? 'bg-[#00e03c]/20 border-[#00e03c] text-white font-black shadow-sm'
-                            : 'bg-white/[0.02] border-white/[0.08] text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        <div className="text-xs font-bold">{m.label}</div>
-                        <div className="text-[9px] text-slate-500">{m.desc}</div>
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Configuración de Modalidad */}
-                  {actMilestoneType === 'phases' && (
-                    <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] text-[11px] text-slate-400 space-y-1">
-                      <span className="font-bold text-slate-300">5 Fases Técnicas:</span>
-                      <div className="grid grid-cols-5 gap-1 text-[9px] text-center pt-1 font-mono">
-                        <span className="p-1 rounded bg-white/[0.04]">1. Datos</span>
-                        <span className="p-1 rounded bg-white/[0.04]">2. SIG</span>
-                        <span className="p-1 rounded bg-white/[0.04]">3. Redac.</span>
-                        <span className="p-1 rounded bg-white/[0.04]">4. Calidad</span>
-                        <span className="p-1 rounded bg-white/[0.04]">5. Entrega</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {actMilestoneType === 'weekdays' && (
-                    <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2">
-                      <span className="text-[10px] font-bold text-slate-300 block">Días de la semana para completar la rutina:</span>
-                      <div className="grid grid-cols-7 gap-1">
-                        {['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'].map((d) => (
-                          <button
-                            key={d}
-                            type="button"
-                            onClick={() => setActWeekdays(prev => ({ ...prev, [d]: !prev[d] }))}
-                            className={`py-1.5 rounded-lg text-[10px] font-black uppercase text-center transition-all cursor-pointer ${
-                              actWeekdays[d] ? 'bg-sky-500 text-white shadow-sm ring-1 ring-sky-400/50' : 'bg-white/[0.04] text-slate-400 border border-white/[0.08]'
-                            }`}
-                          >
-                            {d.slice(0, 2)}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {actMilestoneType === 'custom_subtasks' && (
-                    <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          placeholder="Escribir subtarea específica..."
-                          value={newSubtaskText}
-                          onChange={(e) => setNewSubtaskText(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              if (newSubtaskText.trim()) {
-                                setActCustomSubtasks(prev => [...prev, { id: Date.now().toString(), label: newSubtaskText.trim(), done: false }]);
-                                setNewSubtaskText('');
-                              }
-                            }
-                          }}
-                          className="flex-1 px-2.5 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-lg text-white text-xs placeholder-slate-500 focus:outline-none focus:border-[#00e03c]"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (newSubtaskText.trim()) {
-                              setActCustomSubtasks(prev => [...prev, { id: Date.now().toString(), label: newSubtaskText.trim(), done: false }]);
-                              setNewSubtaskText('');
-                            }
-                          }}
-                          className="px-3 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-black text-xs hover:bg-emerald-400 cursor-pointer"
-                        >
-                          + Añadir
-                        </button>
-                      </div>
-
-                      {actCustomSubtasks.length > 0 && (
-                        <div className="space-y-1 max-h-36 overflow-y-auto pt-1">
-                          {actCustomSubtasks.map((st) => (
-                            <div key={st.id} className="flex items-center justify-between p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs">
-                              <span className="text-slate-300 truncate max-w-[220px]">{st.label}</span>
-                              <button
-                                type="button"
-                                onClick={() => setActCustomSubtasks(prev => prev.filter(item => item.id !== st.id))}
-                                className="text-slate-500 hover:text-rose-400 p-0.5 cursor-pointer"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {actMilestoneType === 'numeric' && (
-                    <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06] grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-[10px] text-slate-400 font-bold">Valor Actual</label>
-                        <input
-                          type="number"
-                          value={actCurrentValue}
-                          onChange={(e) => setActCurrentValue(Number(e.target.value))}
-                          className="w-full px-2.5 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-lg text-white font-mono text-xs focus:outline-none focus:border-[#00e03c]"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] text-slate-400 font-bold">Meta Numérica (Target)</label>
-                        <input
-                          type="number"
-                          value={actTargetValue}
-                          onChange={(e) => setActTargetValue(Number(e.target.value))}
-                          className="w-full px-2.5 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-lg text-white font-mono text-xs focus:outline-none focus:border-[#00e03c]"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Descripción Detallada */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-400">Detalles Técnicos / Entregable</label>
-                  <textarea
-                    rows="3"
-                    placeholder="Instrucciones o requerimientos específicos de este hito..."
-                    value={actDesc}
-                    onChange={(e) => setActDesc(e.target.value)}
-                    className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#00e03c] resize-none"
-                  />
-                </div>
-
-                {/* Botones */}
-                <div className="pt-2 flex items-center justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowNewActivityModal(false)}
-                    className="px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-slate-300 font-bold cursor-pointer"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 rounded-xl bg-[#00e03c] hover:bg-[#00e03c]/90 text-slate-950 font-black shadow-lg shadow-[#00e03c]/20 cursor-pointer"
-                  >
-                    {editingActivity ? 'Guardar Cambios' : 'Registrar Actividad'}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
+              </motion.div>
+            </div>
           </div>
         )}
       </AnimatePresence>
