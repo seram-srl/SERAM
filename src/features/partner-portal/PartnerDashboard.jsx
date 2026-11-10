@@ -28,6 +28,7 @@ import VirtualOfficeView from './VirtualOfficeView';
 import ActivitiesAndClientsModule from './ActivitiesAndClientsModule';
 import ClientsModule from './ClientsModule';
 import PartnerProfileRPGModule from './PartnerProfileRPGModule';
+import OdooAppLauncher from './odoo/OdooAppLauncher';
 import { calculatePartnerTotalXP } from './gamification/xpEngine';
 
 // ── ANIMATION VARIANTS ─────────────────────────────────────────────────────
@@ -4359,8 +4360,13 @@ export default function PartnerDashboard() {
 
       {/* ── CABECERA FIJA SUPERIOR DE COLOR SÓLIDO (DESKTOP & MOBILE) ───────── */}
       <header className="fixed top-0 left-0 right-0 h-20 bg-[#070d17] border-b border-white/[0.1] z-[100] flex items-center justify-between px-4 sm:px-6 shadow-xl shadow-black/50 select-none">
-        {/* Lado izquierdo: Botón Módulos (Mobile) con separación del menú de hamburguesa */}
+        {/* Lado izquierdo: Lanzador Odoo App Switcher + Botón Módulos (Mobile) */}
         <div className="flex items-center gap-3 pl-20 sm:pl-24">
+          <OdooAppLauncher
+            activeModule={activeModule}
+            onSelectModule={(modId) => setActiveModule(modId)}
+          />
+
           <button
             type="button"
             onClick={() => setMobileDrawerOpen(true)}
