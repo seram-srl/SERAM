@@ -677,10 +677,16 @@ export function AppProvider({ children }) {
                 return {
                   ...cleaned,
                   description: cleanDesc,
-                  milestoneStep: cleaned.milestoneStep !== undefined ? cleaned.milestoneStep : (meta.milestoneStep !== undefined ? Number(meta.milestoneStep) : 0)
+                  milestoneStep: cleaned.milestoneStep !== undefined ? cleaned.milestoneStep : (meta.milestoneStep !== undefined ? Number(meta.milestoneStep) : 0),
+                  assignedTeam: Array.isArray(meta.assignedTeam) && meta.assignedTeam.length > 0
+                    ? meta.assignedTeam
+                    : (Array.isArray(cleaned.assignedTeam) && cleaned.assignedTeam.length > 0 ? cleaned.assignedTeam : [cleaned.assignedPartner || 'Ing. Diego Barrientos'])
                 };
               }
-              return cleaned;
+              return {
+                ...cleaned,
+                assignedTeam: Array.isArray(cleaned.assignedTeam) && cleaned.assignedTeam.length > 0 ? cleaned.assignedTeam : [cleaned.assignedPartner || 'Ing. Diego Barrientos']
+              };
             });
           }
         }
@@ -2036,6 +2042,11 @@ export function AppProvider({ children }) {
               milestoneStep: meta.milestoneStep !== undefined ? Number(meta.milestoneStep) : (act.milestone_step !== undefined ? Number(act.milestone_step) : 0),
               startDate: meta.startDate || act.start_date || null,
               coPartner: meta.coPartner || act.co_partner || null,
+              assignedTeam: Array.isArray(meta.assignedTeam) && meta.assignedTeam.length > 0
+                ? meta.assignedTeam
+                : (Array.isArray(act.assigned_team) && act.assigned_team.length > 0
+                    ? act.assigned_team
+                    : (act.assigned_partner ? [act.assigned_partner, ...(act.co_partner ? [act.co_partner] : [])] : ['Ing. Diego Barrientos'])),
               strategicObjectives: Array.isArray(meta.strategicObjectives)
                 ? meta.strategicObjectives
                 : (Array.isArray(act.strategic_objectives)
@@ -2130,6 +2141,11 @@ export function AppProvider({ children }) {
                 approved_by: remoteAct.approved_by || localAct.approved_by || null,
                 approved_at: remoteAct.approved_at || localAct.approved_at || null,
                 xp_awarded: remoteAct.xp_awarded || localAct.xp_awarded || 0,
+                assignedTeam: (hasMeta && Array.isArray(meta.assignedTeam) && meta.assignedTeam.length > 0)
+                  ? remoteAct.assignedTeam
+                  : (Array.isArray(localAct.assignedTeam) && localAct.assignedTeam.length > 0
+                      ? localAct.assignedTeam
+                      : (remoteAct.assignedTeam || [remoteAct.assignedPartner || 'Ing. Diego Barrientos'])),
               };
             });
 
@@ -3145,6 +3161,11 @@ export function AppProvider({ children }) {
       milestoneStep: actData.milestoneStep !== undefined ? Number(actData.milestoneStep) : (descMeta.milestoneStep !== undefined ? Number(descMeta.milestoneStep) : 0),
       startDate: actData.startDate || null,
       coPartner: actData.coPartner || null,
+      assignedTeam: Array.isArray(actData.assignedTeam) && actData.assignedTeam.length > 0
+        ? actData.assignedTeam
+        : (Array.isArray(descMeta.assignedTeam) && descMeta.assignedTeam.length > 0
+            ? descMeta.assignedTeam
+            : [actData.assignedPartner || currentSocio?.name || 'Ing. Diego Barrientos']),
       strategicObjectives: Array.isArray(actData.strategicObjectives)
         ? actData.strategicObjectives
         : (actData.strategicObjectives ? [actData.strategicObjectives] : []),
@@ -3188,6 +3209,7 @@ export function AppProvider({ children }) {
         activityType: newAct.activityType,
         startDate: newAct.startDate,
         coPartner: newAct.coPartner,
+        assignedTeam: newAct.assignedTeam,
         strategicObjectives: newAct.strategicObjectives
       };
       const finalDesc = serializeActivityWithMeta(cleanDesc, meta);
@@ -3297,6 +3319,7 @@ export function AppProvider({ children }) {
         activityType: currentAct.activityType,
         startDate: currentAct.startDate,
         coPartner: currentAct.coPartner,
+        assignedTeam: currentAct.assignedTeam,
         strategicObjectives: currentAct.strategicObjectives
       } : {}),
       ...descMeta,
@@ -3319,6 +3342,7 @@ export function AppProvider({ children }) {
       ...(updatedFields.activityType !== undefined ? { activityType: updatedFields.activityType } : {}),
       ...(updatedFields.startDate !== undefined ? { startDate: updatedFields.startDate } : {}),
       ...(updatedFields.coPartner !== undefined ? { coPartner: updatedFields.coPartner } : {}),
+      ...(updatedFields.assignedTeam !== undefined ? { assignedTeam: updatedFields.assignedTeam } : {}),
       ...(updatedFields.strategicObjectives !== undefined ? { strategicObjectives: updatedFields.strategicObjectives } : {})
     };
 

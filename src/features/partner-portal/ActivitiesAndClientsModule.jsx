@@ -74,6 +74,75 @@ const formatDateRange = (startDate, dueDate) => {
   return formatMonth(dueDate || startDate);
 };
 
+// ── CATÁLOGO EXPANDIDO DE PARTICIPANTES SERAM (SOCIOS & CONSULTORES) ────────
+export const SERAM_TEAM_CATALOG = [
+  {
+    name: 'Ing. Diego Barrientos',
+    role: 'Especialista SIG & Monitoreo',
+    category: 'Socio Fundador',
+    initials: 'DB',
+    email: 'barrientoso2401@gmail.com',
+  },
+  {
+    name: 'Ing. Fernando Araujo',
+    role: 'Gestión Legal & Ambiental',
+    category: 'Socio Fundador',
+    initials: 'FA',
+    email: 'fernandoaraujo1912@gmail.com',
+  },
+  {
+    name: 'Ing. Mariana Camacho',
+    role: 'Auditoría SySO & Monitoreo - Santa Cruz',
+    category: 'Consultor Especialista',
+    initials: 'MC',
+    email: 'marianacamacho@seram.bo',
+  },
+  {
+    name: 'Ing. Carlos Mendoza',
+    role: 'Ingeniería & Suelos - Cochabamba',
+    category: 'Consultor Especialista',
+    initials: 'CM',
+    email: 'carlosmendoza@seram.bo',
+  },
+  {
+    name: 'Dra. Gabriela Rojas',
+    role: 'Derecho Ambiental & Regulaciones - La Paz',
+    category: 'Especialista Legal',
+    initials: 'GR',
+    email: 'gabrielarojas@seram.bo',
+  },
+];
+
+export const isGroupActivity = (act) => {
+  if (!act) return false;
+  if (act.activityType === 'grupal') return true;
+  if (Array.isArray(act.assignedTeam) && act.assignedTeam.length > 1) return true;
+  return false;
+};
+
+export const getTeamInitials = (act) => {
+  if (!act) return 'SR';
+  const team = Array.isArray(act.assignedTeam) && act.assignedTeam.length > 0
+    ? act.assignedTeam
+    : (act.assignedPartner ? [act.assignedPartner, ...(act.coPartner ? [act.coPartner] : [])] : []);
+
+  if (team.length === 0) return 'SR';
+
+  const initialsList = team.map(member => {
+    const found = SERAM_TEAM_CATALOG.find(c => c.name === member);
+    if (found) return found.initials;
+    if (member.includes('Diego')) return 'DB';
+    if (member.includes('Fernando')) return 'FA';
+    if (member.includes('Mariana')) return 'MC';
+    if (member.includes('Carlos')) return 'CM';
+    if (member.includes('Gabriela')) return 'GR';
+    const clean = member.replace(/^(Ing\.|Dra\.|Lic\.)\s*/, '').trim().split(' ');
+    return clean.map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  });
+
+  return initialsList.join(', ');
+};
+
 const getPartnerInitials = (name) => {
   if (!name) return { initials: 'SR', short: 'Socio' };
   if (name.includes('Diego')) return { initials: 'DB', short: 'Diego Barrie' };
@@ -269,14 +338,24 @@ const handleShareActivityEmail = (act) => {
   const subject = `[SERAM S.R.L.] Reporte Técnico de Actividad Clave: ${act.title}`;
   const deliverableText = act.deliverableUrl || act.url || 'Sin enlace adjunto aún';
   const fileName = act.deliverableName ? ` (${act.deliverableName})` : '';
+  const teamText = Array.isArray(act.assignedTeam) && act.assignedTeam.length > 0
+    ? act.assignedTeam.join(', ')
+    : `${act.assignedPartner || 'Directorio SERAM'}${act.coPartner ? ` y ${act.coPartner}` : ''}`;
+  const missionTypeLabel = act.isFlash || act.activityType === 'flash'
+    ? '⚡ Misión Flash de Contingencia (Urgente)'
+    : (act.activityType === 'grupal' || isGroupActivity(act)
+        ? '👥 Misión de Directorio / Grupal'
+        : (act.activityType === 'secundaria' ? 'Secundaria' : 'Principal'));
+
   const body = `Estimado Directorio y Equipo SERAM S.R.L.,
 
 Por medio del presente se comparte el resumen ejecutivo y estado de ejecución técnica de la siguiente actividad:
 
 • Actividad Clave: ${act.title}
-• Tipo de Misión: ${act.isFlash || act.activityType === 'flash' ? '⚡ Misión Flash de Contingencia (Urgente)' : (act.activityType === 'secundaria' ? 'Secundaria' : 'Principal')}
+• Tipo de Misión: ${missionTypeLabel}
 • Proyecto Vinculado: ${act.projectTitle || 'SERAM S.R.L.'}
-• Responsable: ${act.assignedPartner || 'Directorio SERAM'}
+• Responsable Principal / Coordinador: ${act.assignedPartner || 'Directorio SERAM'}
+• Equipo Asignado: ${teamText}
 • Co-Ejecutor (Combo): ${act.coPartner || 'N/A'}
 • Estado Actual: ${act.status} (Hito ${act.milestoneStep || 0}/5)
 • Prioridad: ${act.priority || 'Media'}
@@ -514,7 +593,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
       completedAt: new Date(),
     });
 
-    const comboMultiplier = act.coPartner ? 1.35 : 1.0;
+    const comboMultiplier = act.coPartner || isGroupActivity(act) ? 1.35 : 1.0;
     const finalAwardedXP = Math.round(xpResult.finalXP * comboMultiplier);
 
     handleEditActivity(act.id, {
@@ -536,8 +615,12 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
       }));
     }
 
+    const teamSummary = isGroupActivity(act)
+      ? `al equipo (${(act.assignedTeam || [act.assignedPartner]).join(', ')}) (Bono Misión Grupal +35%)`
+      : `a ${act.assignedPartner}${act.coPartner ? ` y a su co-ejecutor ${act.coPartner} (Bono Combo +35%)` : ''}`;
+
     triggerToast(
-      `¡Entregable aprobado por ${currentSocio.name}! Se otorgaron +${finalAwardedXP} XP a ${act.assignedPartner}${act.coPartner ? ` y a su co-ejecutor ${act.coPartner} (Bono Combo +35%)` : ''}.`,
+      `¡Entregable aprobado por ${currentSocio.name}! Se otorgaron +${finalAwardedXP} XP ${teamSummary}.`,
       'success'
     );
   };
@@ -575,7 +658,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
       const hours = Number(act.actualHours) || Number(act.estimatedHours) || 2;
       const diff = act.priority === 'Alta' ? 'Alta' : (act.priority === 'Urgente' ? 'Critica' : 'Media');
       const xpResult = calculateTaskXP({ hours, difficulty: diff, deadline: act.dueDate, completedAt: new Date() });
-      const comboMultiplier = act.coPartner ? 1.35 : 1.0;
+      const comboMultiplier = act.coPartner || isGroupActivity(act) ? 1.35 : 1.0;
       const finalXP = Math.round(xpResult.finalXP * comboMultiplier);
 
       const updateObj = {
@@ -613,7 +696,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
       const hours = Number(act.actualHours) || Number(act.estimatedHours) || 2;
       const diff = act.priority === 'Alta' ? 'Alta' : (act.priority === 'Urgente' ? 'Critica' : 'Media');
       const xpResult = calculateTaskXP({ hours, difficulty: diff, deadline: act.dueDate, completedAt: new Date() });
-      const comboMultiplier = act.coPartner ? 1.35 : 1.0;
+      const comboMultiplier = act.coPartner || isGroupActivity(act) ? 1.35 : 1.0;
       const finalXP = Math.round(xpResult.finalXP * comboMultiplier);
 
       const updateObj = {
@@ -815,16 +898,60 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
   const [actProjectId, setActProjectId] = useState('');
   const [actPartner, setActPartner] = useState(currentSocio?.name || 'Ing. Diego Barrientos');
   const [actCoPartner, setActCoPartner] = useState('');
+  const [actAssignedTeam, setActAssignedTeam] = useState([currentSocio?.name || 'Ing. Diego Barrientos']);
+  const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false);
+  const teamDropdownRef = useRef(null);
   const [actCategory, setActCategory] = useState('SIG / Cartografía');
   const [actPriority, setActPriority] = useState('Media');
   const [actDueDate, setActDueDate] = useState('');
   const [actStartDate, setActStartDate] = useState('');
   const [actEstHours, setActEstHours] = useState('');
-  const [actActivityType, setActActivityType] = useState('principal'); // 'principal' | 'secundaria' | 'flash'
+  const [actActivityType, setActActivityType] = useState('principal'); // 'principal' | 'secundaria' | 'grupal' | 'flash'
   const [actFlashDuration, setActFlashDuration] = useState(72);
   const [actDeliverableUrl, setActDeliverableUrl] = useState('');
   const [actDeliverableName, setActDeliverableName] = useState('');
   const [actAttachments, setActAttachments] = useState([]);
+
+  // Cerrar selector de equipo al hacer clic fuera
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (teamDropdownRef.current && !teamDropdownRef.current.contains(event.target)) {
+        setIsTeamDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
+
+  // Abrir modal configurado directamente para Misión de Directorio / Grupal
+  const handleOpenNewGroupMission = () => {
+    setEditingActivity(null);
+    setActTitle('');
+    setActDesc('');
+    setActProjectId(activeServices[0]?.id || '');
+    setActStartDate(new Date().toISOString().split('T')[0]);
+    setActDueDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+    setActActivityType('grupal');
+    setActCategory('Legal & Corporativo');
+    setActPriority('Alta');
+    setActPartner(currentSocio?.name || 'Ing. Diego Barrientos');
+    setActAssignedTeam(['Ing. Diego Barrientos', 'Ing. Fernando Araujo']);
+    setActCoPartner('Ing. Fernando Araujo');
+    setActDeliverableUrl('');
+    setActDeliverableName('');
+    setActAttachments([]);
+    setActMilestoneType('phases');
+    setActCustomSubtasks([]);
+    setNewSubtaskText('');
+    setActWeekdays({ lun: false, mar: false, mie: false, jue: false, vie: false, sab: false, dom: false });
+    setActCurrentValue(0);
+    setActTargetValue(10);
+    setActValidationCriteria('cross_audit');
+    setActOkrLevel('semanal');
+    setActTimeLimitHours('');
+    setIsTeamDropdownOpen(false);
+    setShowNewActivityModal(true);
+  };
 
   // Multi-modal milestone & governance states
   const [actMilestoneType, setActMilestoneType] = useState('phases'); // 'phases' | 'weekdays' | 'custom_subtasks' | 'numeric'
@@ -846,6 +973,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         const isMe =
           act.assignedPartner === myName ||
           act.coPartner === myName ||
+          (Array.isArray(act.assignedTeam) && act.assignedTeam.some(m => m === myName || (myName.includes('Diego') && m.includes('Diego')) || (myName.includes('Fernando') && m.includes('Fernando')))) ||
           (myName.includes('Diego') && act.assignedPartner?.includes('Diego')) ||
           (myName.includes('Fernando') && act.assignedPartner?.includes('Fernando'));
         if (!isMe) return false;
@@ -855,7 +983,8 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
       const matchPartner =
         partnerFilter === 'all' ||
         act.assignedPartner === partnerFilter ||
-        act.coPartner === partnerFilter;
+        act.coPartner === partnerFilter ||
+        (Array.isArray(act.assignedTeam) && act.assignedTeam.includes(partnerFilter));
 
       // 3. Filtro por Proyecto
       const matchProject =
@@ -1021,20 +1150,32 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
       ? new Date(Date.now() + (parseInt(actFlashDuration, 10) || 72) * 3600 * 1000).toISOString()
       : null;
 
+    const resolvedTeam = actAssignedTeam.length > 0
+      ? actAssignedTeam
+      : [actPartner || currentSocio?.name || 'Ing. Diego Barrientos'];
+    const resolvedLeader = actPartner || resolvedTeam[0];
+    const resolvedCoPartner = resolvedTeam.length > 1
+      ? (resolvedTeam.find(m => m !== resolvedLeader) || resolvedTeam[1])
+      : (actCoPartner || null);
+    const resolvedType = actActivityType === 'grupal' || resolvedTeam.length > 1
+      ? (actActivityType === 'flash' ? 'flash' : 'grupal')
+      : actActivityType;
+
     if (editingActivity) {
       handleEditActivity(editingActivity.id, {
         title: actTitle,
         description: actDesc,
         projectId: actProjectId ? (isNaN(actProjectId) ? actProjectId : parseInt(actProjectId)) : null,
         projectTitle: selectedProj ? selectedProj.client || selectedProj.type : 'Proyecto General',
-        assignedPartner: actPartner,
-        coPartner: actCoPartner || null,
+        assignedPartner: resolvedLeader,
+        coPartner: resolvedCoPartner,
+        assignedTeam: resolvedTeam,
         category: actCategory,
         priority: isFlashMission ? 'Urgente' : actPriority,
         startDate: actStartDate || null,
         dueDate: actDueDate,
         estimatedHours: parseFloat(actEstHours) || 0,
-        activityType: actActivityType,
+        activityType: resolvedType,
         isFlash: isFlashMission,
         flashExpiresAt: expiresAt || editingActivity.flashExpiresAt || null,
         deliverableUrl: actDeliverableUrl || editingActivity.deliverableUrl || null,
@@ -1057,8 +1198,9 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         description: actDesc,
         projectId: actProjectId ? (isNaN(actProjectId) ? actProjectId : parseInt(actProjectId)) : null,
         projectTitle: selectedProj ? selectedProj.client || selectedProj.type : 'Proyecto General',
-        assignedPartner: actPartner,
-        coPartner: actCoPartner || null,
+        assignedPartner: resolvedLeader,
+        coPartner: resolvedCoPartner,
+        assignedTeam: resolvedTeam,
         category: actCategory,
         priority: isFlashMission ? 'Urgente' : actPriority,
         startDate: actStartDate || new Date().toISOString().split('T')[0],
@@ -1066,7 +1208,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         estimatedHours: parseFloat(actEstHours) || 0,
         actualHours: 0,
         status: 'Pendiente',
-        activityType: actActivityType,
+        activityType: resolvedType,
         isFlash: isFlashMission,
         flashExpiresAt: expiresAt,
         deliverableUrl: actDeliverableUrl || null,
@@ -1089,6 +1231,8 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     setActDesc('');
     setActProjectId('');
     setActCoPartner('');
+    setActAssignedTeam([currentSocio?.name || 'Ing. Diego Barrientos']);
+    setIsTeamDropdownOpen(false);
     setActStartDate('');
     setActEstHours('');
     setActActivityType('principal');
@@ -1114,13 +1258,18 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     setActDesc(act.description || '');
     setActProjectId(act.projectId || '');
     setActPartner(act.assignedPartner || 'Ing. Diego Barrientos');
+    const team = Array.isArray(act.assignedTeam) && act.assignedTeam.length > 0
+      ? act.assignedTeam
+      : (act.assignedPartner ? [act.assignedPartner, ...(act.coPartner ? [act.coPartner] : [])] : [currentSocio?.name || 'Ing. Diego Barrientos']);
+    setActAssignedTeam(team);
+    setIsTeamDropdownOpen(false);
     setActCoPartner(act.coPartner || '');
     setActCategory(act.category || 'SIG / Cartografía');
     setActPriority(act.priority || 'Media');
     setActStartDate(act.startDate || '');
     setActDueDate(act.dueDate || '');
     setActEstHours(act.estimatedHours || '');
-    setActActivityType(act.activityType || (act.isFlash ? 'flash' : 'principal'));
+    setActActivityType(act.activityType || (act.isFlash ? 'flash' : (team.length > 1 ? 'grupal' : 'principal')));
     setActDeliverableUrl(act.deliverableUrl || act.url || '');
     setActDeliverableName(act.deliverableName || '');
     setActAttachments(Array.isArray(act.attachments) ? act.attachments : []);
@@ -1294,33 +1443,46 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
       {/* ── BARRA DE HERRAMIENTAS Y FILTROS ESTILO NOTION ── */}
       {(activeTab === 'kanban' || activeTab === 'table') && (
         <div className="flex flex-wrap items-center justify-between gap-2.5 bg-[#0d1522]/90 px-3 py-2 rounded-xl border border-white/[0.08] shadow-md relative z-10">
-          {/* Grupo 1: Filtro Personal vs Grupal */}
-          <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
+          {/* Grupo 1: Filtro Personal vs Grupal y Acceso Rápido Misión Grupal */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
+              <button
+                type="button"
+                onClick={() => setScopeFilter('personal')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  scopeFilter === 'personal'
+                    ? 'bg-[#00e03c] text-slate-950 font-black shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                }`}
+                title="Filtrar actividades donde estás asignado"
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>Mis Actividades (Personal)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setScopeFilter('all')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  scopeFilter === 'all'
+                    ? 'bg-white/[0.14] text-white font-black shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                }`}
+                title="Ver todas las actividades grupales de SERAM"
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Todo el Equipo (Grupal)</span>
+              </button>
+            </div>
+
+            {/* Botón de Acción Rápida Neuform: Nueva Misión de Directorio / Grupal */}
             <button
               type="button"
-              onClick={() => setScopeFilter('personal')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                scopeFilter === 'personal'
-                  ? 'bg-[#00e03c] text-slate-950 font-black shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
-              }`}
-              title="Filtrar actividades donde estás asignado"
+              onClick={handleOpenNewGroupMission}
+              className="px-3 py-1.5 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 hover:text-white border border-purple-500/40 hover:border-purple-400/60 font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm shadow-purple-500/10 cursor-pointer"
+              title="Crear nueva misión grupal de directorio para múltiples socios y consultores"
             >
-              <User className="w-3.5 h-3.5" />
-              <span>Mis Actividades (Personal)</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setScopeFilter('all')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                scopeFilter === 'all'
-                  ? 'bg-white/[0.14] text-white font-black shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
-              }`}
-              title="Ver todas las actividades grupales de SERAM"
-            >
-              <Users className="w-3.5 h-3.5" />
-              <span>Todo el Equipo (Grupal)</span>
+              <Users className="w-3.5 h-3.5 text-purple-400" />
+              <span>👥 Nueva Misión de Directorio / Grupal</span>
             </button>
           </div>
 
@@ -1365,10 +1527,16 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                 onChange={(e) => setPartnerFilter(e.target.value)}
                 className="text-xs px-2.5 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
               >
-                <option value="all">Todos los Socios</option>
-                {partnersList.map((p) => (
-                  <option key={p.name} value={p.name}>{p.name}</option>
-                ))}
+                <option value="all">Todos los Socios y Consultores</option>
+                <optgroup label="Socios Fundadores">
+                  <option value="Ing. Diego Barrientos">Ing. Diego Barrientos</option>
+                  <option value="Ing. Fernando Araujo">Ing. Fernando Araujo</option>
+                </optgroup>
+                <optgroup label="Red de Consultores SERAM">
+                  <option value="Ing. Mariana Camacho">Ing. Mariana Camacho</option>
+                  <option value="Ing. Carlos Mendoza">Ing. Carlos Mendoza</option>
+                  <option value="Dra. Gabriela Rojas">Dra. Gabriela Rojas</option>
+                </optgroup>
               </select>
             </div>
 
@@ -1524,6 +1692,12 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                                       {(act.isFlash || act.activityType === 'flash') && (
                                         <FlashCountdownBadge expiresAt={act.flashExpiresAt} compact={true} />
                                       )}
+                                      {(act.activityType === 'grupal' || isGroupActivity(act)) && (
+                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-black bg-purple-500/20 text-purple-300 border border-purple-500/30 shadow-sm">
+                                          <Users className="w-2.5 h-2.5 text-purple-300" />
+                                          <span>👥 Misión Grupal</span>
+                                        </span>
+                                      )}
                                     </div>
                                     <span className={`px-1.5 py-0.5 rounded font-black border text-[9px] ${PRIORITY_STYLES[act.priority] || PRIORITY_STYLES.Media}`}>
                                       {act.priority}
@@ -1590,12 +1764,22 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                                     </div>
                                   )}
 
-                                  {/* Pie de Tarjeta: Socio Asignado, Fecha y Horas */}
+                                  {/* Pie de Tarjeta: Socio Asignado / Equipo Grupal, Fecha y Horas */}
                                   <div className="pt-1.5 border-t border-white/[0.06] flex items-center justify-between text-[10px] text-slate-400">
-                                    <div className="flex items-center gap-1 font-bold text-slate-300">
-                                      <User className="w-3 h-3 text-[#00e03c]" />
-                                      <span className="truncate max-w-[90px]">{act.assignedPartner.replace('Ing. ', '')}</span>
-                                    </div>
+                                    {isGroupActivity(act) ? (
+                                      <div
+                                        className="flex items-center gap-1 font-bold text-purple-300 bg-purple-500/15 border border-purple-500/30 px-1.5 py-0.5 rounded shadow-sm"
+                                        title={`Equipo Asignado: ${(act.assignedTeam || [act.assignedPartner]).join(', ')}`}
+                                      >
+                                        <Users className="w-3 h-3 text-purple-400 shrink-0" />
+                                        <span className="truncate max-w-[130px] font-mono">👥 {getTeamInitials(act)}</span>
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-center gap-1 font-bold text-slate-300">
+                                        <User className="w-3 h-3 text-[#00e03c]" />
+                                        <span className="truncate max-w-[90px]">{act.assignedPartner ? act.assignedPartner.replace(/^(Ing\.|Dra\.)\s*/, '') : 'SERAM'}</span>
+                                      </div>
+                                    )}
 
                                     {act.dueDate && (
                                       <div className="flex items-center gap-1 text-slate-400">
@@ -1605,12 +1789,20 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                                     )}
                                   </div>
 
-                                  {/* Indicador de Combo Interdisciplinario */}
-                                  {!isDoneCol && act.coPartner && (
+                                  {/* Indicador de Combo Interdisciplinario / Misión Grupal */}
+                                  {!isDoneCol && !isGroupActivity(act) && act.coPartner && (
                                     <div className="pt-1.5 pb-0.5">
                                       <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full shadow-sm">
                                         <Zap className="w-2.5 h-2.5 text-amber-400" />
-                                        Combo: {act.coPartner.replace('Ing. ', '')} (+35% XP)
+                                        Combo: {act.coPartner.replace(/^(Ing\.|Dra\.)\s*/, '')} (+35% XP)
+                                      </span>
+                                    </div>
+                                  )}
+                                  {!isDoneCol && isGroupActivity(act) && (
+                                    <div className="pt-1.5 pb-0.5">
+                                      <span className="inline-flex items-center gap-1 text-[9px] font-black text-purple-300 bg-purple-500/15 border border-purple-500/30 px-2 py-0.5 rounded-full shadow-sm">
+                                        <Users className="w-2.5 h-2.5 text-purple-400" />
+                                        Directorio / Red SERAM (+35% XP)
                                       </span>
                                     </div>
                                   )}
@@ -1850,6 +2042,12 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                                 {(act.isFlash || act.activityType === 'flash') && (
                                   <FlashCountdownBadge expiresAt={act.flashExpiresAt} compact={true} />
                                 )}
+                                {(act.activityType === 'grupal' || isGroupActivity(act)) && (
+                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-purple-500/20 text-purple-300 border border-purple-500/40 inline-flex items-center gap-1 shadow-sm">
+                                    <Users className="w-2.5 h-2.5 text-purple-300" />
+                                    <span>👥 Misión Grupal / Directorio</span>
+                                  </span>
+                                )}
                                 {act.activityType === 'secundaria' && (
                                   <span className="px-1.5 py-0.5 rounded text-[9px] bg-slate-500/20 text-slate-400 border border-slate-500/30">
                                     Secundaria
@@ -1874,24 +2072,48 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
 
                           {/* 3. Encargado del Proyecto */}
                           <td className="p-3 whitespace-nowrap">
-                            <span className="inline-flex items-center gap-1.5 font-bold text-slate-200">
-                              <span className="w-4 h-4 rounded-full bg-sky-500/20 text-sky-300 flex items-center justify-center">
-                                <User className="w-2.5 h-2.5" />
+                            {isGroupActivity(act) ? (
+                              <span
+                                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-purple-500/15 text-purple-300 border border-purple-500/30 font-bold text-[11px] shadow-sm"
+                                title={`Equipo Asignado: ${(act.assignedTeam || [act.assignedPartner]).join(', ')}`}
+                              >
+                                <Users className="w-3 h-3 text-purple-400 shrink-0" />
+                                <span className="tracking-wide">👥 {getTeamInitials(act)}</span>
+                                {act.assignedPartner && (
+                                  <span className="text-[10px] text-purple-300/70 font-normal">
+                                    ({act.assignedPartner.replace(/^(Ing\.|Dra\.)\s*/, '')})
+                                  </span>
+                                )}
                               </span>
-                              <span className="text-[11px] tracking-wide">
-                                {act.assignedPartner ? act.assignedPartner.toUpperCase() : 'SIN ASIGNAR'}
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 font-bold text-slate-200">
+                                <span className="w-4 h-4 rounded-full bg-sky-500/20 text-sky-300 flex items-center justify-center">
+                                  <User className="w-2.5 h-2.5" />
+                                </span>
+                                <span className="text-[11px] tracking-wide">
+                                  {act.assignedPartner ? act.assignedPartner.toUpperCase() : 'SIN ASIGNAR'}
+                                </span>
                               </span>
-                            </span>
+                            )}
                           </td>
 
                           {/* 4. Última edición / Autor */}
                           <td className="p-3 whitespace-nowrap">
-                            <div className="inline-flex items-center gap-1.5">
-                              <span className="w-4 h-4 rounded-full bg-slate-700/80 text-[8px] font-black text-slate-200 flex items-center justify-center border border-white/10 shadow-sm">
-                                {initials}
-                              </span>
-                              <span className="text-[11px] text-slate-300 font-medium">{short}</span>
-                            </div>
+                            {isGroupActivity(act) ? (
+                              <div className="inline-flex items-center gap-1.5" title={`Directorio / Equipo: ${(act.assignedTeam || []).join(', ')}`}>
+                                <span className="w-4 h-4 rounded-full bg-purple-500/30 text-[8px] font-black text-purple-200 flex items-center justify-center border border-purple-400/40 shadow-sm">
+                                  👥
+                                </span>
+                                <span className="text-[11px] text-purple-300 font-semibold">{getTeamInitials(act)}</span>
+                              </div>
+                            ) : (
+                              <div className="inline-flex items-center gap-1.5">
+                                <span className="w-4 h-4 rounded-full bg-slate-700/80 text-[8px] font-black text-slate-200 flex items-center justify-center border border-white/10 shadow-sm">
+                                  {initials}
+                                </span>
+                                <span className="text-[11px] text-slate-300 font-medium">{short}</span>
+                              </div>
+                            )}
                           </td>
 
                           {/* 5. Checkboxes / Hitos Multi-modal según tipo */}
@@ -2764,6 +2986,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                     >
                       <option value="principal">Actividad Principal</option>
                       <option value="secundaria">Actividad Secundaria</option>
+                      <option value="grupal">👥 Actividad Grupal / Misión de Directorio</option>
                       <option value="flash">⚡ Misión Flash (Contingencia)</option>
                     </select>
                   </div>
@@ -2850,56 +3073,225 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                   />
                 </div>
 
-                {/* Proyecto y Socio */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Proyecto Vinculado</label>
-                    <select
-                      value={actProjectId}
-                      onChange={(e) => setActProjectId(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
+                {/* Proyecto Vinculado */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-slate-400">Proyecto Vinculado</label>
+                  <select
+                    value={actProjectId}
+                    onChange={(e) => setActProjectId(e.target.value)}
+                    className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
+                  >
+                    <option value="">Proyecto General / Interno</option>
+                    <option value="SERAM S.R.L.">SERAM S.R.L. (Directorio)</option>
+                    <option value="Página Web">Página Web & Ecosistema Digital</option>
+                    <option value="Valle de las Agujas">Valle de las Agujas</option>
+                    <option value="Contenido Redes Sociales">Contenido Redes Sociales</option>
+                    <option value="Lanzamiento de SERAM Academy">SERAM Academy</option>
+                    {activeServices.map((p) => (
+                      <option key={p.id} value={p.id}>{p.client || p.type}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Equipo de Ejecución & Coordinador Responsable (Multi-selector con Checkboxes) */}
+                <div className="space-y-3 p-3.5 rounded-2xl bg-white/[0.03] border border-purple-500/30">
+                  <div className="relative" ref={teamDropdownRef}>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[10px] font-black uppercase text-purple-300 flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-purple-400" />
+                        Equipo Asignado (Socios & Consultores) *
+                      </label>
+                      <span className="text-[9px] font-mono font-bold text-purple-300 bg-purple-500/15 px-2 py-0.5 rounded border border-purple-500/30">
+                        {actAssignedTeam.length} {actAssignedTeam.length === 1 ? 'seleccionado' : 'seleccionados'}
+                      </span>
+                    </div>
+
+                    {/* Botón trigger del dropdown */}
+                    <button
+                      type="button"
+                      onClick={() => setIsTeamDropdownOpen(!isTeamDropdownOpen)}
+                      className="w-full px-3 py-2 bg-white/[0.06] hover:bg-white/[0.09] border border-white/[0.12] hover:border-purple-500/50 rounded-xl text-left flex items-center justify-between text-white font-medium transition-all cursor-pointer"
                     >
-                      <option value="">Proyecto General / Interno</option>
-                      {activeServices.map((p) => (
-                        <option key={p.id} value={p.id}>{p.client || p.type}</option>
-                      ))}
-                    </select>
+                      <div className="flex items-center gap-2 truncate">
+                        <Users className="w-4 h-4 text-purple-400 shrink-0" />
+                        <span className="truncate text-xs">
+                          {actAssignedTeam.length === 0 && 'Seleccionar miembros del equipo...'}
+                          {actAssignedTeam.length === 1 && actAssignedTeam[0]}
+                          {actAssignedTeam.length === 2 && actAssignedTeam.map(n => n.replace(/^(Ing\.|Dra\.)\s*/, '')).join(', ')}
+                          {actAssignedTeam.length > 2 && `${actAssignedTeam.slice(0, 2).map(n => n.replace(/^(Ing\.|Dra\.)\s*/, '')).join(', ')} (+${actAssignedTeam.length - 2} más)`}
+                        </span>
+                      </div>
+                      <ChevronDown className={`w-4 h-4 text-purple-400 shrink-0 transition-transform ${isTeamDropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {/* Menú desplegable interactivo con Checkboxes */}
+                    {isTeamDropdownOpen && (
+                      <div className="absolute left-0 right-0 top-full mt-1.5 bg-[#0e1622] border border-purple-500/40 rounded-xl shadow-2xl p-2.5 z-50 max-h-64 overflow-y-auto space-y-3 backdrop-blur-xl">
+                        {/* Grupo 1: Socios Fundadores */}
+                        <div>
+                          <div className="text-[10px] font-black uppercase text-amber-400 tracking-wider px-2 pb-1 border-b border-white/[0.06] flex items-center justify-between">
+                            <span>Socios Fundadores</span>
+                            <span className="text-[9px] text-slate-400 font-normal">Directorio SERAM</span>
+                          </div>
+                          <div className="space-y-1 pt-1.5">
+                            {SERAM_TEAM_CATALOG.filter(c => c.category === 'Socio Fundador').map((member) => {
+                              const isChecked = actAssignedTeam.includes(member.name);
+                              return (
+                                <label
+                                  key={member.name}
+                                  className={`flex items-start gap-2.5 p-2 rounded-lg cursor-pointer transition-colors border ${
+                                    isChecked
+                                      ? 'bg-purple-500/15 border-purple-500/30'
+                                      : 'hover:bg-white/[0.04] border-transparent'
+                                  }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => {
+                                      let newTeam;
+                                      if (isChecked) {
+                                        newTeam = actAssignedTeam.filter(n => n !== member.name);
+                                        if (newTeam.length === 0) newTeam = [member.name]; // al menos 1
+                                      } else {
+                                        newTeam = [...actAssignedTeam, member.name];
+                                      }
+                                      setActAssignedTeam(newTeam);
+                                      if (!newTeam.includes(actPartner)) {
+                                        setActPartner(newTeam[0]);
+                                      }
+                                      if (newTeam.length > 1 && actActivityType === 'principal') {
+                                        setActActivityType('grupal');
+                                      }
+                                    }}
+                                    className="mt-0.5 rounded border-white/20 text-purple-500 focus:ring-purple-500 focus:ring-offset-0 bg-white/10"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="text-xs font-bold text-white flex items-center justify-between">
+                                      <span>{member.name}</span>
+                                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300">
+                                        {member.initials}
+                                      </span>
+                                    </div>
+                                    <div className="text-[10px] text-slate-400">{member.role}</div>
+                                  </div>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Grupo 2: Consultores Especialistas */}
+                        <div>
+                          <div className="text-[10px] font-black uppercase text-sky-400 tracking-wider px-2 pb-1 border-b border-white/[0.06] flex items-center justify-between">
+                            <span>Red de Consultores SERAM</span>
+                            <span className="text-[9px] text-slate-400 font-normal">Especialistas</span>
+                          </div>
+                          <div className="space-y-1 pt-1.5">
+                            {SERAM_TEAM_CATALOG.filter(c => c.category !== 'Socio Fundador').map((member) => {
+                              const isChecked = actAssignedTeam.includes(member.name);
+                              return (
+                                <label
+                                  key={member.name}
+                                  className={`flex items-start gap-2.5 p-2 rounded-lg cursor-pointer transition-colors border ${
+                                    isChecked
+                                      ? 'bg-purple-500/15 border-purple-500/30'
+                                      : 'hover:bg-white/[0.04] border-transparent'
+                                  }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => {
+                                      let newTeam;
+                                      if (isChecked) {
+                                        newTeam = actAssignedTeam.filter(n => n !== member.name);
+                                        if (newTeam.length === 0) newTeam = [member.name];
+                                      } else {
+                                        newTeam = [...actAssignedTeam, member.name];
+                                      }
+                                      setActAssignedTeam(newTeam);
+                                      if (!newTeam.includes(actPartner)) {
+                                        setActPartner(newTeam[0]);
+                                      }
+                                      if (newTeam.length > 1 && actActivityType === 'principal') {
+                                        setActActivityType('grupal');
+                                      }
+                                    }}
+                                    className="mt-0.5 rounded border-white/20 text-purple-500 focus:ring-purple-500 focus:ring-offset-0 bg-white/10"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="text-xs font-bold text-white flex items-center justify-between">
+                                      <span>{member.name}</span>
+                                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-300">
+                                        {member.initials}
+                                      </span>
+                                    </div>
+                                    <div className="text-[10px] text-slate-400">{member.role}</div>
+                                  </div>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Botones de acción rápida dentro del dropdown */}
+                        <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActAssignedTeam(['Ing. Diego Barrientos', 'Ing. Fernando Araujo']);
+                              setActActivityType('grupal');
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-[10px] font-bold border border-amber-500/30 transition-all cursor-pointer"
+                          >
+                            🏛️ Directorio (Diego + Fernando)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setIsTeamDropdownOpen(false)}
+                            className="px-3 py-1 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 text-[10px] font-bold border border-purple-500/40 transition-all cursor-pointer"
+                          >
+                            Listo ✓
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Socio Responsable *</label>
-                    <select
-                      value={actPartner}
-                      onChange={(e) => setActPartner(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
-                    >
-                      {partnersList.map((p) => (
-                        <option key={p.name} value={p.name}>{p.name}</option>
-                      ))}
-                    </select>
-                  </div>
+                  {/* Selector de Líder / Coordinador Responsable */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1">
+                        <User className="w-3 h-3 text-[#00e03c]" /> Líder / Coordinador Responsable *
+                      </label>
+                      <select
+                        value={actPartner}
+                        onChange={(e) => setActPartner(e.target.value)}
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
+                      >
+                        {actAssignedTeam.map((name) => (
+                          <option key={name} value={name}>{name} (Seleccionado)</option>
+                        ))}
+                        {SERAM_TEAM_CATALOG.filter(c => !actAssignedTeam.includes(c.name)).map(c => (
+                          <option key={c.name} value={c.name}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
 
-                  {/* Co-Ejecutor / Combo Interdisciplinario */}
-                  <div className="space-y-1 sm:col-span-2">
-                    <label className="text-[10px] font-black uppercase text-amber-400 flex items-center justify-between">
-                      <span className="flex items-center gap-1.5">
-                        <Zap className="w-3.5 h-3.5 text-amber-400" />
-                        Socio Co-Ejecutor (Combo Interdisciplinario)
-                      </span>
-                      <span className="text-[9px] text-amber-300 font-mono font-bold bg-amber-500/15 px-2 py-0.5 rounded border border-amber-500/30">
-                        +35% XP & Consorcio
-                      </span>
-                    </label>
-                    <select
-                      value={actCoPartner}
-                      onChange={(e) => setActCoPartner(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/[0.06] border border-amber-500/30 rounded-xl text-white focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
-                    >
-                      <option value="">-- Sin Co-ejecutor (Misión Individual) --</option>
-                      {partnersList.filter(p => p.name !== actPartner).map((p) => (
-                        <option key={p.name} value={p.name}>⚡ Combo Interdisciplinario con {p.name}</option>
-                      ))}
-                    </select>
+                    <div className="flex flex-col justify-end">
+                      {actAssignedTeam.length > 1 ? (
+                        <div className="p-2 rounded-xl bg-purple-500/15 border border-purple-500/30 text-[10px] text-purple-300 flex items-center gap-1.5">
+                          <Users className="w-4 h-4 text-purple-400 shrink-0" />
+                          <span><strong>Misión Grupal activa:</strong> +35% Bono de co-ejecución interdisciplinaria.</span>
+                        </div>
+                      ) : (
+                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/[0.08] text-[10px] text-slate-400 flex items-center gap-1.5">
+                          <User className="w-4 h-4 text-slate-500 shrink-0" />
+                          <span>Misión individual. Añade más miembros para combo grupal.</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -3650,7 +4042,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase text-slate-400">Tipo de Actividad</label>
                       <select
-                        value={drawerData.activityType || (drawerData.isFlash ? 'flash' : 'principal')}
+                        value={drawerData.activityType || (drawerData.isFlash ? 'flash' : (isGroupActivity(drawerData) ? 'grupal' : 'principal'))}
                         onChange={(e) => {
                           const val = e.target.value;
                           setDrawerData(prev => {
@@ -3671,6 +4063,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                       >
                         <option value="principal">Actividad Principal</option>
                         <option value="secundaria">Actividad Secundaria</option>
+                        <option value="grupal">👥 Actividad Grupal / Misión Directorio</option>
                         <option value="flash">⚡ Misión Flash (Contingencia)</option>
                       </select>
                     </div>
@@ -3793,40 +4186,151 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                     </select>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Socio Asignado */}
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-slate-400">Socio Responsable</label>
+                  {/* Sección de Equipo Asignado & Gobernanza en Drawer */}
+                  <div className="space-y-3 bg-white/[0.03] border border-purple-500/25 rounded-2xl p-4">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-black uppercase text-purple-300 flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-purple-400" /> Equipo de Ejecución & Socios Asignados
+                      </label>
+                      <span className="text-[9px] font-mono text-purple-300 bg-purple-500/20 px-2 py-0.5 rounded border border-purple-500/30 font-bold">
+                        {Array.isArray(drawerData.assignedTeam) && drawerData.assignedTeam.length > 0 ? drawerData.assignedTeam.length : 1} {Array.isArray(drawerData.assignedTeam) && drawerData.assignedTeam.length === 1 ? 'participante' : 'participantes'}
+                      </span>
+                    </div>
+
+                    {/* Fichas Detalladas de los Miembros Asignados */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {(Array.isArray(drawerData.assignedTeam) && drawerData.assignedTeam.length > 0
+                        ? drawerData.assignedTeam
+                        : [drawerData.assignedPartner || 'Ing. Diego Barrientos']
+                      ).map((memberName) => {
+                        const catalogInfo = SERAM_TEAM_CATALOG.find(c => c.name === memberName) || {
+                          name: memberName,
+                          role: memberName.includes('Diego') ? 'Especialista SIG & Monitoreo' : (memberName.includes('Fernando') ? 'Gestión Legal & Ambiental' : 'Especialista'),
+                          category: (memberName.includes('Diego') || memberName.includes('Fernando')) ? 'Socio Fundador' : 'Consultor Red SERAM',
+                          initials: memberName.includes('Diego') ? 'DB' : (memberName.includes('Fernando') ? 'FA' : 'SR')
+                        };
+                        const isLeader = memberName === drawerData.assignedPartner;
+
+                        return (
+                          <div
+                            key={memberName}
+                            className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 transition-all ${
+                              isLeader
+                                ? 'bg-[#00e03c]/10 border-[#00e03c]/30 text-white shadow-sm'
+                                : 'bg-white/[0.04] border-white/[0.08] text-slate-300'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className={`w-8 h-8 rounded-lg text-xs font-black flex items-center justify-center shrink-0 border ${
+                                isLeader
+                                  ? 'bg-[#00e03c]/20 text-[#00e03c] border-[#00e03c]/40'
+                                  : 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+                              }`}>
+                                {catalogInfo.initials}
+                              </span>
+                              <div className="min-w-0">
+                                <div className="text-xs font-bold truncate flex items-center gap-1.5">
+                                  <span>{memberName}</span>
+                                  {isLeader && (
+                                    <span className="text-[8px] px-1.5 py-0.2 rounded bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/30 font-black uppercase">
+                                      Líder
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-[10px] text-slate-400 truncate">{catalogInfo.role}</div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Botones rápidos para Añadir / Quitar miembros */}
+                    <div className="pt-2 border-t border-white/[0.06] space-y-1.5">
+                      <span className="text-[10px] font-bold text-slate-400 block">Modificar equipo del proyecto:</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {SERAM_TEAM_CATALOG.map((member) => {
+                          const currentTeam = Array.isArray(drawerData.assignedTeam) && drawerData.assignedTeam.length > 0
+                            ? drawerData.assignedTeam
+                            : [drawerData.assignedPartner || 'Ing. Diego Barrientos'];
+                          const isSelected = currentTeam.includes(member.name);
+
+                          return (
+                            <button
+                              key={member.name}
+                              type="button"
+                              onClick={() => {
+                                setDrawerData(prev => {
+                                  const prevTeam = Array.isArray(prev.assignedTeam) && prev.assignedTeam.length > 0
+                                    ? [...prev.assignedTeam]
+                                    : [prev.assignedPartner || 'Ing. Diego Barrientos'];
+                                  const newTeam = prevTeam.includes(member.name)
+                                    ? (prevTeam.length > 1 ? prevTeam.filter(n => n !== member.name) : prevTeam)
+                                    : [...prevTeam, member.name];
+                                  const newLeader = newTeam.includes(prev.assignedPartner) ? prev.assignedPartner : newTeam[0];
+                                  const newType = newTeam.length > 1 ? (prev.activityType === 'flash' ? 'flash' : 'grupal') : prev.activityType;
+                                  return {
+                                    ...prev,
+                                    assignedTeam: newTeam,
+                                    assignedPartner: newLeader,
+                                    activityType: newType
+                                  };
+                                });
+                              }}
+                              className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                                isSelected
+                                  ? 'bg-purple-500/20 border-purple-500/50 text-purple-300 shadow-sm'
+                                  : 'bg-white/[0.04] border-white/[0.08] text-slate-400 hover:text-white hover:bg-white/[0.08]'
+                              }`}
+                              title={isSelected ? `Quitar a ${member.name}` : `Añadir a ${member.name}`}
+                            >
+                              <span>{isSelected ? '✓' : '+'}</span>
+                              <span>{member.initials}</span>
+                              <span className="text-[10px] text-slate-400 font-normal">{member.name.replace(/^(Ing\.|Dra\.)\s*/, '')}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Selector de Coordinador / Responsable Principal en Drawer */}
+                    <div className="space-y-1 pt-2 border-t border-white/[0.06]">
+                      <label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1">
+                        <User className="w-3 h-3 text-[#00e03c]" /> Líder / Coordinador Responsable
+                      </label>
                       <select
                         value={drawerData.assignedPartner || ''}
                         onChange={(e) => setDrawerData(prev => ({ ...prev, assignedPartner: e.target.value }))}
                         className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
                       >
-                        {partnersList.map((p) => (
-                          <option key={p.name} value={p.name}>{p.name}</option>
+                        {(Array.isArray(drawerData.assignedTeam) && drawerData.assignedTeam.length > 0 ? drawerData.assignedTeam : [drawerData.assignedPartner]).map((name) => (
+                          <option key={name} value={name}>{name} (Asignado)</option>
+                        ))}
+                        {SERAM_TEAM_CATALOG.filter(c => !(Array.isArray(drawerData.assignedTeam) ? drawerData.assignedTeam : [drawerData.assignedPartner]).includes(c.name)).map(c => (
+                          <option key={c.name} value={c.name}>{c.name}</option>
                         ))}
                       </select>
                     </div>
+                  </div>
 
-                    {/* Rango de Fechas (Inicio y Límite) */}
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-slate-400">Rango de Fechas (Inicio ➔ Límite)</label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <input
-                          type="date"
-                          value={drawerData.startDate || ''}
-                          onChange={(e) => setDrawerData(prev => ({ ...prev, startDate: e.target.value }))}
-                          className="w-full px-2.5 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-mono text-[11px] focus:outline-none focus:border-[#00e03c]"
-                          title="Fecha de inicio"
-                        />
-                        <input
-                          type="date"
-                          value={drawerData.dueDate || ''}
-                          onChange={(e) => setDrawerData(prev => ({ ...prev, dueDate: e.target.value }))}
-                          className="w-full px-2.5 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-mono text-[11px] focus:outline-none focus:border-[#00e03c]"
-                          title="Fecha límite"
-                        />
-                      </div>
+                  {/* Rango de Fechas (Inicio y Límite) */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-slate-400">Rango de Fechas (Inicio ➔ Límite)</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="date"
+                        value={drawerData.startDate || ''}
+                        onChange={(e) => setDrawerData(prev => ({ ...prev, startDate: e.target.value }))}
+                        className="w-full px-2.5 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-mono text-[11px] focus:outline-none focus:border-[#00e03c]"
+                        title="Fecha de inicio"
+                      />
+                      <input
+                        type="date"
+                        value={drawerData.dueDate || ''}
+                        onChange={(e) => setDrawerData(prev => ({ ...prev, dueDate: e.target.value }))}
+                        className="w-full px-2.5 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-mono text-[11px] focus:outline-none focus:border-[#00e03c]"
+                        title="Fecha límite"
+                      />
                     </div>
                   </div>
 
