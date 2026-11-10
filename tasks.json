@@ -6,6 +6,14 @@
   "in_progress": [],
   "completed": [
     {
+      "id": "TASK-108",
+      "title": "Boton de Salida Evidente (X) en Ficha de Clientes/Oportunidades ARM, Resolucion de Capas z-index, Soporte de Tecla Escape y Manejo de Retroceso del Navegador (popstate)",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-11-10",
+      "completed_at": "2026-11-10"
+    },
+    {
       "id": "TASK-107",
       "title": "Ingeniería Inversa de Odoo CRM, Reemplazo Integral de la Vista de Clientes, Misiones con Meritocracia (Flash, Grupal, Secundaria, Especialidad), Clientes Reales + Etiquetado (EJEMPLO), Moneda Dual (USD/Bs.) y Captura Rápida Híbrida",
       "status": "completed",

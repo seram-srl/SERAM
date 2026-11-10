@@ -18,7 +18,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutGrid, List, BarChart3, Plus, Search, Filter, Phone, Mail,
-  Calendar, ShieldCheck, CheckCircle2, AlertCircle, ArrowRight,
+  Calendar, ShieldCheck, CheckCircle2, AlertCircle, ArrowRight, ArrowLeft,
   RefreshCw, ChevronRight, ChevronDown, X, Clock, Sparkles, Building2,
   User, Users, DollarSign, MessageSquare, Send, Check, ExternalLink,
   Award, PauseCircle, PlayCircle, Eye, Star, Trash2, Edit2, FileText,
@@ -182,6 +182,55 @@ export default function ArmOdooCrm({ currentSocio }) {
     }
   }, [selectedLead]);
 
+  // ── MANEJO DE NAVEGACIÓN HISTORIAL (POPSTATE) Y TECLA ESCAPE ──
+  const handleOpenLeadDetail = useCallback((lead) => {
+    setSelectedLead(lead);
+    try {
+      window.history.pushState({ seramModal: 'arm-lead-detail', leadId: lead?.id }, '');
+    } catch (_) {
+      // Ignorar restricciones en entornos sin soporte de historial completo
+    }
+  }, []);
+
+  const handleCloseLeadDetail = useCallback(() => {
+    setSelectedLead(null);
+    try {
+      if (window.history.state?.seramModal === 'arm-lead-detail') {
+        window.history.back();
+      }
+    } catch (_) {
+      // Fallback seguro
+    }
+  }, []);
+
+  // Interceptar el botón Atrás del navegador para cerrar la ficha en lugar de salir a la Home
+  useEffect(() => {
+    const handlePopState = () => {
+      if (selectedLead) {
+        setSelectedLead(null);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [selectedLead]);
+
+  // Soporte para cerrar con tecla Escape (Esc)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (selectedLead) {
+          handleCloseLeadDetail();
+        } else if (openActivityPopoverLeadId) {
+          setOpenActivityPopoverLeadId(null);
+        } else if (scheduleModalLead) {
+          setScheduleModalLead(null);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedLead, openActivityPopoverLeadId, scheduleModalLead, handleCloseLeadDetail]);
+
   // ── FILTRADO DINÁMICO DE OPORTUNIDADES ──
   const filteredLeads = useMemo(() => {
     return leads.filter(lead => {
@@ -330,7 +379,7 @@ export default function ArmOdooCrm({ currentSocio }) {
     triggerToast?.('Oportunidad agregada al flujo', 'success');
 
     if (openFullFormAfter) {
-      setSelectedLead(created);
+      handleOpenLeadDetail(created);
     }
   };
 
@@ -1210,7 +1259,7 @@ export default function ArmOdooCrm({ currentSocio }) {
                           key={lead.id}
                           draggable
                           onDragStart={e => handleDragStart(e, lead.id)}
-                          onClick={() => setSelectedLead(lead)}
+                          onClick={() => handleOpenLeadDetail(lead)}
                           className={`relative p-3.5 rounded-xl bg-white/[0.035] hover:bg-white/[0.07] border transition-all duration-150 cursor-pointer shadow-md group space-y-2 ${
                             lead.is_example
                               ? 'border-l-4 border-l-amber-400/80 border-white/[0.09]'
@@ -1446,7 +1495,7 @@ export default function ArmOdooCrm({ currentSocio }) {
                     return (
                       <tr
                         key={lead.id}
-                        onClick={() => setSelectedLead(lead)}
+                        onClick={() => handleOpenLeadDetail(lead)}
                         className="hover:bg-white/[0.04] transition-colors cursor-pointer"
                       >
                         <td className="py-3 px-4 font-bold text-white">{lead.titulo_oportunidad || lead.que_busca}</td>
@@ -1541,7 +1590,7 @@ export default function ArmOdooCrm({ currentSocio }) {
                             {parent ? (
                               <button
                                 type="button"
-                                onClick={() => setSelectedLead(parent)}
+                                onClick={() => handleOpenLeadDetail(parent)}
                                 className="hover:text-[#00e03c] underline cursor-pointer text-left"
                               >
                                 {parent.empresa}
@@ -1565,7 +1614,7 @@ export default function ArmOdooCrm({ currentSocio }) {
                               <button
                                 type="button"
                                 onClick={() => {
-                                  if (parent) setSelectedLead(parent);
+                                  if (parent) handleOpenLeadDetail(parent);
                                 }}
                                 className="px-2.5 py-1 rounded-lg bg-[#00e03c] text-slate-950 font-black text-[10px] hover:bg-white transition-colors cursor-pointer"
                               >
@@ -2025,30 +2074,36 @@ export default function ArmOdooCrm({ currentSocio }) {
          ══════════════════════════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {selectedLead && (
-          <div className="fixed inset-0 z-[130] flex items-center justify-center p-2 sm:p-5 bg-black/80 backdrop-blur-md overflow-y-auto">
+          <div
+            className="fixed inset-0 z-[200] flex items-start justify-center p-2 sm:p-4 md:p-6 bg-black/85 backdrop-blur-md overflow-y-auto"
+            onClick={handleCloseLeadDetail}
+          >
             <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 15 }}
+              initial={{ opacity: 0, scale: 0.97, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 15 }}
-              className="w-full max-w-6xl bg-[#0a130b] border border-white/[0.14] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[93vh]"
+              exit={{ opacity: 0, scale: 0.97, y: 15 }}
+              onClick={e => e.stopPropagation()}
+              className="w-full max-w-6xl bg-[#0a130b] border border-white/[0.14] rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col my-auto max-h-[92vh] sm:max-h-[90vh]"
             >
-              {/* Barra Superior de Ficha Odoo: Breadcrumb + Smart Buttons */}
-              <div className="px-5 py-3 bg-[#060d07] border-b border-white/[0.08] flex flex-wrap items-center justify-between gap-3">
+              {/* Barra Superior de Ficha Odoo: Breadcrumb + Smart Buttons + Botón Cerrar (X) Destacado */}
+              <div className="px-4 sm:px-6 py-3 bg-[#060d07] border-b border-white/[0.08] flex flex-wrap items-center justify-between gap-3 shrink-0">
                 <div className="flex items-center gap-2 text-xs">
                   <button
                     type="button"
-                    onClick={() => setSelectedLead(null)}
-                    className="text-[#00e03c] hover:underline font-bold cursor-pointer"
+                    onClick={handleCloseLeadDetail}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/[0.06] hover:bg-[#00e03c]/20 text-[#00e03c] border border-white/10 hover:border-[#00e03c]/40 font-bold transition-all cursor-pointer"
+                    title="Volver al Flujo Kanban de Oportunidades"
                   >
-                    Flujo
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Flujo</span>
                   </button>
                   <span className="text-slate-600">/</span>
-                  <span className="font-bold text-white truncate max-w-[260px]">
+                  <span className="font-bold text-white truncate max-w-[200px] sm:max-w-md">
                     {selectedLead.titulo_oportunidad || selectedLead.empresa}
                   </span>
                 </div>
 
-                {/* Smart Buttons estilo Odoo (Captura #5) */}
+                {/* Smart Buttons estilo Odoo (Captura #5) + Botón Cerrar (X) */}
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
@@ -2076,18 +2131,22 @@ export default function ArmOdooCrm({ currentSocio }) {
                     </div>
                   </button>
 
+                  {/* BOTÓN (X) DE SALIDA EVIDENTE Y PRINCIPAL */}
                   <button
                     type="button"
-                    onClick={() => setSelectedLead(null)}
-                    className="p-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.12] text-slate-400 hover:text-white cursor-pointer"
+                    onClick={handleCloseLeadDetail}
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/35 border border-rose-500/40 text-rose-200 hover:text-white font-bold text-xs transition-all cursor-pointer shadow-md active:scale-95"
+                    title="Cerrar ventana de cliente y volver al CRM (Esc)"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4 stroke-[3]" />
+                    <span className="font-extrabold tracking-wide">Cerrar (X)</span>
+                    <kbd className="hidden sm:inline-block ml-1 px-1.5 py-0.2 text-[9px] font-mono bg-black/50 text-slate-300 rounded border border-white/15">Esc</kbd>
                   </button>
                 </div>
               </div>
 
               {/* Barra de Acciones y Stepper de Etapas Odoo (Captura #5) */}
-              <div className="px-5 py-2.5 bg-[#0d180f] border-b border-white/[0.08] flex flex-wrap items-center justify-between gap-3">
+              <div className="px-4 sm:px-6 py-2.5 bg-[#0d180f] border-b border-white/[0.08] flex flex-wrap items-center justify-between gap-3 shrink-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
@@ -2142,6 +2201,17 @@ export default function ArmOdooCrm({ currentSocio }) {
                   >
                     <Phone className="w-3.5 h-3.5" /> WhatsApp
                   </a>
+
+                  {/* Botón de Salida Secundario en la Barra de Acciones */}
+                  <button
+                    type="button"
+                    onClick={handleCloseLeadDetail}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white/[0.06] hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/35 text-slate-300 hover:text-rose-300 font-bold text-xs transition-all cursor-pointer"
+                    title="Cerrar ficha y volver al flujo (X)"
+                  >
+                    <X className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>Cerrar</span>
+                  </button>
                 </div>
 
                 {/* Stepper de Etapas Clickable a la Derecha */}
