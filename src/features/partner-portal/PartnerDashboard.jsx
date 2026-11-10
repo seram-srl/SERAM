@@ -29,6 +29,7 @@ import ActivitiesAndClientsModule from './ActivitiesAndClientsModule';
 import ClientsModule from './ClientsModule';
 import PartnerProfileRPGModule from './PartnerProfileRPGModule';
 import OdooAppLauncher from './odoo/OdooAppLauncher';
+import OdooOperationsModule from './operations/OdooOperationsModule';
 import { calculatePartnerTotalXP } from './gamification/xpEngine';
 
 // ── ANIMATION VARIANTS ─────────────────────────────────────────────────────
@@ -4685,7 +4686,7 @@ export default function PartnerDashboard() {
             {activeModule === 'activities'  && <ActivitiesAndClientsModule currentSocio={activeSocio} />}
             {activeModule === 'clients'     && <ClientsModule currentSocio={activeSocio} onNavigate={setActiveModule} />}
             {activeModule === 'profiles'    && <PartnerProfileRPGModule currentSocio={activeSocio} timeLogs={timeLogs || []} />}
-            {activeModule === 'services'    && <ServicesModule activeServices={activeServices || []} registeredEngineers={safeEngineers} handlers={handlers} publicServices={publicServices || []} specialists={specialists || []} municipalProposals={municipalProposals || []} />}
+            {activeModule === 'services'    && <OdooOperationsModule activeServices={activeServices || []} registeredEngineers={safeEngineers} handlers={handlers} publicServices={publicServices || []} specialists={specialists || []} municipalProposals={municipalProposals || []} onNavigate={setActiveModule} />}
             {activeModule === 'timetracker' && <TimeTrackerModule timeLogs={timeLogs || []} activeServices={activeServices || []} currentSocio={activeSocio} handlers={handlers} onNavigate={setActiveModule} />}
             {activeModule === 'academy'     && <AcademyModule courses={courses || []} registeredEngineers={safeEngineers} currentSocio={activeSocio} handlers={handlers} />}
             {activeModule === 'experience'  && <ExperienceModule experiences={experiences || []} handlers={handlers} />}
