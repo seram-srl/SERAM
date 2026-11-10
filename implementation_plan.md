@@ -1,55 +1,30 @@
-# Plan de Implementación: TASK-106
-## Sistema ARM (Automated Relationship Machine / Inbound Marketing con IA) & CRM Odoo para SERAM SRL
+# Plan de Implementación: TASK-107
+## Ingeniería Inversa de Odoo CRM, Reemplazo Integral de la Vista de Clientes, Misiones con Meritocracia y Captura Rápida Híbrida para SERAM SRL
 
 ### 1. Resumen Ejecutivo
-Construir e integrar el sistema **ARM (Automated Relationship Machine)** para SERAM SRL. El sistema conecta de forma nativa con el **Asistente SERAM** (`ChatbotFAB.jsx`), realizando un filtro y precalificación inteligente basada en metodología Inbound Marketing (BANT/GPCT: qué busca, cuándo lo necesita y cuánto quiere invertir). 
+Reemplazar íntegramente la vista actual de Clientes en el Dashboard de Socios de SERAM por una réplica funcional y arquitectónica de **Odoo CRM** (basada en las 11 capturas de referencia proporcionadas), adaptada al sistema de diseño **Neuform** de SERAM SRL (paleta esmeralda/pizarra oscura, cero emoticones, 100% en español).
 
-El sistema clasifica automáticamente a los prospectos en tres temperaturas:
-- **Caliente (SQL / Listo para comprar):** Puntuación >= 70. Notificación y derivación inmediata al socio vendedor para cierre de venta vía WhatsApp y reunión ejecutiva.
-- **Tibio (MQL / En evaluación):** Puntuación 40-69. Ingreso al flujo de nutrición técnica y cotizaciones personalizadas.
-- **Frío / Curioso (TOFU / Explorador):** Puntuación < 40. Secuencia de nutrición educativa de alto valor ("el curioso de hoy es el cliente de mañana") con cadencia no invasiva.
-
-Se implementa un **protocolo de seguimiento de 14 días con hasta 7 contactos espaciados** con blindaje estricto anti-baneo (WhatsApp/Email) y política antispam (opt-in explícito, horarios comerciales de Bolivia, pausas por respuesta y opción de desuscripción voluntaria).
-
-En el Portal de Socios, se despliega una interfaz de **CRM con funcionalidad y flujos equivalentes a Odoo CRM**, revestida con los tokens estéticos y paleta Neuform de SERAM (verde esmeralda, slate oscuro, tipografía técnica, vistas Kanban por etapas, vista lista/tabla, y ficha 360° con Chatter y cronograma de contactos).
-
-Todo el sistema cuenta con esquema estructurado para **Supabase (PostgreSQL con RLS y Realtime)** y almacenamiento offline-first en `localStorage` con latencia de 0ms.
+El sistema unifica:
+1. **Navegación Superior Estilo Odoo (`CRM`, `Ventas`, `Reportes`, `Configuración`):** Acceso directo a *Mi flujo (Kanban/Lista)*, *Mis actividades (Misiones)*, *Equipos*, *Clientes (Directorio Real)*, *Prospección SEPREC 150*, *Pronóstico*, *Tipos de actividad* y *Captura Rápida (Telegram / Google Forms)*.
+2. **Conexión con la Base de Datos Existente y Etiquetado `(EJEMPLO)`:** Los clientes reales del directorio de SERAM se cargan automáticamente en la etapa inicial *Nuevo Inbound* sin seguimiento activo, mientras que se incluyen 4 tarjetas de demostración claramente identificadas como `(EJEMPLO)` en las etapas avanzadas (*Nutrición 14D*, *Calificado*, *Propuesta*, *Ganado*) para pruebas y detección de bugs.
+3. **Creación Rápida Híbrida (Inline Kanban + Webhook Telegram/Google Forms):** Mini-formulario desplegable al pulsar `+` en cualquier columna Kanban (registro en 5 segundos con contacto, oportunidad, email, teléfono, monto en Bs./USD y estrellas de prioridad) más una Edge Function en Supabase (`arm-lead-webhook`) y consola de comando rápido tipo Telegram (`/lead ...`).
+4. **Integración Intrínseca de Actividades Clave por Tipo y Meritocracia:** Vinculación de oportunidades con *Misiones Flash, Secundarias, Grupales, Personales y de Especialidad*. Completar una actividad desde el popover de la tarjeta o desde el Chatter exigiendo evidencia verificable otorga XP al socio, registra la tarea en el sistema global de actividades y avanza la oportunidad en el embudo.
+5. **Moneda Dual Dinámica (USD y Bs.):** Conversión automática al tipo de cambio oficial boliviano (6.96 Bs./USD) en todas las tarjetas, columnas, formularios y reportes.
 
 ---
 
-### 2. Estructura de Archivos a Crear y Modificar
-1. **`supabase/migrations/20261110_arm_inbound_crm.sql`** [NUEVO]:
-   - DDL para tablas `arm_leads`, `arm_cadence_logs`, `arm_chatter`.
-   - Índices de rendimiento, políticas RLS y suscripción a Realtime.
-2. **`src/services/armService.js`** [NUEVO]:
-   - Lógica de precalificación Inbound y cálculo de Lead Score (0 a 100).
-   - Generador de la cadencia de 14 días (7 contactos programados).
-   - Reglas de blindaje anti-baneo y control de ventanas de tiempo.
-   - Sincronización asíncrona con Supabase y persistencia inmediata en LocalStorage.
-3. **`src/components/ui/ChatbotFAB.jsx`** [MODIFICACIÓN]:
-   - Adaptación del árbol conversacional para capturar las 3 preguntas clave (qué busca, cuándo, cuánto).
-   - Registro automático en ARM al completar el diagnóstico o enviar mensaje.
-   - Derivación inmediata de leads calientes (SQL) a cierre comercial.
-   - Supresión total de emoticones en favor de iconos SVG de `lucide-react` y redacción profesional.
-4. **`src/features/partner-portal/crm/ArmOdooCrm.jsx`** [NUEVO]:
-   - Módulo CRM estilo Odoo:
-     * Vista Kanban interactiva con etapas de embudo.
-     * Vista Lista/Tabla con filtros y ordenamiento rápido.
-     * Modal Ficha 360° del Lead: datos BANT, Chatter de notas/mensajes, y seguimiento de los 7 contactos de la cadencia de 14 días.
-     * Métricas de ventas: Pipeline total, Tasa de conversión, Eficacia de Nurturing.
+### 2. Archivos a Crear y Modificar
+1. **`supabase/migrations/20261110_arm_inbound_crm.sql`** [MODIFICACIÓN]:
+   - Ampliación de `arm_leads` con `prioridad_estrellas` (1-3), `probabilidad_cierre`, `presupuesto_bs`, `etiquetas` (TEXT[]), `is_example` (BOOLEAN).
+   - Nuevas tablas `arm_activity_types` (configuración estilo Odoo) y `arm_lead_activities` (misiones vinculadas con tipo, evidencia, XP y estado).
+2. **`supabase/functions/arm-lead-webhook/index.ts`** [NUEVO]:
+   - Webhook seguro con validación de token, sanitización XSS/SQLi y soporte para payloads de Bot de Telegram (`/lead Empresa | Contacto | Teléfono | Servicio | Monto`) y Google Forms.
+3. **`src/services/armService.js`** [MODIFICACIÓN]:
+   - Sincronización automática de clientes reales de SERAM en la columna `nuevo` (sin cadencia iniciada) + 4 oportunidades `(EJEMPLO)` en etapas avanzadas.
+   - Gestión de `ARM_ACTIVITY_TYPES` y misiones por oportunidad con cálculo de XP y evidencias.
+   - Conversión monetaria dual (`USD` <-> `Bs.` a 6.96) y parser de comandos rápidos de Telegram/texto.
+4. **`src/features/partner-portal/crm/ArmOdooCrm.jsx`** [MODIFICACIÓN]:
+   - Reconstrucción integral siguiendo las 11 capturas de Odoo CRM: barra superior con menús desplegables, botón `Nuevo` + menú `Generar`, creación rápida inline por columna, drag-and-drop entre etapas, popover de actividades planificadas en tarjetas, vista Ficha 360° completa con Chatter lateral, vista de Clientes, vista de SEPREC, vista de Mis Actividades y tabla de Tipos de Actividad.
 5. **`src/features/partner-portal/ClientsModule.jsx`** [MODIFICACIÓN]:
-   - Integración de pestaña principal "ARM · CRM Inbound (Odoo)" junto al Directorio y SEPREC.
-   - Posibilidad de convertir un lead calificado del CRM directamente a Cliente del Directorio.
-6. **`progress/TASK-106.md`** [NUEVO]:
-   - Bitácora de ejecución y verificación paso a paso.
-7. **`tasks.json`** [MODIFICACIÓN]:
-   - Registro de la tarea en cola y posterior cierre formal.
-
----
-
-### 3. Fases de Ejecución
-- **Fase 1:** Migración SQL Supabase (`20261110_arm_inbound_crm.sql`) y Servicio Motor ARM (`armService.js`).
-- **Fase 2:** Refactorización e integración del Asistente SERAM (`ChatbotFAB.jsx`) con scoring Inbound y erradicación de emoticones.
-- **Fase 3:** Construcción del CRM Estilo Odoo (`ArmOdooCrm.jsx`) con vistas Kanban, Lista y Ficha 360° con Chatter y Cadencia de 14 días.
-- **Fase 4:** Integración en `ClientsModule.jsx` y verificación con ESLint, `npm run build` y validación de runtime.
-- **Fase 5:** Registro de progreso en `progress/TASK-106.md` y actualización en `tasks.json`.
+   - Reemplazo total de la vista antigua por el contenedor directo de `ArmOdooCrm`, conectando los estados globales de `AppContext` (`clients`, `prospects`, `activities`, `handleAddActivity`, `handleAddClient`).
+6. **`progress/TASK-107.md`** y **`tasks.json`** [ACTUALIZACIÓN].
