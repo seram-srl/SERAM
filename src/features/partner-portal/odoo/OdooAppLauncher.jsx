@@ -78,9 +78,9 @@ export const ODOO_APPS = [
   },
   {
     id: 'calendar',
-    name: 'Calendario & Planificación Odoo',
+    name: 'Calendario & Planificación',
     shortName: 'Calendario',
-    description: 'Agenda de teletrabajo (4.5h/8.0h), entrega en el día y sincronización Google Calendar',
+    description: 'Agenda de teletrabajo (4.5h/8.0h), entrega en el día y sincronización con Docker n8n / Google Calendar',
     category: 'Meritocracia & Gestión',
     icon: Calendar,
     accentColor: 'border-emerald-400/40 text-emerald-400 bg-emerald-500/10',

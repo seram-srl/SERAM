@@ -20,4 +20,9 @@ Consolidar el Ecosistema Odoo de SERAM integrando:
        - Socio A: `barrientoso2401@gmail.com` (Ing. Diego Barrientos)
        - Socio B: `fernandoaraujo1912@gmail.com` (Ing. Fernando Araujo)
      - Panel de configuración y código listo para copiar/pegar tanto del **Script de Google Apps Script (`doPost`)** (que usa la cuenta central de SERAM para insertar eventos directamente en los calendarios de ambos socios y enviar alertas por correo/push) como del **Workflow JSON de n8n** (Supabase/Webhook -> Google Calendar -> Telegram/Email).
-4. **Finanzas & Compensación Odoo (TASK-113):** Sub-navbar Odoo preservando el 100% de los gráficos Recharts existentes.
+4. **Calendario SERAM & Automatización Docker n8n (TASK-113 - En Progreso):**
+   - Retiro integral de "Odoo" del nombre de Calendario en toda la plataforma.
+   - Vistas Multi-Escala requeridas: Anual (12 meses con mapa de calor), Trimestral (Q1-Q4 con metas trimestrales de teletrabajo), Mensual, Semanal, Diaria y Agenda.
+   - Blindaje y corrección visual garantizada de renderizado.
+   - Sincronización nativa con el Docker de n8n de SERAM con payload optimizado hacia Google Calendar de ambos socios (Diego y Fernando).
+5. **Finanzas & Compensación Odoo (TASK-114):** Sub-navbar Odoo preservando el 100% de los gráficos Recharts existentes.

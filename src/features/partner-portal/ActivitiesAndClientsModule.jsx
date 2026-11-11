@@ -1390,7 +1390,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
           {[
             { id: 'table', label: 'Base de Datos' },
             { id: 'kanban', label: 'Tablero Kanban' },
-            { id: 'calendar', label: 'Calendario Odoo' },
+            { id: 'calendar', label: 'Calendario' },
             { id: 'missions', label: 'Tablero de Misiones' },
             { id: 'progress', label: 'Progreso de Socios' },
             { id: 'synergies', label: 'Sinergias & Combos' },

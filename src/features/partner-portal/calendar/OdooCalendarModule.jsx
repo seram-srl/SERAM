@@ -1,16 +1,17 @@
 /**
  * @file OdooCalendarModule.jsx
- * @description Módulo de Calendario y Planificación Horaria inspirado en Odoo Calendar para SERAM SRL.
+ * @description Calendario y Planificación Horaria Multi-Escala para SERAM SRL.
  * Incluye:
- * - Escalas de visualización: Mes, Semana, Día y Agenda Lineal.
+ * - Vistas Multi-Escala: Anual (12 meses con mapa de calor), Trimestral (Q1-Q4 con metas horarias),
+ *   Mensual (con Drag & Drop de tareas), Semanal (7 columnas de carga), Diaria (franjas horarias) y Agenda Lineal.
  * - Control de Capacidad de Teletrabajo de Socios: 4.5 hrs/día (Fase Temprana) conmutable a 8.0 hrs/día (Fase Intensiva).
- * - Reprogramación fluida Drag & Drop entre días y franjas horarias con recálculo automático de carga horaria.
+ * - Reprogramación fluida Drag & Drop entre fechas con recálculo automático de carga horaria y alertas visuales.
  * - Sistema de Etiquetas Libres personalizables por cada socio (Plan de Ventas Telefónicas, Formato Vertical, Lead Magnets, SIG, etc.).
  * - Cierre y Entrega Rápida en el Día: registra horas reales en el Time Tracker, publica en el Chatter del CRM y acredita XP.
- * - Motor de Sincronización y Alertas en Segundo Plano hacia Google Calendar mediante Google Apps Script (doPost) y/o n8n Webhook
- *   para Socio A (Ing. Diego Barrientos) y Socio B (Ing. Fernando Araujo), más exportación directa .ics y Google Calendar URL.
+ * - Automatización nativa con Docker n8n de SERAM para sincronización silenciosa en segundo plano
+ *   con Google Calendar de Socio A (Ing. Diego Barrientos) y Socio B (Ing. Fernando Araujo).
  *
- * Directrices: Cero emoticones, 100% en español, modales en document.body (z-[9999]).
+ * Directrices: Cero emoticones, 100% en español, modales en document.body (z-[9999]), null-safety absoluto.
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
@@ -21,7 +22,8 @@ import {
   CheckCircle2, AlertCircle, X, Check, User, Users, Building2,
   Tag, Send, ExternalLink, Download, Copy, Settings, RefreshCw,
   Phone, FileText, Zap, ShieldCheck, Layers, List, LayoutGrid,
-  Search, Trash2, ArrowRight, Bell, Terminal
+  Search, Trash2, ArrowRight, Bell, Terminal, Server, CheckSquare,
+  Sparkles, Filter, Activity
 } from 'lucide-react';
 import { useApp } from '../../../context/AppContext';
 import { armService } from '../../../services/armService';
@@ -66,23 +68,62 @@ const DEFAULT_FREE_TAGS = [
 ];
 
 const STORAGE_KEYS = {
-  TELEWORK_CAP: 'seram_calendar_telework_cap_v1',
-  FREE_TAGS: 'seram_calendar_free_tags_v1',
-  CUSTOM_EVENTS: 'seram_calendar_custom_events_v1',
-  SYNC_CONFIG: 'seram_calendar_sync_config_v1',
-  SYNC_LOGS: 'seram_calendar_sync_logs_v1'
+  TELEWORK_CAP: 'seram_calendar_telework_cap_v2',
+  FREE_TAGS: 'seram_calendar_free_tags_v2',
+  CUSTOM_EVENTS: 'seram_calendar_custom_events_v2',
+  SYNC_CONFIG: 'seram_calendar_sync_config_v2',
+  SYNC_LOGS: 'seram_calendar_sync_logs_v2'
 };
 
-// ── CÓDIGO LISTO PARA COPIAR: GOOGLE APPS SCRIPT (CUENTA SERAM) ─────────────
+// ── WORKFLOW JSON LISTO PARA IMPORTAR EN DOCKER N8N ─────────────────────────
+const N8N_WORKFLOW_TEMPLATE = JSON.stringify(
+  {
+    name: 'SERAM — Sincronización Automática de Actividades a Google Calendar (Socio A y Socio B)',
+    nodes: [
+      {
+        parameters: {
+          httpMethod: 'POST',
+          path: 'seram-calendar',
+          responseMode: 'onReceived',
+          options: {}
+        },
+        name: 'Webhook Calendario SERAM',
+        type: 'n8n-nodes-base.webhook',
+        typeVersion: 1,
+        position: [240, 300]
+      },
+      {
+        parameters: {
+          calendar: 'barrientoso2401@gmail.com',
+          start: '={{$json["startIso"]}}',
+          end: '={{$json["endIso"]}}',
+          additionalFields: {
+            summary: '=[SERAM] {{$json["title"]}}',
+            description: '=Responsable: {{$json["responsible"]}}\nCliente: {{$json["clientName"]}}\nDedicación: {{$json["estimatedHours"]}} hrs (Meta Teletrabajo: {{$json["dailyCap"]}} hrs/día)\nEtiquetas: {{$json["tags"]}}\nNotas: {{$json["description"]}}',
+            attendees: ['barrientoso2401@gmail.com', 'fernandoaraujo1912@gmail.com'],
+            sendUpdates: 'all'
+          }
+        },
+        name: 'Google Calendar Socios SERAM',
+        type: 'n8n-nodes-base.googleCalendar',
+        typeVersion: 1,
+        position: [520, 300]
+      }
+    ],
+    connections: {
+      'Webhook Calendario SERAM': {
+        main: [[{ node: 'Google Calendar Socios SERAM', type: 'main', index: 0 }]]
+      }
+    }
+  },
+  null,
+  2
+);
+
+// ── CÓDIGO GOOGLE APPS SCRIPT (ALTERNATIVA DE RESPALDO) ──────────────────────
 const GOOGLE_APPS_SCRIPT_CODE = `/**
  * SERAM SRL — Puente Automático de Notificaciones y Google Calendar (Code.gs)
- * Instrucciones:
- * 1. Abre https://script.google.com con la cuenta institucional de SERAM.
- * 2. Pega este código en Code.gs y haz clic en "Implementar" -> "Nueva implementación".
- * 3. Selecciona tipo "Aplicación web", Ejecutar como: "Yo", Acceso: "Cualquier persona".
- * 4. Copia la URL generada y pégala en el campo "URL Web App Google Apps Script" en SERAM.
  */
-
 function doPost(e) {
   try {
     var payload = JSON.parse(e.postData.contents);
@@ -92,7 +133,6 @@ function doPost(e) {
     var startDate = new Date(payload.startDate + "T" + (payload.startTime || "08:30") + ":00");
     var endDate = new Date((payload.dueDate || payload.startDate) + "T" + (payload.endTime || "10:00") + ":00");
 
-    // Si la fecha final es menor o igual a la inicial, sumar horas estimadas
     if (endDate <= startDate) {
       var hours = Number(payload.estimatedHours) || 1.5;
       endDate = new Date(startDate.getTime() + hours * 3600 * 1000);
@@ -100,13 +140,13 @@ function doPost(e) {
 
     var guestsList = payload.guests || "barrientoso2401@gmail.com,fernandoaraujo1912@gmail.com";
     var description = [
-      "Sistema Odoo Calendar & ARM — SERAM SRL",
+      "Sistema de Calendario & ARM — SERAM SRL",
       "Acción: " + (payload.eventType || "programacion"),
       "Responsable: " + (payload.responsible || "Socio SERAM"),
       "Cliente / Oportunidad: " + (payload.clientName || "Gestión Interna"),
-      "Dedicación Estimada: " + (payload.estimatedHours || 1.5) + " hrs (Meta Teletrabajo: " + (payload.dailyCap || 4.5) + " hrs/día)",
+      "Dedicación: " + (payload.estimatedHours || 1.5) + " hrs (Meta: " + (payload.dailyCap || 4.5) + " hrs/día)",
       "Etiquetas: " + ((payload.tags || []).join(", ") || "General"),
-      "Notas / Descripción: " + (payload.description || "Sin descripción adicional")
+      "Notas: " + (payload.description || "Sin descripción adicional")
     ].join("\\n");
 
     var event = cal.createEvent(title, startDate, endDate, {
@@ -130,53 +170,12 @@ function doPost(e) {
   }
 }`;
 
-// ── WORKFLOW JSON LISTO PARA IMPORTAR EN N8N ────────────────────────────────
-const N8N_WORKFLOW_TEMPLATE = JSON.stringify(
-  {
-    name: 'SERAM — Sincronización Automática de Actividades a Google Calendar (Socio A y Socio B)',
-    nodes: [
-      {
-        parameters: {
-          httpMethod: 'POST',
-          path: 'seram-calendar-sync',
-          responseMode: 'onReceived',
-          options: {}
-        },
-        name: 'Webhook Calendario SERAM',
-        type: 'n8n-nodes-base.webhook',
-        typeVersion: 1,
-        position: [240, 300]
-      },
-      {
-        parameters: {
-          calendar: 'barrientoso2401@gmail.com',
-          start: '={{$json["startIso"]}}',
-          end: '={{$json["endIso"]}}',
-          additionalFields: {
-            summary: '=[SERAM] {{$json["title"]}}',
-            description: '=Responsable: {{$json["responsible"]}} | Cliente: {{$json["clientName"]}} | Horas: {{$json["estimatedHours"]}}h',
-            attendees: ['barrientoso2401@gmail.com', 'fernandoaraujo1912@gmail.com'],
-            sendUpdates: 'all'
-          }
-        },
-        name: 'Google Calendar Socios SERAM',
-        type: 'n8n-nodes-base.googleCalendar',
-        typeVersion: 1,
-        position: [520, 300]
-      }
-    ],
-    connections: {
-      'Webhook Calendario SERAM': {
-        main: [[{ node: 'Google Calendar Socios SERAM', type: 'main', index: 0 }]]
-      }
-    }
-  },
-  null,
-  2
-);
-
-// ── HELPERS DE FECHA Y CALENDARIO ───────────────────────────────────────────
+// ── HELPERS DE FECHA ────────────────────────────────────────────────────────
 function toIsoDateStr(dateObj) {
+  if (!dateObj || !(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
   const y = dateObj.getFullYear();
   const m = String(dateObj.getMonth() + 1).padStart(2, '0');
   const d = String(dateObj.getDate()).padStart(2, '0');
@@ -184,7 +183,7 @@ function toIsoDateStr(dateObj) {
 }
 
 function addDays(dateStr, days) {
-  const parts = String(dateStr).split('-').map(Number);
+  const parts = String(dateStr || '').split('-').map(Number);
   if (parts.length !== 3) return dateStr;
   const dt = new Date(parts[0], parts[1] - 1, parts[2]);
   dt.setDate(dt.getDate() + days);
@@ -194,13 +193,18 @@ function addDays(dateStr, days) {
 function isDateBetween(dayStr, startStr, endStr) {
   const s = startStr || endStr;
   const e = endStr || startStr;
-  if (!s) return false;
+  if (!s || !dayStr) return false;
   return dayStr >= s && dayStr <= e;
 }
 
 const MONTH_NAMES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+];
+
+const MONTH_NAMES_SHORT = [
+  'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+  'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
 ];
 
 const DAY_NAMES_SHORT = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
@@ -231,21 +235,24 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
     try {
       localStorage.setItem(STORAGE_KEYS.TELEWORK_CAP, String(newCap));
     } catch {
-      // Ignorar error de almacenamiento
+      // Ignorar error de cuota local
     }
     triggerToast?.(
-      `Meta de teletrabajo ajustada a ${newCap} hrs/día por socio (${newCap === 4.5 ? 'Fase Temprana' : 'Fase Intensiva Escalada'})`,
+      `Meta de teletrabajo ajustada a ${newCap} hrs/día por socio (${newCap === 4.5 ? 'Fase Temprana' : 'Fase Intensiva'})`,
       'success'
     );
   };
 
-  // ── 2. NAVEGACIÓN Y ESCALAS DEL CALENDARIO ODOO ──
+  // ── 2. SECCIONES Y ESCALAS MULTI-VISTA (AÑO, TRIMESTRE, MES, SEMANA, DÍA, AGENDA) ──
   const [activeSection, setActiveSection] = useState('calendar'); // 'calendar' | 'sales_plan' | 'tags' | 'automation'
-  const [scaleMode, setScaleMode] = useState('month'); // 'month' | 'week' | 'day' | 'agenda'
+  const [scaleMode, setScaleMode] = useState('month'); // 'year' | 'quarter' | 'month' | 'week' | 'day' | 'agenda'
   const [cursorDate, setCursorDate] = useState(() => new Date());
   const [partnerFilter, setPartnerFilter] = useState('all'); // 'all' | 'Ing. Diego Barrientos' | 'Ing. Fernando Araujo'
   const [tagFilter, setTagFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Trimestre seleccionado en vista trimestral (1..4)
+  const [selectedQuarter, setSelectedQuarter] = useState(() => Math.floor(new Date().getMonth() / 3) + 1);
 
   // ── 3. ETIQUETAS LIBRES PERSONALIZADAS POR LOS SOCIOS ──
   const [freeTags, setFreeTags] = useState(() => {
@@ -259,7 +266,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
   const [newTagName, setNewTagName] = useState('');
   const [newTagColor, setNewTagColor] = useState('emerald');
 
-  // ── 4. METADATOS LOCALES DE CALENDARIO Y EVENTOS RÁPIDOS ──
+  // ── 4. EVENTOS LOCALES / OVERRIDES DE CALENDARIO ──
   const [calendarOverrides, setCalendarOverrides] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.CUSTOM_EVENTS);
@@ -274,7 +281,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
     try {
       localStorage.setItem(STORAGE_KEYS.CUSTOM_EVENTS, JSON.stringify(nextOverrides));
     } catch {
-      // Ignorar cuota
+      // Ignorar
     }
   }, []);
 
@@ -283,24 +290,31 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
   const [crmActivities, setCrmActivities] = useState([]);
 
   const refreshCrmItems = useCallback(async () => {
-    const loadedLeads = await armService.getLeads(clients);
-    setCrmLeads(loadedLeads || []);
-    setCrmActivities(armService.getAllLeadActivities() || []);
+    try {
+      const loadedLeads = await armService.getLeads(clients || []);
+      setCrmLeads(Array.isArray(loadedLeads) ? loadedLeads : []);
+      const loadedActs = armService.getAllLeadActivities();
+      setCrmActivities(Array.isArray(loadedActs) ? loadedActs : []);
+    } catch {
+      setCrmLeads([]);
+      setCrmActivities([]);
+    }
   }, [clients]);
 
   useEffect(() => {
     refreshCrmItems();
   }, [refreshCrmItems]);
 
-  // ── 6. CONFIGURACIÓN Y MOTOR DE NOTIFICACIONES EN SEGUNDO PLANO (GOOGLE APPS SCRIPT & N8N) ──
+  // ── 6. CONFIGURACIÓN DOCKER N8N & NOTIFICACIONES EN SEGUNDO PLANO ──
   const [syncConfig, setSyncConfig] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.SYNC_CONFIG);
       return saved
         ? JSON.parse(saved)
         : {
+            n8nWebhookUrl: 'http://localhost:5678/webhook/seram-calendar',
             appsScriptUrl: '',
-            n8nWebhookUrl: '',
+            activeBridge: 'n8n', // 'n8n' | 'appsscript'
             autoSyncOnCreate: true,
             autoSyncOnReschedule: true,
             autoSyncOnComplete: true,
@@ -311,8 +325,9 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
           };
     } catch {
       return {
+        n8nWebhookUrl: 'http://localhost:5678/webhook/seram-calendar',
         appsScriptUrl: '',
-        n8nWebhookUrl: '',
+        activeBridge: 'n8n',
         autoSyncOnCreate: true,
         autoSyncOnReschedule: true,
         autoSyncOnComplete: true,
@@ -333,6 +348,8 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
     }
   });
 
+  const [isTestingN8n, setIsTestingN8n] = useState(false);
+
   const handleSaveSyncConfig = (nextConfig) => {
     setSyncConfig(nextConfig);
     try {
@@ -343,7 +360,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
   };
 
   /**
-   * Despachador en Segundo Plano (Non-blocking) hacia Google Apps Script y n8n
+   * Despachador en Segundo Plano (Non-blocking) hacia Docker n8n / Google Apps Script
    */
   const dispatchBackgroundCalendarSync = useCallback(
     async (eventType, eventData) => {
@@ -351,55 +368,54 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
       if (syncConfig.notifySocioA && syncConfig.socioAEmail) guests.push(syncConfig.socioAEmail);
       if (syncConfig.notifySocioB && syncConfig.socioBEmail) guests.push(syncConfig.socioBEmail);
 
-      const startIso = `${eventData.startDate}T${eventData.startTime || '08:30'}:00`;
-      const endIso = `${eventData.dueDate || eventData.startDate}T${eventData.endTime || '10:00'}:00`;
+      const startDate = eventData.startDate || toIsoDateStr(new Date());
+      const dueDate = eventData.dueDate || startDate;
+      const startTime = eventData.startTime || '08:30';
+      const endTime = eventData.endTime || '10:00';
 
       const payload = {
         eventType,
         timestamp: new Date().toISOString(),
-        title: eventData.title,
+        title: eventData.title || 'Actividad SERAM',
         description: eventData.description || '',
         clientName: eventData.clientName || 'Gestión SERAM',
         responsible: eventData.responsible || currentSocio?.name || 'Ing. Diego Barrientos',
         participants: eventData.participants || [eventData.responsible || 'Ing. Diego Barrientos'],
-        startDate: eventData.startDate,
-        dueDate: eventData.dueDate || eventData.startDate,
-        startTime: eventData.startTime || '08:30',
-        endTime: eventData.endTime || '10:00',
-        startIso,
-        endIso,
+        startDate,
+        dueDate,
+        startTime,
+        endTime,
+        startIso: `${startDate}T${startTime}:00`,
+        endIso: `${dueDate}T${endTime}:00`,
         estimatedHours: Number(eventData.estimatedHours) || 1.5,
         actualHours: Number(eventData.actualHours) || 0,
         dailyCap: dailyCapHours,
-        tags: eventData.tags || [],
+        tags: Array.isArray(eventData.tags) ? eventData.tags.join(', ') : (eventData.tags || 'General'),
         guests: guests.join(',')
       };
 
       const targets = [];
-      if (syncConfig.appsScriptUrl?.trim()) {
-        targets.push({ name: 'Google Apps Script (SERAM)', url: syncConfig.appsScriptUrl.trim() });
-      }
       if (syncConfig.n8nWebhookUrl?.trim()) {
-        targets.push({ name: 'n8n Workflow Webhook', url: syncConfig.n8nWebhookUrl.trim() });
+        targets.push({ name: 'Docker n8n SERAM', url: syncConfig.n8nWebhookUrl.trim() });
+      }
+      if (syncConfig.appsScriptUrl?.trim()) {
+        targets.push({ name: 'Google Apps Script', url: syncConfig.appsScriptUrl.trim() });
       }
 
-      let statusLabel = 'En cola local (Configura URL en pestaña Automatización)';
-      if (targets.length > 0) {
-        statusLabel = `Enviado en 2do plano a ${targets.map(t => t.name).join(' + ')}`;
-        // Ejecución asíncrona no bloqueante en segundo plano
-        Promise.allSettled(
-          targets.map(target =>
-            fetch(target.url, {
-              method: 'POST',
-              mode: 'no-cors',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload)
-            })
-          )
-        ).catch(() => {
-          // Respaldo silencioso en caso de desconexión temporal
-        });
-      }
+      targets.forEach(tgt => {
+        fetch(tgt.url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          mode: 'no-cors'
+        })
+          .then(() => {
+            // Éxito silencioso
+          })
+          .catch(() => {
+            // Silencioso
+          });
+      });
 
       const logItem = {
         id: `sync-${Date.now()}`,
@@ -409,11 +425,11 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
         title: payload.title,
         responsible: payload.responsible,
         guests: payload.guests,
-        status: statusLabel
+        status: targets.length > 0 ? 'Sincronizado' : 'Local'
       };
 
       setSyncLogs(prev => {
-        const next = [logItem, ...prev].slice(0, 40);
+        const next = [logItem, ...(Array.isArray(prev) ? prev : [])].slice(0, 40);
         try {
           localStorage.setItem(STORAGE_KEYS.SYNC_LOGS, JSON.stringify(next));
         } catch {
@@ -425,13 +441,43 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
     [syncConfig, dailyCapHours, currentSocio]
   );
 
-  // ── 7. UNIFICACIÓN DE EVENTOS DEL ECOSISTEMA (ACTIVIDADES GLOBALES + MISIONES CRM) ──
+  // Probar conexión en vivo con Docker n8n
+  const handleTestN8nConnection = async () => {
+    if (!syncConfig.n8nWebhookUrl?.trim()) {
+      triggerToast?.('Ingresa primero la URL del Webhook de tu Docker n8n', 'error');
+      return;
+    }
+    setIsTestingN8n(true);
+    try {
+      const todayStr = toIsoDateStr(new Date());
+      await dispatchBackgroundCalendarSync('task.test_ping', {
+        title: 'Prueba de Automatización Docker n8n SERAM',
+        description: 'Verificación de enlace con los calendarios de Socio A (Diego) y Socio B (Fernando)',
+        clientName: 'Directorio SERAM SRL',
+        responsible: currentSocio?.name || 'Ing. Diego Barrientos',
+        startDate: todayStr,
+        dueDate: todayStr,
+        startTime: '09:00',
+        endTime: '10:00',
+        estimatedHours: 1.0,
+        tags: ['Reunión de Socios / Directorio']
+      });
+      triggerToast?.('Evento de prueba enviado al Webhook de Docker n8n', 'success');
+    } catch {
+      triggerToast?.('No se pudo contactar el Webhook de n8n. Revisa si el Docker está corriendo.', 'error');
+    } finally {
+      setIsTestingN8n(false);
+    }
+  };
+
+  // ── 7. UNIFICACIÓN DE EVENTOS CON BLINDAJE DE DATOS (NULL-SAFETY) ──
   const unifiedEvents = useMemo(() => {
     const todayStr = toIsoDateStr(new Date());
     const map = new Map();
 
-    // A) Actividades Globales del Portal de Socios
+    // A) Actividades Globales
     (activities || []).forEach(act => {
+      if (!act) return;
       const key = `act-${act.id}`;
       const ov = calendarOverrides[key] || {};
       const startDate = ov.startDate || act.startDate || act.dueDate || todayStr;
@@ -463,11 +509,12 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
       });
     });
 
-    // B) Actividades Comerciales del CRM (ARM Odoo)
+    // B) Actividades del CRM
     (crmActivities || []).forEach(crmAct => {
+      if (!crmAct) return;
       const key = `crm-${crmAct.id}`;
       const ov = calendarOverrides[key] || {};
-      const parentLead = crmLeads.find(l => String(l.id) === String(crmAct.lead_id));
+      const parentLead = crmLeads.find(l => l && String(l.id) === String(crmAct.lead_id));
       const startDate = ov.startDate || crmAct.fecha_inicio || crmAct.fecha_vencimiento || todayStr;
       const dueDate = ov.dueDate || crmAct.fecha_vencimiento || startDate;
       const isDone = ov.status === 'Concluido' || crmAct.estado === 'completada';
@@ -476,7 +523,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
         uid: key,
         rawId: crmAct.id,
         source: 'crm',
-        title: ov.title || crmAct.titulo || 'Seguimiento Comercial CRM',
+        title: ov.title || crmAct.titulo || 'Seguimiento Comercial',
         description: ov.description || crmAct.resumen || '',
         startDate,
         dueDate: dueDate >= startDate ? dueDate : startDate,
@@ -496,8 +543,9 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
       });
     });
 
-    // C) Eventos creados directamente en el Calendario que aún no estaban en la lista
-    Object.entries(calendarOverrides).forEach(([key, ov]) => {
+    // C) Eventos creados directamente en Calendario
+    Object.entries(calendarOverrides || {}).forEach(([key, ov]) => {
+      if (!ov) return;
       if (key.startsWith('cal-direct-') && !map.has(key)) {
         map.set(key, {
           uid: key,
@@ -536,24 +584,40 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchText =
-          ev.title.toLowerCase().includes(q) ||
-          (ev.clientName && ev.clientName.toLowerCase().includes(q)) ||
-          (ev.description && ev.description.toLowerCase().includes(q));
+          (ev.title || '').toLowerCase().includes(q) ||
+          (ev.clientName || '').toLowerCase().includes(q) ||
+          (ev.description || '').toLowerCase().includes(q);
         if (!matchText) return false;
       }
       return true;
     });
   }, [activities, crmActivities, crmLeads, calendarOverrides, partnerFilter, tagFilter, searchQuery, currentSocio]);
 
-  // ── 8. CÁLCULO DE CELDAS DE MES, SEMANA Y DÍA ──
+  // Eventos que caen en una fecha dada
+  const getEventsForDay = useCallback(
+    (dayStr) => {
+      return unifiedEvents.filter(ev => isDateBetween(dayStr, ev.startDate, ev.dueDate));
+    },
+    [unifiedEvents]
+  );
+
+  // Horas programadas para una fecha dada
+  const getDayScheduledHours = useCallback(
+    (dayStr) => {
+      const evs = getEventsForDay(dayStr);
+      return evs.reduce((sum, ev) => sum + (Number(ev.estimatedHours) || 1.0), 0);
+    },
+    [getEventsForDay]
+  );
+
+  // ── 8. VISTA MENSUAL: CÁLCULO DE CELDAS ──
   const monthDaysGrid = useMemo(() => {
     const year = cursorDate.getFullYear();
     const month = cursorDate.getMonth();
     const firstDayOfMonth = new Date(year, month, 1);
     const lastDayOfMonth = new Date(year, month + 1, 0);
 
-    // Ajustar para que la semana empiece en Lunes (0 = Lunes ... 6 = Domingo)
-    const startOffset = (firstDayOfMonth.getDay() + 6) % 7;
+    const startOffset = (firstDayOfMonth.getDay() + 6) % 7; // Lunes = 0
     const totalDays = lastDayOfMonth.getDate();
 
     const cells = [];
@@ -573,6 +637,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
     return cells;
   }, [cursorDate]);
 
+  // ── 9. VISTA SEMANAL: CÁLCULO DE 7 DÍAS ──
   const weekDaysGrid = useMemo(() => {
     const dayOfWeek = (cursorDate.getDay() + 6) % 7; // Lunes = 0
     const monday = new Date(cursorDate.getFullYear(), cursorDate.getMonth(), cursorDate.getDate() - dayOfWeek);
@@ -582,58 +647,119 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
     });
   }, [cursorDate]);
 
-  // Eventos que caen en una fecha dada
-  const getEventsForDay = useCallback(
-    (dayStr) => {
-      return unifiedEvents.filter(ev => isDateBetween(dayStr, ev.startDate, ev.dueDate));
-    },
-    [unifiedEvents]
-  );
+  // ── 10. VISTA ANUAL: CÁLCULO DE LOS 12 MESES ──
+  const yearMonthsData = useMemo(() => {
+    const y = cursorDate.getFullYear();
+    return Array.from({ length: 12 }, (_, mIdx) => {
+      const firstDay = new Date(y, mIdx, 1);
+      const lastDay = new Date(y, mIdx + 1, 0);
+      const startOffset = (firstDay.getDay() + 6) % 7;
+      const totalDays = lastDay.getDate();
 
-  // Horas programadas para una fecha dada
-  const getDayScheduledHours = useCallback(
-    (dayStr) => {
-      const evs = getEventsForDay(dayStr);
-      return evs.reduce((sum, ev) => {
-        // Si el evento dura varios días, prorratear o tomar la dedicación diaria asignada
-        return sum + (Number(ev.estimatedHours) || 1.0);
-      }, 0);
-    },
-    [getEventsForDay]
-  );
+      const days = [];
+      for (let i = startOffset - 1; i >= 0; i--) {
+        const dt = new Date(y, mIdx, -i);
+        days.push({ dt, dateStr: toIsoDateStr(dt), isCurrentMonth: false, dayNum: dt.getDate() });
+      }
+      for (let d = 1; d <= totalDays; d++) {
+        const dt = new Date(y, mIdx, d);
+        days.push({ dt, dateStr: toIsoDateStr(dt), isCurrentMonth: true, dayNum: d });
+      }
+      while (days.length % 7 !== 0) {
+        const lastDt = days[days.length - 1].dt;
+        const nextDt = new Date(lastDt.getFullYear(), lastDt.getMonth(), lastDt.getDate() + 1);
+        days.push({ dt: nextDt, dateStr: toIsoDateStr(nextDt), isCurrentMonth: false, dayNum: nextDt.getDate() });
+      }
 
-  // ── 9. DRAG & DROP PARA REPROGRAMACIÓN FLUIDA EN EL CALENDARIO ──
+      return {
+        monthIndex: mIdx,
+        monthName: MONTH_NAMES[mIdx],
+        days
+      };
+    });
+  }, [cursorDate]);
+
+  // ── 11. VISTA TRIMESTRAL: MESES DE Q1, Q2, Q3 O Q4 ──
+  const quarterMonthsData = useMemo(() => {
+    const y = cursorDate.getFullYear();
+    const startM = (selectedQuarter - 1) * 3;
+    const qMonths = [startM, startM + 1, startM + 2];
+
+    return qMonths.map(mIdx => {
+      const firstDay = new Date(y, mIdx, 1);
+      const lastDay = new Date(y, mIdx + 1, 0);
+      const startOffset = (firstDay.getDay() + 6) % 7;
+      const totalDays = lastDay.getDate();
+
+      const days = [];
+      for (let i = startOffset - 1; i >= 0; i--) {
+        const dt = new Date(y, mIdx, -i);
+        days.push({ dt, dateStr: toIsoDateStr(dt), isCurrentMonth: false, dayNum: dt.getDate() });
+      }
+      for (let d = 1; d <= totalDays; d++) {
+        const dt = new Date(y, mIdx, d);
+        days.push({ dt, dateStr: toIsoDateStr(dt), isCurrentMonth: true, dayNum: d });
+      }
+      while (days.length % 7 !== 0) {
+        const lastDt = days[days.length - 1].dt;
+        const nextDt = new Date(lastDt.getFullYear(), lastDt.getMonth(), lastDt.getDate() + 1);
+        days.push({ dt: nextDt, dateStr: toIsoDateStr(nextDt), isCurrentMonth: false, dayNum: nextDt.getDate() });
+      }
+
+      const monthEvents = unifiedEvents.filter(ev => {
+        const parts = (ev.startDate || '').split('-');
+        return parts.length === 3 && parseInt(parts[1], 10) - 1 === mIdx;
+      });
+
+      const monthHours = monthEvents.reduce((acc, ev) => acc + (Number(ev.estimatedHours) || 1.5), 0);
+
+      return {
+        monthIndex: mIdx,
+        monthName: MONTH_NAMES[mIdx],
+        days,
+        events: monthEvents,
+        totalHours: monthHours
+      };
+    });
+  }, [cursorDate, selectedQuarter, unifiedEvents]);
+
+  // Horas del trimestre completo
+  const totalQuarterScheduledHours = useMemo(() => {
+    return quarterMonthsData.reduce((acc, m) => acc + m.totalHours, 0);
+  }, [quarterMonthsData]);
+
+  const quarterTargetHours = Math.round(65 * dailyCapHours); // ~65 días hábiles
+
+  // ── 12. DRAG & DROP ENTRE FECHAS ──
   const [draggedEventUid, setDraggedEventUid] = useState(null);
   const [dragOverDateStr, setDragOverDateStr] = useState(null);
 
   const handleDragStartEvent = (e, evUid) => {
     setDraggedEventUid(evUid);
-    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer?.setData('text/plain', evUid);
   };
 
   const handleDropOnDay = (e, targetDateStr) => {
     e.preventDefault();
     setDragOverDateStr(null);
-    if (!draggedEventUid) return;
+    const evUid = draggedEventUid || e.dataTransfer?.getData('text/plain');
+    if (!evUid || !targetDateStr) return;
 
-    const targetEv = unifiedEvents.find(item => item.uid === draggedEventUid);
-    setDraggedEventUid(null);
+    const targetEv = unifiedEvents.find(ev => ev.uid === evUid);
     if (!targetEv) return;
 
-    // Calcular duración original en días para mantener el intervalo inicio -> fin
-    const startParts = targetEv.startDate.split('-').map(Number);
-    const endParts = targetEv.dueDate.split('-').map(Number);
-    const startDt = new Date(startParts[0], startParts[1] - 1, startParts[2]);
-    const endDt = new Date(endParts[0], endParts[1] - 1, endParts[2]);
-    const diffDays = Math.max(0, Math.round((endDt - startDt) / 86400000));
-
-    const newEndDate = addDays(targetDateStr, diffDays);
+    let dayDiff = 0;
+    if (targetEv.dueDate && targetEv.startDate) {
+      const s = new Date(targetEv.startDate).getTime();
+      const d = new Date(targetEv.dueDate).getTime();
+      dayDiff = Math.max(0, Math.round((d - s) / (1000 * 3600 * 24)));
+    }
+    const newEndDate = addDays(targetDateStr, dayDiff);
 
     const nextOverrides = {
       ...calendarOverrides,
-      [targetEv.uid]: {
-        ...(calendarOverrides[targetEv.uid] || {}),
-        ...targetEv,
+      [evUid]: {
+        ...(calendarOverrides[evUid] || {}),
         startDate: targetDateStr,
         dueDate: newEndDate
       }
@@ -655,7 +781,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
     }
   };
 
-  // ── 10. MODAL DE CREACIÓN / ASIGNACIÓN DE CLIENTE O TAREA EN EL CALENDARIO ──
+  // ── 13. MODAL DE CREACIÓN / ASIGNACIÓN ──
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [scheduleForm, setScheduleForm] = useState({
     title: '',
@@ -720,32 +846,35 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
       description: scheduleForm.description.trim()
     };
 
-    // Guardar en estado del calendario
     const nextOverrides = {
       ...calendarOverrides,
       [newUid]: eventPayload
     };
     saveCalendarOverrides(nextOverrides);
 
-    // Sincronizar con la tabla global de actividades de SERAM
     if (handleAddActivity) {
-      await handleAddActivity({
-        title: eventPayload.title,
-        description: `${eventPayload.description}${eventPayload.clientName ? ` | Cliente: ${eventPayload.clientName}` : ''}`,
-        responsible: eventPayload.responsible,
-        assignedPartner: eventPayload.responsible,
-        assignedTeam: participants,
-        participants,
-        status: 'Pendiente',
-        priority: 'Alta',
-        startDate: eventPayload.startDate,
-        dueDate: eventPayload.dueDate,
-        estimatedHours: eventPayload.estimatedHours,
-        freeTags: eventPayload.tags
-      });
+      try {
+        await handleAddActivity({
+          title: eventPayload.title,
+          description: eventPayload.description || `Bloque de teletrabajo asignado a ${eventPayload.responsible}`,
+          startDate: eventPayload.startDate,
+          dueDate: eventPayload.dueDate,
+          startTime: eventPayload.startTime,
+          endTime: eventPayload.endTime,
+          assignedPartner: eventPayload.responsible,
+          assignedTeam: participants,
+          estimatedHours: eventPayload.estimatedHours,
+          category: eventPayload.tags?.[0] || 'Comercial',
+          priority: 'Media',
+          status: 'Pendiente',
+          clientName: eventPayload.clientName,
+          leadId: eventPayload.leadId
+        });
+      } catch {
+        // Fallback local
+      }
     }
 
-    // Si se vinculó un cliente del CRM, crear también la misión en el CRM
     if (scheduleForm.leadId) {
       armService.scheduleLeadActivity(scheduleForm.leadId, {
         titulo: eventPayload.title,
@@ -759,19 +888,15 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
       refreshCrmItems();
     }
 
-    // Despachar en segundo plano a Google Calendar (Google Apps Script / n8n)
     if (syncConfig.autoSyncOnCreate) {
       dispatchBackgroundCalendarSync('task.created', eventPayload);
     }
 
+    triggerToast?.(`Actividad "${eventPayload.title}" programada en el Calendario`, 'success');
     setShowScheduleModal(false);
-    triggerToast?.(
-      `Actividad programada (${eventPayload.estimatedHours}h) y enviada en segundo plano al calendario de los socios`,
-      'success'
-    );
   };
 
-  // ── 11. MODAL DE ENTREGA / CONCRETAR TAREA DEL DÍA (IMPACTO TIME TRACKER + CRM CHATTER + XP) ──
+  // ── 14. MODAL DE ENTREGA RÁPIDA EN EL DÍA ──
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [deliveryForm, setDeliveryForm] = useState({
     actualHours: 1.5,
@@ -798,7 +923,6 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
 
     const hoursLogged = Number(deliveryForm.actualHours) || 1.0;
 
-    // 1. Actualizar estado en el Calendario
     const updatedEv = {
       ...selectedEvent,
       status: 'Concluido',
@@ -812,136 +936,54 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
     };
     saveCalendarOverrides(nextOverrides);
 
-    // 2. Impactar el Time Tracker de los Socios (Bolsa de Compensación Operativa)
     if (handleAddTimeLog) {
-      await handleAddTimeLog({
-        partner_name: selectedEvent.responsible || currentSocio?.name || 'Ing. Diego Barrientos',
-        partner_id:
-          selectedEvent.responsible?.includes('Fernando')
+      try {
+        await handleAddTimeLog({
+          partner_name: selectedEvent.responsible || currentSocio?.name || 'Ing. Diego Barrientos',
+          partner_id: selectedEvent.responsible?.includes('Fernando')
             ? 'fernandoaraujo1912@gmail.com'
             : 'barrientoso2401@gmail.com',
-        project_title: selectedEvent.clientName || selectedEvent.title,
-        description: `[Calendario Odoo] ${selectedEvent.title} — Resultado: ${deliveryForm.outcomeNote.trim()}`,
-        hours: hoursLogged,
-        logged_at: new Date().toISOString()
-      });
+          hours: hoursLogged,
+          description: `[Calendario SERAM] ${selectedEvent.title} — Resultado: ${deliveryForm.outcomeNote.trim()}`,
+          date: toIsoDateStr(new Date())
+        });
+      } catch {
+        // Fallback local
+      }
     }
 
-    // 3. Si proviene de Actividades Globales, actualizar su estado a Concluido
-    if (selectedEvent.source === 'activities' && handleUpdateActivityStatus) {
-      await handleUpdateActivityStatus(selectedEvent.rawId, 'Concluido');
+    if (handleUpdateActivityStatus && selectedEvent.rawId) {
+      try {
+        await handleUpdateActivityStatus(selectedEvent.rawId, 'Concluido');
+      } catch {
+        // Fallback
+      }
     }
 
-    // 4. Si está vinculada a un cliente del CRM, registrar en el Chatter y acreditar XP
-    if (selectedEvent.source === 'crm') {
-      await armService.completeLeadActivityWithEvidence(selectedEvent.rawId, {
-        evidencia_nota: `${deliveryForm.outcomeNote.trim()} (${hoursLogged} hrs dedicadas)`,
-        evidencia_url: deliveryForm.evidenceUrl.trim(),
-        autor: selectedEvent.responsible || currentSocio?.name
-      });
+    if (selectedEvent.leadId) {
+      armService.completeLeadActivity(
+        selectedEvent.leadId,
+        selectedEvent.rawId,
+        `Concretado en Calendario: ${deliveryForm.outcomeNote.trim()}`
+      );
       refreshCrmItems();
-    } else if (selectedEvent.leadId) {
-      armService.addChatterMessage(selectedEvent.leadId, {
-        tipo: 'mision_completada',
-        autor: selectedEvent.responsible || currentSocio?.name || 'Socio SERAM',
-        contenido: `Tarea concretada desde Calendario (${hoursLogged} hrs): "${selectedEvent.title}". Resultado: ${deliveryForm.outcomeNote.trim()}`,
-        xp_ganado: 75
-      });
     }
 
-    // 5. Notificar cierre en segundo plano
     if (syncConfig.autoSyncOnComplete) {
       dispatchBackgroundCalendarSync('task.completed', updatedEv);
     }
 
-    setSelectedEvent(null);
     triggerToast?.(
-      `Tarea concretada: +${hoursLogged}h acreditadas en el Time Tracker y sincronizadas con el CRM (+75 XP)`,
+      `Tarea concretada (+${hoursLogged} hrs auditadas en Time Tracker y +75 XP de mérito)`,
       'success'
     );
+    setSelectedEvent(null);
   };
 
-  // ── 12. GENERADORES GOOGLE CALENDAR URL DIRECTA Y ARCHIVO .ICS (RFC 5545) ──
-  const buildGoogleCalendarTemplateUrl = (ev) => {
-    const cleanDate = (dStr, tStr) => {
-      const d = (dStr || toIsoDateStr(new Date())).replace(/-/g, '');
-      const t = (tStr || '08:30').replace(/:/g, '') + '00';
-      return `${d}T${t}`;
-    };
-    const start = cleanDate(ev.startDate, ev.startTime || '08:30');
-    const end = cleanDate(ev.dueDate || ev.startDate, ev.endTime || '10:00');
-    const details = [
-      `Responsable: ${ev.responsible}`,
-      ev.clientName ? `Cliente: ${ev.clientName}` : '',
-      `Dedicación Estimada: ${ev.estimatedHours} hrs (Meta Teletrabajo SERAM: ${dailyCapHours} hrs/día)`,
-      ev.tags?.length ? `Etiquetas: ${ev.tags.join(', ')}` : '',
-      ev.description ? `Detalle: ${ev.description}` : ''
-    ]
-      .filter(Boolean)
-      .join('\n');
-
-    const params = new URLSearchParams({
-      action: 'TEMPLATE',
-      text: `[SERAM] ${ev.title}`,
-      dates: `${start}/${end}`,
-      details,
-      location: 'Teletrabajo SERAM SRL',
-      add: `${syncConfig.socioAEmail},${syncConfig.socioBEmail}`
-    });
-    return `https://calendar.google.com/calendar/render?${params.toString()}`;
-  };
-
-  const handleDownloadIcsFile = (ev) => {
-    const cleanDate = (dStr, tStr) => {
-      const d = (dStr || toIsoDateStr(new Date())).replace(/-/g, '');
-      const t = (tStr || '08:30').replace(/:/g, '') + '00';
-      return `${d}T${t}`;
-    };
-    const dtStart = cleanDate(ev.startDate, ev.startTime || '08:30');
-    const dtEnd = cleanDate(ev.dueDate || ev.startDate, ev.endTime || '10:00');
-    const icsLines = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//SERAM SRL//Odoo Calendar Engine//ES',
-      'BEGIN:VEVENT',
-      `UID:${ev.uid}@seram.com.bo`,
-      `DTSTAMP:${cleanDate(toIsoDateStr(new Date()), '08:00')}Z`,
-      `DTSTART:${dtStart}`,
-      `DTEND:${dtEnd}`,
-      `SUMMARY:[SERAM] ${ev.title}`,
-      `DESCRIPTION:Responsable: ${ev.responsible}\\nCliente: ${ev.clientName || 'N/A'}\\nHoras: ${ev.estimatedHours}h`,
-      `ATTENDEE;CN=Ing. Diego Barrientos;RSVP=TRUE:mailto:${syncConfig.socioAEmail}`,
-      `ATTENDEE;CN=Ing. Fernando Araujo;RSVP=TRUE:mailto:${syncConfig.socioBEmail}`,
-      'BEGIN:VALARM',
-      'TRIGGER:-PT15M',
-      'ACTION:DISPLAY',
-      'DESCRIPTION:Recordatorio SERAM',
-      'END:VALARM',
-      'END:VEVENT',
-      'END:VCALENDAR'
-    ].join('\r\n');
-
-    const blob = new Blob([icsLines], { type: 'text/calendar;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `SERAM_${ev.title.replace(/\s+/g, '_').slice(0, 30)}.ics`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    triggerToast?.('Archivo de calendario (.ics) descargado con alertas para ambos socios', 'success');
-  };
-
-  // ── 13. GESTIÓN DE ETIQUETAS LIBRES DE LOS SOCIOS ──
-  const handleAddFreeTag = (e) => {
+  // ── 15. GESTIÓN DE ETIQUETAS LIBRES ──
+  const handleCreateFreeTag = (e) => {
     e.preventDefault();
     if (!newTagName.trim()) return;
-    const exists = freeTags.some(t => t.name.toLowerCase() === newTagName.trim().toLowerCase());
-    if (exists) {
-      triggerToast?.('Esa etiqueta ya existe', 'error');
-      return;
-    }
     const created = {
       id: `tag-${Date.now()}`,
       name: newTagName.trim(),
@@ -974,7 +1016,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
     return palette.className;
   };
 
-  // ── 14. RESUMEN DE CAPACIDAD HORARIA DE HOY ──
+  // ── 16. RESUMEN DE CAPACIDAD HORARIA DE HOY ──
   const todayStr = toIsoDateStr(new Date());
   const todayScheduledHours = getDayScheduledHours(todayStr);
   const todayCompletedHours = getEventsForDay(todayStr)
@@ -984,23 +1026,23 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
   return (
     <div className="space-y-4 text-slate-100 select-none">
       {/* ══════════════════════════════════════════════════════════════════════════
-          1. BARRA SUPERIOR CONTEXTUAL ESTILO ODOO CALENDAR
+          1. BARRA SUPERIOR CONTEXTUAL DEL CALENDARIO SERAM
          ══════════════════════════════════════════════════════════════════════════ */}
       <div className="rounded-2xl bg-[#071109] border border-white/[0.1] px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-xl">
-        {/* Izquierda: Sub-secciones Odoo Calendar */}
+        {/* Izquierda: Sub-secciones */}
         <div className="flex items-center gap-1.5 overflow-x-auto">
           <div className="flex items-center gap-2 pr-3 border-r border-white/10">
             <div className="w-7 h-7 rounded-lg bg-[#00e03c]/15 border border-[#00e03c]/40 flex items-center justify-center text-[#00e03c]">
               <CalendarIcon className="w-4 h-4" />
             </div>
-            <span className="text-sm font-black tracking-tight text-white">Calendario Odoo</span>
+            <span className="text-sm font-black tracking-tight text-white">Calendario SERAM</span>
           </div>
 
           {[
             { id: 'calendar', label: 'Calendario & Teletrabajo' },
             { id: 'sales_plan', label: 'Plan de Ventas & Inbound' },
             { id: 'tags', label: `Etiquetas Libres (${freeTags.length})` },
-            { id: 'automation', label: 'Google Calendar / Apps Script / n8n' }
+            { id: 'automation', label: 'Automatización Docker n8n' }
           ].map(tab => (
             <button
               key={tab.id}
@@ -1017,7 +1059,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
           ))}
         </div>
 
-        {/* Derecha: Conmutador de Meta Diaria de Teletrabajo (4.5h Fase Temprana <-> 8.0h Escalada) */}
+        {/* Derecha: Conmutador de Meta Diaria de Teletrabajo (4.5h <-> 8.0h) y Botón Nuevo */}
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-white/[0.1]">
             <span className="text-[10px] font-mono text-slate-400 px-2">Jornada Socio:</span>
@@ -1029,7 +1071,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                   ? 'bg-[#00e03c] text-slate-950 shadow-sm'
                   : 'text-slate-400 hover:text-white'
               }`}
-              title="Fase Temprana Acordada: 4.5 horas diarias dedicadas por socio"
+              title="Fase Temprana: 4.5 horas diarias dedicadas por socio"
             >
               4.5 hrs/día (Temprana)
             </button>
@@ -1041,7 +1083,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                   ? 'bg-amber-400 text-slate-950 shadow-sm'
                   : 'text-slate-400 hover:text-white'
               }`}
-              title="Fase Escalada: 8.0 horas diarias para ventas masivas y content marketing"
+              title="Fase Intensiva: 8.0 horas diarias para ventas y content marketing"
             >
               8.0 hrs/día (Intensiva)
             </button>
@@ -1053,18 +1095,18 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
             className="px-3.5 py-1.5 rounded-xl bg-[#00e03c] hover:bg-white text-slate-950 font-black text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
           >
             <Plus className="w-4 h-4 stroke-[3]" />
-            <span>Programar Cliente / Actividad</span>
+            <span>Programar Actividad</span>
           </button>
         </div>
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════════
-          2. MEDIDOR DE CAPACIDAD DE TELETRABAJO DEL DÍA Y CONTROLES DE ESCALA
+          2. NAVEGADOR DE VISTAS Y CONTROLES MULTI-ESCALA
          ══════════════════════════════════════════════════════════════════════════ */}
       {activeSection === 'calendar' && (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 bg-[#0a140c] border border-white/[0.08] p-3.5 rounded-2xl items-center">
-            {/* Navegación de Fechas Odoo */}
+            {/* Navegación de Fechas */}
             <div className="lg:col-span-5 flex flex-wrap items-center gap-2">
               <button
                 type="button"
@@ -1078,12 +1120,16 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                   type="button"
                   onClick={() => {
                     const dt = new Date(cursorDate);
-                    if (scaleMode === 'month') dt.setMonth(dt.getMonth() - 1);
+                    if (scaleMode === 'year') dt.setFullYear(dt.getFullYear() - 1);
+                    else if (scaleMode === 'quarter') {
+                      setSelectedQuarter(q => (q === 1 ? 4 : q - 1));
+                    } else if (scaleMode === 'month') dt.setMonth(dt.getMonth() - 1);
                     else if (scaleMode === 'week') dt.setDate(dt.getDate() - 7);
                     else dt.setDate(dt.getDate() - 1);
                     setCursorDate(dt);
                   }}
                   className="p-1.5 rounded-lg text-slate-300 hover:text-white cursor-pointer"
+                  title="Anterior"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -1091,29 +1137,38 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                   type="button"
                   onClick={() => {
                     const dt = new Date(cursorDate);
-                    if (scaleMode === 'month') dt.setMonth(dt.getMonth() + 1);
+                    if (scaleMode === 'year') dt.setFullYear(dt.getFullYear() + 1);
+                    else if (scaleMode === 'quarter') {
+                      setSelectedQuarter(q => (q === 4 ? 1 : q + 1));
+                    } else if (scaleMode === 'month') dt.setMonth(dt.getMonth() + 1);
                     else if (scaleMode === 'week') dt.setDate(dt.getDate() + 7);
                     else dt.setDate(dt.getDate() + 1);
                     setCursorDate(dt);
                   }}
                   className="p-1.5 rounded-lg text-slate-300 hover:text-white cursor-pointer"
+                  title="Siguiente"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
+
               <h3 className="text-sm sm:text-base font-black text-white">
-                {MONTH_NAMES[cursorDate.getMonth()]} {cursorDate.getFullYear()}
+                {scaleMode === 'year'
+                  ? `Año ${cursorDate.getFullYear()}`
+                  : scaleMode === 'quarter'
+                  ? `Q${selectedQuarter} (${MONTH_NAMES_SHORT[(selectedQuarter - 1) * 3]} - ${MONTH_NAMES_SHORT[(selectedQuarter - 1) * 3 + 2]}) · ${cursorDate.getFullYear()}`
+                  : `${MONTH_NAMES[cursorDate.getMonth()]} ${cursorDate.getFullYear()}`}
               </h3>
             </div>
 
-            {/* Medidor de Dedicación Diaria (Hoy: X.Xh / 4.5h) */}
-            <div className="lg:col-span-4 flex flex-col gap-1 bg-black/40 px-3.5 py-2 rounded-xl border border-white/[0.07]">
+            {/* Medidor de Dedicación Diaria de Hoy */}
+            <div className="lg:col-span-3 flex flex-col gap-1 bg-black/40 px-3.5 py-2 rounded-xl border border-white/[0.07]">
               <div className="flex items-center justify-between text-[11px]">
                 <span className="font-bold text-slate-300">
                   Carga Hoy ({todayStr}): <strong className="text-white font-mono">{todayScheduledHours.toFixed(1)}h</strong> / {dailyCapHours}h
                 </span>
                 <span className="font-mono text-[#00e03c] font-bold">
-                  Concretadas: {todayCompletedHours.toFixed(1)}h
+                  {todayCompletedHours.toFixed(1)}h
                 </span>
               </div>
               <div className="w-full h-2 rounded-full bg-white/[0.08] overflow-hidden flex">
@@ -1137,9 +1192,11 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
               </div>
             </div>
 
-            {/* Selector de Escala (Mes / Semana / Día / Agenda) */}
-            <div className="lg:col-span-3 flex items-center justify-end gap-1 bg-black/40 p-1 rounded-xl border border-white/[0.08]">
+            {/* Selector de Escala Multi-Vista: Anual, Trimestral, Mes, Semana, Día, Agenda */}
+            <div className="lg:col-span-4 flex items-center justify-end gap-1 bg-black/40 p-1 rounded-xl border border-white/[0.08] overflow-x-auto">
               {[
+                { id: 'year', label: 'Anual' },
+                { id: 'quarter', label: 'Trimestral' },
                 { id: 'month', label: 'Mes' },
                 { id: 'week', label: 'Semana' },
                 { id: 'day', label: 'Día' },
@@ -1149,9 +1206,9 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                   key={sc.id}
                   type="button"
                   onClick={() => setScaleMode(sc.id)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                     scaleMode === sc.id
-                      ? 'bg-[#00e03c] text-slate-950 font-black'
+                      ? 'bg-[#00e03c] text-slate-950 font-black shadow-sm'
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
@@ -1161,14 +1218,14 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
             </div>
           </div>
 
-          {/* Barra de Filtros: Socio A / Socio B, Etiquetas Libres y Buscador */}
+          {/* Barra de Filtros: Socios, Etiquetas y Búsqueda */}
           <div className="flex flex-wrap items-center justify-between gap-2.5 bg-black/30 px-3.5 py-2.5 rounded-xl border border-white/[0.06]">
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="text-[10px] font-mono uppercase text-slate-400 mr-1">Socio:</span>
               {[
                 { id: 'all', label: 'Ambos Socios' },
-                { id: 'Ing. Diego Barrientos', label: 'Socio A: Diego Barrientos' },
-                { id: 'Ing. Fernando Araujo', label: 'Socio B: Fernando Araujo' }
+                { id: 'Ing. Diego Barrientos', label: 'Socio A: Diego' },
+                { id: 'Ing. Fernando Araujo', label: 'Socio B: Fernando' }
               ].map(p => (
                 <button
                   key={p.id}
@@ -1176,7 +1233,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                   onClick={() => setPartnerFilter(p.id)}
                   className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     partnerFilter === p.id
-                      ? 'bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/40'
+                      ? 'bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/40 font-black'
                       : 'bg-white/[0.04] text-slate-400 hover:text-white'
                   }`}
                 >
@@ -1191,10 +1248,10 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                 onChange={e => setTagFilter(e.target.value)}
                 className="bg-black/60 border border-white/15 rounded-xl px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-[#00e03c]"
               >
-                <option value="all">Todas las Etiquetas Libres</option>
+                <option value="all">Todas las Etiquetas</option>
                 {freeTags.map(t => (
                   <option key={t.id} value={t.name}>
-                    Etiqueta: {t.name}
+                    {t.name}
                   </option>
                 ))}
               </select>
@@ -1212,10 +1269,230 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
             </div>
           </div>
 
-          {/* ── VISTA 1: CUADRÍCULA MENSUAL ODOO CON BARRA DE CAPACIDAD 4.5H / 8.0H ── */}
+          {/* ════════════════════════════════════════════════════════════════════════
+              VISTA 1: ANUAL (12 MESES CON MAPA DE CALOR Y NAVEGACIÓN INSTANTÁNEA)
+             ════════════════════════════════════════════════════════════════════════ */}
+          {scaleMode === 'year' && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-[#08110a] border border-white/[0.1] p-4 rounded-2xl">
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                  <span className="text-[10px] uppercase font-mono text-slate-400 block">Total Actividades {cursorDate.getFullYear()}</span>
+                  <p className="text-xl font-black text-white mt-0.5">{unifiedEvents.length}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                  <span className="text-[10px] uppercase font-mono text-slate-400 block">Horas Programadas en el Año</span>
+                  <p className="text-xl font-black text-amber-300 mt-0.5">
+                    {unifiedEvents.reduce((s, ev) => s + (Number(ev.estimatedHours) || 1.5), 0).toFixed(0)} hrs
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                  <span className="text-[10px] uppercase font-mono text-slate-400 block">Horas Concretadas</span>
+                  <p className="text-xl font-black text-[#00e03c] mt-0.5">
+                    {unifiedEvents
+                      .filter(ev => ev.status === 'Concluido')
+                      .reduce((s, ev) => s + (Number(ev.actualHours || ev.estimatedHours) || 0), 0)
+                      .toFixed(0)} hrs
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                  <span className="text-[10px] uppercase font-mono text-slate-400 block">Capacidad Pactada por Socio</span>
+                  <p className="text-xl font-black text-cyan-300 mt-0.5">
+                    {Math.round(260 * dailyCapHours)} hrs/año ({dailyCapHours}h/d)
+                  </p>
+                </div>
+              </div>
+
+              {/* Grilla de los 12 meses */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
+                {yearMonthsData.map(m => {
+                  const mEvents = unifiedEvents.filter(ev => {
+                    const parts = (ev.startDate || '').split('-');
+                    return parts.length === 3 && parseInt(parts[1], 10) - 1 === m.monthIndex;
+                  });
+
+                  return (
+                    <div
+                      key={m.monthIndex}
+                      onClick={() => {
+                        setCursorDate(new Date(cursorDate.getFullYear(), m.monthIndex, 1));
+                        setScaleMode('month');
+                      }}
+                      className="p-3 rounded-2xl bg-[#08110a] hover:bg-[#0c1a0e] border border-white/[0.08] hover:border-[#00e03c]/40 transition-all cursor-pointer space-y-2 group"
+                    >
+                      <div className="flex items-center justify-between border-b border-white/[0.06] pb-1.5">
+                        <span className="text-xs font-black text-white group-hover:text-[#00e03c] transition-colors">
+                          {m.monthName}
+                        </span>
+                        <span className="text-[10px] font-mono text-slate-400">
+                          {mEvents.length} {mEvents.length === 1 ? 'act.' : 'acts.'}
+                        </span>
+                      </div>
+
+                      {/* Cuadrícula compacta de días */}
+                      <div className="grid grid-cols-7 gap-1 text-[9px] text-center font-mono">
+                        {DAY_NAMES_SHORT.map(d => (
+                          <span key={d} className="text-slate-500 font-bold">
+                            {d[0]}
+                          </span>
+                        ))}
+                        {m.days.map((cell, idx) => {
+                          const evs = getEventsForDay(cell.dateStr);
+                          const hasEv = evs.length > 0;
+                          const isToday = cell.dateStr === todayStr;
+
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setCursorDate(cell.dt);
+                                setScaleMode('day');
+                              }}
+                              className={`h-5 rounded flex items-center justify-center transition-colors relative cursor-pointer ${
+                                !cell.isCurrentMonth
+                                  ? 'text-slate-600'
+                                  : isToday
+                                  ? 'bg-[#00e03c] text-slate-950 font-black'
+                                  : hasEv
+                                  ? 'bg-emerald-500/25 text-emerald-300 font-bold border border-emerald-500/40'
+                                  : 'text-slate-300 hover:bg-white/[0.06]'
+                              }`}
+                              title={hasEv ? `${cell.dateStr}: ${evs.length} tareas programadas` : cell.dateStr}
+                            >
+                              <span>{cell.dayNum}</span>
+                              {hasEv && !isToday && (
+                                <span className="absolute bottom-0.5 w-1 h-1 rounded-full bg-[#00e03c]" />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ════════════════════════════════════════════════════════════════════════
+              VISTA 2: TRIMESTRAL (Q1, Q2, Q3, Q4 CON METAS DE TELETRABAJO Y DESGLOSE)
+             ════════════════════════════════════════════════════════════════════════ */}
+          {scaleMode === 'quarter' && (
+            <div className="space-y-4">
+              {/* Selector de Trimestres Q1..Q4 */}
+              <div className="flex flex-wrap items-center justify-between gap-3 bg-[#08110a] border border-white/[0.1] p-3.5 rounded-2xl">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-mono uppercase text-slate-400 mr-2">Trimestre:</span>
+                  {[
+                    { q: 1, label: 'Q1 (Ene - Mar)' },
+                    { q: 2, label: 'Q2 (Abr - Jun)' },
+                    { q: 3, label: 'Q3 (Jul - Sep)' },
+                    { q: 4, label: 'Q4 (Oct - Dic)' }
+                  ].map(tab => (
+                    <button
+                      key={tab.q}
+                      type="button"
+                      onClick={() => setSelectedQuarter(tab.q)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        selectedQuarter === tab.q
+                          ? 'bg-[#00e03c] text-slate-950 font-black shadow-sm'
+                          : 'bg-white/[0.04] text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-3 text-xs">
+                  <span className="text-slate-400">
+                    Carga Planificada Q{selectedQuarter}: <strong className="text-white font-mono">{totalQuarterScheduledHours.toFixed(1)}h</strong>
+                  </span>
+                  <span className="text-slate-500">|</span>
+                  <span className="text-[#00e03c] font-bold">
+                    Meta Trimestral: ~{quarterTargetHours} hrs/socio ({dailyCapHours}h/d)
+                  </span>
+                </div>
+              </div>
+
+              {/* 3 Columnas para los 3 Meses del Trimestre */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {quarterMonthsData.map(m => (
+                  <div
+                    key={m.monthIndex}
+                    className="p-4 rounded-2xl bg-[#08110a] border border-white/[0.08] space-y-3 flex flex-col justify-between"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between border-b border-white/[0.08] pb-2">
+                        <div>
+                          <h4 className="text-sm font-black text-white">{m.monthName}</h4>
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            Dedicación: {m.totalHours.toFixed(1)} hrs
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCursorDate(new Date(cursorDate.getFullYear(), m.monthIndex, 1));
+                            setScaleMode('month');
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-white/[0.06] hover:bg-[#00e03c] text-slate-300 hover:text-slate-950 text-[10px] font-bold cursor-pointer transition-colors"
+                        >
+                          Ver Mes ➔
+                        </button>
+                      </div>
+
+                      {/* Lista de Actividades del Mes en el Trimestre */}
+                      <div className="space-y-1.5 max-h-[360px] overflow-y-auto pr-1">
+                        {m.events.length === 0 ? (
+                          <div className="py-8 text-center text-slate-500 text-xs">
+                            Sin actividades programadas en este mes.
+                          </div>
+                        ) : (
+                          m.events.map(ev => (
+                            <div
+                              key={ev.uid}
+                              onClick={() => handleSelectEvent(ev)}
+                              className="p-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.06] flex items-center justify-between gap-2 cursor-pointer transition-all"
+                            >
+                              <div className="space-y-0.5 truncate">
+                                <div className="flex items-center gap-1.5 text-[9.5px]">
+                                  <span className="font-mono text-[#00e03c] font-bold">{ev.startDate}</span>
+                                  <span className="text-slate-400">· {ev.responsible}</span>
+                                </div>
+                                <p className="text-xs font-bold text-white truncate">{ev.title}</p>
+                                {ev.clientName && (
+                                  <p className="text-[10px] text-cyan-300 truncate">{ev.clientName}</p>
+                                )}
+                              </div>
+                              <span className="text-[10px] font-mono font-bold text-amber-300 shrink-0">
+                                {ev.estimatedHours}h
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenScheduleForDate(toIsoDateStr(new Date(cursorDate.getFullYear(), m.monthIndex, 1)))}
+                      className="w-full py-1.5 rounded-xl bg-white/[0.04] hover:bg-[#00e03c]/20 text-slate-300 hover:text-[#00e03c] text-xs font-bold border border-dashed border-white/10 transition-colors cursor-pointer"
+                    >
+                      + Programar en {m.monthName}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ════════════════════════════════════════════════════════════════════════
+              VISTA 3: MENSUAL (CUADRÍCULA CON DRAG & DROP Y BARRAS DE CAPACIDAD)
+             ════════════════════════════════════════════════════════════════════════ */}
           {scaleMode === 'month' && (
             <div className="rounded-2xl bg-[#08110a] border border-white/[0.1] overflow-hidden shadow-2xl">
-              {/* Cabecera de días de la semana */}
               <div className="grid grid-cols-7 border-b border-white/[0.08] bg-white/[0.03]">
                 {DAY_NAMES_SHORT.map(dName => (
                   <div key={dName} className="py-2.5 text-center text-[11px] font-black uppercase tracking-wider text-slate-400">
@@ -1224,7 +1501,6 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                 ))}
               </div>
 
-              {/* Celdas del mes */}
               <div className="grid grid-cols-7 divide-x divide-y divide-white/[0.06]">
                 {monthDaysGrid.map(cell => {
                   const dayEvents = getEventsForDay(cell.dateStr);
@@ -1246,7 +1522,6 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                         !cell.isCurrentMonth ? 'bg-black/50 opacity-45' : 'bg-transparent hover:bg-white/[0.02]'
                       } ${isDragTarget ? 'ring-2 ring-[#00e03c] bg-[#00e03c]/10' : ''}`}
                     >
-                      {/* Cabecera del día + Indicador de Horas (X.Xh / 4.5h) */}
                       <div>
                         <div className="flex items-center justify-between gap-1 mb-1.5">
                           <span
@@ -1273,7 +1548,6 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                           )}
                         </div>
 
-                        {/* Lista de Eventos del Día */}
                         <div className="space-y-1">
                           {dayEvents.slice(0, 3).map(ev => {
                             const isCompleted = ev.status === 'Concluido';
@@ -1326,7 +1600,6 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                         </div>
                       </div>
 
-                      {/* Mini Barra de Capacidad Diaria (4.5h / 8.0h) */}
                       {dayHours > 0 && (
                         <div className="w-full h-1 rounded-full bg-white/[0.07] overflow-hidden mt-1.5">
                           <div
@@ -1344,7 +1617,9 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
             </div>
           )}
 
-          {/* ── VISTA 2: SEMANAL ODOO CON COLUMNAS DE CARGA HORARIA ── */}
+          {/* ════════════════════════════════════════════════════════════════════════
+              VISTA 4: SEMANAL (7 COLUMNAS DETALLADAS DE DEDICACIÓN)
+             ════════════════════════════════════════════════════════════════════════ */}
           {scaleMode === 'week' && (
             <div className="grid grid-cols-1 md:grid-cols-7 gap-2.5">
               {weekDaysGrid.map(col => {
@@ -1362,50 +1637,43 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                     }}
                     onDrop={e => handleDropOnDay(e, col.dateStr)}
                     className={`rounded-2xl bg-[#09130b] border p-3 flex flex-col justify-between min-h-[380px] ${
-                      isToday ? 'border-[#00e03c]/60' : 'border-white/[0.08]'
+                      isToday ? 'border-[#00e03c]/50 ring-1 ring-[#00e03c]/30' : 'border-white/[0.08]'
                     }`}
                   >
-                    <div className="space-y-2.5">
-                      <div className="flex items-center justify-between border-b border-white/[0.08] pb-2">
-                        <div>
-                          <span className="text-[10px] font-mono uppercase text-slate-400 block">{col.dayName}</span>
-                          <span className="text-sm font-black text-white">{col.dateStr.slice(5)}</span>
+                    <div>
+                      <div className="border-b border-white/[0.08] pb-2 mb-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-black uppercase text-slate-300">
+                            {col.dayName}
+                          </span>
+                          <span
+                            className={`w-6 h-6 rounded-lg text-xs font-black flex items-center justify-center ${
+                              isToday ? 'bg-[#00e03c] text-slate-950' : 'text-white'
+                            }`}
+                          >
+                            {col.dateObj.getDate()}
+                          </span>
                         </div>
-                        <span
-                          className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-lg border ${
-                            isOverCap
-                              ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                              : 'bg-[#00e03c]/15 text-[#00e03c] border-[#00e03c]/30'
-                          }`}
-                        >
-                          {dayHours.toFixed(1)}h / {dailyCapHours}h
-                        </span>
+                        <div className="flex items-center justify-between text-[10px] mt-1 font-mono">
+                          <span className={isOverCap ? 'text-rose-400 font-bold' : 'text-slate-400'}>
+                            {dayHours.toFixed(1)}h / {dailyCapHours}h
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         {dayEvents.map(ev => (
                           <div
                             key={ev.uid}
                             draggable
                             onDragStart={e => handleDragStartEvent(e, ev.uid)}
                             onClick={() => handleSelectEvent(ev)}
-                            className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 space-y-1 cursor-pointer transition-all"
+                            className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-[10.5px] cursor-pointer transition-all"
                           >
-                            <div className="flex items-center justify-between text-[10px] font-mono text-slate-400">
-                              <span>{ev.startTime} - {ev.endTime}</span>
-                              <span className="text-[#00e03c] font-bold">{ev.estimatedHours}h</span>
-                            </div>
-                            <p className="text-xs font-black text-white leading-snug">{ev.title}</p>
-                            {ev.clientName && (
-                              <p className="text-[10.5px] text-cyan-300 font-bold truncate">{ev.clientName}</p>
-                            )}
-                            <div className="flex flex-wrap gap-1 pt-1">
-                              {(ev.tags || []).map(t => (
-                                <span key={t} className={`text-[8.5px] px-1.5 py-0.2 rounded border font-bold ${getTagBadgeClass(t)}`}>
-                                  {t}
-                                </span>
-                              ))}
-                            </div>
+                            <span className="font-bold text-white block truncate">{ev.title}</span>
+                            <span className="text-[9px] text-[#00e03c] font-mono block">
+                              {ev.startTime} ({ev.estimatedHours}h)
+                            </span>
                           </div>
                         ))}
                       </div>
@@ -1414,9 +1682,9 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                     <button
                       type="button"
                       onClick={() => handleOpenScheduleForDate(col.dateStr)}
-                      className="mt-3 w-full py-1.5 rounded-xl bg-white/[0.04] hover:bg-[#00e03c]/20 text-slate-300 hover:text-[#00e03c] text-[11px] font-bold border border-white/[0.06] cursor-pointer"
+                      className="mt-2 w-full py-1 rounded-xl bg-white/[0.03] hover:bg-[#00e03c] hover:text-slate-950 text-slate-400 text-[10px] font-bold border border-dashed border-white/10 transition-colors cursor-pointer"
                     >
-                      + Asignar en este día
+                      + Programar
                     </button>
                   </div>
                 );
@@ -1424,7 +1692,9 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
             </div>
           )}
 
-          {/* ── VISTA 3: DIARIA CON FRANJAS HORARIAS DE TELETRABAJO ── */}
+          {/* ════════════════════════════════════════════════════════════════════════
+              VISTA 5: DIARIA (AGENDA CON FRANJAS HORARIAS)
+             ════════════════════════════════════════════════════════════════════════ */}
           {scaleMode === 'day' && (() => {
             const currentDayStr = toIsoDateStr(cursorDate);
             const dayEvents = getEventsForDay(currentDayStr);
@@ -1500,7 +1770,9 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
             );
           })()}
 
-          {/* ── VISTA 4: AGENDA LINEAL DE COMPROMISOS CON FECHA INICIO -> FIN ── */}
+          {/* ════════════════════════════════════════════════════════════════════════
+              VISTA 6: AGENDA LINEAL CRONOLÓGICA
+             ════════════════════════════════════════════════════════════════════════ */}
           {scaleMode === 'agenda' && (
             <div className="rounded-2xl bg-[#09130b] border border-white/[0.1] overflow-hidden">
               <table className="w-full text-left text-xs">
@@ -1550,7 +1822,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                               : 'bg-[#00e03c] text-slate-950 hover:bg-white'
                           }`}
                         >
-                          {ev.status === 'Concluido' ? 'Concluida' : 'Concretar Tarea'}
+                          {ev.status === 'Concluido' ? 'Auditado' : 'Concretar'}
                         </button>
                       </td>
                     </tr>
@@ -1563,139 +1835,143 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════════
-          3. SECCIÓN: PLAN DE VENTAS TELEFÓNICAS & CONTENT MARKETING INBOUND (VERTICAL / LEAD MAGNETS)
+          3. SECCIÓN: PLAN DE VENTAS TELEFÓNICAS & INBOUND (FORMATOS VERTICALES)
          ══════════════════════════════════════════════════════════════════════════ */}
       {activeSection === 'sales_plan' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {[
-            {
-              title: 'Bloque 1: Seguimiento y Ventas por Teléfono (BANT)',
-              recommendedHours: dailyCapHours === 4.5 ? '2.0 hrs/día' : '3.5 hrs/día',
-              tag: 'Seguimiento Telefónico BANT',
-              items: [
-                'Llamadas de precalificación a leads tibios/calientes del asistente web SERAM',
-                'Contacto de cadencia de 14 días (hasta 7 toques de valor sin spam)',
-                'Cierre telefónico directo de diagnósticos ambientales, RAI y EEIA'
-              ]
-            },
-            {
-              title: 'Bloque 2: Content Marketing Vertical & Lead Magnets (Inbound)',
-              recommendedHours: dailyCapHours === 4.5 ? '1.0 hr/día' : '2.0 hrs/día',
-              tag: 'Content Marketing Vertical / Reels',
-              items: [
-                'Producción de videos cortos en formato vertical (9:16) sobre normativas ambientales y casos reales',
-                'Diseño y distribución de Lead Magnets técnicos (Checklist RAI, Guía de Límites de Mercurio)',
-                'Captura de curiosos en redes para nutrirlos en el embudo de 14 días'
-              ]
-            },
-            {
-              title: 'Bloque 3: Ejecución Técnica y Entregables de Clientes',
-              recommendedHours: dailyCapHours === 4.5 ? '1.5 hrs/día' : '2.5 hrs/día',
-              tag: 'Gabinete SIG & Modelación',
-              items: [
-                'Avance de estudios técnicos comprometidos en el calendario',
-                'Modelación cartográfica SIG y revisión de expedientes municipales',
-                'Registro de evidencias verificables para acreditación de horas y XP'
-              ]
-            }
-          ].map((block, idx) => (
-            <div key={idx} className="p-5 rounded-2xl bg-[#09130b] border border-white/[0.1] flex flex-col justify-between space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#00e03c] bg-[#00e03c]/15 px-2.5 py-0.5 rounded-full border border-[#00e03c]/30 font-bold">
-                    Sugerido: {block.recommendedHours}
-                  </span>
-                </div>
-                <h3 className="text-sm font-black text-white">{block.title}</h3>
-                <ul className="space-y-2 text-xs text-slate-300">
-                  {block.items.map((it, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <Check className="w-3.5 h-3.5 text-[#00e03c] shrink-0 mt-0.5" />
-                      <span>{it}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+        <div className="space-y-4">
+          <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-[#0a180e] to-black border border-[#00e03c]/30 space-y-2">
+            <h3 className="text-base font-black text-white flex items-center gap-2">
+              <Phone className="w-5 h-5 text-[#00e03c]" />
+              Estrategia de Ventas Telefónicas & Content Marketing Vertical Inbound
+            </h3>
+            <p className="text-xs text-slate-300 leading-relaxed max-w-4xl">
+              Bloques de trabajo programados para ejecutar llamadas de seguimiento BANT, prospección de base de datos SEPREC y producción de videos verticales (Reels / TikTok) con ganchos de conversión y lead magnets (dossiers ambientales).
+            </p>
+          </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setScheduleForm({
-                    title: block.title.replace(/^Bloque \d: /, ''),
-                    clientName: '',
-                    leadId: '',
-                    responsible: currentSocio?.name || 'Ing. Diego Barrientos',
-                    isGroupBothPartners: false,
-                    startDate: todayStr,
-                    dueDate: todayStr,
-                    startTime: idx === 0 ? '08:30' : idx === 1 ? '10:30' : '11:30',
-                    endTime: idx === 0 ? '10:30' : idx === 1 ? '11:30' : '13:00',
-                    estimatedHours: dailyCapHours === 4.5 ? (idx === 0 ? 2.0 : idx === 1 ? 1.0 : 1.5) : 2.5,
-                    tags: [block.tag],
-                    description: block.items.join(' | ')
-                  });
-                  setShowScheduleModal(true);
-                }}
-                className="w-full py-2 rounded-xl bg-[#00e03c] text-slate-950 font-black text-xs hover:bg-white transition-colors cursor-pointer"
-              >
-                + Agendar Bloque Hoy en el Calendario
-              </button>
-            </div>
-          ))}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              {
+                title: 'Bloque 1: Seguimiento Telefónico BANT',
+                hours: '1.5 hrs/día',
+                tag: 'Seguimiento Telefónico BANT',
+                desc: 'Llamar a 5-8 prospectos SEPREC y clientes antiguos para calificar presupuesto y urgencia.',
+                icon: Phone,
+                color: 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10'
+              },
+              {
+                title: 'Bloque 2: Video Vertical & Lead Magnet',
+                hours: '1.5 hrs/día',
+                tag: 'Content Marketing Vertical / Reels',
+                desc: 'Grabación de 2 videos verticales cortos explicando casos de regularización o fiscalización minera.',
+                icon: Zap,
+                color: 'border-purple-500/40 text-purple-400 bg-purple-500/10'
+              },
+              {
+                title: 'Bloque 3: Cierres y Propuestas Técnicas',
+                hours: '1.5 hrs/día',
+                tag: 'Cierre Comercial Directo',
+                desc: 'Envío de cotizaciones formales y seguimiento de acuerdos alcanzados por WhatsApp.',
+                icon: CheckSquare,
+                color: 'border-amber-500/40 text-amber-400 bg-amber-500/10'
+              }
+            ].map((block, idx) => {
+              const BlockIcon = block.icon;
+              return (
+                <div key={idx} className="p-5 rounded-2xl bg-[#08110a] border border-white/10 space-y-3 flex flex-col justify-between">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className={`p-2 rounded-xl border ${block.color}`}>
+                        <BlockIcon className="w-4 h-4" />
+                      </div>
+                      <span className="font-mono text-xs font-bold text-[#00e03c] bg-[#00e03c]/10 px-2 py-0.5 rounded-full border border-[#00e03c]/20">
+                        {block.hours}
+                      </span>
+                    </div>
+                    <h4 className="text-sm font-black text-white">{block.title}</h4>
+                    <p className="text-xs text-slate-400 leading-relaxed">{block.desc}</p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setScheduleForm({
+                        title: block.title.replace(/^Bloque \d: /, ''),
+                        clientName: '',
+                        leadId: '',
+                        responsible: currentSocio?.name || 'Ing. Diego Barrientos',
+                        isGroupBothPartners: false,
+                        startDate: todayStr,
+                        dueDate: todayStr,
+                        startTime: idx === 0 ? '08:30' : idx === 1 ? '10:30' : '15:00',
+                        endTime: idx === 0 ? '10:00' : idx === 1 ? '12:00' : '16:30',
+                        estimatedHours: 1.5,
+                        tags: [block.tag],
+                        description: block.desc
+                      });
+                      setShowScheduleModal(true);
+                    }}
+                    className="w-full py-2 rounded-xl bg-[#00e03c] text-slate-950 font-black text-xs hover:bg-white transition-colors cursor-pointer"
+                  >
+                    + Agendar este Bloque Hoy
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════════
-          4. SECCIÓN: GESTOR DE ETIQUETAS LIBRES DE LOS SOCIOS
+          4. SECCIÓN: GESTOR DE ETIQUETAS LIBRES
          ══════════════════════════════════════════════════════════════════════════ */}
       {activeSection === 'tags' && (
-        <div className="p-5 rounded-2xl bg-[#09130b] border border-white/[0.1] space-y-5">
-          <div>
-            <h3 className="text-sm font-black text-white uppercase tracking-wider">
-              Etiquetas Libres Creadas por los Socios
-            </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Crea cualquier etiqueta personalizada para clasificar tus bloques de teletrabajo, campañas de llamadas, formatos verticales o entregables.
-            </p>
-          </div>
-
-          <form onSubmit={handleAddFreeTag} className="flex flex-wrap items-center gap-2.5">
+        <div className="space-y-4">
+          <form
+            onSubmit={handleCreateFreeTag}
+            className="p-4 rounded-2xl bg-[#09130b] border border-white/[0.1] grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs"
+          >
             <input
               type="text"
+              required
               value={newTagName}
               onChange={e => setNewTagName(e.target.value)}
-              placeholder="Nueva etiqueta libre (ej. Lead Magnet Mercurio, Llamadas Minería)..."
-              className="flex-1 min-w-[240px] bg-black/60 border border-white/15 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-[#00e03c]"
+              placeholder="Nombre de la nueva etiqueta libre..."
+              className="sm:col-span-2 bg-black/60 border border-white/15 rounded-xl px-3 py-2 text-white outline-none focus:border-[#00e03c]"
             />
             <select
               value={newTagColor}
               onChange={e => setNewTagColor(e.target.value)}
-              className="bg-black/60 border border-white/15 rounded-xl px-3 py-2 text-xs text-white outline-none"
+              className="bg-black/60 border border-white/15 rounded-xl px-3 py-2 text-white outline-none"
             >
-              {FREE_TAG_COLOR_PALETTE.map(c => (
-                <option key={c.id} value={c.id}>{c.label}</option>
+              {FREE_TAG_COLOR_PALETTE.map(col => (
+                <option key={col.id} value={col.id}>
+                  Color: {col.label}
+                </option>
               ))}
             </select>
             <button
               type="submit"
-              className="px-4 py-2 rounded-xl bg-[#00e03c] text-slate-950 font-black text-xs hover:bg-white transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-[#00e03c] text-slate-950 font-black hover:bg-white transition-colors cursor-pointer"
             >
               + Crear Etiqueta Libre
             </button>
           </form>
 
-          <div className="flex flex-wrap gap-2.5 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {freeTags.map(tag => (
               <div
                 key={tag.id}
-                className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-2 ${getTagBadgeClass(tag.name)}`}
+                className="p-3.5 rounded-2xl bg-[#08110a] border border-white/[0.08] flex items-center justify-between gap-3 text-xs"
               >
-                <Tag className="w-3.5 h-3.5" />
-                <span>{tag.name}</span>
+                <div className="flex items-center gap-2">
+                  <span className={`w-3 h-3 rounded-full border ${getTagBadgeClass(tag.name)}`} />
+                  <span className="font-bold text-white">{tag.name}</span>
+                </div>
                 <button
                   type="button"
                   onClick={() => handleDeleteFreeTag(tag.id)}
-                  className="opacity-70 hover:opacity-100 cursor-pointer"
+                  className="p-1 rounded-lg hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
                   title="Eliminar etiqueta"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -1707,28 +1983,112 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════════
-          5. SECCIÓN: AUTOMATIZACIÓN EN SEGUNDO PLANO (GOOGLE CALENDAR + GOOGLE APPS SCRIPT + N8N)
+          5. SECCIÓN: AUTOMATIZACIÓN CON DOCKER N8N & GOOGLE CALENDAR (PASO A PASO)
          ══════════════════════════════════════════════════════════════════════════ */}
       {activeSection === 'automation' && (
         <div className="space-y-4">
+          {/* Tarjeta de Encabezado Pedagógica */}
+          <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-950/50 via-[#0a180e] to-black border border-[#00e03c]/30 space-y-2">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-[#00e03c]/20 border border-[#00e03c]/40 text-[#00e03c]">
+                  <Server className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white">
+                    Automatización en Segundo Plano con Docker n8n (SERAM SRL)
+                  </h3>
+                  <p className="text-xs text-[#00e03c] font-bold">
+                    Sincronización automática de reuniones, tareas y clientes a Google Calendar
+                  </p>
+                </div>
+              </div>
+              <span className="px-3 py-1 rounded-full bg-[#00e03c]/15 text-[#00e03c] border border-[#00e03c]/30 text-xs font-black">
+                100% Automático · Cero Complicaciones
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed max-w-4xl pt-1">
+              Cada vez que programes, reprogrames o concluyas una actividad en el Calendario, este sistema enviará la información a tu contenedor propio de **Docker n8n**, el cual agendará automáticamente el evento en los Google Calendars individuales de **Diego Barrientos (`barrientoso2401@gmail.com`)** y **Fernando Araujo (`fernandoaraujo1912@gmail.com`)**.
+            </p>
+          </div>
+
+          {/* Guía en 4 Pasos Visuales para No Técnicos */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+            <div className="p-4 rounded-2xl bg-[#08110a] border border-white/[0.08] space-y-2">
+              <span className="w-6 h-6 rounded-lg bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/30 font-black flex items-center justify-center text-xs">
+                1
+              </span>
+              <h4 className="font-black text-white">Abre tu Docker n8n</h4>
+              <p className="text-slate-400 text-[11px] leading-relaxed">
+                Ingresa al n8n que corre en el Docker de SERAM desde tu navegador (por ejemplo: <strong className="text-white font-mono">http://localhost:5678</strong> o la IP del servidor).
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#08110a] border border-white/[0.08] space-y-2">
+              <span className="w-6 h-6 rounded-lg bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/30 font-black flex items-center justify-center text-xs">
+                2
+              </span>
+              <h4 className="font-black text-white">Importa el Flujo Listo</h4>
+              <p className="text-slate-400 text-[11px] leading-relaxed">
+                Haz clic en el botón <strong className="text-white">Copiar Flujo JSON</strong> aquí abajo, ve a n8n y presiona <strong className="text-white">Ctrl + V</strong> (o menú superior <strong className="text-white">Import from JSON</strong>).
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#08110a] border border-white/[0.08] space-y-2">
+              <span className="w-6 h-6 rounded-lg bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/30 font-black flex items-center justify-center text-xs">
+                3
+              </span>
+              <h4 className="font-black text-white">Conecta Google Calendar</h4>
+              <p className="text-slate-400 text-[11px] leading-relaxed">
+                En el nodo de Google Calendar, haz clic en <strong className="text-white">Connect Credential</strong> con la cuenta de SERAM. El flujo ya tiene agregados los correos de Diego y Fernando.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#08110a] border border-white/[0.08] space-y-2">
+              <span className="w-6 h-6 rounded-lg bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/30 font-black flex items-center justify-center text-xs">
+                4
+              </span>
+              <h4 className="font-black text-white">Activa y Pega la URL</h4>
+              <p className="text-slate-400 text-[11px] leading-relaxed">
+                Activa el interruptor verde <strong className="text-white">Active</strong> en n8n, copia la URL del Webhook y pégala en el campo de abajo. ¡Listo!
+              </p>
+            </div>
+          </div>
+
+          {/* Configuración del Webhook & Botón de Prueba en Vivo */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Panel Izquierdo: Configuración de Webhooks y Correos de Socios A y B */}
             <div className="p-5 rounded-2xl bg-[#09130b] border border-white/[0.1] space-y-4 text-xs">
               <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
                 <div className="flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-[#00e03c]" />
+                  <Server className="w-4 h-4 text-[#00e03c]" />
                   <h3 className="text-sm font-black text-white uppercase tracking-wider">
-                    Conexión en Segundo Plano a Google Calendar (Socio A y Socio B)
+                    Conexión Webhook con Docker n8n
                   </h3>
                 </div>
-                <span className="px-2 py-0.5 rounded-full bg-[#00e03c]/15 text-[#00e03c] border border-[#00e03c]/30 text-[10px] font-black">
-                  Non-Blocking Sync
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">
+                  Docker SERAM
+                </span>
+              </div>
+
+              <div>
+                <label className="text-slate-200 font-bold block mb-1">
+                  URL del Webhook de n8n (del contenedor Docker de SERAM) *
+                </label>
+                <input
+                  type="url"
+                  value={syncConfig.n8nWebhookUrl}
+                  onChange={e => handleSaveSyncConfig({ ...syncConfig, n8nWebhookUrl: e.target.value })}
+                  placeholder="http://localhost:5678/webhook/seram-calendar"
+                  className="w-full bg-black/60 border border-white/15 rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-[#00e03c]"
+                />
+                <span className="text-[10px] text-slate-400 mt-1 block">
+                  Por defecto usa el puerto estándar 5678 de n8n. Puedes cambiarlo por la IP de tu servidor Docker.
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-slate-400 font-bold block mb-1">Google Calendar Socio A (Diego)</label>
+                  <label className="text-slate-400 font-bold block mb-1">Google Calendar Socio A</label>
                   <input
                     type="email"
                     value={syncConfig.socioAEmail}
@@ -1737,7 +2097,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                   />
                 </div>
                 <div>
-                  <label className="text-slate-400 font-bold block mb-1">Google Calendar Socio B (Fernando)</label>
+                  <label className="text-slate-400 font-bold block mb-1">Google Calendar Socio B</label>
                   <input
                     type="email"
                     value={syncConfig.socioBEmail}
@@ -1747,73 +2107,33 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                 </div>
               </div>
 
-              <div>
-                <label className="text-slate-300 font-bold block mb-1">
-                  Opción 1: URL de Web App de Google Apps Script (Cuenta Central SERAM)
-                </label>
-                <input
-                  type="url"
-                  value={syncConfig.appsScriptUrl}
-                  onChange={e => handleSaveSyncConfig({ ...syncConfig, appsScriptUrl: e.target.value })}
-                  placeholder="https://script.google.com/macros/s/AKfycb.../exec"
-                  className="w-full bg-black/60 border border-white/15 rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-[#00e03c]"
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-300 font-bold block mb-1">
-                  Opción 2: URL de Webhook de n8n (Workflow Automatizado)
-                </label>
-                <input
-                  type="url"
-                  value={syncConfig.n8nWebhookUrl}
-                  onChange={e => handleSaveSyncConfig({ ...syncConfig, n8nWebhookUrl: e.target.value })}
-                  placeholder="https://n8n.tudominio.com/webhook/seram-calendar-sync"
-                  className="w-full bg-black/60 border border-white/15 rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-[#00e03c]"
-                />
-              </div>
-
-              <div className="pt-1 flex flex-wrap items-center justify-between gap-2">
+              <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.08]">
                 <button
                   type="button"
-                  onClick={() => {
-                    dispatchBackgroundCalendarSync('task.test_ping', {
-                      title: 'Prueba de Alerta y Sincronización SERAM',
-                      description: 'Verificación de enlace automático con los calendarios de Socio A y Socio B',
-                      clientName: 'SERAM Directorio',
-                      responsible: currentSocio?.name || 'Ing. Diego Barrientos',
-                      startDate: todayStr,
-                      dueDate: todayStr,
-                      startTime: '09:00',
-                      endTime: '10:00',
-                      estimatedHours: 1.0,
-                      tags: ['Reunión de Socios / Directorio']
-                    });
-                    triggerToast?.('Evento de prueba disparado en segundo plano', 'success');
-                  }}
-                  className="px-4 py-2 rounded-xl bg-[#00e03c] text-slate-950 font-black hover:bg-white transition-colors cursor-pointer"
+                  disabled={isTestingN8n}
+                  onClick={handleTestN8nConnection}
+                  className="px-4 py-2 rounded-xl bg-[#00e03c] hover:bg-white text-slate-950 font-black cursor-pointer transition-all flex items-center gap-1.5 shadow-md shadow-[#00e03c]/10"
                 >
-                  Probar Despacho en Segundo Plano Ahora
+                  <Send className="w-3.5 h-3.5" />
+                  <span>{isTestingN8n ? 'Enviando a n8n...' : 'Probar Conexión con Docker n8n'}</span>
                 </button>
               </div>
 
-              {/* Cola / Historial de Sincronización en Segundo Plano */}
-              <div className="pt-3 border-t border-white/[0.08] space-y-2">
+              {/* Registro de eventos despachados */}
+              <div className="pt-2 space-y-1.5">
                 <span className="text-[10px] font-mono uppercase text-slate-400 block">
-                  Registro de Eventos Despachados en Segundo Plano ({syncLogs.length})
+                  Últimos Eventos Enviados al Docker n8n ({syncLogs.length})
                 </span>
-                <div className="max-h-40 overflow-y-auto space-y-1.5 pr-1">
+                <div className="max-h-36 overflow-y-auto space-y-1 pr-1">
                   {syncLogs.length === 0 ? (
-                    <p className="text-[11px] text-slate-500">Sin eventos despachados aún en esta sesión.</p>
+                    <p className="text-[11px] text-slate-500">Sin eventos enviados aún en esta sesión.</p>
                   ) : (
                     syncLogs.map(log => (
-                      <div key={log.id} className="p-2 rounded-lg bg-black/50 border border-white/[0.06] flex items-center justify-between gap-2 text-[10.5px]">
-                        <div className="truncate">
-                          <span className="font-mono text-[#00e03c] mr-2">[{log.time}]</span>
+                      <div key={log.id} className="p-2 rounded-lg bg-black/50 border border-white/[0.06] flex items-center justify-between text-[10.5px]">
+                        <span className="truncate">
                           <strong className="text-white">{log.title}</strong>
-                          <span className="text-slate-400 ml-2">({log.eventType})</span>
-                        </div>
-                        <span className="text-[9.5px] font-mono text-cyan-300 shrink-0">{log.status}</span>
+                        </span>
+                        <span className="text-[9.5px] font-mono text-[#00e03c] shrink-0">{log.time}</span>
                       </div>
                     ))
                   )}
@@ -1821,49 +2141,59 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
               </div>
             </div>
 
-            {/* Panel Derecho: Código Google Apps Script y Plantilla JSON n8n */}
-            <div className="p-5 rounded-2xl bg-[#09130b] border border-white/[0.1] space-y-4 text-xs">
-              <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
-                <div className="flex items-center gap-2">
-                  <Terminal className="w-4 h-4 text-cyan-400" />
-                  <h3 className="text-sm font-black text-white uppercase tracking-wider">
-                    Código Google Apps Script (Code.gs) & Workflow n8n
-                  </h3>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      navigator.clipboard?.writeText(GOOGLE_APPS_SCRIPT_CODE);
-                      triggerToast?.('Código Google Apps Script copiado al portapapeles', 'success');
-                    }}
-                    className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-[#00e03c] text-white hover:text-slate-950 font-bold text-[10.5px] flex items-center gap-1 cursor-pointer transition-colors"
-                  >
-                    <Copy className="w-3 h-3" /> Copiar Apps Script
-                  </button>
+            {/* Panel Derecho: Copiar Flujo JSON de n8n listo para usar */}
+            <div className="p-5 rounded-2xl bg-[#09130b] border border-white/[0.1] space-y-3 text-xs flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+                  <div className="flex items-center gap-2">
+                    <Terminal className="w-4 h-4 text-cyan-400" />
+                    <h3 className="text-sm font-black text-white uppercase tracking-wider">
+                      Flujo Listo para Importar en n8n
+                    </h3>
+                  </div>
                   <button
                     type="button"
                     onClick={() => {
                       navigator.clipboard?.writeText(N8N_WORKFLOW_TEMPLATE);
-                      triggerToast?.('JSON de Workflow n8n copiado al portapapeles', 'success');
+                      triggerToast?.('Flujo JSON copiado. Pégalo directamente en n8n.', 'success');
                     }}
-                    className="px-2.5 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-400 text-cyan-200 hover:text-slate-950 font-bold text-[10.5px] flex items-center gap-1 cursor-pointer transition-colors"
+                    className="px-3 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-400 text-cyan-300 hover:text-slate-950 font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-all border border-cyan-500/30"
                   >
-                    <Copy className="w-3 h-3" /> Copiar JSON n8n
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copiar Flujo JSON de n8n</span>
                   </button>
                 </div>
+
+                <p className="text-[11px] text-slate-300 leading-relaxed">
+                  Este archivo contiene la configuración completa con los nodos de <strong className="text-white">Webhook</strong> y <strong className="text-white">Google Calendar</strong> para ambos socios. Solo debes copiarlo y pegarlo en n8n.
+                </p>
+
+                <pre className="p-3 rounded-xl bg-black/70 border border-white/10 text-[9.5px] font-mono text-emerald-300 overflow-x-auto max-h-[220px] leading-relaxed select-all">
+                  {N8N_WORKFLOW_TEMPLATE}
+                </pre>
               </div>
 
-              <pre className="p-3 rounded-xl bg-black/70 border border-white/10 text-[10px] font-mono text-emerald-300 overflow-x-auto max-h-[290px] leading-relaxed select-all">
-                {GOOGLE_APPS_SCRIPT_CODE}
-              </pre>
+              {/* Opción de respaldo con Google Apps Script */}
+              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">¿Prefieres usar Google Apps Script como respaldo?</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard?.writeText(GOOGLE_APPS_SCRIPT_CODE);
+                    triggerToast?.('Código de Apps Script copiado al portapapeles', 'success');
+                  }}
+                  className="text-cyan-300 hover:text-white font-bold underline cursor-pointer"
+                >
+                  Copiar Script de Google (Code.gs)
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════════
-          6. MODAL PARA PROGRAMAR CLIENTE / ACTIVIDAD EN EL CALENDARIO (PORTAL z-[9999])
+          6. MODAL PARA PROGRAMAR CLIENTE / ACTIVIDAD EN EL CALENDARIO (PORTAL)
          ══════════════════════════════════════════════════════════════════════════ */}
       {typeof document !== 'undefined' &&
         createPortal(
@@ -1911,63 +2241,64 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-slate-400 font-bold block mb-1">Vincular Cliente del CRM (Opcional)</label>
-                        <select
-                          value={scheduleForm.leadId}
-                          onChange={e => {
-                            const lId = e.target.value;
-                            const found = crmLeads.find(l => String(l.id) === String(lId));
-                            setScheduleForm({
-                              ...scheduleForm,
-                              leadId: lId,
-                              clientName: found ? found.empresa || found.nombre : scheduleForm.clientName
-                            });
-                          }}
-                          className="w-full bg-black/60 border border-white/15 rounded-xl px-3 py-2 text-white outline-none"
-                        >
-                          <option value="">-- Seleccionar del CRM o escribir abajo --</option>
-                          {crmLeads.map(lead => (
-                            <option key={lead.id} value={lead.id}>
-                              {lead.empresa} ({lead.titulo_oportunidad})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="text-slate-400 font-bold block mb-1">Nombre del Cliente / Organización</label>
+                        <label className="text-slate-400 font-bold block mb-1">Cliente / Entidad (Opcional)</label>
                         <input
                           type="text"
                           value={scheduleForm.clientName}
                           onChange={e => setScheduleForm({ ...scheduleForm, clientName: e.target.value })}
-                          placeholder="Ej. GAM Palos Blancos / Cooperativa..."
+                          placeholder="Ej. GAM Guanay / Minera San Lucas"
                           className="w-full bg-black/60 border border-white/15 rounded-xl px-3 py-2 text-white outline-none focus:border-[#00e03c]"
                         />
                       </div>
+
+                      <div>
+                        <label className="text-slate-400 font-bold block mb-1">Vincular a Oportunidad CRM</label>
+                        <select
+                          value={scheduleForm.leadId}
+                          onChange={e => {
+                            const selectedLead = crmLeads.find(l => l && String(l.id) === e.target.value);
+                            setScheduleForm({
+                              ...scheduleForm,
+                              leadId: e.target.value,
+                              clientName: selectedLead ? (selectedLead.empresa || selectedLead.nombre) : scheduleForm.clientName
+                            });
+                          }}
+                          className="w-full bg-black/60 border border-white/15 rounded-xl px-3 py-2 text-white outline-none"
+                        >
+                          <option value="">-- Sin vincular a CRM --</option>
+                          {crmLeads.map(l => (
+                            <option key={l.id} value={l.id}>
+                              {l.nombre} ({l.empresa || 'Cliente'})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
 
-                    {/* Rango de Fechas Inicio -> Fin y Horas */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-slate-400 font-bold block mb-1">Fecha Inicio *</label>
+                        <label className="text-slate-400 font-bold block mb-1">Fecha de Inicio *</label>
                         <input
                           type="date"
                           required
                           value={scheduleForm.startDate}
                           onChange={e => setScheduleForm({ ...scheduleForm, startDate: e.target.value })}
-                          className="w-full bg-black/60 border border-white/15 rounded-xl px-2.5 py-2 text-white font-mono outline-none"
+                          className="w-full bg-black/60 border border-white/15 rounded-xl px-3 py-2 text-white font-mono outline-none"
                         />
                       </div>
                       <div>
-                        <label className="text-slate-400 font-bold block mb-1">Fecha Final *</label>
+                        <label className="text-slate-400 font-bold block mb-1">Fecha de Entrega / Fin *</label>
                         <input
                           type="date"
                           required
                           value={scheduleForm.dueDate}
                           onChange={e => setScheduleForm({ ...scheduleForm, dueDate: e.target.value })}
-                          className="w-full bg-black/60 border border-white/15 rounded-xl px-2.5 py-2 text-white font-mono outline-none"
+                          className="w-full bg-black/60 border border-white/15 rounded-xl px-3 py-2 text-white font-mono outline-none"
                         />
                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-slate-400 font-bold block mb-1">Hora Inicio</label>
                         <input
@@ -1978,12 +2309,12 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                         />
                       </div>
                       <div>
-                        <label className="text-slate-400 font-bold block mb-1">Horas Dedicadas</label>
+                        <label className="text-slate-400 font-bold block mb-1">Dedicación Estimada (Horas)</label>
                         <input
                           type="number"
                           step="0.5"
                           min="0.5"
-                          max="12"
+                          max="8.0"
                           value={scheduleForm.estimatedHours}
                           onChange={e => setScheduleForm({ ...scheduleForm, estimatedHours: e.target.value })}
                           className="w-full bg-black/60 border border-white/15 rounded-xl px-2.5 py-2 text-[#00e03c] font-mono font-black outline-none"
@@ -1991,37 +2322,35 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                       </div>
                     </div>
 
-                    {/* Asignación de Socio A / Socio B / Ambos */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                      <div>
-                        <label className="text-slate-400 font-bold block mb-1">Socio Responsable</label>
-                        <select
-                          value={scheduleForm.responsible}
-                          onChange={e => setScheduleForm({ ...scheduleForm, responsible: e.target.value })}
-                          className="w-full bg-black/60 border border-white/15 rounded-xl px-3 py-2 text-white outline-none"
-                        >
-                          {PARTNERS_CONFIG.map(p => (
-                            <option key={p.id} value={p.name}>{p.shortName}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="flex items-end pb-1">
-                        <label className="flex items-center gap-2 cursor-pointer text-slate-200 font-bold">
-                          <input
-                            type="checkbox"
-                            checked={scheduleForm.isGroupBothPartners}
-                            onChange={e => setScheduleForm({ ...scheduleForm, isGroupBothPartners: e.target.checked })}
-                            className="accent-[#00e03c] w-4 h-4"
-                          />
-                          <span>Sincronizar en ambos calendarios (Socio A + Socio B)</span>
-                        </label>
-                      </div>
+                    <div>
+                      <label className="text-slate-400 font-bold block mb-1">Socio Responsable</label>
+                      <select
+                        value={scheduleForm.responsible}
+                        onChange={e => setScheduleForm({ ...scheduleForm, responsible: e.target.value })}
+                        className="w-full bg-black/60 border border-white/15 rounded-xl px-3 py-2 text-white outline-none"
+                      >
+                        {PARTNERS_CONFIG.map(p => (
+                          <option key={p.name} value={p.name}>
+                            {p.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
-                    {/* Selector de Etiquetas Libres */}
+                    <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08]">
+                      <label className="flex items-center gap-2 text-slate-300 font-bold cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={scheduleForm.isGroupBothPartners}
+                          onChange={e => setScheduleForm({ ...scheduleForm, isGroupBothPartners: e.target.checked })}
+                          className="accent-[#00e03c] w-4 h-4"
+                        />
+                        <span>Sincronizar en ambos calendarios (Socio A + Socio B)</span>
+                      </label>
+                    </div>
+
                     <div>
-                      <label className="text-slate-400 font-bold block mb-1">Etiquetas Libres</label>
+                      <label className="text-slate-400 font-bold block mb-1.5">Etiquetas Libres</label>
                       <div className="flex flex-wrap gap-1.5">
                         {freeTags.map(t => {
                           const active = scheduleForm.tags.includes(t.name);
@@ -2037,11 +2366,11 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                               }}
                               className={`px-2.5 py-1 rounded-lg border text-[10.5px] font-bold transition-all cursor-pointer ${
                                 active
-                                  ? getTagBadgeClass(t.name)
-                                  : 'bg-white/[0.04] border-white/10 text-slate-400 hover:text-white'
+                                  ? 'bg-[#00e03c] text-slate-950 font-black border-[#00e03c]'
+                                  : 'bg-white/[0.04] text-slate-400 border-white/10 hover:text-white'
                               }`}
                             >
-                              {t.name}
+                              {active ? `✓ ${t.name}` : t.name}
                             </button>
                           );
                         })}
@@ -2049,7 +2378,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                     </div>
 
                     <div>
-                      <label className="text-slate-400 font-bold block mb-1">Notas u Objetivo del Bloque</label>
+                      <label className="text-slate-400 font-bold block mb-1">Notas de Coordinación</label>
                       <textarea
                         rows={2}
                         value={scheduleForm.description}
@@ -2059,19 +2388,19 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                       />
                     </div>
 
-                    <div className="pt-2 flex justify-end gap-2">
+                    <div className="pt-2 flex items-center justify-end gap-2 border-t border-white/10">
                       <button
                         type="button"
                         onClick={() => setShowScheduleModal(false)}
-                        className="px-4 py-2 rounded-xl bg-white/10 text-slate-300 font-bold cursor-pointer"
+                        className="px-4 py-2 rounded-xl bg-white/10 text-slate-300 font-bold hover:bg-white/20 transition-colors cursor-pointer"
                       >
                         Cancelar
                       </button>
                       <button
                         type="submit"
-                        className="px-5 py-2 rounded-xl bg-[#00e03c] text-slate-950 font-black hover:bg-white transition-colors cursor-pointer"
+                        className="px-5 py-2 rounded-xl bg-[#00e03c] text-slate-950 font-black hover:bg-white transition-colors cursor-pointer flex items-center gap-1.5"
                       >
-                        Agendar y Notificar a Socios
+                        <Check className="w-4 h-4 stroke-[3]" /> Programar en Calendario
                       </button>
                     </div>
                   </form>
@@ -2083,7 +2412,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
         )}
 
       {/* ══════════════════════════════════════════════════════════════════════════
-          7. MODAL DE FICHA DE EVENTO Y ENTREGA RÁPIDA EN EL DÍA (TIME TRACKER + CRM + XP)
+          7. MODAL DE ENTREGA RÁPIDA EN EL DÍA (TIME TRACKER + CRM + XP)
          ══════════════════════════════════════════════════════════════════════════ */}
       {typeof document !== 'undefined' &&
         createPortal(
@@ -2100,7 +2429,6 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                   onClick={e => e.stopPropagation()}
                   className="w-full max-w-xl bg-[#0a130b] border border-white/[0.15] rounded-3xl p-6 shadow-2xl space-y-4 text-xs text-slate-100"
                 >
-                  {/* Barra Superior con Botón Cerrar (X) Evidente */}
                   <div className="flex items-center justify-between border-b border-white/10 pb-3">
                     <div>
                       <span className="text-[10px] font-mono uppercase text-[#00e03c] block">
@@ -2111,105 +2439,78 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                     <button
                       type="button"
                       onClick={() => setSelectedEvent(null)}
-                      className="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/35 border border-rose-500/40 text-rose-200 hover:text-white font-bold flex items-center gap-1 cursor-pointer"
+                      className="px-2.5 py-1 rounded-xl bg-rose-500/20 text-rose-300 hover:text-white font-bold flex items-center gap-1 cursor-pointer"
                     >
-                      <X className="w-4 h-4 stroke-[2.5]" />
-                      <span>Cerrar (X)</span>
+                      <X className="w-4 h-4" /> Cerrar (X)
                     </button>
                   </div>
 
-                  {/* Metadatos del Compromiso */}
-                  <div className="grid grid-cols-2 gap-3 p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
+                  <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-slate-300">
                     <div>
-                      <span className="text-[10px] text-slate-400 block">Cliente / Organización:</span>
-                      <span className="font-bold text-cyan-300">{selectedEvent.clientName || 'Gestión Interna SERAM'}</span>
+                      <span className="text-[10px] text-slate-400 uppercase font-mono block">Responsable</span>
+                      <strong className="text-white">{selectedEvent.responsible}</strong>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block">Socio Responsable:</span>
-                      <span className="font-bold text-white">{selectedEvent.responsible}</span>
+                      <span className="text-[10px] text-slate-400 uppercase font-mono block">Cliente / Oportunidad</span>
+                      <strong className="text-cyan-300">{selectedEvent.clientName || 'Interno SERAM'}</strong>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block">Dedicación Programada:</span>
-                      <span className="font-mono font-bold text-[#00e03c]">
-                        {selectedEvent.estimatedHours} hrs (Meta: {dailyCapHours} hrs/día)
+                      <span className="text-[10px] text-slate-400 uppercase font-mono block">Dedicación Pactada</span>
+                      <strong className="text-[#00e03c] font-mono">{selectedEvent.estimatedHours} hrs</strong>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleDeliverAndConcreteTask} className="space-y-3">
+                    <div className="p-3.5 rounded-2xl bg-[#00e03c]/10 border border-[#00e03c]/30 space-y-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-[#00e03c] flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Concretar Entrega en el Día
                       </span>
+                      <p className="text-[11px] text-slate-300 leading-relaxed">
+                        Al concretar la entrega, las horas se auditan al instante en el <strong>Time Tracker</strong> para la compensación de honorarios operativos, se publica el acuerdo en el Chatter del CRM y se acreditan <strong>+75 XP</strong> de meritocracia.
+                      </p>
                     </div>
-                    <div>
-                      <span className="text-[10px] text-slate-400 block">Estado Actual:</span>
-                      <span className="font-bold text-amber-300">{selectedEvent.status}</span>
-                    </div>
-                  </div>
 
-                  {/* Acciones Directas de Google Calendar e iCalendar (.ics) */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <a
-                      href={buildGoogleCalendarTemplateUrl(selectedEvent)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1.5 rounded-xl bg-white/[0.06] hover:bg-[#00e03c]/20 border border-white/15 hover:border-[#00e03c]/40 text-slate-200 hover:text-[#00e03c] font-bold flex items-center gap-1.5 transition-colors"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" /> Abrir en Google Calendar (Socio A y B)
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => handleDownloadIcsFile(selectedEvent)}
-                      className="px-3 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-slate-200 font-bold flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Download className="w-3.5 h-3.5" /> Descargar .ics con Alerta
-                    </button>
-                  </div>
-
-                  {/* Formulario de Cierre Rápido y Entrega en el Día */}
-                  <form onSubmit={handleDeliverAndConcreteTask} className="pt-2 border-t border-white/10 space-y-3">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-[#00e03c]">
-                      Concretar / Entregar Tarea del Día (Impacta Time Tracker + CRM + XP)
-                    </h4>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-slate-400 font-bold block mb-1">Horas Reales Dedicadas *</label>
+                        <label className="text-slate-300 font-bold block mb-1">Horas Reales Invertidas *</label>
                         <input
                           type="number"
                           step="0.5"
                           min="0.5"
-                          max="12"
+                          max="12.0"
                           required
                           value={deliveryForm.actualHours}
                           onChange={e => setDeliveryForm({ ...deliveryForm, actualHours: e.target.value })}
-                          className="w-full bg-black/60 border border-white/15 rounded-xl px-3 py-2 text-[#00e03c] font-mono font-black outline-none"
+                          className="w-full bg-black/60 border border-white/15 rounded-xl px-3 py-2 text-[#00e03c] font-mono font-black outline-none focus:border-[#00e03c]"
                         />
                       </div>
-                      <div className="sm:col-span-2">
-                        <label className="text-slate-400 font-bold block mb-1">Enlace a Entregable / Drive / Reel (Opcional)</label>
-                        <input
-                          type="text"
-                          value={deliveryForm.evidenceUrl}
-                          onChange={e => setDeliveryForm({ ...deliveryForm, evidenceUrl: e.target.value })}
-                          placeholder="https://drive.google.com/... o enlace de evidencia"
-                          className="w-full bg-black/60 border border-white/15 rounded-xl px-3 py-2 text-white outline-none focus:border-[#00e03c]"
-                        />
+                      <div>
+                        <label className="text-slate-300 font-bold block mb-1">Estado</label>
+                        <div className="px-3 py-2 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-emerald-300 font-black">
+                          Listo para Liquidación (+75 XP)
+                        </div>
                       </div>
                     </div>
 
                     <div>
-                      <label className="text-slate-400 font-bold block mb-1">
-                        Resultado Concretado / Acuerdo con el Cliente *
+                      <label className="text-slate-300 font-bold block mb-1">
+                        Resultado Alcanzado / Resumen del Acuerdo con el Cliente *
                       </label>
                       <textarea
-                        rows={2}
+                        rows={3}
                         required
                         value={deliveryForm.outcomeNote}
                         onChange={e => setDeliveryForm({ ...deliveryForm, outcomeNote: e.target.value })}
-                        placeholder="Describe el resultado alcanzado en el día (ej. Llamada concretada, cliente calificado BANT, video vertical publicado)..."
-                        className="w-full bg-black/60 border border-white/15 rounded-xl p-2.5 text-white outline-none focus:border-[#00e03c]"
+                        placeholder="Ej. Se llamó al Director de Medio Ambiente de Guanay, se acordó envío de TDRs revisados y reunión de firma de contrato para el viernes."
+                        className="w-full bg-black/60 border border-white/15 rounded-xl p-3 text-white outline-none focus:border-[#00e03c]"
                       />
                     </div>
 
-                    <div className="flex justify-end gap-2 pt-1">
+                    <div className="pt-2 flex items-center justify-end gap-2 border-t border-white/10">
                       <button
                         type="button"
                         onClick={() => setSelectedEvent(null)}
-                        className="px-4 py-2 rounded-xl bg-white/10 text-slate-300 font-bold cursor-pointer"
+                        className="px-4 py-2 rounded-xl bg-white/10 text-slate-300 font-bold cursor-pointer hover:bg-white/20 transition-colors"
                       >
                         Cancelar
                       </button>

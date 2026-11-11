@@ -51,7 +51,7 @@ const SIDEBAR_MODULE_GROUPS = [
     category: '1. Actividades Clave',
     modules: [
       { id: 'activities',  icon: <CheckSquare className="w-4 h-4" />,  label: 'Actividades y Tareas' },
-      { id: 'calendar',    icon: <Calendar className="w-4 h-4" />,     label: 'Calendario Odoo (4.5h)' },
+      { id: 'calendar',    icon: <Calendar className="w-4 h-4" />,     label: 'Calendario (4.5h)' },
       { id: 'clients',     icon: <Building2 className="w-4 h-4" />,    label: 'Clientes' },
       { id: 'timetracker', icon: <Clock className="w-4 h-4" />,        label: 'Control de Horas (Time Tracker)' },
     ]

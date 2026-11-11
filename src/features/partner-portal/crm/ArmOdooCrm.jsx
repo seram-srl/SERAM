@@ -1037,7 +1037,7 @@ export default function ArmOdooCrm({ currentSocio }) {
                 ? 'bg-[#00e03c] text-slate-950 font-black'
                 : 'text-slate-400 hover:text-white'
             }`}
-            title="Vista Calendario Odoo (4.5h / 8.0h)"
+            title="Vista Calendario (4.5h / 8.0h)"
           >
             <Calendar className="w-4 h-4" />
           </button>
