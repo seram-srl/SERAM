@@ -36,6 +36,7 @@ import {
   formatDualCurrency
 } from '../../../services/armService';
 import { useApp } from '../../../context/AppContext';
+import OdooCalendarModule from '../calendar/OdooCalendarModule';
 
 const PartnersInitials = {
   'Ing. Diego Barrientos': { initials: 'DB', color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' },
@@ -1030,6 +1031,18 @@ export default function ArmOdooCrm({ currentSocio }) {
           </button>
           <button
             type="button"
+            onClick={() => setActiveSection('calendar')}
+            className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+              activeSection === 'calendar'
+                ? 'bg-[#00e03c] text-slate-950 font-black'
+                : 'text-slate-400 hover:text-white'
+            }`}
+            title="Vista Calendario Odoo (4.5h / 8.0h)"
+          >
+            <Calendar className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
             onClick={() => setActiveSection('my_activities')}
             className={`p-1.5 rounded-lg transition-all cursor-pointer ${
               activeSection === 'my_activities'
@@ -1918,6 +1931,11 @@ export default function ArmOdooCrm({ currentSocio }) {
               })}
             </div>
           </div>
+        )}
+
+        {/* ── SECCIÓN F2: CALENDARIO ODOO INTEGRADO EN CRM ── */}
+        {activeSection === 'calendar' && (
+          <OdooCalendarModule currentSocio={currentSocio} compactMode />
         )}
 
         {/* ── SECCIÓN G: TIPOS DE ACTIVIDAD (CAPTURA #11 DE ODOO) ── */}

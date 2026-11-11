@@ -1,10 +1,18 @@
 {
   "version": "1.0",
   "project": "SERAM",
-  "last_updated": "2026-11-10",
+  "last_updated": "2026-11-11",
   "tasks": [],
   "in_progress": [],
   "completed": [
+    {
+      "id": "TASK-112",
+      "title": "Calendario Odoo Multi-Escala (4.5h a 8h Teletrabajo), Etiquetas Libres, Entrega Rapida con Impacto en Time Tracker/CRM y Sincronizacion en Segundo Plano con Google Calendar (Google Apps Script & n8n)",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-11-11",
+      "completed_at": "2026-11-11"
+    },
     {
       "id": "TASK-111",
       "title": "Ecosistema Odoo en Operaciones & Proyectos Ambientales: Sub-Navbar Contextual, Kanban Operativo, Smart Buttons Cruzados (CRM/Finanzas) y Chatter Lateral",

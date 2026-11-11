@@ -16,6 +16,7 @@ import { calculateTaskXP, validateCrossApproval } from './gamification/xpEngine'
 import SpecialMissionsModule from './gamification/SpecialMissionsModule';
 import InterdisciplinarySynergies from './gamification/InterdisciplinarySynergies';
 import { FLASH_CONTINGENCY_TEMPLATES, calculateTimeRemaining } from './gamification/FlashMissionsEngine';
+import OdooCalendarModule from './calendar/OdooCalendarModule';
 
 // ── COMPONENTE TARJETA DE CRISTAL ──────────────────────────────────────────
 const GlassCard = ({ children, className = '' }) => (
@@ -1385,10 +1386,11 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
       {/* ── BARRA DE PESTAÑAS (PILL SEGMENTED SIMÉTRICO SIN ÍCONOS) Y ACCIONES ── */}
       <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 border-b border-white/[0.08] pb-2.5 relative z-10">
         {/* Pestañas de Vista en un solo segmento simétrico */}
-        <div className="flex items-center gap-1 bg-white/[0.04] p-1.5 rounded-2xl border border-white/[0.08] w-full lg:max-w-3xl">
+        <div className="flex items-center gap-1 bg-white/[0.04] p-1.5 rounded-2xl border border-white/[0.08] w-full lg:max-w-4xl">
           {[
             { id: 'table', label: 'Base de Datos' },
             { id: 'kanban', label: 'Tablero Kanban' },
+            { id: 'calendar', label: 'Calendario Odoo' },
             { id: 'missions', label: 'Tablero de Misiones' },
             { id: 'progress', label: 'Progreso de Socios' },
             { id: 'synergies', label: 'Sinergias & Combos' },
@@ -1417,7 +1419,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
             title="Activar contingencia ambiental inmediata con temporizador regresivo de 48h, 72h o 96h"
           >
             <Flame className="w-3.5 h-3.5 text-slate-950 fill-current animate-pulse" />
-            <span>⚡ Asignar Misión Rápida</span>
+            <span>Asignar Misión Rápida</span>
           </button>
           <button
             onClick={() => {
@@ -2721,6 +2723,11 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
       {/* ── VISTA 5: SINERGIAS & COMBOS INTERDISCIPLINARIOS (OCTALYSIS CD3 & CD5) ── */}
       {activeTab === 'synergies' && (
         <InterdisciplinarySynergies currentSocio={currentSocio} />
+      )}
+
+      {/* ── VISTA 6: CALENDARIO ODOO & CAPACIDAD DE TELETRABAJO (4.5h / 8.0h) ── */}
+      {activeTab === 'calendar' && (
+        <OdooCalendarModule currentSocio={currentSocio} compactMode />
       )}
           </motion.div>
         </AnimatePresence>

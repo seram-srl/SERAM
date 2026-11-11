@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutGrid, ChevronDown, Search, X, CheckSquare, Building2,
   Clock, Briefcase, BookOpenCheck, ShoppingBag, Globe, Scale,
-  Shield, DollarSign, BarChart3, Users, Sparkles
+  Shield, DollarSign, BarChart3, Users, Sparkles, Calendar
 } from 'lucide-react';
 
 /**
@@ -75,6 +75,17 @@ export const ODOO_APPS = [
     accentColor: 'border-purple-400/40 text-purple-400 bg-purple-400/10',
     badge: 'XP Mérito',
     badgeColor: 'bg-purple-400/20 text-purple-300 border-purple-400/35'
+  },
+  {
+    id: 'calendar',
+    name: 'Calendario & Planificación Odoo',
+    shortName: 'Calendario',
+    description: 'Agenda de teletrabajo (4.5h/8.0h), entrega en el día y sincronización Google Calendar',
+    category: 'Meritocracia & Gestión',
+    icon: Calendar,
+    accentColor: 'border-emerald-400/40 text-emerald-400 bg-emerald-500/10',
+    badge: '4.5h / 8.0h',
+    badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/35'
   },
   {
     id: 'proposals',

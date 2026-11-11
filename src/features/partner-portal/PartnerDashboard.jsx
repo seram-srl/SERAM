@@ -30,6 +30,7 @@ import ClientsModule from './ClientsModule';
 import PartnerProfileRPGModule from './PartnerProfileRPGModule';
 import OdooAppLauncher from './odoo/OdooAppLauncher';
 import OdooOperationsModule from './operations/OdooOperationsModule';
+import OdooCalendarModule from './calendar/OdooCalendarModule';
 import { calculatePartnerTotalXP } from './gamification/xpEngine';
 
 // ── ANIMATION VARIANTS ─────────────────────────────────────────────────────
@@ -50,6 +51,7 @@ const SIDEBAR_MODULE_GROUPS = [
     category: '1. Actividades Clave',
     modules: [
       { id: 'activities',  icon: <CheckSquare className="w-4 h-4" />,  label: 'Actividades y Tareas' },
+      { id: 'calendar',    icon: <Calendar className="w-4 h-4" />,     label: 'Calendario Odoo (4.5h)' },
       { id: 'clients',     icon: <Building2 className="w-4 h-4" />,    label: 'Clientes' },
       { id: 'timetracker', icon: <Clock className="w-4 h-4" />,        label: 'Control de Horas (Time Tracker)' },
     ]
@@ -4684,6 +4686,7 @@ export default function PartnerDashboard() {
             {activeModule === 'overview'    && <OverviewModule kpis={kpis} metrics={metrics} partnerPresences={partnerPresences} timeLogs={timeLogs || []} onNavigate={setActiveModule} currentSocio={activeSocio} />}
             {activeModule === 'office'      && <VirtualOfficeView activeServices={activeServices || []} courses={courses || []} timeLogs={timeLogs || []} partnerPresences={partnerPresences || {}} currentSocio={activeSocio} onNavigateModule={setActiveModule} />}
             {activeModule === 'activities'  && <ActivitiesAndClientsModule currentSocio={activeSocio} />}
+            {activeModule === 'calendar'    && <OdooCalendarModule currentSocio={activeSocio} onNavigate={setActiveModule} />}
             {activeModule === 'clients'     && <ClientsModule currentSocio={activeSocio} onNavigate={setActiveModule} />}
             {activeModule === 'profiles'    && <PartnerProfileRPGModule currentSocio={activeSocio} timeLogs={timeLogs || []} />}
             {activeModule === 'services'    && <OdooOperationsModule activeServices={activeServices || []} registeredEngineers={safeEngineers} handlers={handlers} publicServices={publicServices || []} specialists={specialists || []} municipalProposals={municipalProposals || []} onNavigate={setActiveModule} />}
