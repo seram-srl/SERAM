@@ -197,6 +197,142 @@ function isDateBetween(dayStr, startStr, endStr) {
   return dayStr >= s && dayStr <= e;
 }
 
+// ── HELPERS PARA GOOGLE CALENDAR Y ARCHIVOS .ICS (RFC 5545) ────────────────
+/**
+ * Formatea una fecha y hora al estándar básico ISO 8601 (YYYYMMDDTHHmmss)
+ */
+function toGCalIsoString(dateStr, timeStr) {
+  const safeDate = String(dateStr || toIsoDateStr(new Date())).replace(/[^0-9]/g, '');
+  const cleanTime = String(timeStr || '09:00').replace(/[^0-9]/g, '').padEnd(4, '0').slice(0, 4);
+  return `${safeDate.slice(0, 8)}T${cleanTime}00`;
+}
+
+/**
+ * Genera el enlace directo a Google Calendar con ambos socios directivos (Diego y Fernando)
+ * precargados en el parámetro 'add', disparando la invitación y notificación oficial de Google.
+ */
+export function generateGoogleCalendarUrl(event) {
+  if (!event) return '#';
+  const startDate = event.startDate || toIsoDateStr(new Date());
+  const dueDate = event.dueDate || startDate;
+  const startTime = event.startTime || '08:30';
+  const endTime = event.endTime || '10:00';
+
+  const startIso = toGCalIsoString(startDate, startTime);
+  let endIso = toGCalIsoString(dueDate, endTime);
+  if (endIso <= startIso) {
+    const [h, m] = (startTime || '08:30').split(':').map(Number);
+    const endH = String((h + 1) % 24).padStart(2, '0');
+    endIso = toGCalIsoString(dueDate, `${endH}:${String(m || 0).padStart(2, '0')}`);
+  }
+
+  const title = `[SERAM] ${event.title || 'Actividad Directiva'}`;
+  const details = [
+    'SERAM SRL — Sistema de Operaciones y Teletrabajo Directivo',
+    `Responsable: ${event.responsible || 'Socios Directivos'}`,
+    `Cliente / Proyecto: ${event.clientName || 'Gestión Interna SERAM'}`,
+    `Dedicación: ${event.estimatedHours || 1.5} hrs (Meta diaria: ${event.dailyCap || 4.5} hrs/día)`,
+    `Etiquetas: ${Array.isArray(event.tags) ? event.tags.join(', ') : (event.tags || 'General')}`,
+    event.description ? `Notas: ${event.description}` : '',
+    event.deliverableNote ? `Acuerdo / Entrega: ${event.deliverableNote}` : ''
+  ].filter(Boolean).join('\n');
+
+  const location = event.location || 'Teletrabajo SERAM SRL / Bolivia (Virtual)';
+  const attendees = 'barrientoso2401@gmail.com,fernandoaraujo1912@gmail.com';
+
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: title,
+    dates: `${startIso}/${endIso}`,
+    details: details,
+    location: location,
+    add: attendees
+  });
+
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+/**
+ * Genera contenido de archivo .ics (iCalendar RFC 5545) con ATTENDEE para ambos socios directivos
+ */
+export function generateIcsContent(event) {
+  if (!event) return '';
+  const startDate = event.startDate || toIsoDateStr(new Date());
+  const dueDate = event.dueDate || startDate;
+  const startTime = event.startTime || '08:30';
+  const endTime = event.endTime || '10:00';
+
+  const startIso = toGCalIsoString(startDate, startTime);
+  let endIso = toGCalIsoString(dueDate, endTime);
+  if (endIso <= startIso) {
+    const [h, m] = (startTime || '08:30').split(':').map(Number);
+    const endH = String((h + 1) % 24).padStart(2, '0');
+    endIso = toGCalIsoString(dueDate, `${endH}:${String(m || 0).padStart(2, '0')}`);
+  }
+  const nowIso = toGCalIsoString(toIsoDateStr(new Date()), '12:00') + 'Z';
+  const uid = (event.uid || `seram-act-${Date.now()}`) + '@seram.bo';
+  const summary = `[SERAM] ${event.title || 'Actividad Directiva'}`;
+
+  const description = [
+    'SERAM SRL — Actividad Directiva',
+    `Responsable: ${event.responsible || 'Socio Directivo'}`,
+    `Cliente: ${event.clientName || 'SERAM SRL'}`,
+    `Dedicacion: ${event.estimatedHours || 1.5} hrs`,
+    event.description ? `Notas: ${event.description}` : '',
+    event.deliverableNote ? `Entrega: ${event.deliverableNote}` : ''
+  ].filter(Boolean).join('\\n');
+
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//SERAM SRL//Calendario Directivo//ES',
+    'CALSCALE:GREGORIAN',
+    'METHOD:REQUEST',
+    'BEGIN:VEVENT',
+    `UID:${uid}`,
+    `DTSTAMP:${nowIso}`,
+    `DTSTART:${startIso}`,
+    `DTEND:${endIso}`,
+    `SUMMARY:${summary}`,
+    `DESCRIPTION:${description}`,
+    'LOCATION:Teletrabajo SERAM SRL / Bolivia',
+    'ORGANIZER;CN=SERAM SRL:mailto:consultoraseram@gmail.com',
+    'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=Ing. Diego Barrientos:mailto:barrientoso2401@gmail.com',
+    'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=Ing. Fernando Araujo:mailto:fernandoaraujo1912@gmail.com',
+    'BEGIN:VALARM',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:Recordatorio SERAM SRL',
+    'TRIGGER:-PT15M',
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+}
+
+/**
+ * Dispara la descarga del archivo .ics configurado para ambos socios directivos
+ */
+export function downloadIcsForPartners(event) {
+  if (typeof document === 'undefined') return;
+  const content = generateIcsContent(event);
+  const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const safeTitle = (event.title || 'actividad-seram')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, '-')
+    .replace(/-+/g, '-')
+    .slice(0, 30);
+  a.download = `seram-${safeTitle || 'actividad'}.ics`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 const MONTH_NAMES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
@@ -469,6 +605,43 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
       setIsTestingN8n(false);
     }
   };
+
+  // ── ACCIONES DIRECTAS CON GOOGLE CALENDAR Y ARCHIVOS .ICS (DIEGO Y FERNANDO) ──
+  const handleNotifyGoogleCalendar = useCallback((event) => {
+    if (!event) return;
+    const url = generateGoogleCalendarUrl({
+      ...event,
+      dailyCap: dailyCapHours
+    });
+    if (typeof window !== 'undefined') {
+      window.open(url, '_blank', 'noopener,noreferrer');
+      triggerToast?.('Abriendo Google Calendar con Diego y Fernando como invitados oficiales', 'success');
+    }
+  }, [dailyCapHours, triggerToast]);
+
+  const handleDownloadIcs = useCallback((event) => {
+    if (!event) return;
+    downloadIcsForPartners(event);
+    triggerToast?.('Archivo .ICS descargado con invitación para Diego y Fernando', 'success');
+  }, [triggerToast]);
+
+  const handleTestGoogleCalendarSync = useCallback(() => {
+    const testEv = {
+      title: 'Coordinación Directiva Semanal',
+      description: 'Revisión ejecutiva de plan de ventas, llamadas BANT y estado de consultorías ambientales',
+      clientName: 'Directorio SERAM SRL',
+      responsible: 'Ing. Diego Barrientos & Ing. Fernando Araujo',
+      startDate: toIsoDateStr(new Date()),
+      dueDate: toIsoDateStr(new Date()),
+      startTime: '09:00',
+      endTime: '10:00',
+      estimatedHours: 1.0,
+      dailyCap: dailyCapHours,
+      tags: ['Reunión de Socios / Directorio']
+    };
+    handleNotifyGoogleCalendar(testEv);
+    dispatchBackgroundCalendarSync('task.test_ping', testEv);
+  }, [dailyCapHours, handleNotifyGoogleCalendar, dispatchBackgroundCalendarSync]);
 
   // ── 7. UNIFICACIÓN DE EVENTOS CON BLINDAJE DE DATOS (NULL-SAFETY) ──
   const unifiedEvents = useMemo(() => {
@@ -1026,23 +1199,31 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
   return (
     <div className="space-y-4 text-slate-100 select-none">
       {/* ══════════════════════════════════════════════════════════════════════════
-          1. BARRA SUPERIOR CONTEXTUAL DEL CALENDARIO SERAM
+          1. BARRA SUPERIOR INTEGRADA (ESTILO ODOO ERP / NEUFORM)
          ══════════════════════════════════════════════════════════════════════════ */}
-      <div className="rounded-2xl bg-[#071109] border border-white/[0.1] px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-xl">
-        {/* Izquierda: Sub-secciones */}
+      <div className="rounded-2xl bg-[#071109] border border-white/[0.1] px-3.5 py-2.5 sm:px-4 sm:py-3 flex flex-wrap items-center justify-between gap-2.5 shadow-xl">
+        {/* Izquierda: Identificador y Sub-secciones */}
         <div className="flex items-center gap-1.5 overflow-x-auto">
-          <div className="flex items-center gap-2 pr-3 border-r border-white/10">
-            <div className="w-7 h-7 rounded-lg bg-[#00e03c]/15 border border-[#00e03c]/40 flex items-center justify-center text-[#00e03c]">
-              <CalendarIcon className="w-4 h-4" />
+          {!compactMode ? (
+            <div className="flex items-center gap-2 pr-3 border-r border-white/10 shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-[#00e03c]/15 border border-[#00e03c]/40 flex items-center justify-center text-[#00e03c]">
+                <CalendarIcon className="w-4 h-4" />
+              </div>
+              <span className="text-sm font-black tracking-tight text-white whitespace-nowrap">Calendario SERAM</span>
             </div>
-            <span className="text-sm font-black tracking-tight text-white">Calendario SERAM</span>
-          </div>
+          ) : (
+            <div className="flex items-center gap-1.5 pr-2.5 border-r border-white/10 shrink-0">
+              <div className="w-6 h-6 rounded-lg bg-[#00e03c]/15 border border-[#00e03c]/40 flex items-center justify-center text-[#00e03c]">
+                <CalendarIcon className="w-3.5 h-3.5" />
+              </div>
+            </div>
+          )}
 
           {[
             { id: 'calendar', label: 'Calendario & Teletrabajo' },
             { id: 'sales_plan', label: 'Plan de Ventas & Inbound' },
             { id: 'tags', label: `Etiquetas Libres (${freeTags.length})` },
-            { id: 'automation', label: 'Automatización Docker n8n' }
+            { id: 'automation', label: 'Sincronización Google Calendar' }
           ].map(tab => (
             <button
               key={tab.id}
@@ -1059,10 +1240,11 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
           ))}
         </div>
 
-        {/* Derecha: Conmutador de Meta Diaria de Teletrabajo (4.5h <-> 8.0h) y Botón Nuevo */}
+        {/* Derecha: Conmutador de Meta Diaria de Teletrabajo, Sincronizador Directo y Botón Nuevo */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-white/[0.1]">
-            <span className="text-[10px] font-mono text-slate-400 px-2">Jornada Socio:</span>
+          {/* Conmutador de Jornada de Teletrabajo (4.5h <-> 8.0h) */}
+          <div className="flex items-center gap-1 bg-black/60 p-1 rounded-xl border border-white/[0.1]">
+            <span className="text-[10px] font-mono text-slate-400 px-2 hidden sm:inline">Jornada Socio:</span>
             <button
               type="button"
               onClick={() => handleToggleDailyCap(4.5)}
@@ -1089,10 +1271,27 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
             </button>
           </div>
 
+          {/* Botón Sincronización Google Calendar para Ambos Socios */}
+          <button
+            type="button"
+            onClick={() => setActiveSection('automation')}
+            className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+              activeSection === 'automation'
+                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50'
+                : 'bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 hover:text-white border-white/10'
+            }`}
+            title="Ver sincronización con Google Calendar para Socio A (Diego) y Socio B (Fernando)"
+          >
+            <ExternalLink className="w-3.5 h-3.5 text-[#00e03c]" />
+            <span className="hidden sm:inline">Sincronización Google Calendar</span>
+            <span className="sm:hidden">Google Cal</span>
+          </button>
+
+          {/* Botón + Programar Actividad */}
           <button
             type="button"
             onClick={() => handleOpenScheduleForDate(toIsoDateStr(cursorDate))}
-            className="px-3.5 py-1.5 rounded-xl bg-[#00e03c] hover:bg-white text-slate-950 font-black text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
+            className="px-3.5 py-1.5 rounded-xl bg-[#00e03c] hover:bg-white text-slate-950 font-black text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-[#00e03c]/20"
           >
             <Plus className="w-4 h-4 stroke-[3]" />
             <span>Programar Actividad</span>
@@ -1101,21 +1300,23 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════════
-          2. NAVEGADOR DE VISTAS Y CONTROLES MULTI-ESCALA
+          2. PANEL DE CONTROL UNIFICADO: NAVEGACIÓN, FILTROS Y ESCALAS (ESTILO ODOO ERP)
          ══════════════════════════════════════════════════════════════════════════ */}
       {activeSection === 'calendar' && (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 bg-[#0a140c] border border-white/[0.08] p-3.5 rounded-2xl items-center">
-            {/* Navegación de Fechas */}
-            <div className="lg:col-span-5 flex flex-wrap items-center gap-2">
+          <div className="bg-[#09130b] border border-white/[0.1] rounded-2xl p-2.5 sm:px-3.5 sm:py-2.5 shadow-xl space-y-2.5">
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-2.5">
+            {/* LADO IZQUIERDO: Navegación de Fechas, Título del Período y Medidor de Dedicación */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
               <button
                 type="button"
                 onClick={() => setCursorDate(new Date())}
-                className="px-3 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-xs font-bold text-white cursor-pointer"
+                className="px-2.5 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-xs font-bold text-white cursor-pointer transition-colors"
               >
                 Hoy
               </button>
-              <div className="flex items-center bg-black/40 rounded-xl border border-white/10 p-0.5">
+
+              <div className="flex items-center bg-black/50 rounded-xl border border-white/10 p-0.5">
                 <button
                   type="button"
                   onClick={() => {
@@ -1128,7 +1329,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                     else dt.setDate(dt.getDate() - 1);
                     setCursorDate(dt);
                   }}
-                  className="p-1.5 rounded-lg text-slate-300 hover:text-white cursor-pointer"
+                  className="p-1 rounded-lg text-slate-300 hover:text-white cursor-pointer transition-colors"
                   title="Anterior"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -1145,61 +1346,108 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                     else dt.setDate(dt.getDate() + 1);
                     setCursorDate(dt);
                   }}
-                  className="p-1.5 rounded-lg text-slate-300 hover:text-white cursor-pointer"
+                  className="p-1 rounded-lg text-slate-300 hover:text-white cursor-pointer transition-colors"
                   title="Siguiente"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
 
-              <h3 className="text-sm sm:text-base font-black text-white">
+              <h3 className="text-sm sm:text-base font-black text-white whitespace-nowrap min-w-[140px]">
                 {scaleMode === 'year'
                   ? `Año ${cursorDate.getFullYear()}`
                   : scaleMode === 'quarter'
                   ? `Q${selectedQuarter} (${MONTH_NAMES_SHORT[(selectedQuarter - 1) * 3]} - ${MONTH_NAMES_SHORT[(selectedQuarter - 1) * 3 + 2]}) · ${cursorDate.getFullYear()}`
                   : `${MONTH_NAMES[cursorDate.getMonth()]} ${cursorDate.getFullYear()}`}
               </h3>
-            </div>
 
-            {/* Medidor de Dedicación Diaria de Hoy */}
-            <div className="lg:col-span-3 flex flex-col gap-1 bg-black/40 px-3.5 py-2 rounded-xl border border-white/[0.07]">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="font-bold text-slate-300">
-                  Carga Hoy ({todayStr}): <strong className="text-white font-mono">{todayScheduledHours.toFixed(1)}h</strong> / {dailyCapHours}h
+              {/* Medidor Compacto de Dedicación Diaria de Hoy */}
+              <div
+                className="flex items-center gap-2 bg-black/50 px-2.5 py-1 rounded-xl border border-white/[0.08]"
+                title={`Carga de Hoy (${todayStr}): ${todayScheduledHours.toFixed(1)}h programadas de ${dailyCapHours}h meta (${todayCompletedHours.toFixed(1)}h ejecutadas)`}
+              >
+                <span className="text-[11px] font-bold text-slate-300 whitespace-nowrap">
+                  Hoy: <strong className="text-white font-mono">{todayScheduledHours.toFixed(1)}h</strong>/{dailyCapHours}h
                 </span>
-                <span className="font-mono text-[#00e03c] font-bold">
-                  {todayCompletedHours.toFixed(1)}h
-                </span>
-              </div>
-              <div className="w-full h-2 rounded-full bg-white/[0.08] overflow-hidden flex">
-                <div
-                  className="bg-[#00e03c] h-full transition-all"
-                  style={{ width: `${Math.min(100, (todayCompletedHours / dailyCapHours) * 100)}%` }}
-                  title="Horas ya concretadas hoy"
-                />
-                <div
-                  className={`${
-                    todayScheduledHours > dailyCapHours ? 'bg-rose-500' : 'bg-amber-400'
-                  } h-full transition-all`}
-                  style={{
-                    width: `${Math.min(
-                      100,
-                      Math.max(0, ((todayScheduledHours - todayCompletedHours) / dailyCapHours) * 100)
-                    )}%`
-                  }}
-                  title="Horas programadas pendientes hoy"
-                />
+                <div className="w-12 h-2 rounded-full bg-white/[0.1] overflow-hidden flex shrink-0">
+                  <div
+                    className="bg-[#00e03c] h-full transition-all"
+                    style={{ width: `${Math.min(100, (todayCompletedHours / dailyCapHours) * 100)}%` }}
+                  />
+                  <div
+                    className={`${
+                      todayScheduledHours > dailyCapHours ? 'bg-rose-500' : 'bg-amber-400'
+                    } h-full transition-all`}
+                    style={{
+                      width: `${Math.min(
+                        100,
+                        Math.max(0, ((todayScheduledHours - todayCompletedHours) / dailyCapHours) * 100)
+                      )}%`
+                    }}
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Selector de Escala Multi-Vista: Anual, Trimestral, Mes, Semana, Día, Agenda */}
-            <div className="lg:col-span-4 flex items-center justify-end gap-1 bg-black/40 p-1 rounded-xl border border-white/[0.08] overflow-x-auto">
+            {/* CENTRO: Filtros de Socios, Etiquetas Libres y Búsqueda */}
+            <div className="flex flex-wrap items-center gap-2 flex-1 justify-center xl:justify-center">
+              {/* Filtro de Socios */}
+              <div className="flex items-center bg-black/50 p-0.5 rounded-xl border border-white/10 shrink-0">
+                {[
+                  { id: 'all', label: 'Ambos Socios' },
+                  { id: 'Ing. Diego Barrientos', label: 'Diego Barrientos' },
+                  { id: 'Ing. Fernando Araujo', label: 'Fernando Araujo' }
+                ].map(p => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setPartnerFilter(p.id)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                      partnerFilter === p.id
+                        ? 'bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/40 font-black'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Selector de Etiquetas Libres */}
+              <select
+                value={tagFilter}
+                onChange={e => setTagFilter(e.target.value)}
+                className="bg-black/70 border border-white/15 rounded-xl px-2.5 py-1 text-xs text-slate-200 outline-none focus:border-[#00e03c] max-w-[150px]"
+              >
+                <option value="all">Todas las Etiquetas</option>
+                {freeTags.map(t => (
+                  <option key={t.id} value={t.name}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+
+              {/* Barra de Búsqueda Rápida */}
+              <div className="flex items-center gap-1.5 bg-black/60 border border-white/15 rounded-xl px-2.5 py-1">
+                <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Buscar actividad o cliente..."
+                  className="bg-transparent text-xs text-white placeholder-slate-500 outline-none w-28 sm:w-36 focus:w-44 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* LADO DERECHO: Conmutador de Escalas Multi-Vista */}
+            <div className="flex items-center gap-0.5 bg-black/50 p-0.5 rounded-xl border border-white/10 overflow-x-auto shrink-0 justify-end">
               {[
-                { id: 'year', label: 'Anual' },
-                { id: 'quarter', label: 'Trimestral' },
                 { id: 'month', label: 'Mes' },
                 { id: 'week', label: 'Semana' },
                 { id: 'day', label: 'Día' },
+                { id: 'quarter', label: 'Trimestral' },
+                { id: 'year', label: 'Anual' },
                 { id: 'agenda', label: 'Agenda' }
               ].map(sc => (
                 <button
@@ -1217,57 +1465,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
               ))}
             </div>
           </div>
-
-          {/* Barra de Filtros: Socios, Etiquetas y Búsqueda */}
-          <div className="flex flex-wrap items-center justify-between gap-2.5 bg-black/30 px-3.5 py-2.5 rounded-xl border border-white/[0.06]">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[10px] font-mono uppercase text-slate-400 mr-1">Socio:</span>
-              {[
-                { id: 'all', label: 'Ambos Socios' },
-                { id: 'Ing. Diego Barrientos', label: 'Socio A: Diego' },
-                { id: 'Ing. Fernando Araujo', label: 'Socio B: Fernando' }
-              ].map(p => (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => setPartnerFilter(p.id)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                    partnerFilter === p.id
-                      ? 'bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/40 font-black'
-                      : 'bg-white/[0.04] text-slate-400 hover:text-white'
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <select
-                value={tagFilter}
-                onChange={e => setTagFilter(e.target.value)}
-                className="bg-black/60 border border-white/15 rounded-xl px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-[#00e03c]"
-              >
-                <option value="all">Todas las Etiquetas</option>
-                {freeTags.map(t => (
-                  <option key={t.id} value={t.name}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-
-              <div className="flex items-center gap-1.5 bg-black/60 border border-white/15 rounded-xl px-3 py-1">
-                <Search className="w-3.5 h-3.5 text-slate-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Filtrar cliente o tarea..."
-                  className="bg-transparent text-xs text-white placeholder-slate-500 outline-none w-36 sm:w-48"
-                />
-              </div>
-            </div>
-          </div>
+        </div>
 
           {/* ════════════════════════════════════════════════════════════════════════
               VISTA 1: ANUAL (12 MESES CON MAPA DE CALOR Y NAVEGACIÓN INSTANTÁNEA)
@@ -1495,7 +1693,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
             <div className="rounded-2xl bg-[#08110a] border border-white/[0.1] overflow-hidden shadow-2xl">
               <div className="grid grid-cols-7 border-b border-white/[0.08] bg-white/[0.03]">
                 {DAY_NAMES_SHORT.map(dName => (
-                  <div key={dName} className="py-2.5 text-center text-[11px] font-black uppercase tracking-wider text-slate-400">
+                  <div key={dName} className="py-2 text-center text-[10.5px] font-black uppercase tracking-wider text-slate-400">
                     {dName}
                   </div>
                 ))}
@@ -1518,14 +1716,14 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                       }}
                       onDrop={e => handleDropOnDay(e, cell.dateStr)}
                       onClick={() => handleOpenScheduleForDate(cell.dateStr)}
-                      className={`min-h-[125px] sm:min-h-[142px] p-2 flex flex-col justify-between transition-colors cursor-pointer ${
-                        !cell.isCurrentMonth ? 'bg-black/50 opacity-45' : 'bg-transparent hover:bg-white/[0.02]'
+                      className={`min-h-[85px] sm:min-h-[105px] p-1.5 sm:p-2 flex flex-col justify-between transition-colors cursor-pointer ${
+                        !cell.isCurrentMonth ? 'bg-black/50 opacity-40' : 'bg-transparent hover:bg-white/[0.02]'
                       } ${isDragTarget ? 'ring-2 ring-[#00e03c] bg-[#00e03c]/10' : ''}`}
                     >
                       <div>
-                        <div className="flex items-center justify-between gap-1 mb-1.5">
+                        <div className="flex items-center justify-between gap-1 mb-1">
                           <span
-                            className={`w-6 h-6 rounded-lg text-xs font-black flex items-center justify-center ${
+                            className={`w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg text-[11px] sm:text-xs font-black flex items-center justify-center ${
                               isToday
                                 ? 'bg-[#00e03c] text-slate-950 shadow-sm'
                                 : 'text-slate-300'
@@ -1536,7 +1734,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
 
                           {dayHours > 0 && (
                             <span
-                              className={`text-[9.5px] font-mono font-bold px-1.5 py-0.5 rounded border ${
+                              className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
                                 isOverCap
                                   ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
                                   : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
@@ -1549,7 +1747,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                         </div>
 
                         <div className="space-y-1">
-                          {dayEvents.slice(0, 3).map(ev => {
+                          {dayEvents.slice(0, 2).map(ev => {
                             const isCompleted = ev.status === 'Concluido';
                             const firstTag = ev.tags?.[0];
                             const badgeCls = firstTag
@@ -1568,7 +1766,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                                   e.stopPropagation();
                                   handleSelectEvent(ev);
                                 }}
-                                className={`px-2 py-1 rounded-lg border text-[10px] leading-tight transition-all hover:scale-[1.01] ${
+                                className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md border text-[9.5px] sm:text-[10px] leading-tight transition-all hover:scale-[1.01] ${
                                   isCompleted
                                     ? 'bg-white/[0.03] border-white/10 text-slate-400 line-through'
                                     : badgeCls
@@ -1576,32 +1774,32 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                               >
                                 <div className="flex items-center justify-between gap-1">
                                   <span className="font-bold truncate">{ev.title}</span>
-                                  <span className="font-mono text-[9px] shrink-0 opacity-85">{ev.estimatedHours}h</span>
+                                  <span className="font-mono text-[8.5px] sm:text-[9px] shrink-0 opacity-85">{ev.estimatedHours}h</span>
                                 </div>
                                 {ev.clientName && (
-                                  <span className="block text-[9px] opacity-80 truncate">{ev.clientName}</span>
+                                  <span className="block text-[8.5px] opacity-75 truncate">{ev.clientName}</span>
                                 )}
                               </div>
                             );
                           })}
 
-                          {dayEvents.length > 3 && (
+                          {dayEvents.length > 2 && (
                             <div
                               onClick={e => {
                                 e.stopPropagation();
                                 setCursorDate(cell.dateObj);
                                 setScaleMode('day');
                               }}
-                              className="text-[10px] font-bold text-[#00e03c] hover:underline pl-1"
+                              className="text-[9px] font-bold text-[#00e03c] hover:underline pl-1 cursor-pointer"
                             >
-                              + {dayEvents.length - 3} más...
+                              +{dayEvents.length - 2} más...
                             </div>
                           )}
                         </div>
                       </div>
 
                       {dayHours > 0 && (
-                        <div className="w-full h-1 rounded-full bg-white/[0.07] overflow-hidden mt-1.5">
+                        <div className="w-full h-1 rounded-full bg-white/[0.07] overflow-hidden mt-1">
                           <div
                             className={`h-full transition-all ${
                               isOverCap ? 'bg-rose-500' : 'bg-[#00e03c]'
@@ -1983,7 +2181,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════════
-          5. SECCIÓN: AUTOMATIZACIÓN CON DOCKER N8N & GOOGLE CALENDAR (PASO A PASO)
+          5. SECCIÓN: SINCRONIZACIÓN GOOGLE CALENDAR & AUTOMATIZACIÓN DIRECTIVA
          ══════════════════════════════════════════════════════════════════════════ */}
       {activeSection === 'automation' && (
         <div className="space-y-4">
@@ -1992,24 +2190,92 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-[#00e03c]/20 border border-[#00e03c]/40 text-[#00e03c]">
-                  <Server className="w-5 h-5" />
+                  <CalendarIcon className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-base font-black text-white">
-                    Automatización en Segundo Plano con Docker n8n (SERAM SRL)
+                    Sincronización Google Calendar & Notificaciones Directivas (SERAM SRL)
                   </h3>
                   <p className="text-xs text-[#00e03c] font-bold">
-                    Sincronización automática de reuniones, tareas y clientes a Google Calendar
+                    Notificación oficial e inmediata a Socio A (Ing. Diego Barrientos) y Socio B (Ing. Fernando Araujo)
                   </p>
                 </div>
               </div>
               <span className="px-3 py-1 rounded-full bg-[#00e03c]/15 text-[#00e03c] border border-[#00e03c]/30 text-xs font-black">
-                100% Automático · Cero Complicaciones
+                Google Calendar RFC 5545 + Docker n8n
               </span>
             </div>
             <p className="text-xs text-slate-300 leading-relaxed max-w-4xl pt-1">
-              Cada vez que programes, reprogrames o concluyas una actividad en el Calendario, este sistema enviará la información a tu contenedor propio de **Docker n8n**, el cual agendará automáticamente el evento en los Google Calendars individuales de **Diego Barrientos (`barrientoso2401@gmail.com`)** y **Fernando Araujo (`fernandoaraujo1912@gmail.com`)**.
+              Cada actividad programada genera enlaces automáticos directos a <strong>Google Calendar</strong> con ambos correos directivos agregados como invitados con confirmación (RSVP), archivos <strong>.ICS</strong> estándar descargables y despacho silencioso en segundo plano hacia <strong>Docker n8n</strong> o <strong>Google Apps Script</strong>.
             </p>
+          </div>
+
+          {/* Tarjetas de Estado de Vinculación de Socios Directivos */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            {PARTNERS_CONFIG.map(p => (
+              <div key={p.id} className="p-4 rounded-2xl bg-[#08110a] border border-white/10 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs border ${p.color}`}>
+                    {p.initials}
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-mono uppercase text-slate-400 block">{p.shortName}</span>
+                    <h4 className="text-sm font-black text-white">{p.name}</h4>
+                    <span className="text-xs text-slate-300 font-mono">{p.email}</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#00e03c]/15 text-[#00e03c] border border-[#00e03c]/30 text-[11px] font-black">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Vinculado & Activo
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Acciones Rápidas de Prueba y Sincronización Inmediata */}
+          <div className="p-4 rounded-2xl bg-[#09130b] border border-white/10 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#00e03c]" />
+              <span className="text-xs font-bold text-white">
+                Prueba en Vivo de Sincronización con Ambos Socios:
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={handleTestGoogleCalendarSync}
+                className="px-4 py-2 rounded-xl bg-[#00e03c] hover:bg-white text-slate-950 font-black text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-[#00e03c]/20"
+                title="Abre Google Calendar en pestaña nueva con Diego y Fernando preconfigurados"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Enviar Evento de Prueba a Ambos Correos (Google Calendar)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const testEv = {
+                    title: 'Coordinación Directiva Semanal',
+                    description: 'Revisión ejecutiva de plan de ventas, llamadas BANT y estado de consultorías ambientales',
+                    clientName: 'Directorio SERAM SRL',
+                    responsible: 'Ing. Diego Barrientos & Ing. Fernando Araujo',
+                    startDate: toIsoDateStr(new Date()),
+                    dueDate: toIsoDateStr(new Date()),
+                    startTime: '09:00',
+                    endTime: '10:00',
+                    estimatedHours: 1.0,
+                    dailyCap: dailyCapHours,
+                    tags: ['Reunión de Socios / Directorio']
+                  };
+                  handleDownloadIcs(testEv);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Descargar .ICS de Prueba</span>
+              </button>
+            </div>
           </div>
 
           {/* Guía en 4 Pasos Visuales para No Técnicos */}
@@ -2040,7 +2306,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
               </span>
               <h4 className="font-black text-white">Conecta Google Calendar</h4>
               <p className="text-slate-400 text-[11px] leading-relaxed">
-                En el nodo de Google Calendar, haz clic en <strong className="text-white">Connect Credential</strong> con la cuenta de SERAM. El flujo ya tiene agregados los correos de Diego y Fernando.
+                En el nodo de Google Calendar, haz clic en <strong className="text-white">Connect Credential</strong> con la cuenta de SERAM. El flujo ya tiene parametrizados los correos de Diego y Fernando.
               </p>
             </div>
 
@@ -2115,7 +2381,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                   className="px-4 py-2 rounded-xl bg-[#00e03c] hover:bg-white text-slate-950 font-black cursor-pointer transition-all flex items-center gap-1.5 shadow-md shadow-[#00e03c]/10"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span>{isTestingN8n ? 'Enviando a n8n...' : 'Probar Conexión con Docker n8n'}</span>
+                  <span>{isTestingN8n ? 'Enviando a n8n...' : 'Probar Webhook en Docker n8n'}</span>
                 </button>
               </div>
 
@@ -2141,8 +2407,8 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
               </div>
             </div>
 
-            {/* Panel Derecho: Copiar Flujo JSON de n8n listo para usar */}
-            <div className="p-5 rounded-2xl bg-[#09130b] border border-white/[0.1] space-y-3 text-xs flex flex-col justify-between">
+            {/* Panel Derecho: Copiar Flujo JSON de n8n y Google Apps Script */}
+            <div className="p-5 rounded-2xl bg-[#09130b] border border-white/[0.1] space-y-4 text-xs flex flex-col justify-between">
               <div className="space-y-3">
                 <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
                   <div className="flex items-center gap-2">
@@ -2165,27 +2431,33 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                 </div>
 
                 <p className="text-[11px] text-slate-300 leading-relaxed">
-                  Este archivo contiene la configuración completa con los nodos de <strong className="text-white">Webhook</strong> y <strong className="text-white">Google Calendar</strong> para ambos socios. Solo debes copiarlo y pegarlo en n8n.
+                  Este flujo contiene la configuración con los nodos de <strong className="text-white">Webhook</strong> y <strong className="text-white">Google Calendar</strong> con ambos socios configurados (`sendUpdates: all`). Pégalo en tu n8n con <strong className="text-white">Ctrl + V</strong>.
                 </p>
 
-                <pre className="p-3 rounded-xl bg-black/70 border border-white/10 text-[9.5px] font-mono text-emerald-300 overflow-x-auto max-h-[220px] leading-relaxed select-all">
+                <pre className="p-3 rounded-xl bg-black/70 border border-white/10 text-[9.5px] font-mono text-emerald-300 overflow-x-auto max-h-[170px] leading-relaxed select-all">
                   {N8N_WORKFLOW_TEMPLATE}
                 </pre>
               </div>
 
-              {/* Opción de respaldo con Google Apps Script */}
-              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-between text-[11px]">
-                <span className="text-slate-400">¿Prefieres usar Google Apps Script como respaldo?</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard?.writeText(GOOGLE_APPS_SCRIPT_CODE);
-                    triggerToast?.('Código de Apps Script copiado al portapapeles', 'success');
-                  }}
-                  className="text-cyan-300 hover:text-white font-bold underline cursor-pointer"
-                >
-                  Copiar Script de Google (Code.gs)
-                </button>
+              {/* Opción de Google Apps Script con sendUpdates: 'all' y ambos correos */}
+              <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.08] space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-white text-[11.5px]">Código Google Apps Script (Code.gs):</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard?.writeText(GOOGLE_APPS_SCRIPT_CODE);
+                      triggerToast?.('Código de Apps Script copiado con Diego y Fernando parametrizados', 'success');
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-cyan-300 hover:text-white font-bold text-[11px] flex items-center gap-1 cursor-pointer"
+                  >
+                    <Copy className="w-3 h-3" />
+                    <span>Copiar Code.gs</span>
+                  </button>
+                </div>
+                <p className="text-[10.5px] text-slate-400 leading-relaxed">
+                  Despliega como <strong>Aplicación Web</strong> con acceso &quot;Cualquier usuario&quot;. Dispara invitaciones a <strong className="text-slate-300">barrientoso2401@gmail.com</strong> y <strong className="text-slate-300">fernandoaraujo1912@gmail.com</strong>.
+                </p>
               </div>
             </div>
           </div>
@@ -2388,20 +2660,84 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                       />
                     </div>
 
-                    <div className="pt-2 flex items-center justify-end gap-2 border-t border-white/10">
-                      <button
-                        type="button"
-                        onClick={() => setShowScheduleModal(false)}
-                        className="px-4 py-2 rounded-xl bg-white/10 text-slate-300 font-bold hover:bg-white/20 transition-colors cursor-pointer"
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="submit"
-                        className="px-5 py-2 rounded-xl bg-[#00e03c] text-slate-950 font-black hover:bg-white transition-colors cursor-pointer flex items-center gap-1.5"
-                      >
-                        <Check className="w-4 h-4 stroke-[3]" /> Programar en Calendario
-                      </button>
+                    <div className="pt-2.5 flex flex-wrap items-center justify-between gap-2 border-t border-white/10">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!scheduleForm.title.trim()) {
+                              triggerToast?.('Ingresa primero el título de la actividad', 'error');
+                              return;
+                            }
+                            const tempEvent = {
+                              title: scheduleForm.title.trim(),
+                              clientName: scheduleForm.clientName.trim(),
+                              responsible: scheduleForm.isGroupBothPartners
+                                ? 'Ing. Diego Barrientos & Ing. Fernando Araujo'
+                                : scheduleForm.responsible,
+                              startDate: scheduleForm.startDate,
+                              dueDate: scheduleForm.dueDate,
+                              startTime: scheduleForm.startTime,
+                              endTime: scheduleForm.endTime,
+                              estimatedHours: scheduleForm.estimatedHours,
+                              tags: scheduleForm.tags,
+                              description: scheduleForm.description.trim()
+                            };
+                            handleNotifyGoogleCalendar(tempEvent);
+                          }}
+                          className="px-3 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/40 text-cyan-300 hover:text-white font-bold flex items-center gap-1.5 cursor-pointer transition-all text-xs"
+                          title="Abrir en Google Calendar con Diego y Fernando agregados como invitados"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>Notificar en Google Calendar</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!scheduleForm.title.trim()) {
+                              triggerToast?.('Ingresa primero el título de la actividad', 'error');
+                              return;
+                            }
+                            const tempEvent = {
+                              title: scheduleForm.title.trim(),
+                              clientName: scheduleForm.clientName.trim(),
+                              responsible: scheduleForm.isGroupBothPartners
+                                ? 'Ing. Diego Barrientos & Ing. Fernando Araujo'
+                                : scheduleForm.responsible,
+                              startDate: scheduleForm.startDate,
+                              dueDate: scheduleForm.dueDate,
+                              startTime: scheduleForm.startTime,
+                              endTime: scheduleForm.endTime,
+                              estimatedHours: scheduleForm.estimatedHours,
+                              tags: scheduleForm.tags,
+                              description: scheduleForm.description.trim()
+                            };
+                            handleDownloadIcs(tempEvent);
+                          }}
+                          className="px-3 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-slate-300 hover:text-white font-bold flex items-center gap-1.5 cursor-pointer transition-all text-xs"
+                          title="Descargar archivo .ics compatible con Outlook, Apple y Google Calendar"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Descargar .ICS</span>
+                        </button>
+                      </div>
+
+                      <div className="flex items-center gap-2 ml-auto">
+                        <button
+                          type="button"
+                          onClick={() => setShowScheduleModal(false)}
+                          className="px-4 py-2 rounded-xl bg-white/10 text-slate-300 font-bold hover:bg-white/20 transition-colors cursor-pointer"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-5 py-2 rounded-xl bg-[#00e03c] text-slate-950 font-black hover:bg-white transition-colors cursor-pointer flex items-center gap-1.5 shadow-md shadow-[#00e03c]/20"
+                        >
+                          <Check className="w-4 h-4 stroke-[3]" /> Programar en Calendario
+                        </button>
+                      </div>
                     </div>
                   </form>
                 </motion.div>
@@ -2457,6 +2793,34 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
                     <div>
                       <span className="text-[10px] text-slate-400 uppercase font-mono block">Dedicación Pactada</span>
                       <strong className="text-[#00e03c] font-mono">{selectedEvent.estimatedHours} hrs</strong>
+                    </div>
+                  </div>
+
+                  {/* Acciones de Sincronización Externa */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
+                    <span className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+                      <CalendarIcon className="w-3.5 h-3.5 text-[#00e03c]" />
+                      Sincronización Directiva:
+                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleNotifyGoogleCalendar(selectedEvent)}
+                        className="px-3 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/40 text-cyan-300 hover:text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all"
+                        title="Abrir evento en Google Calendar con Diego y Fernando agregados como invitados"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Notificar en Google Calendar</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadIcs(selectedEvent)}
+                        className="px-3 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-slate-300 hover:text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all"
+                        title="Descargar archivo .ics compatible con Outlook, Apple y Google Calendar"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Descargar .ICS</span>
+                      </button>
                     </div>
                   </div>
 

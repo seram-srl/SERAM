@@ -4257,13 +4257,13 @@ export default function PartnerDashboard() {
     triggerToast,
   } = useApp();
 
-  const [activeModule, setActiveModule] = useState('overview');
+  const [activeModule, setActiveModule] = useState('activities');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [openCategories, setOpenCategories] = useState(() => {
     const initial = {};
     SIDEBAR_MODULE_GROUPS.forEach(g => {
-      initial[g.category] = g.modules.some(m => m.id === 'overview');
+      initial[g.category] = g.modules.some(m => m.id === 'activities');
     });
     return initial;
   });
