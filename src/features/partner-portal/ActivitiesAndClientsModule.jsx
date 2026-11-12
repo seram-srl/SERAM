@@ -1594,6 +1594,77 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
 
   // ── CÁLCULO DE MÉTRICAS DINÁMICAS SUPERIORES (SEGÚN PESTAÑA ACTIVA) ──
   const tabMetrics = useMemo(() => {
+    if (activeTab === 'calendar') {
+      const scheduledUpcomingActs = activities.filter(a => Boolean(a.dueDate) && a.status !== 'Concluido');
+      const scheduledUpcoming = scheduledUpcomingActs.length;
+      const urgentCount = scheduledUpcomingActs.filter(a => a.priority === 'Urgente' || a.priority === 'Alta').length;
+
+      let diegoHours = 0;
+      let fernandoHours = 0;
+
+      activities.forEach((act) => {
+        const hours = Number(act.estimatedHours) || Number(act.actualHours) || 2;
+        const hasDiego =
+          (act.assignedPartner && act.assignedPartner.includes('Diego')) ||
+          (act.coPartner && act.coPartner.includes('Diego')) ||
+          (Array.isArray(act.assignedTeam) && act.assignedTeam.some(m => typeof m === 'string' && m.includes('Diego')));
+        const hasFernando =
+          (act.assignedPartner && act.assignedPartner.includes('Fernando')) ||
+          (act.coPartner && act.coPartner.includes('Fernando')) ||
+          (Array.isArray(act.assignedTeam) && act.assignedTeam.some(m => typeof m === 'string' && m.includes('Fernando')));
+
+        if (hasDiego && hasFernando) {
+          diegoHours += hours / 2;
+          fernandoHours += hours / 2;
+        } else if (hasDiego) {
+          diegoHours += hours;
+        } else if (hasFernando) {
+          fernandoHours += hours;
+        }
+      });
+
+      const totalBalanceHours = diegoHours + fernandoHours;
+      const ratioDiego = totalBalanceHours > 0 ? Math.round((diegoHours / totalBalanceHours) * 100) : 50;
+      const ratioFernando = totalBalanceHours > 0 ? (100 - ratioDiego) : 50;
+
+      const scheduledTotal = activities.filter(a => Boolean(a.startDate || a.dueDate)).length;
+      const coveragePct = activities.length > 0 ? Math.round((scheduledTotal / activities.length) * 100) : 0;
+
+      return [
+        {
+          label: 'Capacidad Teletrabajo',
+          value: '4.5h / Día',
+          sub: 'Tope base (ampliable a 8.0h)',
+          color: 'text-[#00e03c]',
+          icon: Clock,
+          bg: 'bg-[#00e03c]/10 border-[#00e03c]/30',
+        },
+        {
+          label: 'Entregas en Agenda',
+          value: `${scheduledUpcoming} ${scheduledUpcoming === 1 ? 'Compromiso' : 'Compromisos'}`,
+          sub: urgentCount > 0 ? `${urgentCount} de alta prioridad / pericial` : 'Hitos con fecha límite fijada',
+          color: 'text-amber-400',
+          icon: CalendarDays,
+          bg: 'bg-amber-500/10 border-amber-500/30',
+        },
+        {
+          label: 'Balance Paritario',
+          value: `${diegoHours.toFixed(0)}h D / ${fernandoHours.toFixed(0)}h F`,
+          sub: `${ratioDiego}% Diego · ${ratioFernando}% Fernando`,
+          color: 'text-sky-400',
+          icon: Scale,
+          bg: 'bg-sky-500/10 border-sky-500/30',
+        },
+        {
+          label: 'Cobertura Cronograma',
+          value: `${scheduledTotal} de ${activities.length}`,
+          sub: `${coveragePct}% de actividades con fecha`,
+          color: 'text-purple-400',
+          icon: Milestone,
+          bg: 'bg-purple-500/10 border-purple-500/30',
+        },
+      ];
+    }
     if (activeTab === 'kanban') {
       const pending = activities.filter(a => a.status === 'Pendiente').length;
       const inProg = activities.filter(a => a.status === 'En curso').length;
