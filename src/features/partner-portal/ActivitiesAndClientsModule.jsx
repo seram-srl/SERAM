@@ -9,7 +9,7 @@ import {
   ShieldCheck, Award, Scale, Gift, Table, ChevronLeft,
   Target, Users, UserCheck, Link2, Zap,
   Download, Upload, Paperclip, Share2, FileDown, Timer, Flame,
-  Copy
+  Copy, Folder, Laptop, Mountain, Smartphone, GraduationCap, Rocket, ListOrdered
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { calculateTaskXP, validateCrossApproval } from './gamification/xpEngine';
@@ -70,7 +70,7 @@ const formatDateRange = (startDate, dueDate) => {
   };
 
   if (startDate && dueDate && startDate !== dueDate) {
-    return `${formatMonth(startDate)} → ${formatMonth(dueDate)}`;
+    return `${formatMonth(startDate)} -> ${formatMonth(dueDate)}`;
   }
   return formatMonth(dueDate || startDate);
 };
@@ -225,26 +225,26 @@ const renderProjectBadge = (projectTitle) => {
   if (!projectTitle) return <span className="text-slate-500 text-[10px] italic">General</span>;
   const pLower = projectTitle.toLowerCase();
   let style = 'bg-white/[0.08] text-slate-300 border-white/[0.12]';
-  let icon = '📁';
+  let IconComponent = Folder;
   if (pLower.includes('seram s.r.l') || pLower.includes('directorio') || pLower.includes('gobernanza')) {
     style = 'bg-amber-500/15 text-amber-300 border-amber-500/30';
-    icon = '🏛️';
+    IconComponent = Building2;
   } else if (pLower.includes('página web') || pLower.includes('web')) {
     style = 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30';
-    icon = '💻';
+    IconComponent = Laptop;
   } else if (pLower.includes('valle de las agujas') || pLower.includes('campo')) {
     style = 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30';
-    icon = '🏔️';
+    IconComponent = Mountain;
   } else if (pLower.includes('redes') || pLower.includes('contenido')) {
     style = 'bg-orange-500/15 text-orange-300 border-orange-500/30';
-    icon = '📱';
+    IconComponent = Smartphone;
   } else if (pLower.includes('academy') || pLower.includes('syso')) {
     style = 'bg-purple-500/15 text-purple-300 border-purple-500/30';
-    icon = '🎓';
+    IconComponent = GraduationCap;
   }
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap shadow-sm ${style}`}>
-      <span>{icon}</span>
+    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap shadow-sm ${style}`}>
+      <IconComponent className="w-3 h-3 shrink-0" />
       <span className="truncate max-w-[150px]">{projectTitle}</span>
     </span>
   );
@@ -254,23 +254,23 @@ const renderProjectBadge = (projectTitle) => {
 const renderObjectiveBadge = (obj) => {
   const oLower = String(obj).toLowerCase();
   let style = 'bg-white/[0.08] text-slate-300 border-white/[0.12]';
-  let icon = '🎯';
+  let IconComponent = Target;
   if (oLower.includes('legalizar') || oLower.includes('formalizar')) {
     style = 'bg-amber-500/15 text-amber-300 border-amber-500/30';
-    icon = '⚖️';
+    IconComponent = Scale;
   } else if (oLower.includes('liderar')) {
     style = 'bg-blue-500/15 text-blue-300 border-blue-500/30';
-    icon = '🚀';
+    IconComponent = Rocket;
   } else if (oLower.includes('rentabilidad')) {
     style = 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30';
-    icon = '💰';
+    IconComponent = TrendingUp;
   } else if (oLower.includes('cartera') || oLower.includes('clientes')) {
     style = 'bg-purple-500/15 text-purple-300 border-purple-500/30';
-    icon = '🤝';
+    IconComponent = Users;
   }
   return (
-    <span key={obj} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold border whitespace-nowrap shadow-sm ${style}`}>
-      <span>{icon}</span>
+    <span key={obj} className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold border whitespace-nowrap shadow-sm ${style}`}>
+      <IconComponent className="w-2.5 h-2.5 shrink-0" />
       <span>{obj}</span>
     </span>
   );
@@ -343,9 +343,9 @@ const handleShareActivityEmail = (act) => {
     ? act.assignedTeam.join(', ')
     : `${act.assignedPartner || 'Directorio SERAM'}${act.coPartner ? ` y ${act.coPartner}` : ''}`;
   const missionTypeLabel = act.isFlash || act.activityType === 'flash'
-    ? '⚡ Misión Flash de Contingencia (Urgente)'
+    ? 'Misión Flash de Contingencia (Urgente)'
     : (act.activityType === 'grupal' || isGroupActivity(act)
-        ? '👥 Misión de Directorio / Grupal'
+        ? 'Misión de Directorio / Grupal'
         : (act.activityType === 'secundaria' ? 'Secundaria' : 'Principal'));
 
   const body = `Estimado Directorio y Equipo SERAM S.R.L.,
@@ -477,6 +477,8 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandAllConcluido, setExpandAllConcluido] = useState(false);
   const [drawerNewSubtaskInput, setDrawerNewSubtaskInput] = useState('');
+  const [editingSubtaskId, setEditingSubtaskId] = useState(null);
+  const [editingSubtaskText, setEditingSubtaskText] = useState('');
 
   // Modales
   const [showNewActivityModal, setShowNewActivityModal] = useState(false);
@@ -535,13 +537,34 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
   React.useEffect(() => {
     if (drawerActivity) {
       setDrawerData(prev => {
+        const currentMilestoneStep = getMilestoneStep(drawerActivity);
+        const hasExistingSubs = Array.isArray(drawerActivity.customSubtasks) && drawerActivity.customSubtasks.length > 0;
+
+        let initialSubs = [];
+        if (hasExistingSubs) {
+          initialSubs = drawerActivity.customSubtasks;
+        } else if (drawerActivity.milestoneType === 'weekdays' || drawerActivity.milestoneType === 'numeric') {
+          initialSubs = [];
+        } else {
+          // Convertir las 5 fases estándar en subtareas libres editables
+          initialSubs = STANDARD_MILESTONES.map((m) => ({
+            id: `st_phase_${m.step}`,
+            label: m.label,
+            done: currentMilestoneStep >= m.step
+          }));
+        }
+
+        const effectiveType = (drawerActivity.milestoneType === 'weekdays' || drawerActivity.milestoneType === 'numeric')
+          ? drawerActivity.milestoneType
+          : 'custom_subtasks';
+
         if (prev && prev.id === drawerActivity.id) {
           return {
             ...drawerActivity,
             ...prev,
-            milestoneStep: getMilestoneStep(drawerActivity),
-            milestoneType: drawerActivity.milestoneType || 'phases',
-            customSubtasks: Array.isArray(drawerActivity.customSubtasks) ? drawerActivity.customSubtasks : (prev.customSubtasks || []),
+            milestoneStep: currentMilestoneStep,
+            milestoneType: effectiveType,
+            customSubtasks: Array.isArray(prev.customSubtasks) && prev.customSubtasks.length > 0 ? prev.customSubtasks : initialSubs,
             weekdays: drawerActivity.weekdays || prev.weekdays,
             currentValue: drawerActivity.currentValue !== undefined ? drawerActivity.currentValue : prev.currentValue,
             targetValue: drawerActivity.targetValue !== undefined ? drawerActivity.targetValue : prev.targetValue,
@@ -553,11 +576,15 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         }
         return {
           ...drawerActivity,
-          milestoneStep: getMilestoneStep(drawerActivity)
+          milestoneStep: currentMilestoneStep,
+          milestoneType: effectiveType,
+          customSubtasks: initialSubs
         };
       });
     } else {
       setDrawerData(null);
+      setEditingSubtaskId(null);
+      setEditingSubtaskText('');
     }
   }, [drawerActivity]);
 
@@ -688,7 +715,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         finalFields.deliverableUrl || finalFields.url
       );
       if (!hasProof) {
-        triggerToast('⚠️ Se requiere URL o comprobante obligatorio para concluir este entregable al 100%.', 'error');
+        triggerToast('Se requiere URL o comprobante obligatorio para concluir este entregable al 100%.', 'error');
         if (!drawerActivity || drawerActivity.id !== act.id) {
           setDrawerActivity(act);
         }
@@ -815,22 +842,50 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     const doneCount = updatedSubs.filter(s => s.done).length;
 
     if (updatedSubs.length > 0 && doneCount === updatedSubs.length) {
-      handleCompleteActivityValidation(targetAct, { customSubtasks: updatedSubs });
+      handleCompleteActivityValidation(targetAct, { customSubtasks: updatedSubs, milestoneType: 'custom_subtasks' });
       return;
     }
 
     const newStatus = doneCount > 0 ? 'En curso' : 'Pendiente';
     handleEditActivity(act.id, {
       customSubtasks: updatedSubs,
+      milestoneType: 'custom_subtasks',
       status: newStatus
     });
     if (drawerActivity && drawerActivity.id === act.id) {
       setDrawerData(prev => ({
         ...prev,
         customSubtasks: updatedSubs,
+        milestoneType: 'custom_subtasks',
         status: newStatus
       }));
     }
+  };
+
+  const handleStartEditSubtask = (st) => {
+    setEditingSubtaskId(st.id);
+    setEditingSubtaskText(st.label);
+  };
+
+  const handleSaveEditSubtask = (stId) => {
+    if (!drawerData || !drawerActivity) return;
+    const trimmed = editingSubtaskText.trim();
+    if (!trimmed) {
+      setEditingSubtaskId(null);
+      setEditingSubtaskText('');
+      return;
+    }
+    const currentSubs = Array.isArray(drawerData.customSubtasks) ? [...drawerData.customSubtasks] : [];
+    const updated = currentSubs.map(s => s.id === stId ? { ...s, label: trimmed } : s);
+    setDrawerData(prev => ({ ...prev, customSubtasks: updated, milestoneType: 'custom_subtasks' }));
+    handleEditActivity(drawerActivity.id, { customSubtasks: updated, milestoneType: 'custom_subtasks' });
+    setEditingSubtaskId(null);
+    setEditingSubtaskText('');
+  };
+
+  const handleCancelEditSubtask = () => {
+    setEditingSubtaskId(null);
+    setEditingSubtaskText('');
   };
 
   const handleNumericChange = (act, delta) => {
@@ -863,8 +918,10 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     const currentSubs = Array.isArray(drawerData.customSubtasks) ? [...drawerData.customSubtasks] : [];
     const newSub = { id: `st_${Date.now()}`, label: drawerNewSubtaskInput.trim(), done: false };
     const updated = [...currentSubs, newSub];
-    setDrawerData(prev => ({ ...prev, customSubtasks: updated }));
-    handleEditActivity(drawerActivity.id, { customSubtasks: updated });
+    const doneCount = updated.filter(s => s.done).length;
+    const newStatus = (doneCount === updated.length && updated.length > 0) ? 'Concluido' : (doneCount > 0 ? 'En curso' : (drawerData.status || 'Pendiente'));
+    setDrawerData(prev => ({ ...prev, customSubtasks: updated, milestoneType: 'custom_subtasks' }));
+    handleEditActivity(drawerActivity.id, { customSubtasks: updated, milestoneType: 'custom_subtasks' });
     setDrawerNewSubtaskInput('');
   };
 
@@ -872,8 +929,25 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     if (!drawerData || !drawerActivity) return;
     const currentSubs = Array.isArray(drawerData.customSubtasks) ? [...drawerData.customSubtasks] : [];
     const updated = currentSubs.filter(s => s.id !== stId);
-    setDrawerData(prev => ({ ...prev, customSubtasks: updated }));
-    handleEditActivity(drawerActivity.id, { customSubtasks: updated });
+    setDrawerData(prev => ({ ...prev, customSubtasks: updated, milestoneType: 'custom_subtasks' }));
+    handleEditActivity(drawerActivity.id, { customSubtasks: updated, milestoneType: 'custom_subtasks' });
+    if (editingSubtaskId === stId) {
+      setEditingSubtaskId(null);
+      setEditingSubtaskText('');
+    }
+  };
+
+  const handleLoadStandardPhasesToDrawer = () => {
+    if (!drawerData || !drawerActivity) return;
+    const currentStep = getMilestoneStep(drawerActivity);
+    const standardSubs = STANDARD_MILESTONES.map((m) => ({
+      id: `st_phase_${m.step}_${Date.now()}`,
+      label: m.label,
+      done: currentStep >= m.step
+    }));
+    setDrawerData(prev => ({ ...prev, customSubtasks: standardSubs, milestoneType: 'custom_subtasks' }));
+    handleEditActivity(drawerActivity.id, { customSubtasks: standardSubs, milestoneType: 'custom_subtasks' });
+    triggerToast('5 Fases estándar cargadas como subtareas editables', 'info');
   };
 
   const saveDrawerData = () => {
@@ -941,7 +1015,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     setActDeliverableUrl('');
     setActDeliverableName('');
     setActAttachments([]);
-    setActMilestoneType('phases');
+    setActMilestoneType('custom_subtasks');
     setActCustomSubtasks([]);
     setNewSubtaskText('');
     setActWeekdays({ lun: false, mar: false, mie: false, jue: false, vie: false, sab: false, dom: false });
@@ -955,7 +1029,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
   };
 
   // Multi-modal milestone & governance states
-  const [actMilestoneType, setActMilestoneType] = useState('phases'); // 'phases' | 'weekdays' | 'custom_subtasks' | 'numeric'
+  const [actMilestoneType, setActMilestoneType] = useState('custom_subtasks'); // 'custom_subtasks' | 'phases' | 'weekdays' | 'numeric'
   const [actCustomSubtasks, setActCustomSubtasks] = useState([]);
   const [newSubtaskText, setNewSubtaskText] = useState('');
   const [actWeekdays, setActWeekdays] = useState({ lun: false, mar: false, mie: false, jue: false, vie: false, sab: false, dom: false });
@@ -1053,7 +1127,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     });
 
     setShowQuickMissionModal(false);
-    triggerToast(`⚡ Misión Flash activada: ${durationHours}h límite de contingencia`, 'success');
+    triggerToast(`Misión Flash activada: ${durationHours}h límite de contingencia`, 'success');
   };
 
   // Asignar misión flash personalizada
@@ -1091,7 +1165,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     setCustomMissionTitle('');
     setCustomMissionDesc('');
     setShowQuickMissionModal(false);
-    triggerToast(`⚡ Misión Flash personalizada creada (${durationHours}h restantes)`, 'success');
+    triggerToast(`Misión Flash personalizada creada (${durationHours}h restantes)`, 'success');
   };
 
   // Helper para procesar subida de archivo a Base64 DataURI con redundancia
@@ -1241,7 +1315,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     setActDeliverableUrl('');
     setActDeliverableName('');
     setActAttachments([]);
-    setActMilestoneType('phases');
+    setActMilestoneType('custom_subtasks');
     setActCustomSubtasks([]);
     setNewSubtaskText('');
     setActWeekdays({ lun: false, mar: false, mie: false, jue: false, vie: false, sab: false, dom: false });
@@ -1274,8 +1348,18 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     setActDeliverableUrl(act.deliverableUrl || act.url || '');
     setActDeliverableName(act.deliverableName || '');
     setActAttachments(Array.isArray(act.attachments) ? act.attachments : []);
-    setActMilestoneType(act.milestoneType || 'phases');
-    setActCustomSubtasks(Array.isArray(act.customSubtasks) ? act.customSubtasks : []);
+    const hasSubs = Array.isArray(act.customSubtasks) && act.customSubtasks.length > 0;
+    const initialSubs = hasSubs
+      ? act.customSubtasks
+      : (act.milestoneType === 'weekdays' || act.milestoneType === 'numeric')
+        ? []
+        : STANDARD_MILESTONES.map(m => ({
+            id: `st_phase_${m.step}_${Date.now()}`,
+            label: m.label,
+            done: (Number(act.milestoneStep) || 0) >= m.step
+          }));
+    setActMilestoneType(hasSubs ? act.milestoneType : (act.milestoneType === 'weekdays' || act.milestoneType === 'numeric' ? act.milestoneType : 'custom_subtasks'));
+    setActCustomSubtasks(initialSubs);
     setActWeekdays(act.weekdays || { lun: false, mar: false, mie: false, jue: false, vie: false, sab: false, dom: false });
     setActCurrentValue(act.currentValue !== undefined ? Number(act.currentValue) : 0);
     setActTargetValue(act.targetValue !== undefined ? Number(act.targetValue) : 10);
@@ -1305,7 +1389,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
       const secondary = activities.filter(a => a.activityType === 'secundaria' || a.coPartner).length;
       const totalXP = activities.reduce((sum, a) => sum + (Number(a.xp_awarded) || 50), 0);
       return [
-        { label: 'Misiones Flash ⚡', value: flash, sub: 'Contingencias con countdown', color: 'text-amber-400', icon: Flame, bg: 'bg-amber-500/10 border-amber-500/30' },
+        { label: 'Misiones Flash', value: flash, sub: 'Contingencias con countdown', color: 'text-amber-400', icon: Flame, bg: 'bg-amber-500/10 border-amber-500/30' },
         { label: 'Misiones Primarias', value: primary, sub: 'Objetivos troncales SERAM', color: 'text-sky-400', icon: Target, bg: 'bg-sky-500/10 border-sky-500/30' },
         { label: 'Secundarias & Combos', value: secondary, sub: 'Sinergias interdisciplinarias', color: 'text-purple-400', icon: Zap, bg: 'bg-purple-500/10 border-purple-500/30' },
         { label: 'Bolsa Global XP', value: `${totalXP.toLocaleString()} XP`, sub: 'Meritocracia acumulada', color: 'text-[#00e03c]', icon: Award, bg: 'bg-[#00e03c]/10 border-[#00e03c]/30' },
@@ -1484,7 +1568,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
               title="Crear nueva misión grupal de directorio para múltiples socios y consultores"
             >
               <Users className="w-3.5 h-3.5 text-purple-400" />
-              <span>👥 Nueva Misión de Directorio / Grupal</span>
+              <span>Nueva Misión de Directorio / Grupal</span>
             </button>
           </div>
 
@@ -1569,12 +1653,12 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                 className="text-xs px-2.5 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
               >
                 <option value="all">Todas las Jerarquías OKR</option>
-                <option value="anual">🎯 Macro Anual</option>
-                <option value="semestral">🧭 Semestral</option>
-                <option value="trimestral">📈 Trimestral</option>
-                <option value="mensual">🗓️ Mensual</option>
-                <option value="semanal">⚡ Semanal</option>
-                <option value="diario">✅ Diario</option>
+                <option value="anual">Macro Anual</option>
+                <option value="semestral">Semestral</option>
+                <option value="trimestral">Trimestral</option>
+                <option value="mensual">Mensual</option>
+                <option value="semanal">Semanal</option>
+                <option value="diario">Diario</option>
               </select>
             </div>
 
@@ -1619,7 +1703,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                         onClick={() => setPageSize('all')}
                         className="text-[#00e03c] font-black hover:underline cursor-pointer"
                       >
-                        Ver todas en Kanban ➔
+                        Ver todas en Kanban -&gt;
                       </button>
                       <button
                         type="button"
@@ -1697,7 +1781,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                                       {(act.activityType === 'grupal' || isGroupActivity(act)) && (
                                         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-black bg-purple-500/20 text-purple-300 border border-purple-500/30 shadow-sm">
                                           <Users className="w-2.5 h-2.5 text-purple-300" />
-                                          <span>👥 Misión Grupal</span>
+                                          <span>Misión Grupal</span>
                                         </span>
                                       )}
                                     </div>
@@ -1774,7 +1858,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                                         title={`Equipo Asignado: ${(act.assignedTeam || [act.assignedPartner]).join(', ')}`}
                                       >
                                         <Users className="w-3 h-3 text-purple-400 shrink-0" />
-                                        <span className="truncate max-w-[130px] font-mono">👥 {getTeamInitials(act)}</span>
+                                        <span className="truncate max-w-[130px] font-mono">{getTeamInitials(act)}</span>
                                       </div>
                                     ) : (
                                       <div className="flex items-center gap-1 font-bold text-slate-300">
@@ -1974,8 +2058,8 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                       </span>
                     </th>
                     <th className="p-3 text-center min-w-[125px]">
-                      <span className="flex items-center justify-center gap-1" title="Hitos de Ejecución Técnica (1 a 5)">
-                        <span className="text-[10px] font-mono">☑️ 1-5 Hitos</span>
+                      <span className="flex items-center justify-center gap-1" title="Hitos y Subtareas de Ejecución">
+                        <span className="text-[10px] font-mono">Hitos / Subtareas</span>
                       </span>
                     </th>
                     <th className="p-3 min-w-[90px]">
@@ -2047,7 +2131,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                                 {(act.activityType === 'grupal' || isGroupActivity(act)) && (
                                   <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-purple-500/20 text-purple-300 border border-purple-500/40 inline-flex items-center gap-1 shadow-sm">
                                     <Users className="w-2.5 h-2.5 text-purple-300" />
-                                    <span>👥 Misión Grupal / Directorio</span>
+                                    <span>Misión Grupal / Directorio</span>
                                   </span>
                                 )}
                                 {act.activityType === 'secundaria' && (
@@ -2080,7 +2164,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                                 title={`Equipo Asignado: ${(act.assignedTeam || [act.assignedPartner]).join(', ')}`}
                               >
                                 <Users className="w-3 h-3 text-purple-400 shrink-0" />
-                                <span className="tracking-wide">👥 {getTeamInitials(act)}</span>
+                                <span className="tracking-wide">{getTeamInitials(act)}</span>
                                 {act.assignedPartner && (
                                   <span className="text-[10px] text-purple-300/70 font-normal">
                                     ({act.assignedPartner.replace(/^(Ing\.|Dra\.)\s*/, '')})
@@ -2104,7 +2188,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                             {isGroupActivity(act) ? (
                               <div className="inline-flex items-center gap-1.5" title={`Directorio / Equipo: ${(act.assignedTeam || []).join(', ')}`}>
                                 <span className="w-4 h-4 rounded-full bg-purple-500/30 text-[8px] font-black text-purple-200 flex items-center justify-center border border-purple-400/40 shadow-sm">
-                                  👥
+                                  <Users className="w-2.5 h-2.5 text-purple-200" />
                                 </span>
                                 <span className="text-[11px] text-purple-300 font-semibold">{getTeamInitials(act)}</span>
                               </div>
@@ -2118,75 +2202,65 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                             )}
                           </td>
 
-                          {/* 5. Checkboxes / Hitos Multi-modal según tipo */}
+                          {/* 5. HITOS / SUBTAREAS INTERACTIVAS (Insignia Neuform con Contador) */}
                           <td className="p-3 text-center whitespace-nowrap">
-                            {act.milestoneType === 'weekdays' ? (
-                              <div className="flex items-center justify-center gap-0.5">
-                                {['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'].map((d) => {
-                                  const isDone = Boolean(act.weekdays?.[d]);
-                                  return (
-                                    <button
-                                      key={d}
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleToggleWeekday(act, d);
-                                      }}
-                                      title={`Día ${d.toUpperCase()}: ${isDone ? 'Completado' : 'Pendiente'}`}
-                                      className={`w-4 h-4 rounded text-[9px] font-black uppercase flex items-center justify-center cursor-pointer transition-all ${
-                                        isDone ? 'bg-sky-500 text-white shadow-sm ring-1 ring-sky-400/40' : 'bg-white/[0.04] text-slate-500 hover:bg-white/[0.1] border border-white/10'
-                                      }`}
-                                    >
-                                      {d.slice(0, 1).toUpperCase()}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            ) : act.milestoneType === 'custom_subtasks' ? (
-                              <div className="flex items-center justify-center gap-1">
-                                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">
-                                  {(act.customSubtasks || []).filter(s => s.done).length}/{(act.customSubtasks || []).length} subs
-                                </span>
-                              </div>
-                            ) : act.milestoneType === 'numeric' ? (
-                              <div className="flex items-center justify-center gap-1 font-mono text-[11px]">
-                                <span className="text-amber-400 font-bold">{act.currentValue || 0} / {act.targetValue || 10}</span>
+                            {(() => {
+                              let done = 0;
+                              let total = 0;
+                              let label = '';
+                              let isFullyDone = false;
+                              let isInProgress = false;
+
+                              if (act.milestoneType === 'weekdays') {
+                                const days = act.weekdays || {};
+                                const dayKeys = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
+                                done = dayKeys.filter(d => Boolean(days[d])).length;
+                                total = 7;
+                                isFullyDone = done === 7;
+                                isInProgress = done > 0 && !isFullyDone;
+                                label = isFullyDone ? '7/7 Días (Completado)' : `${done}/7 Días`;
+                              } else if (act.milestoneType === 'numeric') {
+                                done = Number(act.currentValue) || 0;
+                                total = Number(act.targetValue) || 10;
+                                isFullyDone = done >= total && total > 0;
+                                isInProgress = done > 0 && !isFullyDone;
+                                label = isFullyDone ? `${done}/${total} Completado` : `${done}/${total} Unid.`;
+                              } else if (Array.isArray(act.customSubtasks) && act.customSubtasks.length > 0) {
+                                total = act.customSubtasks.length;
+                                done = act.customSubtasks.filter(s => s.done).length;
+                                isFullyDone = done === total && total > 0;
+                                isInProgress = done > 0 && !isFullyDone;
+                                label = isFullyDone ? `${done}/${total} Completadas` : `${done}/${total} Subtareas`;
+                              } else {
+                                // Fases técnicas estándar
+                                total = 5;
+                                done = Math.min(5, Math.max(0, currentStep));
+                                isFullyDone = done === 5 || act.status === 'Concluido';
+                                isInProgress = done > 0 && !isFullyDone;
+                                label = isFullyDone ? '5/5 Completadas' : `${done}/5 Subtareas`;
+                              }
+
+                              const badgeStyles = isFullyDone
+                                ? 'bg-[#00e03c]/15 text-[#00e03c] border-[#00e03c]/30 hover:bg-[#00e03c]/25 hover:border-[#00e03c]/50 shadow-sm shadow-[#00e03c]/10'
+                                : isInProgress
+                                  ? 'bg-purple-500/15 text-purple-300 border-purple-500/30 hover:bg-purple-500/25 hover:border-purple-500/50 shadow-sm shadow-purple-500/10'
+                                  : 'bg-white/[0.04] text-slate-400 border-white/[0.1] hover:bg-white/[0.08] hover:text-slate-200';
+
+                              return (
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleNumericChange(act, 1);
+                                    setDrawerActivity(act);
                                   }}
-                                  className="px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 hover:bg-amber-400/30 text-[10px] font-black"
+                                  title="Clic para gestionar subtareas y fases en la ficha lateral"
+                                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-mono font-bold tracking-tight transition-all duration-150 cursor-pointer hover:scale-[1.02] active:scale-[0.98] ${badgeStyles}`}
                                 >
-                                  +1
+                                  <CheckSquare className={`w-3.5 h-3.5 shrink-0 ${isFullyDone ? 'text-[#00e03c]' : isInProgress ? 'text-purple-400' : 'text-slate-500'}`} />
+                                  <span>{label}</span>
                                 </button>
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-center gap-1">
-                                {[1, 2, 3, 4, 5].map((step) => {
-                                  const isChecked = currentStep >= step;
-                                  return (
-                                    <button
-                                      key={step}
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleMilestoneClick(act, step);
-                                      }}
-                                      title={`Hito ${step}: ${STANDARD_MILESTONES[step - 1]?.label || ''}`}
-                                      className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center transition-all cursor-pointer ${
-                                        isChecked
-                                          ? 'bg-[#0070f3] hover:bg-blue-500 text-white shadow-sm ring-1 ring-blue-400/40'
-                                          : 'border border-white/20 hover:border-white/50 bg-white/[0.04]'
-                                      }`}
-                                    >
-                                      {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            )}
+                              );
+                            })()}
                           </td>
 
                           {/* 6. Progreso circular */}
@@ -2444,7 +2518,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                   missionSubTab === 'chests' ? 'bg-amber-400 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'
                 }`}
               >
-                🎁 Cofres de Resplandor & Impacto Planetario
+                Cofres de Resplandor & Impacto Planetario
               </button>
             </div>
 
@@ -2471,10 +2545,10 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                 <div className="flex flex-wrap items-center gap-1.5">
                   {[
                     { id: 'all', label: 'Todas las Misiones' },
-                    { id: 'flash', label: '⚡ Flash (Urgentes)' },
-                    { id: 'principal', label: '🎯 Primarias' },
-                    { id: 'secundaria', label: '🛡️ Secundarias' },
-                    { id: 'combo', label: '👥 Misiones Grupales' }
+                    { id: 'flash', label: 'Flash (Urgentes)' },
+                    { id: 'principal', label: 'Primarias' },
+                    { id: 'secundaria', label: 'Secundarias' },
+                    { id: 'combo', label: 'Misiones Grupales' }
                   ].map(mf => (
                     <button
                       key={mf.id}
@@ -2498,12 +2572,12 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                     className="text-xs px-2.5 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
                   >
                     <option value="all">Jerarquía OKR</option>
-                    <option value="anual">🎯 Macro Anual</option>
-                    <option value="semestral">🧭 Semestral</option>
-                    <option value="trimestral">📈 Trimestral</option>
-                    <option value="mensual">🗓️ Mensual</option>
-                    <option value="semanal">⚡ Semanal</option>
-                    <option value="diario">✅ Diario</option>
+                    <option value="anual">Macro Anual</option>
+                    <option value="semestral">Semestral</option>
+                    <option value="trimestral">Trimestral</option>
+                    <option value="mensual">Mensual</option>
+                    <option value="semanal">Semanal</option>
+                    <option value="diario">Diario</option>
                   </select>
                 </div>
               </div>
@@ -2555,7 +2629,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                                 ? 'bg-slate-500/20 text-slate-300 border-slate-500/40'
                                 : 'bg-sky-500/20 text-sky-300 border-sky-500/40'
                             }`}>
-                              {isFlash ? '⚡ Flash Contingencia' : hasCombo ? '👥 Combo +35% XP' : act.activityType === 'secundaria' ? '🛡️ Secundaria' : '🎯 Troncal'}
+                              {isFlash ? 'Flash Contingencia' : hasCombo ? 'Combo +35% XP' : act.activityType === 'secundaria' ? 'Secundaria' : 'Troncal'}
                             </span>
 
                             <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-white/[0.06] text-slate-300 border border-white/[0.1]">
@@ -2762,7 +2836,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                     </div>
                     <div>
                       <h3 className="text-sm font-black text-white uppercase tracking-wider font-tech leading-none flex items-center gap-2">
-                        ⚡ Misiones Flash de Contingencia
+                        Misiones Flash de Contingencia
                       </h3>
                       <p className="text-[10px] text-amber-400 font-bold uppercase tracking-widest font-tech pt-0.5 flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 bg-amber-400 rounded-full inline-block animate-pulse" />
@@ -2845,7 +2919,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                           className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs transition-all shadow-md shadow-amber-500/20 shrink-0 cursor-pointer flex items-center gap-1.5 w-full sm:w-auto justify-center"
                         >
                           <Flame className="w-3.5 h-3.5 fill-current" />
-                          <span>⚡ Asignar Misión</span>
+                          <span>Asignar Misión</span>
                         </button>
                       </div>
                     ))}
@@ -2877,11 +2951,11 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                           onChange={(e) => setCustomMissionDuration(Number(e.target.value))}
                           className="w-full px-3 py-2 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white font-mono focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40 [&>option]:bg-[#08150a] [&>option]:text-white cursor-pointer"
                         >
-                          <option value={24}>⚡ 24 Horas (Extrema Urgencia)</option>
-                          <option value={48}>⚡ 48 Horas (Fiscalización / Inspección)</option>
-                          <option value={72}>⚡ 72 Horas (Licitación SICOES / Decretos)</option>
-                          <option value={96}>⚡ 96 Horas (Cisne Negro / Modelación Hidrológica)</option>
-                          <option value={120}>⚡ 120 Horas (Expediente Ampliado)</option>
+                          <option value={24}>24 Horas (Extrema Urgencia)</option>
+                          <option value={48}>48 Horas (Fiscalización / Inspección)</option>
+                          <option value={72}>72 Horas (Licitación SICOES / Decretos)</option>
+                          <option value={96}>96 Horas (Cisne Negro / Modelación Hidrológica)</option>
+                          <option value={120}>120 Horas (Expediente Ampliado)</option>
                         </select>
                       </div>
 
@@ -2927,7 +3001,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                         >
                           <option value="">-- Sin co-ejecutor --</option>
                           {partnersList.filter(p => p.name !== customMissionPartner).map((p) => (
-                            <option key={p.name} value={p.name}>⚡ {p.name}</option>
+                            <option key={p.name} value={p.name}>{p.name}</option>
                           ))}
                         </select>
                       </div>
@@ -2957,7 +3031,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                         className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black shadow-[0_0_20px_rgba(245,158,11,0.3)] flex items-center gap-1.5 cursor-pointer transition-all text-xs"
                       >
                         <Flame className="w-3.5 h-3.5 fill-current" />
-                        <span>⚡ Lanzar Misión Flash</span>
+                        <span>Lanzar Misión Flash</span>
                       </button>
                     </div>
                   </form>
@@ -3005,7 +3079,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                       </h3>
                       <p className="text-[10px] text-[#00e03c] font-bold uppercase tracking-widest font-tech pt-0.5 flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 bg-[#00e03c] rounded-full inline-block animate-pulse" />
-                        Sincronización Notion ➔ SERAM Hub
+                        Sincronización Notion -&gt; SERAM Hub
                       </p>
                     </div>
                   </div>
@@ -3030,8 +3104,8 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                       >
                         <option value="principal">Actividad Principal</option>
                         <option value="secundaria">Actividad Secundaria</option>
-                        <option value="grupal">👥 Actividad Grupal / Misión de Directorio</option>
-                        <option value="flash">⚡ Misión Flash (Contingencia)</option>
+                        <option value="grupal">Actividad Grupal / Misión de Directorio</option>
+                        <option value="flash">Misión Flash (Contingencia)</option>
                       </select>
                     </div>
 
@@ -3074,12 +3148,12 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                         onChange={(e) => setActOkrLevel(e.target.value)}
                         className="w-full px-3 py-2 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] focus:ring-1 focus:ring-[#00e03c]/40 [&>option]:bg-[#08150a] [&>option]:text-white cursor-pointer"
                       >
-                        <option value="anual">🎯 Macro Anual (Visión SEPREC)</option>
-                        <option value="semestral">🧭 Semestral (Hitos Clave)</option>
-                        <option value="trimestral">📈 Trimestral (OKRs Q1 - Q4)</option>
-                        <option value="mensual">🗓️ Mensual (Entregables)</option>
-                        <option value="semanal">⚡ Semanal (Sprint de Gabinete)</option>
-                        <option value="diario">✅ Diario (Checklist & Tareas)</option>
+                        <option value="anual">Macro Anual (Visión SEPREC)</option>
+                        <option value="semestral">Semestral (Hitos Clave)</option>
+                        <option value="trimestral">Trimestral (OKRs Q1 - Q4)</option>
+                        <option value="mensual">Mensual (Entregables)</option>
+                        <option value="semanal">Semanal (Sprint de Gabinete)</option>
+                        <option value="diario">Diario (Checklist & Tareas)</option>
                       </select>
                     </div>
 
@@ -3092,15 +3166,15 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                         onChange={(e) => setActValidationCriteria(e.target.value)}
                         className="w-full px-3 py-2 bg-[#06180a]/90 border border-amber-500/30 rounded-xl text-white font-bold focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40 [&>option]:bg-[#08150a] [&>option]:text-white cursor-pointer"
                       >
-                        <option value="cross_audit">⚖️ Auditoría Cruzada Pericial</option>
-                        <option value="auto_proof">📎 Comprobante Obligatorio</option>
-                        <option value="provisional_pool">🛡️ Bolsa Provisional de Horas</option>
+                        <option value="cross_audit">Auditoría Cruzada Pericial</option>
+                        <option value="auto_proof">Comprobante Obligatorio</option>
+                        <option value="provisional_pool">Bolsa Provisional de Horas</option>
                       </select>
                     </div>
                     <div className="sm:col-span-2 text-[10px] text-slate-300 italic bg-[#06180a]/60 p-2 rounded-xl border border-[#1a3a1a]/60">
-                      {actValidationCriteria === 'cross_audit' && '⚖️ Auditoría Cruzada: Al llegar a 100%, requiere aprobación pericial de otro socio directivo.'}
-                      {actValidationCriteria === 'auto_proof' && '📎 Auto-completar: Concluye al 100% de inmediato exigiendo link o archivo de respaldo adjunto.'}
-                      {actValidationCriteria === 'provisional_pool' && '🛡️ Bolsa Provisional: Concluye al instante sin bloquear al socio; se ratifica semanalmente en Directorio.'}
+                      {actValidationCriteria === 'cross_audit' && 'Auditoría Cruzada: Al llegar a 100%, requiere aprobación pericial de otro socio directivo.'}
+                      {actValidationCriteria === 'auto_proof' && 'Auto-completar: Concluye al 100% de inmediato exigiendo link o archivo de respaldo adjunto.'}
+                      {actValidationCriteria === 'provisional_pool' && 'Bolsa Provisional: Concluye al instante sin bloquear al socio; se ratifica semanalmente en Directorio.'}
                     </div>
                   </div>
 
@@ -3289,14 +3363,14 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                               }}
                               className="px-2.5 py-1 rounded-lg bg-[#00e03c]/15 hover:bg-[#00e03c]/25 text-[#00e03c] text-[10px] font-bold border border-[#00e03c]/30 transition-all cursor-pointer"
                             >
-                              🏛️ Directorio (Diego + Fernando)
+                              Directorio (Diego + Fernando)
                             </button>
                             <button
                               type="button"
                               onClick={() => setIsTeamDropdownOpen(false)}
                               className="px-3 py-1 rounded-lg bg-[#00e03c] hover:bg-[#00e03c]/90 text-slate-950 text-[10px] font-black transition-all cursor-pointer"
                             >
-                              Listo ✓
+                              Listo
                             </button>
                           </div>
                         </div>
@@ -3454,7 +3528,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                       />
                       {actDeliverableName && (
                         <p className="text-[10px] text-[#00e03c] font-mono">
-                          ✓ Archivo cargado: {actDeliverableName}
+                          Archivo cargado: {actDeliverableName}
                         </p>
                       )}
                     </div>
@@ -3465,23 +3539,36 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                     <div className="flex items-center justify-between">
                       <label className="text-[10px] font-black uppercase tracking-wider text-[#00e03c]">Modalidad de Hitos & Seguimiento</label>
                       <span className="text-[9px] font-mono text-[#00e03c] font-bold uppercase bg-[#00e03c]/15 px-2 py-0.5 rounded border border-[#00e03c]/30">
-                        {actMilestoneType === 'phases' ? '5 Fases Estándar' :
-                         actMilestoneType === 'weekdays' ? 'Días Semana (Lun-Dom)' :
-                         actMilestoneType === 'custom_subtasks' ? 'Subtareas Personalizadas' : 'Avance Numérico'}
+                        {actMilestoneType === 'custom_subtasks' ? 'Subtareas Personalizadas' :
+                         actMilestoneType === 'phases' ? '5 Fases Estándar' :
+                         actMilestoneType === 'weekdays' ? 'Días Semana (Lun-Dom)' : 'Avance Numérico'}
                       </span>
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {[
-                        { id: 'phases', label: '5 Fases', desc: 'Estándar SERAM' },
+                        { id: 'custom_subtasks', label: 'Subtareas', desc: 'Checklist libre' },
+                        { id: 'phases', label: '5 Fases', desc: 'Precargar estándar' },
                         { id: 'weekdays', label: 'Semanal', desc: 'Lun a Dom' },
-                        { id: 'custom_subtasks', label: 'Subtareas', desc: 'Texto custom' },
                         { id: 'numeric', label: 'Numérico', desc: 'Meta cuant.' }
                       ].map(m => (
                         <button
                           key={m.id}
                           type="button"
-                          onClick={() => setActMilestoneType(m.id)}
+                          onClick={() => {
+                            if (m.id === 'phases') {
+                              const standardSubs = STANDARD_MILESTONES.map((phase) => ({
+                                id: `phase_${phase.step}_${Date.now()}`,
+                                label: phase.label,
+                                done: false
+                              }));
+                              setActCustomSubtasks(standardSubs);
+                              setActMilestoneType('custom_subtasks');
+                              triggerToast('5 Fases precargadas en lista de subtareas editables', 'info');
+                            } else {
+                              setActMilestoneType(m.id);
+                            }
+                          }}
                           className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
                             actMilestoneType === m.id
                               ? 'bg-[#00e03c]/20 border-[#00e03c] text-white font-black shadow-sm shadow-[#00e03c]/20'
@@ -3753,9 +3840,8 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                     <h5 className="text-xs font-black uppercase text-slate-300 tracking-wider flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-[#00e03c]" />
                       {(drawerData.milestoneType === 'weekdays' && 'Checklist Semanal (Lun - Dom)') ||
-                       (drawerData.milestoneType === 'custom_subtasks' && 'Subtareas Específicas') ||
                        (drawerData.milestoneType === 'numeric' && 'Métrica Cuantitativa') ||
-                       'Hitos de Ejecución Técnica (5 Fases)'}
+                       'Subtareas & Hitos de Ejecución'}
                     </h5>
                     <span className="text-[11px] font-black text-[#00e03c] bg-[#00e03c]/10 px-2 py-0.5 rounded-full border border-[#00e03c]/20 font-mono">
                       {getProgressPercent(drawerData)}% Completado
@@ -3770,41 +3856,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                     />
                   </div>
 
-                  {/* Modalidad 1: 5 Fases Estándar */}
-                  {(!drawerData.milestoneType || drawerData.milestoneType === 'phases') && (
-                    <div className="space-y-2 pt-1">
-                      {STANDARD_MILESTONES.map((m) => {
-                        const isDone = (drawerData.milestoneStep || 0) >= m.step;
-                        return (
-                          <div
-                            key={m.step}
-                            onClick={() => handleMilestoneClick(drawerActivity, m.step)}
-                            className={`flex items-center justify-between p-2.5 rounded-xl border text-xs cursor-pointer transition-all ${
-                              isDone
-                                ? 'bg-[#00e03c]/10 border-[#00e03c]/30 text-white'
-                                : 'bg-white/[0.02] border-white/[0.06] text-slate-400 hover:bg-white/[0.05]'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2.5">
-                              <div className={`w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-black transition-all ${
-                                isDone ? 'bg-[#00e03c] text-slate-950 font-black' : 'border border-white/20 text-slate-500'
-                              }`}>
-                                {isDone ? <Check className="w-3 h-3 stroke-[3]" /> : m.step}
-                              </div>
-                              <span className={isDone ? 'font-bold text-white' : 'font-medium'}>
-                                {m.label}
-                              </span>
-                            </div>
-                            <span className={`text-[10px] font-bold ${isDone ? 'text-[#00e03c]' : 'text-slate-500'}`}>
-                              {isDone ? 'Completado' : 'Pendiente'}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {/* Modalidad 2: Días de la Semana */}
+                  {/* Modalidad 1: Días de la Semana */}
                   {drawerData.milestoneType === 'weekdays' && (
                     <div className="space-y-2 pt-1">
                       <div className="grid grid-cols-7 gap-1.5">
@@ -3830,7 +3882,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                               }`}
                             >
                               <span className="text-[10px] font-bold text-slate-400 uppercase">{day.label}</span>
-                              <span className="text-xs font-black mt-0.5">{isDone ? '✓' : '—'}</span>
+                              <span className="text-xs font-black mt-0.5">{isDone ? 'OK' : '—'}</span>
                             </button>
                           );
                         })}
@@ -3841,43 +3893,149 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                     </div>
                   )}
 
-                  {/* Modalidad 3: Subtareas Personalizadas */}
-                  {drawerData.milestoneType === 'custom_subtasks' && (
+                  {/* Modalidad 2: Métrica Cuantitativa */}
+                  {drawerData.milestoneType === 'numeric' && (
+                    <div className="space-y-3 pt-1">
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-slate-400 block">Progreso Cuantitativo</span>
+                          <div className="text-xl font-black text-white font-mono mt-0.5">
+                            <span className="text-[#00e03c]">{drawerData.currentValue || 0}</span>
+                            <span className="text-slate-500 text-sm font-normal"> / {drawerData.targetValue || 10}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleNumericChange(drawerActivity, -5)}
+                            className="px-2 py-1 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] text-white text-xs font-mono font-bold cursor-pointer"
+                            title="-5 unidades"
+                          >
+                            -5
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleNumericChange(drawerActivity, -1)}
+                            className="px-2 py-1 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] text-white text-xs font-mono font-bold cursor-pointer"
+                            title="-1 unidad"
+                          >
+                            -1
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleNumericChange(drawerActivity, 1)}
+                            className="px-2 py-1 rounded-lg bg-[#00e03c]/20 hover:bg-[#00e03c]/30 text-[#00e03c] text-xs font-mono font-bold cursor-pointer"
+                            title="+1 unidad"
+                          >
+                            +1
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleNumericChange(drawerActivity, 5)}
+                            className="px-2 py-1 rounded-lg bg-[#00e03c]/20 hover:bg-[#00e03c]/30 text-[#00e03c] text-xs font-mono font-bold cursor-pointer"
+                            title="+5 unidades"
+                          >
+                            +5
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Modalidad 3: Subtareas Abiertas y Editables Inline (Default y 5 Fases migratorias) */}
+                  {drawerData.milestoneType !== 'weekdays' && drawerData.milestoneType !== 'numeric' && (
                     <div className="space-y-2 pt-1">
                       {Array.isArray(drawerData.customSubtasks) && drawerData.customSubtasks.length > 0 ? (
-                        <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-                          {drawerData.customSubtasks.map((st) => (
-                            <div
-                              key={st.id}
-                              className={`flex items-center justify-between p-2 rounded-xl border text-xs transition-all ${
-                                st.done
-                                  ? 'bg-[#00e03c]/10 border-[#00e03c]/30 text-white'
-                                  : 'bg-white/[0.02] border-white/[0.06] text-slate-300 hover:bg-white/[0.05]'
-                              }`}
-                            >
+                        <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+                          {drawerData.customSubtasks.map((st) => {
+                            const isEditing = editingSubtaskId === st.id;
+                            return (
                               <div
-                                onClick={() => handleToggleCustomSubtask(drawerActivity, st.id)}
-                                className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer"
+                                key={st.id}
+                                className={`flex items-center justify-between p-2 rounded-xl border text-xs transition-all ${
+                                  st.done
+                                    ? 'bg-[#00e03c]/10 border-[#00e03c]/30 text-white'
+                                    : 'bg-white/[0.02] border-white/[0.06] text-slate-300 hover:bg-white/[0.05]'
+                                }`}
                               >
-                                <div className={`w-4 h-4 rounded flex items-center justify-center text-[10px] transition-colors shrink-0 ${
-                                  st.done ? 'bg-[#00e03c] text-slate-950 font-black' : 'border border-white/20'
-                                }`}>
-                                  {st.done && <Check className="w-3 h-3 stroke-[3]" />}
+                                <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                                  {/* Checkbox interactivo */}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleCustomSubtask(drawerActivity, st.id)}
+                                    className={`w-4 h-4 rounded flex items-center justify-center text-[10px] transition-colors shrink-0 cursor-pointer ${
+                                      st.done ? 'bg-[#00e03c] text-slate-950 font-black shadow-sm' : 'border border-white/20 hover:border-white/50 bg-white/[0.04]'
+                                    }`}
+                                  >
+                                    {st.done && <Check className="w-3 h-3 stroke-[3]" />}
+                                  </button>
+
+                                  {/* Texto editable inline */}
+                                  {isEditing ? (
+                                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                                      <input
+                                        type="text"
+                                        value={editingSubtaskText}
+                                        onChange={(e) => setEditingSubtaskText(e.target.value)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleSaveEditSubtask(st.id);
+                                          } else if (e.key === 'Escape') {
+                                            handleCancelEditSubtask();
+                                          }
+                                        }}
+                                        onBlur={() => handleSaveEditSubtask(st.id)}
+                                        autoFocus
+                                        className="flex-1 px-2 py-0.5 bg-[#0a130a] border border-[#00e03c] rounded text-white text-xs focus:outline-none"
+                                      />
+                                      <button
+                                        type="button"
+                                        onMouseDown={(e) => e.preventDefault()}
+                                        onClick={() => handleSaveEditSubtask(st.id)}
+                                        className="p-1 rounded bg-[#00e03c]/20 text-[#00e03c] hover:bg-[#00e03c]/30 cursor-pointer"
+                                        title="Guardar edición"
+                                      >
+                                        <Check className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <span
+                                      onClick={() => handleStartEditSubtask(st)}
+                                      title="Clic para editar subtarea"
+                                      className={`flex-1 truncate cursor-pointer hover:text-white transition-colors ${
+                                        st.done ? 'line-through text-slate-400' : 'font-medium'
+                                      }`}
+                                    >
+                                      {st.label}
+                                    </span>
+                                  )}
                                 </div>
-                                <span className={`truncate ${st.done ? 'line-through text-slate-400' : 'font-medium'}`}>
-                                  {st.label}
-                                </span>
+
+                                {/* Acciones de subtarea */}
+                                {!isEditing && (
+                                  <div className="flex items-center gap-1 shrink-0 ml-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleStartEditSubtask(st)}
+                                      className="p-1 text-slate-400 hover:text-white transition-colors cursor-pointer rounded hover:bg-white/[0.06]"
+                                      title="Editar subtarea"
+                                    >
+                                      <Edit2 className="w-3 h-3" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveDrawerSubtask(st.id)}
+                                      className="p-1 text-slate-400 hover:text-rose-400 transition-colors cursor-pointer rounded hover:bg-rose-500/10"
+                                      title="Eliminar subtarea"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                )}
                               </div>
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveDrawerSubtask(st.id)}
-                                className="p-1 text-slate-500 hover:text-rose-400 transition-colors shrink-0 ml-2 cursor-pointer"
-                                title="Eliminar subtarea"
-                              >
-                                <X className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       ) : (
                         <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-center text-xs text-slate-400">
@@ -3906,6 +4064,16 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                           className="px-3 py-1.5 rounded-xl bg-white/[0.08] hover:bg-[#00e03c]/20 hover:text-[#00e03c] border border-white/[0.12] text-xs font-bold transition-colors cursor-pointer shrink-0 flex items-center gap-1"
                         >
                           <Plus className="w-3.5 h-3.5" /> Añadir
+                        </button>
+                      </div>
+
+                      <div className="flex justify-end pt-1">
+                        <button
+                          type="button"
+                          onClick={handleLoadStandardPhasesToDrawer}
+                          className="text-[10px] text-slate-400 hover:text-[#00e03c] transition-colors flex items-center gap-1 cursor-pointer"
+                        >
+                          <ListOrdered className="w-3 h-3" /> Cargar 5 Fases Estándar
                         </button>
                       </div>
                     </div>
@@ -4111,8 +4279,8 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                       >
                         <option value="principal">Actividad Principal</option>
                         <option value="secundaria">Actividad Secundaria</option>
-                        <option value="grupal">👥 Actividad Grupal / Misión Directorio</option>
-                        <option value="flash">⚡ Misión Flash (Contingencia)</option>
+                        <option value="grupal">Actividad Grupal / Misión Directorio</option>
+                        <option value="flash">Misión Flash (Contingencia)</option>
                       </select>
                     </div>
 
@@ -4189,13 +4357,27 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase text-slate-400">Modalidad de Hitos</label>
                       <select
-                        value={drawerData.milestoneType || 'phases'}
-                        onChange={(e) => setDrawerData(prev => ({ ...prev, milestoneType: e.target.value }))}
+                        value={drawerData.milestoneType || 'custom_subtasks'}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === 'phases' && (!drawerData.customSubtasks || drawerData.customSubtasks.length === 0)) {
+                            const currentStep = getMilestoneStep(drawerActivity);
+                            const standardSubs = STANDARD_MILESTONES.map((m) => ({
+                              id: `st_phase_${m.step}_${Date.now()}`,
+                              label: m.label,
+                              done: currentStep >= m.step
+                            }));
+                            setDrawerData(prev => ({ ...prev, milestoneType: 'custom_subtasks', customSubtasks: standardSubs }));
+                            handleEditActivity(drawerActivity.id, { milestoneType: 'custom_subtasks', customSubtasks: standardSubs });
+                          } else {
+                            setDrawerData(prev => ({ ...prev, milestoneType: val }));
+                          }
+                        }}
                         className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
                       >
-                        <option value="phases">5 Fases Estándar</option>
+                        <option value="custom_subtasks">Subtareas Abiertas / Checklist Libre</option>
+                        <option value="phases">5 Fases Técnicas (Editables)</option>
                         <option value="weekdays">Días de la Semana (Lun - Dom)</option>
-                        <option value="custom_subtasks">Tareas Específicas Personalizadas</option>
                         <option value="numeric">Cuantitativo / Numérico</option>
                       </select>
                     </div>
@@ -4228,9 +4410,9 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                       onChange={(e) => setDrawerData(prev => ({ ...prev, validationCriteria: e.target.value }))}
                       className="w-full px-3 py-2 bg-white/[0.06] border border-amber-500/30 rounded-xl text-white font-bold focus:outline-none focus:border-amber-400 [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
                     >
-                      <option value="cross_audit">🛡️ Auditoría Cruzada Pericial (Aprobación de otro socio)</option>
-                      <option value="auto_proof">📎 Comprobante Obligatorio (Exige link o documento adjunto)</option>
-                      <option value="provisional_pool">⏱️ Bolsa Provisional de Horas (Sin bloqueo, ratificación semanal)</option>
+                      <option value="cross_audit">Auditoría Cruzada Pericial (Aprobación de otro socio)</option>
+                      <option value="auto_proof">Comprobante Obligatorio (Exige link o documento adjunto)</option>
+                      <option value="provisional_pool">Bolsa Provisional de Horas (Sin bloqueo, ratificación semanal)</option>
                     </select>
                   </div>
 
@@ -4332,7 +4514,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                               }`}
                               title={isSelected ? `Quitar a ${member.name}` : `Añadir a ${member.name}`}
                             >
-                              <span>{isSelected ? '✓' : '+'}</span>
+                              <span>{isSelected ? 'Agregado' : '+'}</span>
                               <span>{member.initials}</span>
                               <span className="text-[10px] text-slate-400 font-normal">{member.name.replace(/^(Ing\.|Dra\.)\s*/, '')}</span>
                             </button>
@@ -4363,7 +4545,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
 
                   {/* Rango de Fechas (Inicio y Límite) */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Rango de Fechas (Inicio ➔ Límite)</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400">Rango de Fechas (Inicio a Límite)</label>
                     <div className="grid grid-cols-2 gap-2">
                       <input
                         type="date"
@@ -4426,7 +4608,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                           </div>
                           <div className="min-w-0">
                             <p className="text-white font-bold text-xs flex items-center gap-1.5 flex-wrap">
-                              <span>📄 Documento Compartido por</span>
+                              <span>Documento Compartido por</span>
                               <span className="text-emerald-400 font-black">{drawerData.assignedPartner}:</span>
                             </p>
                             <p className="text-[11px] text-slate-300 font-mono mt-0.5 truncate max-w-full">
@@ -4489,7 +4671,8 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                             rel="noopener noreferrer"
                             className="text-[10px] text-sky-300 underline font-mono flex items-center gap-1 hover:text-white"
                           >
-                            Abrir enlace ➔
+                            <span>Abrir enlace</span>
+                            <ArrowRight className="w-3 h-3 inline" />
                           </a>
                         )}
                       </div>

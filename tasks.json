@@ -1,10 +1,18 @@
 {
   "version": "1.0",
   "project": "SERAM",
-  "last_updated": "2026-11-11",
+  "last_updated": "2026-11-12",
   "tasks": [],
   "in_progress": [],
   "completed": [
+    {
+      "id": "TASK-114",
+      "title": "Subtareas Abiertas y Editables por Actividad (Checklist Libre con Edición Inline en Ficha Lateral), Insignia de Contador en Tabla Notion, Migración Dinámica de Fases SIG y Depuración Integral de Emoticones para Estética Ejecutiva",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-11-12",
+      "completed_at": "2026-11-12"
+    },
     {
       "id": "TASK-113",
       "title": "Calendario SERAM: Retiro de 'Odoo' del nombre, Vistas Multi-Escala (Anual, Trimestral Q1-Q4, Mensual, Semanal, Diaria, Agenda), Corrección Visual Definitiva y Automatización Nativa Docker n8n Paso a Paso para No Técnicos",

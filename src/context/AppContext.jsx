@@ -3478,7 +3478,7 @@ export function AppProvider({ children }) {
     }
   };
 
-  // ─── B2B PROSPECTS HANDLERS (BASE GLOBAL SEPREC / NOTION ➔ CLIENTES) ───
+  // ─── B2B PROSPECTS HANDLERS (BASE GLOBAL SEPREC / NOTION -> CLIENTES) ───
   const handleUpdateProspect = (id, updatedFields) => {
     setProspects(prev => prev.map(p => p.id === id ? { ...p, ...updatedFields } : p));
     triggerToast('Estado de gestión comercial actualizado', 'info');
@@ -3924,7 +3924,7 @@ export function AppProvider({ children }) {
       roomCoords: { x: 28, y: 80 }
     });
 
-    triggerToast('Sesión de trabajo en pausa. Tu avatar se trasladó a la Cafetería ☕', 'info');
+    triggerToast('Sesión de trabajo en pausa. Tu avatar se trasladó a la Cafetería.', 'info');
   };
 
   const resetPartnerTimer = () => {
@@ -4024,7 +4024,7 @@ export function AppProvider({ children }) {
               currentSectorName: '09. SALA RECREATIVA / Área de Café & Descanso',
               roomCoords: { x: 28, y: 80 }
             });
-            triggerToast('☕ Pestaña en segundo plano prolongado: Jornada pausada en la Cafetería.', 'info');
+            triggerToast('Pestaña en segundo plano prolongado: Jornada pausada en la Cafetería.', 'info');
           }
         }, 3 * 60 * 1000);
       } else {
@@ -4098,7 +4098,7 @@ export function AppProvider({ children }) {
           currentSectorName: '09. SALA RECREATIVA / Área de Café & Descanso',
           roomCoords: { x: 28, y: 80 }
         });
-        triggerToast('🌙 Cierre diario de jornada (24h completadas): el contador se ha reiniciado automáticamente a 00:00:00.', 'info');
+        triggerToast('Cierre diario de jornada (24h completadas): el contador se ha reiniciado automáticamente a 00:00:00.', 'info');
         return;
       }
 
@@ -4129,7 +4129,7 @@ export function AppProvider({ children }) {
             currentSectorName: '09. SALA RECREATIVA / Área de Café & Descanso',
             roomCoords: { x: 28, y: 80 }
           });
-          triggerToast('⏰ Jornada suspendida por inactividad (15 min sin interacción). Tu avatar se trasladó a la Cafetería y el cronómetro se pausó automáticamente.', 'warning');
+          triggerToast('Jornada suspendida por inactividad (15 min sin interacción). Tu avatar se trasladó a la Cafetería y el cronómetro se pausó automáticamente.', 'warning');
         }
       }
     }, 5000);
