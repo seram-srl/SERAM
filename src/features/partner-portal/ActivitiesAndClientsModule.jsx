@@ -10,7 +10,7 @@ import {
   Target, Users, UserCheck, Link2, Zap,
   Download, Upload, Paperclip, Share2, FileDown, Timer, Flame,
   Copy, Folder, Laptop, Mountain, Smartphone, GraduationCap, Rocket, ListOrdered,
-  GitBranch, Milestone, Compass, CalendarDays
+  GitBranch, Milestone, Compass, CalendarDays, RotateCcw
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { calculateTaskXP, validateCrossApproval } from './gamification/xpEngine';
@@ -569,6 +569,10 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
   const [editingSubtaskId, setEditingSubtaskId] = useState(null);
   const [editingSubtaskText, setEditingSubtaskText] = useState('');
 
+  // Odoo Control Panel & Search Bar (TASK-116)
+  const [showFilterPopover, setShowFilterPopover] = useState(false);
+  const filterPopoverRef = useRef(null);
+
   // Modales
   const [showNewActivityModal, setShowNewActivityModal] = useState(false);
   const [editingActivity, setEditingActivity] = useState(null);
@@ -743,6 +747,21 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
   React.useEffect(() => {
     setCurrentPage(1);
   }, [scopeFilter, partnerFilter, projectFilter, okrFilter, searchQuery, pageSize]);
+
+  // Cerrar Popover de Filtros Odoo al hacer click afuera (TASK-116)
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (filterPopoverRef.current && !filterPopoverRef.current.contains(e.target)) {
+        setShowFilterPopover(false);
+      }
+    };
+    if (showFilterPopover) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showFilterPopover]);
 
   const handleApproveActivity = (act) => {
     const validation = validateCrossApproval(currentSocio, act);
@@ -1232,6 +1251,32 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     const start = (currentPage - 1) * pageSize;
     return filteredActivities.slice(start, start + pageSize);
   }, [filteredActivities, currentPage, pageSize]);
+
+  // Helpers para Odoo Control Panel & Search Bar (TASK-116)
+  const totalItems = filteredActivities.length;
+  const startItem = totalItems === 0 ? 0 : (pageSize === 'all' ? 1 : (currentPage - 1) * pageSize + 1);
+  const endItem = pageSize === 'all' ? totalItems : Math.min(currentPage * pageSize, totalItems);
+  const activeFiltersCount = (partnerFilter !== 'all' ? 1 : 0) + (projectFilter !== 'all' ? 1 : 0) + (okrFilter !== 'all' ? 1 : 0);
+
+  const projectFilterLabel = useMemo(() => {
+    if (projectFilter === 'all') return '';
+    const match = activeServices.find(s => String(s.id) === String(projectFilter));
+    return match ? (match.client || match.type) : projectFilter;
+  }, [projectFilter, activeServices]);
+
+  const okrFilterLabel = useMemo(() => {
+    if (okrFilter === 'all') return '';
+    if (okrFilter === 'diario') return 'Diario';
+    const match = OKR_LEVEL_CONFIG.find(o => o.id === okrFilter);
+    return match ? match.title : okrFilter;
+  }, [okrFilter]);
+
+  const clearAllFilters = () => {
+    setPartnerFilter('all');
+    setProjectFilter('all');
+    setOkrFilter('all');
+    setSearchQuery('');
+  };
 
   // Lista de Socios Únicos
   const partnersList = [
@@ -1731,152 +1776,424 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         </div>
       </div>
 
-      {/* ── BARRA DE HERRAMIENTAS Y FILTROS ESTILO NOTION ── */}
+      {/* ── BARRA DE CONTROL PANEL & SEARCH BAR ESTILO ODOO ERP (TASK-116) ── */}
       {(activeTab === 'kanban' || activeTab === 'table') && (
-        <div className="flex flex-wrap items-center justify-between gap-2.5 bg-[#0d1522]/90 px-3 py-2 rounded-xl border border-white/[0.08] shadow-md relative z-10">
-          {/* Grupo 1: Filtro Personal vs Grupal y Acceso Rápido Misión Grupal */}
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
+        <div className="bg-[#0a130a]/95 backdrop-blur-md px-3 py-2 rounded-2xl border border-white/[0.1] shadow-lg relative z-30">
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-2.5">
+            {/* LADO IZQUIERDO: Control segmentado de Alcance + Botón Acción Grupal */}
+            <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
+              <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
+                <button
+                  type="button"
+                  onClick={() => setScopeFilter('personal')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    scopeFilter === 'personal'
+                      ? 'bg-[#00e03c] text-slate-950 font-black shadow-md'
+                      : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                  }`}
+                  title="Filtrar actividades donde estás asignado"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span>Mis Actividades</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setScopeFilter('all')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    scopeFilter === 'all'
+                      ? 'bg-white/[0.14] text-white font-black shadow-md'
+                      : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                  }`}
+                  title="Ver todas las actividades grupales de SERAM"
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Todo el Equipo</span>
+                </button>
+              </div>
+
+              {/* Botón de Acción Rápida Neuform: Nueva Misión de Directorio / Grupal */}
               <button
                 type="button"
-                onClick={() => setScopeFilter('personal')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  scopeFilter === 'personal'
-                    ? 'bg-[#00e03c] text-slate-950 font-black shadow-md'
-                    : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
-                }`}
-                title="Filtrar actividades donde estás asignado"
+                onClick={handleOpenNewGroupMission}
+                className="px-3 py-1.5 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 hover:text-white border border-purple-500/40 hover:border-purple-400/60 font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm shadow-purple-500/10 cursor-pointer"
+                title="Crear nueva misión grupal de directorio para múltiples socios y consultores"
               >
-                <User className="w-3.5 h-3.5" />
-                <span>Mis Actividades (Personal)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setScopeFilter('all')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  scopeFilter === 'all'
-                    ? 'bg-white/[0.14] text-white font-black shadow-md'
-                    : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
-                }`}
-                title="Ver todas las actividades grupales de SERAM"
-              >
-                <Users className="w-3.5 h-3.5" />
-                <span>Todo el Equipo (Grupal)</span>
+                <Users className="w-3.5 h-3.5 text-purple-400" />
+                <span className="hidden sm:inline">Nueva Misión Grupal</span>
+                <span className="sm:hidden">Misión</span>
               </button>
             </div>
 
-            {/* Botón de Acción Rápida Neuform: Nueva Misión de Directorio / Grupal */}
-            <button
-              type="button"
-              onClick={handleOpenNewGroupMission}
-              className="px-3 py-1.5 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 hover:text-white border border-purple-500/40 hover:border-purple-400/60 font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm shadow-purple-500/10 cursor-pointer"
-              title="Crear nueva misión grupal de directorio para múltiples socios y consultores"
-            >
-              <Users className="w-3.5 h-3.5 text-purple-400" />
-              <span>Nueva Misión de Directorio / Grupal</span>
-            </button>
-          </div>
+            {/* CENTRO: ODOO SMART SEARCH BAR CON FACETAS DINÁMICAS Y POPOVER DE FILTROS */}
+            <div className="flex items-center gap-2 flex-1 min-w-[260px] max-w-2xl relative" ref={filterPopoverRef}>
+              {/* Barra Contenedora de Búsqueda y Facetas */}
+              <div className="flex-1 flex items-center gap-1.5 bg-black/60 border border-white/[0.12] hover:border-white/[0.2] focus-within:border-[#00e03c]/60 rounded-xl px-2.5 py-1 min-h-[38px] transition-all overflow-x-auto no-scrollbar">
+                <Search className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
 
-          {/* Grupo 2: Filtros Selectores, Paginación y Búsqueda */}
-          <div className="flex flex-wrap items-center gap-2 flex-1 justify-end min-w-[260px]">
-            {/* Selector de Límite (Últimas 10 por defecto) */}
-            <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.08] text-xs">
-              <span className="text-[10px] font-bold text-slate-400 uppercase px-2">Ver:</span>
+                {/* Faceta Dinámica: Socio */}
+                {partnerFilter !== 'all' && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 whitespace-nowrap flex-shrink-0 animate-in fade-in duration-150">
+                    <User className="w-3 h-3 text-emerald-400" />
+                    <span className="max-w-[110px] truncate">{partnerFilter.replace('Ing. ', '').replace('Dra. ', '')}</span>
+                    <button
+                      type="button"
+                      onClick={() => setPartnerFilter('all')}
+                      className="hover:text-white hover:bg-emerald-500/40 rounded p-0.5 transition-colors cursor-pointer"
+                      title="Quitar filtro de socio"
+                    >
+                      <X className="w-2.5 h-2.5" />
+                    </button>
+                  </span>
+                )}
+
+                {/* Faceta Dinámica: Proyecto */}
+                {projectFilter !== 'all' && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-sky-500/20 text-sky-300 border border-sky-500/30 whitespace-nowrap flex-shrink-0 animate-in fade-in duration-150">
+                    <Briefcase className="w-3 h-3 text-sky-400" />
+                    <span className="max-w-[120px] truncate">{projectFilterLabel}</span>
+                    <button
+                      type="button"
+                      onClick={() => setProjectFilter('all')}
+                      className="hover:text-white hover:bg-sky-500/40 rounded p-0.5 transition-colors cursor-pointer"
+                      title="Quitar filtro de proyecto"
+                    >
+                      <X className="w-2.5 h-2.5" />
+                    </button>
+                  </span>
+                )}
+
+                {/* Faceta Dinámica: Jerarquía OKR */}
+                {okrFilter !== 'all' && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30 whitespace-nowrap flex-shrink-0 animate-in fade-in duration-150">
+                    <Target className="w-3 h-3 text-amber-400" />
+                    <span className="max-w-[110px] truncate">OKR: {okrFilterLabel}</span>
+                    <button
+                      type="button"
+                      onClick={() => setOkrFilter('all')}
+                      className="hover:text-white hover:bg-amber-500/40 rounded p-0.5 transition-colors cursor-pointer"
+                      title="Quitar filtro de OKR"
+                    >
+                      <X className="w-2.5 h-2.5" />
+                    </button>
+                  </span>
+                )}
+
+                {/* Input de Búsqueda Libre */}
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={activeFiltersCount > 0 ? "Buscar más..." : "Buscar actividad o tag..."}
+                  className="bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none min-w-[110px] flex-1 py-1"
+                />
+
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="text-slate-400 hover:text-white p-0.5 rounded transition-colors flex-shrink-0 cursor-pointer"
+                    title="Borrar texto de búsqueda"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+
+              {/* Botón Popover de Filtros Odoo */}
               <button
                 type="button"
-                onClick={() => setPageSize(10)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  pageSize === 10 ? 'bg-[#00e03c] text-slate-950 font-black' : 'text-slate-400 hover:text-white'
+                onClick={() => setShowFilterPopover((prev) => !prev)}
+                className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all flex-shrink-0 cursor-pointer ${
+                  activeFiltersCount > 0
+                    ? 'bg-[#00e03c]/15 text-[#00e03c] border-[#00e03c]/40 shadow-sm shadow-[#00e03c]/10'
+                    : 'bg-white/[0.04] text-slate-300 border-white/[0.1] hover:bg-white/[0.08]'
                 }`}
+                title="Abrir filtros avanzados (Socio, Proyecto, Jerarquía OKR)"
               >
-                Últimas 10
+                <Filter className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Filtros</span>
+                {activeFiltersCount > 0 && (
+                  <span className="w-4 h-4 rounded-full bg-[#00e03c] text-slate-950 font-black text-[10px] flex items-center justify-center">
+                    {activeFiltersCount}
+                  </span>
+                )}
+                <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${showFilterPopover ? 'rotate-180' : ''}`} />
               </button>
-              <button
-                type="button"
-                onClick={() => setPageSize(25)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  pageSize === 25 ? 'bg-[#00e03c] text-slate-950 font-black' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                25
-              </button>
-              <button
-                type="button"
-                onClick={() => setPageSize('all')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  pageSize === 'all' ? 'bg-[#00e03c] text-slate-950 font-black' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                Todas ({filteredActivities.length})
-              </button>
+
+              {/* POPOVER FLOTANTE ESTILO ODOO ERP */}
+              {showFilterPopover && (
+                <div className="absolute top-full mt-2 left-0 right-0 sm:left-auto sm:right-0 w-[95vw] sm:w-[650px] bg-[#0c1410] border border-white/[0.15] shadow-2xl rounded-2xl p-4 z-50 flex flex-col backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-150">
+                  {/* Encabezado del Popover */}
+                  <div className="flex items-center justify-between border-b border-white/[0.08] pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <Filter className="w-4 h-4 text-[#00e03c]" />
+                      <span className="text-xs font-bold text-white uppercase tracking-wider">Filtros Odoo ERP</span>
+                      {activeFiltersCount > 0 && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/30">
+                          {activeFiltersCount} activo{activeFiltersCount > 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {activeFiltersCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={clearAllFilters}
+                          className="text-[11px] text-amber-400 hover:text-amber-300 flex items-center gap-1 font-semibold transition-colors cursor-pointer px-2 py-1 rounded-md hover:bg-amber-400/10"
+                          title="Restablecer todos los filtros"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          <span>Limpiar filtros</span>
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setShowFilterPopover(false)}
+                        className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors cursor-pointer"
+                        title="Cerrar panel de filtros"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Cuerpo: 3 Columnas Estilo Odoo */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 my-3">
+                    {/* Columna 1: Socio / Consultor */}
+                    <div className="space-y-1.5 flex flex-col">
+                      <div className="flex items-center gap-1.5 pb-1 border-b border-white/[0.06]">
+                        <User className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="font-bold text-[11px] text-slate-300 uppercase tracking-wider">Socio / Asignado</span>
+                      </div>
+                      <div className="max-h-[220px] overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                        <button
+                          type="button"
+                          onClick={() => setPartnerFilter('all')}
+                          className={`w-full text-left px-2 py-1.5 rounded-lg text-xs flex items-center justify-between gap-1 transition-all cursor-pointer ${
+                            partnerFilter === 'all'
+                              ? 'bg-white/[0.1] text-white font-bold border border-white/[0.15]'
+                              : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                          }`}
+                        >
+                          <span>Todos</span>
+                          {partnerFilter === 'all' && <Check className="w-3.5 h-3.5 text-[#00e03c] flex-shrink-0" />}
+                        </button>
+                        
+                        <div className="text-[10px] font-bold text-slate-500 uppercase px-1 pt-1">Socios Fundadores</div>
+                        {['Ing. Diego Barrientos', 'Ing. Fernando Araujo'].map((pName) => (
+                          <button
+                            key={pName}
+                            type="button"
+                            onClick={() => setPartnerFilter(partnerFilter === pName ? 'all' : pName)}
+                            className={`w-full text-left px-2 py-1.5 rounded-lg text-xs flex items-center justify-between gap-1 transition-all cursor-pointer ${
+                              partnerFilter === pName
+                                ? 'bg-emerald-500/15 text-emerald-300 font-bold border border-emerald-500/30'
+                                : 'text-slate-300 hover:text-white hover:bg-white/[0.04]'
+                            }`}
+                          >
+                            <span className="truncate">{pName}</span>
+                            {partnerFilter === pName && <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />}
+                          </button>
+                        ))}
+
+                        <div className="text-[10px] font-bold text-slate-500 uppercase px-1 pt-1">Consultores SERAM</div>
+                        {['Ing. Mariana Camacho', 'Ing. Carlos Mendoza', 'Dra. Gabriela Rojas'].map((cName) => (
+                          <button
+                            key={cName}
+                            type="button"
+                            onClick={() => setPartnerFilter(partnerFilter === cName ? 'all' : cName)}
+                            className={`w-full text-left px-2 py-1.5 rounded-lg text-xs flex items-center justify-between gap-1 transition-all cursor-pointer ${
+                              partnerFilter === cName
+                                ? 'bg-emerald-500/15 text-emerald-300 font-bold border border-emerald-500/30'
+                                : 'text-slate-300 hover:text-white hover:bg-white/[0.04]'
+                            }`}
+                          >
+                            <span className="truncate">{cName}</span>
+                            {partnerFilter === cName && <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Columna 2: Proyecto */}
+                    <div className="space-y-1.5 flex flex-col">
+                      <div className="flex items-center gap-1.5 pb-1 border-b border-white/[0.06]">
+                        <Briefcase className="w-3.5 h-3.5 text-sky-400" />
+                        <span className="font-bold text-[11px] text-slate-300 uppercase tracking-wider">Proyecto</span>
+                      </div>
+                      <div className="max-h-[220px] overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                        <button
+                          type="button"
+                          onClick={() => setProjectFilter('all')}
+                          className={`w-full text-left px-2 py-1.5 rounded-lg text-xs flex items-center justify-between gap-1 transition-all cursor-pointer ${
+                            projectFilter === 'all'
+                              ? 'bg-white/[0.1] text-white font-bold border border-white/[0.15]'
+                              : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                          }`}
+                        >
+                          <span>Todos</span>
+                          {projectFilter === 'all' && <Check className="w-3.5 h-3.5 text-sky-400 flex-shrink-0" />}
+                        </button>
+
+                        <div className="text-[10px] font-bold text-slate-500 uppercase px-1 pt-1">Proyectos SERAM</div>
+                        {['SERAM S.R.L.', 'Página Web', 'Valle de las Agujas', 'Contenido Redes Sociales', 'Lanzamiento de SERAM Academy'].map((pTitle) => (
+                          <button
+                            key={pTitle}
+                            type="button"
+                            onClick={() => setProjectFilter(projectFilter === pTitle ? 'all' : pTitle)}
+                            className={`w-full text-left px-2 py-1.5 rounded-lg text-xs flex items-center justify-between gap-1 transition-all cursor-pointer ${
+                              projectFilter === pTitle
+                                ? 'bg-sky-500/15 text-sky-300 font-bold border border-sky-500/30'
+                                : 'text-slate-300 hover:text-white hover:bg-white/[0.04]'
+                            }`}
+                          >
+                            <span className="truncate">{pTitle}</span>
+                            {projectFilter === pTitle && <Check className="w-3.5 h-3.5 text-sky-400 flex-shrink-0" />}
+                          </button>
+                        ))}
+
+                        {activeServices.filter(s => !['SERAM S.R.L.', 'Página Web', 'Valle de las Agujas', 'Contenido Redes Sociales', 'Lanzamiento de SERAM Academy'].includes(s.client || s.type)).length > 0 && (
+                          <>
+                            <div className="text-[10px] font-bold text-slate-500 uppercase px-1 pt-1">Servicios Activos</div>
+                            {activeServices
+                              .filter(s => !['SERAM S.R.L.', 'Página Web', 'Valle de las Agujas', 'Contenido Redes Sociales', 'Lanzamiento de SERAM Academy'].includes(s.client || s.type))
+                              .map((p) => {
+                                const pLabel = p.client || p.type;
+                                const isSelected = String(projectFilter) === String(p.id) || projectFilter === pLabel;
+                                return (
+                                  <button
+                                    key={p.id}
+                                    type="button"
+                                    onClick={() => setProjectFilter(isSelected ? 'all' : p.id)}
+                                    className={`w-full text-left px-2 py-1.5 rounded-lg text-xs flex items-center justify-between gap-1 transition-all cursor-pointer ${
+                                      isSelected
+                                        ? 'bg-sky-500/15 text-sky-300 font-bold border border-sky-500/30'
+                                        : 'text-slate-300 hover:text-white hover:bg-white/[0.04]'
+                                    }`}
+                                  >
+                                    <span className="truncate">{pLabel}</span>
+                                    {isSelected && <Check className="w-3.5 h-3.5 text-sky-400 flex-shrink-0" />}
+                                  </button>
+                                );
+                              })}
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Columna 3: Jerarquía OKR */}
+                    <div className="space-y-1.5 flex flex-col">
+                      <div className="flex items-center gap-1.5 pb-1 border-b border-white/[0.06]">
+                        <Target className="w-3.5 h-3.5 text-amber-400" />
+                        <span className="font-bold text-[11px] text-slate-300 uppercase tracking-wider">Jerarquía OKR</span>
+                      </div>
+                      <div className="max-h-[220px] overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                        <button
+                          type="button"
+                          onClick={() => setOkrFilter('all')}
+                          className={`w-full text-left px-2 py-1.5 rounded-lg text-xs flex items-center justify-between gap-1 transition-all cursor-pointer ${
+                            okrFilter === 'all'
+                              ? 'bg-white/[0.1] text-white font-bold border border-white/[0.15]'
+                              : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                          }`}
+                        >
+                          <span>Todas</span>
+                          {okrFilter === 'all' && <Check className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />}
+                        </button>
+
+                        {[
+                          { id: 'anual', label: 'Macro Anual', dot: 'bg-amber-400' },
+                          { id: 'semestral', label: 'Semestral', dot: 'bg-purple-400' },
+                          { id: 'trimestral', label: 'Trimestral', dot: 'bg-sky-400' },
+                          { id: 'mensual', label: 'Mensual', dot: 'bg-emerald-400' },
+                          { id: 'semanal', label: 'Semanal', dot: 'bg-slate-400' },
+                          { id: 'diario', label: 'Diario', dot: 'bg-rose-400' }
+                        ].map((okrItem) => (
+                          <button
+                            key={okrItem.id}
+                            type="button"
+                            onClick={() => setOkrFilter(okrFilter === okrItem.id ? 'all' : okrItem.id)}
+                            className={`w-full text-left px-2 py-1.5 rounded-lg text-xs flex items-center justify-between gap-1 transition-all cursor-pointer ${
+                              okrFilter === okrItem.id
+                                ? 'bg-amber-500/15 text-amber-300 font-bold border border-amber-500/30'
+                                : 'text-slate-300 hover:text-white hover:bg-white/[0.04]'
+                            }`}
+                          >
+                            <span className="flex items-center gap-1.5 truncate">
+                              <span className={`w-2 h-2 rounded-full ${okrItem.dot}`} />
+                              <span>{okrItem.label}</span>
+                            </span>
+                            {okrFilter === okrItem.id && <Check className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pie del Popover */}
+                  <div className="pt-2.5 border-t border-white/[0.08] flex items-center justify-between text-xs text-slate-400">
+                    <span className="font-mono">
+                      <strong className="text-white">{filteredActivities.length}</strong> actividades encontradas
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowFilterPopover(false)}
+                      className="px-3.5 py-1.5 rounded-xl bg-[#00e03c] hover:bg-[#00e03c]/90 text-slate-950 font-black text-xs transition-all shadow-md cursor-pointer"
+                    >
+                      Aplicar Filtros
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Filtro por Socio */}
-            <div className="flex items-center gap-1.5">
-              <select
-                value={partnerFilter}
-                onChange={(e) => setPartnerFilter(e.target.value)}
-                className="text-xs px-2.5 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
-              >
-                <option value="all">Todos los Socios y Consultores</option>
-                <optgroup label="Socios Fundadores">
-                  <option value="Ing. Diego Barrientos">Ing. Diego Barrientos</option>
-                  <option value="Ing. Fernando Araujo">Ing. Fernando Araujo</option>
-                </optgroup>
-                <optgroup label="Red de Consultores SERAM">
-                  <option value="Ing. Mariana Camacho">Ing. Mariana Camacho</option>
-                  <option value="Ing. Carlos Mendoza">Ing. Carlos Mendoza</option>
-                  <option value="Dra. Gabriela Rojas">Dra. Gabriela Rojas</option>
-                </optgroup>
-              </select>
-            </div>
-
-            {/* Filtro por Proyecto */}
-            <div className="flex items-center gap-1.5">
-              <select
-                value={projectFilter}
-                onChange={(e) => setProjectFilter(e.target.value)}
-                className="text-xs px-2.5 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white max-w-[170px] truncate cursor-pointer"
-              >
-                <option value="all">Todos los Proyectos</option>
-                <option value="SERAM S.R.L.">SERAM S.R.L.</option>
-                <option value="Página Web">Página Web</option>
-                <option value="Valle de las Agujas">Valle de las Agujas</option>
-                <option value="Contenido Redes Sociales">Contenido Redes</option>
-                <option value="Lanzamiento de SERAM Academy">SERAM Academy</option>
-                {activeServices.map((p) => (
-                  <option key={p.id} value={p.id}>{p.client || p.type}</option>
+            {/* LADO DERECHO: PAGER COMPACTO ESTILO ODOO */}
+            <div className="flex items-center justify-end gap-2 flex-shrink-0">
+              {/* Selector Discreto de Límite de Página */}
+              <div className="flex items-center gap-0.5 bg-black/60 border border-white/[0.08] p-0.5 rounded-lg text-xs">
+                {[10, 25, 'all'].map((sz) => (
+                  <button
+                    key={sz}
+                    type="button"
+                    onClick={() => setPageSize(sz)}
+                    className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                      pageSize === sz
+                        ? 'bg-[#00e03c] text-slate-950 font-black shadow-sm'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                    title={`Mostrar ${sz === 'all' ? 'todas las' : sz} actividades por página`}
+                  >
+                    {sz === 'all' ? 'Todas' : sz}
+                  </button>
                 ))}
-              </select>
-            </div>
+              </div>
 
-            {/* Filtro por Jerarquía OKR */}
-            <div className="flex items-center gap-1.5">
-              <select
-                value={okrFilter}
-                onChange={(e) => setOkrFilter(e.target.value)}
-                className="text-xs px-2.5 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
-              >
-                <option value="all">Todas las Jerarquías OKR</option>
-                <option value="anual">Macro Anual</option>
-                <option value="semestral">Semestral</option>
-                <option value="trimestral">Trimestral</option>
-                <option value="mensual">Mensual</option>
-                <option value="semanal">Semanal</option>
-                <option value="diario">Diario</option>
-              </select>
-            </div>
+              {/* Contador Numérico Estilo Odoo */}
+              <span className="font-mono text-xs font-bold text-slate-300 whitespace-nowrap px-1">
+                {startItem}-{endItem} <span className="text-slate-500 font-normal">/</span> {totalItems}
+              </span>
 
-            {/* Búsqueda */}
-            <div className="relative min-w-[180px]">
-              <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Buscar actividad o tag..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full text-xs pl-8 pr-3 py-1.5 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#00e03c]"
-              />
+              {/* Botones de Navegación < > */}
+              <div className="flex items-center gap-0.5">
+                <button
+                  type="button"
+                  disabled={currentPage <= 1 || pageSize === 'all'}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  className="p-1 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-all cursor-pointer"
+                  title="Página anterior"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  disabled={currentPage >= totalPages || pageSize === 'all'}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  className="p-1 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-all cursor-pointer"
+                  title="Página siguiente"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
