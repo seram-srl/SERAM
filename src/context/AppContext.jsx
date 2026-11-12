@@ -277,6 +277,8 @@ export function AppProvider({ children }) {
         priority: 'Alta',
         estimatedHours: 15.00,
         actualHours: 15.00,
+        okrLevel: 'trimestral',
+        parentGoalId: 4,
         deliverableUrl: 'https://docs.google.com/document/d/seram-acuerdo-privado',
         url: 'https://docs.google.com/document/d/seram-acuerdo-privado'
       },
@@ -296,6 +298,8 @@ export function AppProvider({ children }) {
         priority: 'Alta',
         estimatedHours: 20.00,
         actualHours: 20.00,
+        okrLevel: 'semestral',
+        parentGoalId: null,
         deliverableUrl: null,
         url: null
       },
@@ -315,6 +319,8 @@ export function AppProvider({ children }) {
         priority: 'Alta',
         estimatedHours: 18.00,
         actualHours: 18.00,
+        okrLevel: 'trimestral',
+        parentGoalId: null,
         deliverableUrl: null,
         url: null
       },
@@ -334,6 +340,8 @@ export function AppProvider({ children }) {
         priority: 'Alta',
         estimatedHours: 14.00,
         actualHours: 14.00,
+        okrLevel: 'anual',
+        parentGoalId: null,
         deliverableUrl: 'https://docs.google.com/document/d/seram-minuta-constitucion',
         url: 'https://docs.google.com/document/d/seram-minuta-constitucion'
       },
@@ -353,6 +361,8 @@ export function AppProvider({ children }) {
         priority: 'Media',
         estimatedHours: 12.00,
         actualHours: 12.00,
+        okrLevel: 'mensual',
+        parentGoalId: null,
         deliverableUrl: null,
         url: null
       },
@@ -680,12 +690,16 @@ export function AppProvider({ children }) {
                   milestoneStep: cleaned.milestoneStep !== undefined ? cleaned.milestoneStep : (meta.milestoneStep !== undefined ? Number(meta.milestoneStep) : 0),
                   assignedTeam: Array.isArray(meta.assignedTeam) && meta.assignedTeam.length > 0
                     ? meta.assignedTeam
-                    : (Array.isArray(cleaned.assignedTeam) && cleaned.assignedTeam.length > 0 ? cleaned.assignedTeam : [cleaned.assignedPartner || 'Ing. Diego Barrientos'])
+                    : (Array.isArray(cleaned.assignedTeam) && cleaned.assignedTeam.length > 0 ? cleaned.assignedTeam : [cleaned.assignedPartner || 'Ing. Diego Barrientos']),
+                  okrLevel: cleaned.okrLevel || meta.okrLevel || 'semanal',
+                  parentGoalId: cleaned.parentGoalId !== undefined ? cleaned.parentGoalId : (meta.parentGoalId || null)
                 };
               }
               return {
                 ...cleaned,
-                assignedTeam: Array.isArray(cleaned.assignedTeam) && cleaned.assignedTeam.length > 0 ? cleaned.assignedTeam : [cleaned.assignedPartner || 'Ing. Diego Barrientos']
+                assignedTeam: Array.isArray(cleaned.assignedTeam) && cleaned.assignedTeam.length > 0 ? cleaned.assignedTeam : [cleaned.assignedPartner || 'Ing. Diego Barrientos'],
+                okrLevel: cleaned.okrLevel || 'semanal',
+                parentGoalId: cleaned.parentGoalId !== undefined ? cleaned.parentGoalId : null
               };
             });
           }
@@ -2069,6 +2083,7 @@ export function AppProvider({ children }) {
                 : (act.target_value !== undefined ? Number(act.target_value) : (act.targetValue !== undefined ? Number(act.targetValue) : 10)),
               validationCriteria: meta.validationCriteria || act.validation_criteria || act.validationCriteria || 'cross_audit',
               okrLevel: meta.okrLevel || act.okr_level || act.okrLevel || 'semanal',
+              parentGoalId: meta.parentGoalId !== undefined ? meta.parentGoalId : (act.parent_goal_id !== undefined ? act.parent_goal_id : (act.parentGoalId || null)),
               timeLimitHours: meta.timeLimitHours !== undefined
                 ? Number(meta.timeLimitHours)
                 : (act.time_limit_hours !== undefined ? Number(act.time_limit_hours) : (act.timeLimitHours !== undefined ? Number(act.timeLimitHours) : null)),
@@ -2132,6 +2147,9 @@ export function AppProvider({ children }) {
                 okrLevel: (hasMeta && meta.okrLevel)
                   ? remoteAct.okrLevel
                   : (localAct.okrLevel || remoteAct.okrLevel),
+                parentGoalId: (hasMeta && meta.parentGoalId !== undefined)
+                  ? remoteAct.parentGoalId
+                  : (localAct.parentGoalId !== undefined ? localAct.parentGoalId : remoteAct.parentGoalId),
                 timeLimitHours: (hasMeta && meta.timeLimitHours !== undefined)
                   ? remoteAct.timeLimitHours
                   : (localAct.timeLimitHours !== undefined ? localAct.timeLimitHours : remoteAct.timeLimitHours),
@@ -3177,6 +3195,7 @@ export function AppProvider({ children }) {
       targetValue: Number(actData.targetValue !== undefined ? actData.targetValue : (descMeta.targetValue || 10)),
       validationCriteria: actData.validationCriteria || descMeta.validationCriteria || 'cross_audit',
       okrLevel: actData.okrLevel || descMeta.okrLevel || 'semanal',
+      parentGoalId: actData.parentGoalId !== undefined ? actData.parentGoalId : (descMeta.parentGoalId || null),
       timeLimitHours: actData.timeLimitHours || descMeta.timeLimitHours || null,
       isProvisional: Boolean(actData.isProvisional ?? descMeta.isProvisional),
       approved_by: actData.approved_by || descMeta.approved_by || null,
@@ -3198,6 +3217,7 @@ export function AppProvider({ children }) {
         targetValue: newAct.targetValue,
         validationCriteria: newAct.validationCriteria,
         okrLevel: newAct.okrLevel,
+        parentGoalId: newAct.parentGoalId || null,
         timeLimitHours: newAct.timeLimitHours,
         isProvisional: newAct.isProvisional,
         approved_by: newAct.approved_by,
@@ -3308,6 +3328,7 @@ export function AppProvider({ children }) {
         targetValue: currentAct.targetValue,
         validationCriteria: currentAct.validationCriteria,
         okrLevel: currentAct.okrLevel,
+        parentGoalId: currentAct.parentGoalId || null,
         timeLimitHours: currentAct.timeLimitHours,
         isProvisional: currentAct.isProvisional,
         approved_by: currentAct.approved_by,
@@ -3331,6 +3352,7 @@ export function AppProvider({ children }) {
       ...(updatedFields.targetValue !== undefined ? { targetValue: updatedFields.targetValue } : {}),
       ...(updatedFields.validationCriteria !== undefined ? { validationCriteria: updatedFields.validationCriteria } : {}),
       ...(updatedFields.okrLevel !== undefined ? { okrLevel: updatedFields.okrLevel } : {}),
+      ...(updatedFields.parentGoalId !== undefined ? { parentGoalId: updatedFields.parentGoalId } : {}),
       ...(updatedFields.timeLimitHours !== undefined ? { timeLimitHours: updatedFields.timeLimitHours } : {}),
       ...(updatedFields.isProvisional !== undefined ? { isProvisional: Boolean(updatedFields.isProvisional) } : {}),
       ...(updatedFields.approved_by !== undefined ? { approved_by: updatedFields.approved_by } : {}),

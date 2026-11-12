@@ -9,7 +9,8 @@ import {
   ShieldCheck, Award, Scale, Gift, Table, ChevronLeft,
   Target, Users, UserCheck, Link2, Zap,
   Download, Upload, Paperclip, Share2, FileDown, Timer, Flame,
-  Copy, Folder, Laptop, Mountain, Smartphone, GraduationCap, Rocket, ListOrdered
+  Copy, Folder, Laptop, Mountain, Smartphone, GraduationCap, Rocket, ListOrdered,
+  GitBranch, Milestone, Compass, CalendarDays
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { calculateTaskXP, validateCrossApproval } from './gamification/xpEngine';
@@ -41,6 +42,82 @@ const PRIORITY_STYLES = {
   Alta: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
   Urgente: 'bg-rose-500/20 text-rose-300 border-rose-500/30 animate-pulse',
 };
+
+// ── 6 NIVELES ESTRATÉGICOS OKR (CASCADA JERÁRQUICA MULTI-NIVEL TASK-115) ─────
+const OKR_LEVEL_CONFIG = [
+  {
+    id: 'anual',
+    order: 1,
+    title: 'Macro Anual',
+    subtitle: 'Visión SEPREC & Consorcio',
+    badge: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+    color: 'text-amber-400',
+    border: 'border-amber-500/30',
+    bg: 'bg-amber-500/5',
+    icon: Compass,
+    childLevel: 'semestral',
+  },
+  {
+    id: 'semestral',
+    order: 2,
+    title: 'Semestral',
+    subtitle: 'Hitos Clave H1 / H2',
+    badge: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+    color: 'text-purple-400',
+    border: 'border-purple-500/30',
+    bg: 'bg-purple-500/5',
+    icon: Milestone,
+    childLevel: 'trimestral',
+  },
+  {
+    id: 'trimestral',
+    order: 3,
+    title: 'Trimestral',
+    subtitle: 'OKRs Q1 a Q4',
+    badge: 'bg-sky-500/20 text-sky-300 border-sky-500/30',
+    color: 'text-sky-400',
+    border: 'border-sky-500/30',
+    bg: 'bg-sky-500/5',
+    icon: Target,
+    childLevel: 'mensual',
+  },
+  {
+    id: 'mensual',
+    order: 4,
+    title: 'Mensual',
+    subtitle: 'Entregables & Sprints',
+    badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+    color: 'text-emerald-400',
+    border: 'border-emerald-500/30',
+    bg: 'bg-emerald-500/5',
+    icon: CalendarDays,
+    childLevel: 'semanal',
+  },
+  {
+    id: 'semanal',
+    order: 5,
+    title: 'Semanal',
+    subtitle: 'Sprints Tácticos & Misiones',
+    badge: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    color: 'text-blue-400',
+    border: 'border-blue-500/30',
+    bg: 'bg-blue-500/5',
+    icon: Layers,
+    childLevel: 'diario',
+  },
+  {
+    id: 'diario',
+    order: 6,
+    title: 'Diario',
+    subtitle: 'Rutinas & Checklists Operativos',
+    badge: 'bg-[#00e03c]/20 text-[#00e03c] border-[#00e03c]/30',
+    color: 'text-[#00e03c]',
+    border: 'border-[#00e03c]/30',
+    bg: 'bg-[#00e03c]/5',
+    icon: CheckSquare,
+    childLevel: null,
+  },
+];
 
 const STATUS_COLUMNS = [
   { id: 'Pendiente', label: 'Pendiente', color: 'border-slate-500/30 text-slate-300 bg-slate-500/10' },
@@ -180,6 +257,18 @@ const getProgressPercent = (act) => {
   if (act.status === 'En revisión') return 80;
   if (act.status === 'En curso') return 40;
   return 0;
+};
+
+// Progreso jerárquico acumulado (Hijos asignados vía parentGoalId)
+const getAggregatedGoalProgress = (goal, allActivities = []) => {
+  if (!goal) return 0;
+  if (goal.status === 'Concluido') return 100;
+  const children = allActivities.filter(a => String(a.parentGoalId) === String(goal.id));
+  if (children.length > 0) {
+    const totalChildProgress = children.reduce((sum, c) => sum + getProgressPercent(c), 0);
+    return Math.round(totalChildProgress / children.length);
+  }
+  return getProgressPercent(goal);
 };
 
 // Aro de Progreso Circular SVG estilo Notion
@@ -488,6 +577,56 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
   const [drawerActivity, setDrawerActivity] = useState(null);
   const [drawerData, setDrawerData] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
+
+  // Cascada OKR: niveles expandidos y nodos desplegables (TASK-115)
+  const [expandedOkrLevels, setExpandedOkrLevels] = useState({
+    anual: true,
+    semestral: true,
+    trimestral: true,
+    mensual: true,
+    semanal: true,
+    diario: true
+  });
+  const [expandedGoalNodes, setExpandedGoalNodes] = useState({});
+  const [okrSearchQuery, setOkrSearchQuery] = useState('');
+  const [okrSelectedPartner, setOkrSelectedPartner] = useState('all');
+
+  const toggleOkrLevel = (levelId) => {
+    setExpandedOkrLevels(prev => ({ ...prev, [levelId]: !prev[levelId] }));
+  };
+
+  const toggleGoalNode = (goalId) => {
+    setExpandedGoalNodes(prev => ({ ...prev, [goalId]: !prev[goalId] }));
+  };
+
+  const expandAllOkr = () => {
+    setExpandedOkrLevels({
+      anual: true,
+      semestral: true,
+      trimestral: true,
+      mensual: true,
+      semanal: true,
+      diario: true
+    });
+    const allParentIds = {};
+    activities.forEach(a => {
+      const hasChildren = activities.some(c => String(c.parentGoalId) === String(a.id));
+      if (hasChildren) allParentIds[a.id] = true;
+    });
+    setExpandedGoalNodes(allParentIds);
+  };
+
+  const collapseAllOkr = () => {
+    setExpandedOkrLevels({
+      anual: false,
+      semestral: false,
+      trimestral: false,
+      mensual: false,
+      semanal: false,
+      diario: false
+    });
+    setExpandedGoalNodes({});
+  };
 
   // Copiado al Portapapeles con Feedback Visual y Toast
   const handleCopyLink = async (url, id = 'drawer') => {
@@ -1037,6 +1176,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
   const [actTargetValue, setActTargetValue] = useState(10);
   const [actValidationCriteria, setActValidationCriteria] = useState('cross_audit'); // 'cross_audit' | 'auto_proof' | 'provisional_pool'
   const [actOkrLevel, setActOkrLevel] = useState('semanal'); // 'anual' | 'semestral' | 'trimestral' | 'mensual' | 'semanal' | 'diario'
+  const [actParentGoalId, setActParentGoalId] = useState(''); // ID de la meta estratégica superior
   const [actTimeLimitHours, setActTimeLimitHours] = useState('');
 
   // Filtro de Actividades (Personal vs Grupal, Proyectos, Búsqueda, OKR y Ordenamiento)
@@ -1264,6 +1404,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         targetValue: Number(actTargetValue) || 10,
         validationCriteria: actValidationCriteria,
         okrLevel: actOkrLevel,
+        parentGoalId: actParentGoalId ? (isNaN(actParentGoalId) ? actParentGoalId : Number(actParentGoalId)) : null,
         timeLimitHours: actTimeLimitHours ? parseFloat(actTimeLimitHours) : null
       });
       setEditingActivity(null);
@@ -1297,6 +1438,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         targetValue: Number(actTargetValue) || 10,
         validationCriteria: actValidationCriteria,
         okrLevel: actOkrLevel,
+        parentGoalId: actParentGoalId ? (isNaN(actParentGoalId) ? actParentGoalId : Number(actParentGoalId)) : null,
         timeLimitHours: actTimeLimitHours ? parseFloat(actTimeLimitHours) : null
       });
     }
@@ -1323,6 +1465,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     setActTargetValue(10);
     setActValidationCriteria('cross_audit');
     setActOkrLevel('semanal');
+    setActParentGoalId('');
     setActTimeLimitHours('');
     setShowNewActivityModal(false);
   };
@@ -1365,7 +1508,42 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
     setActTargetValue(act.targetValue !== undefined ? Number(act.targetValue) : 10);
     setActValidationCriteria(act.validationCriteria || 'cross_audit');
     setActOkrLevel(act.okrLevel || 'semanal');
+    setActParentGoalId(act.parentGoalId ? String(act.parentGoalId) : '');
     setActTimeLimitHours(act.timeLimitHours || '');
+    setShowNewActivityModal(true);
+  };
+
+  // Acción rápida: Vincular nueva sub-tarea directamente a una meta superior (TASK-115)
+  const handleLinkTaskToGoal = (parentGoal) => {
+    setEditingActivity(null);
+    setActTitle('');
+    setActDesc('');
+    setActProjectId(parentGoal.projectId || activeServices[0]?.id || '');
+    setActPartner(currentSocio?.name || parentGoal.assignedPartner || 'Ing. Diego Barrientos');
+    setActCoPartner('');
+    setActAssignedTeam([currentSocio?.name || 'Ing. Diego Barrientos']);
+    setActParentGoalId(String(parentGoal.id));
+    const levelOrder = ['anual', 'semestral', 'trimestral', 'mensual', 'semanal', 'diario'];
+    const pIdx = levelOrder.indexOf(parentGoal.okrLevel || 'anual');
+    const childLevel = pIdx >= 0 && pIdx < levelOrder.length - 1 ? levelOrder[pIdx + 1] : 'semanal';
+    setActOkrLevel(childLevel);
+    setActCategory(parentGoal.category || 'Consultoría Técnica');
+    setActPriority('Media');
+    setActStartDate(new Date().toISOString().split('T')[0]);
+    setActDueDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+    setActEstHours('');
+    setActDeliverableUrl('');
+    setActDeliverableName('');
+    setActAttachments([]);
+    setActMilestoneType('custom_subtasks');
+    setActCustomSubtasks([]);
+    setNewSubtaskText('');
+    setActWeekdays({ lun: false, mar: false, mie: false, jue: false, vie: false, sab: false, dom: false });
+    setActCurrentValue(0);
+    setActTargetValue(10);
+    setActValidationCriteria('cross_audit');
+    setActTimeLimitHours('');
+    setIsTeamDropdownOpen(false);
     setShowNewActivityModal(true);
   };
 
@@ -1414,6 +1592,32 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         { label: 'Multiplicador Combo', value: '+35% XP', sub: 'Bono por co-ejecución', color: 'text-amber-400', icon: Zap, bg: 'bg-amber-500/10 border-amber-500/30' },
         { label: 'Impacto Planetario', value: '+2,850 PIP', sub: 'Puntos de impacto biofísico', color: 'text-[#00e03c]', icon: ShieldCheck, bg: 'bg-[#00e03c]/10 border-[#00e03c]/30' },
         { label: 'Proyectos Cruzados', value: `${coExecCount} Tareas`, sub: 'Colaboración entre socios', color: 'text-sky-400', icon: Briefcase, bg: 'bg-sky-500/10 border-sky-500/30' },
+      ];
+    }
+    if (activeTab === 'okr_tree') {
+      const annualGoals = activities.filter(a => a.okrLevel === 'anual');
+      const annualCount = annualGoals.length;
+      const annualAvgProgress = annualCount > 0
+        ? Math.round(annualGoals.reduce((sum, g) => sum + getAggregatedGoalProgress(g, activities), 0) / annualCount)
+        : 0;
+
+      const quarterlyGoals = activities.filter(a => a.okrLevel === 'trimestral' || a.okrLevel === 'semestral');
+      const quarterlyActive = quarterlyGoals.filter(a => a.status !== 'Concluido').length;
+
+      const operationalTasks = activities.filter(a => (a.okrLevel || 'semanal') === 'semanal' || a.okrLevel === 'diario' || a.okrLevel === 'mensual');
+      const operationalLinked = operationalTasks.filter(a => a.parentGoalId).length;
+      const alignmentPct = operationalTasks.length > 0 ? Math.round((operationalLinked / operationalTasks.length) * 100) : 0;
+
+      const operationalExecuting = activities.filter(a =>
+        ((a.okrLevel || 'semanal') === 'semanal' || a.okrLevel === 'diario') &&
+        (a.status === 'En curso' || a.status === 'Pendiente' || a.status === 'En revisión')
+      ).length;
+
+      return [
+        { label: 'Alineación Estratégica', value: `${alignmentPct}%`, sub: `${operationalLinked} de ${operationalTasks.length} tareas vinculadas`, color: 'text-[#00e03c]', icon: GitBranch, bg: 'bg-[#00e03c]/10 border-[#00e03c]/30' },
+        { label: 'Macro Anual', value: `${annualCount} ${annualCount === 1 ? 'Meta' : 'Metas'}`, sub: `${annualAvgProgress}% avance global promedio`, color: 'text-amber-400', icon: Compass, bg: 'bg-amber-500/10 border-amber-500/30' },
+        { label: 'OKRs Trimestrales', value: `${quarterlyGoals.length} OKRs`, sub: `${quarterlyActive} en ejecución (Q1 - Q4)`, color: 'text-sky-400', icon: Milestone, bg: 'bg-sky-500/10 border-sky-500/30' },
+        { label: 'Fuerza Operativa', value: `${operationalExecuting} Tareas`, sub: 'Sprints y checklists activos', color: 'text-purple-400', icon: Layers, bg: 'bg-purple-500/10 border-purple-500/30' },
       ];
     }
     // Default: 'table' (Base de Datos Notion)
@@ -1474,6 +1678,7 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
           {[
             { id: 'table', label: 'Base de Datos' },
             { id: 'kanban', label: 'Tablero Kanban' },
+            { id: 'okr_tree', label: 'Cascada OKR' },
             { id: 'calendar', label: 'Calendario' },
             { id: 'missions', label: 'Tablero de Misiones' },
             { id: 'progress', label: 'Progreso de Socios' },
@@ -2799,6 +3004,528 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
         <InterdisciplinarySynergies currentSocio={currentSocio} />
       )}
 
+      {/* ── VISTA 3: CASCADA OKR MULTI-NIVEL (TASK-115) ── */}
+      {activeTab === 'okr_tree' && (
+        <div className="space-y-5">
+          {/* Barra de Filtros y Acciones de la Cascada OKR */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#0a130a]/90 p-3 rounded-2xl border border-[#1a3a1a]/80 shadow-lg">
+            <div className="flex items-center gap-2 flex-1">
+              <div className="relative flex-1 max-w-md">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Filtrar objetivos, tareas o responsables en el árbol OKR..."
+                  value={okrSearchQuery}
+                  onChange={(e) => setOkrSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-1.5 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white text-xs placeholder-slate-500 focus:outline-none focus:border-[#00e03c]"
+                />
+              </div>
+
+              {/* Filtro por Socio */}
+              <div className="flex items-center gap-1.5">
+                <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <select
+                  value={okrSelectedPartner}
+                  onChange={(e) => setOkrSelectedPartner(e.target.value)}
+                  className="px-2.5 py-1.5 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white text-xs font-bold focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#08150a] [&>option]:text-white cursor-pointer"
+                >
+                  <option value="all">Todos los Socios</option>
+                  <option value="Ing. Diego Barrientos">Ing. Diego Barrientos</option>
+                  <option value="Ing. Fernando Araujo">Ing. Fernando Araujo</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Controles de expansión / colapso y nuevo objetivo */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={expandAllOkr}
+                className="px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.1] text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                title="Expandir todos los 6 niveles y nodos hijos"
+              >
+                <ChevronDown className="w-3.5 h-3.5 text-[#00e03c]" />
+                <span className="hidden sm:inline">Expandir Todo</span>
+              </button>
+              <button
+                type="button"
+                onClick={collapseAllOkr}
+                className="px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.1] text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                title="Colapsar todos los niveles"
+              >
+                <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                <span className="hidden sm:inline">Colapsar Todo</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingActivity(null);
+                  setActTitle('');
+                  setActDesc('');
+                  setActProjectId(activeServices[0]?.id || '');
+                  setActPartner(currentSocio?.name || 'Ing. Diego Barrientos');
+                  setActCoPartner('');
+                  setActAssignedTeam([currentSocio?.name || 'Ing. Diego Barrientos']);
+                  setActParentGoalId('');
+                  setActOkrLevel('anual');
+                  setActCategory('Legal & Corporativo');
+                  setActPriority('Alta');
+                  setActStartDate(new Date().toISOString().split('T')[0]);
+                  setActDueDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+                  setActEstHours('');
+                  setActDeliverableUrl('');
+                  setActDeliverableName('');
+                  setActAttachments([]);
+                  setActMilestoneType('custom_subtasks');
+                  setActCustomSubtasks([]);
+                  setNewSubtaskText('');
+                  setActWeekdays({ lun: false, mar: false, mie: false, jue: false, vie: false, sab: false, dom: false });
+                  setActCurrentValue(0);
+                  setActTargetValue(10);
+                  setActValidationCriteria('cross_audit');
+                  setActTimeLimitHours('');
+                  setIsTeamDropdownOpen(false);
+                  setShowNewActivityModal(true);
+                }}
+                className="px-3.5 py-1.5 rounded-xl bg-[#00e03c] hover:bg-[#00e03c]/90 text-slate-950 font-black text-xs transition-all shadow-md shadow-[#00e03c]/20 flex items-center gap-1.5 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                <span>+ Nueva Meta Macro</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Renderizado de los 6 Niveles Estratégicos */}
+          <div className="space-y-4">
+            {OKR_LEVEL_CONFIG.map((lvl) => {
+              const LevelIcon = lvl.icon;
+              const isExpanded = Boolean(expandedOkrLevels[lvl.id]);
+
+              // Filtrar actividades correspondientes a este nivel
+              const levelActivities = activities.filter((act) => {
+                const matchLevel = (act.okrLevel || 'semanal') === lvl.id;
+                if (!matchLevel) return false;
+                if (okrSelectedPartner !== 'all') {
+                  const pMatch =
+                    act.assignedPartner === okrSelectedPartner ||
+                    act.coPartner === okrSelectedPartner ||
+                    (Array.isArray(act.assignedTeam) && act.assignedTeam.includes(okrSelectedPartner));
+                  if (!pMatch) return false;
+                }
+                if (okrSearchQuery.trim()) {
+                  const q = okrSearchQuery.toLowerCase();
+                  const tMatch = (act.title || '').toLowerCase().includes(q);
+                  const pMatch = (act.projectTitle || '').toLowerCase().includes(q);
+                  const respMatch = (act.assignedPartner || '').toLowerCase().includes(q);
+                  if (!tMatch && !pMatch && !respMatch) return false;
+                }
+                return true;
+              });
+
+              // Progreso promedio del nivel
+              const lvlAvgProgress = levelActivities.length > 0
+                ? Math.round(levelActivities.reduce((sum, a) => sum + getAggregatedGoalProgress(a, activities), 0) / levelActivities.length)
+                : 0;
+
+              return (
+                <div
+                  key={lvl.id}
+                  className={`rounded-2xl border transition-all duration-300 ${
+                    isExpanded
+                      ? 'bg-[#09140a]/90 border-[#1a3a1a] shadow-xl shadow-black/40'
+                      : 'bg-[#070e08]/70 border-white/[0.06] hover:border-[#1a3a1a]'
+                  }`}
+                >
+                  {/* Cabecera del Nivel */}
+                  <div
+                    onClick={() => toggleOkrLevel(lvl.id)}
+                    className="p-3.5 sm:p-4 flex items-center justify-between gap-3 cursor-pointer select-none hover:bg-white/[0.02] rounded-2xl transition-colors"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center border shrink-0 ${lvl.badge}`}>
+                        <LevelIcon className={`w-5 h-5 ${lvl.color}`} />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`text-[10px] font-mono font-black uppercase tracking-wider px-2 py-0.5 rounded border ${lvl.badge}`}>
+                            Nivel {lvl.order}
+                          </span>
+                          <h3 className="text-sm sm:text-base font-black text-white truncate">
+                            {lvl.title}
+                          </h3>
+                          <span className="text-xs text-slate-400 hidden md:inline">
+                            · {lvl.subtitle}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 mt-0.5">
+                          {levelActivities.length} {levelActivities.length === 1 ? 'meta registrada' : 'metas registradas'}
+                          {levelActivities.length > 0 && ` · ${lvlAvgProgress}% de avance medio`}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0">
+                      {/* Barra de progreso condensada */}
+                      <div className="hidden sm:flex items-center gap-2">
+                        <div className="w-24 bg-white/[0.08] h-2 rounded-full overflow-hidden">
+                          <div
+                            className="bg-[#00e03c] h-full transition-all duration-500 rounded-full"
+                            style={{ width: `${lvlAvgProgress}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-mono font-black text-[#00e03c] w-9 text-right">
+                          {lvlAvgProgress}%
+                        </span>
+                      </div>
+
+                      {/* Botón para añadir directamente a este nivel */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingActivity(null);
+                          setActTitle('');
+                          setActDesc('');
+                          setActProjectId(activeServices[0]?.id || '');
+                          setActPartner(currentSocio?.name || 'Ing. Diego Barrientos');
+                          setActCoPartner('');
+                          setActAssignedTeam([currentSocio?.name || 'Ing. Diego Barrientos']);
+                          setActParentGoalId('');
+                          setActOkrLevel(lvl.id);
+                          setActCategory('Consultoría Técnica');
+                          setActPriority('Media');
+                          setActStartDate(new Date().toISOString().split('T')[0]);
+                          setActDueDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+                          setActEstHours('');
+                          setActDeliverableUrl('');
+                          setActDeliverableName('');
+                          setActAttachments([]);
+                          setActMilestoneType('custom_subtasks');
+                          setActCustomSubtasks([]);
+                          setNewSubtaskText('');
+                          setActWeekdays({ lun: false, mar: false, mie: false, jue: false, vie: false, sab: false, dom: false });
+                          setActCurrentValue(0);
+                          setActTargetValue(10);
+                          setActValidationCriteria('cross_audit');
+                          setActTimeLimitHours('');
+                          setIsTeamDropdownOpen(false);
+                          setShowNewActivityModal(true);
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-white/[0.06] hover:bg-[#00e03c]/20 hover:text-[#00e03c] border border-white/[0.1] text-[11px] font-bold text-slate-300 transition-colors cursor-pointer flex items-center gap-1"
+                        title={`Crear objetivo en nivel ${lvl.title}`}
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span className="hidden md:inline">+ Meta</span>
+                      </button>
+
+                      {/* Chevron toggle */}
+                      <div className="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/[0.03]">
+                        {isExpanded ? (
+                          <ChevronDown className="w-4 h-4 text-[#00e03c]" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4 text-slate-400" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cuerpo del Nivel (Metas y Árbol de Sub-actividades) */}
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="border-t border-[#1a3a1a]/60 p-3.5 sm:p-4 space-y-3"
+                      >
+                        {levelActivities.length === 0 ? (
+                          <div className="py-6 px-4 rounded-xl bg-white/[0.02] border border-dashed border-white/[0.08] text-center space-y-2">
+                            <p className="text-xs text-slate-400">
+                              No hay objetivos ni actividades asignadas en el nivel <strong>{lvl.title}</strong> con los filtros actuales.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingActivity(null);
+                                setActTitle('');
+                                setActDesc('');
+                                setActProjectId(activeServices[0]?.id || '');
+                                setActPartner(currentSocio?.name || 'Ing. Diego Barrientos');
+                                setActCoPartner('');
+                                setActAssignedTeam([currentSocio?.name || 'Ing. Diego Barrientos']);
+                                setActParentGoalId('');
+                                setActOkrLevel(lvl.id);
+                                setActCategory('Consultoría Técnica');
+                                setActPriority('Media');
+                                setActStartDate(new Date().toISOString().split('T')[0]);
+                                setActDueDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+                                setActEstHours('');
+                                setActDeliverableUrl('');
+                                setActDeliverableName('');
+                                setActAttachments([]);
+                                setActMilestoneType('custom_subtasks');
+                                setActCustomSubtasks([]);
+                                setNewSubtaskText('');
+                                setActWeekdays({ lun: false, mar: false, mie: false, jue: false, vie: false, sab: false, dom: false });
+                                setActCurrentValue(0);
+                                setActTargetValue(10);
+                                setActValidationCriteria('cross_audit');
+                                setActTimeLimitHours('');
+                                setIsTeamDropdownOpen(false);
+                                setShowNewActivityModal(true);
+                              }}
+                              className="text-xs font-bold text-[#00e03c] hover:underline cursor-pointer inline-flex items-center gap-1"
+                            >
+                              <Plus className="w-3 h-3" /> Registrar primera meta en {lvl.title}
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {levelActivities.map((act) => {
+                              const parentGoal = activities.find(p => String(p.id) === String(act.parentGoalId));
+                              const childActivities = activities.filter(c => String(c.parentGoalId) === String(act.id));
+                              const isNodeExpanded = Boolean(expandedGoalNodes[act.id]);
+                              const goalProgress = getAggregatedGoalProgress(act, activities);
+                              const statusStyle = STATUS_COLUMNS.find(s => s.id === act.status) || STATUS_COLUMNS[0];
+                              const partnerInits = act.assignedPartner ? act.assignedPartner.replace('Ing. ', '').split(' ').map(n => n[0]).join('') : 'SR';
+
+                              return (
+                                <div
+                                  key={act.id}
+                                  className="rounded-xl bg-[#061408]/90 border border-[#1a3a1a]/80 hover:border-[#00e03c]/40 p-3.5 space-y-3 transition-all shadow-sm"
+                                >
+                                  {/* Fila Principal de la Meta */}
+                                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                                    <div className="space-y-1.5 flex-1 min-w-0">
+                                      <div className="flex items-center gap-2 flex-wrap text-xs">
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusStyle.color}`}>
+                                          {act.status}
+                                        </span>
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${PRIORITY_STYLES[act.priority] || PRIORITY_STYLES.Media}`}>
+                                          {act.priority}
+                                        </span>
+                                        <span className="text-[10px] text-slate-400 bg-white/[0.04] px-2 py-0.5 rounded border border-white/[0.08]">
+                                          {act.category || 'General'}
+                                        </span>
+                                        {parentGoal && (
+                                          <span className="text-[10px] font-medium text-emerald-300/90 bg-[#00e03c]/10 px-2 py-0.5 rounded border border-[#00e03c]/20 flex items-center gap-1 truncate max-w-xs" title={`Meta superior: ${parentGoal.title}`}>
+                                            <GitBranch className="w-3 h-3 text-[#00e03c] shrink-0" />
+                                            <span className="truncate">OKR Padre: {parentGoal.title}</span>
+                                          </span>
+                                        )}
+                                      </div>
+
+                                      <h4
+                                        onClick={() => setDrawerActivity(act)}
+                                        className="text-sm font-black text-white hover:text-[#00e03c] cursor-pointer transition-colors leading-snug"
+                                      >
+                                        {act.title}
+                                      </h4>
+
+                                      <div className="flex items-center gap-3 text-[11px] text-slate-400 flex-wrap">
+                                        <span className="flex items-center gap-1 text-slate-300">
+                                          <Briefcase className="w-3 h-3 text-emerald-400 shrink-0" />
+                                          {act.projectTitle || 'Proyecto General'}
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                          <Calendar className="w-3 h-3 text-sky-400 shrink-0" />
+                                          {act.dueDate ? `Límite: ${act.dueDate}` : 'Sin fecha'}
+                                        </span>
+                                        <span className="flex items-center gap-1 font-mono text-amber-300">
+                                          <Clock className="w-3 h-3 text-amber-400 shrink-0" />
+                                          {act.actualHours || 0}h / {act.estimatedHours || 0}h
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    {/* Socio Asignado, Progreso y Acciones */}
+                                    <div className="flex items-center gap-3 shrink-0 flex-wrap justify-between lg:justify-end">
+                                      {/* Badge del Socio */}
+                                      <div className="flex items-center gap-2 bg-white/[0.03] px-2.5 py-1 rounded-xl border border-white/[0.08]">
+                                        <div className="w-6 h-6 rounded-lg bg-[#00e03c]/15 text-[#00e03c] font-black text-[10px] flex items-center justify-center border border-[#00e03c]/30">
+                                          {partnerInits}
+                                        </div>
+                                        <div className="text-left text-[11px] leading-tight">
+                                          <span className="text-white font-bold block truncate max-w-[120px]">
+                                            {act.assignedPartner ? act.assignedPartner.replace('Ing. ', '') : 'Directorio'}
+                                          </span>
+                                          {act.coPartner && (
+                                            <span className="text-[9px] text-amber-300 flex items-center gap-0.5">
+                                              <Zap className="w-2.5 h-2.5" /> {act.coPartner.replace('Ing. ', '')}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      {/* Barra de Progreso Acumulado */}
+                                      <div className="w-28 space-y-1">
+                                        <div className="flex items-center justify-between text-[10px] font-mono font-bold">
+                                          <span className="text-slate-400">Progreso</span>
+                                          <span className="text-[#00e03c] font-black">{goalProgress}%</span>
+                                        </div>
+                                        <div className="w-full bg-white/[0.08] h-1.5 rounded-full overflow-hidden">
+                                          <div
+                                            className="bg-gradient-to-r from-emerald-500 to-[#00e03c] h-full transition-all duration-300"
+                                            style={{ width: `${goalProgress}%` }}
+                                          />
+                                        </div>
+                                      </div>
+
+                                      {/* Botones de Acción */}
+                                      <div className="flex items-center gap-1.5">
+                                        <button
+                                          type="button"
+                                          onClick={() => handleLinkTaskToGoal(act)}
+                                          className="px-2.5 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-[#00e03c] border border-emerald-500/30 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                                          title="Vincular nueva sub-tarea directamente a esta meta"
+                                        >
+                                          <Plus className="w-3.5 h-3.5" />
+                                          <span className="hidden sm:inline">Vincular Tarea</span>
+                                        </button>
+
+                                        {childActivities.length > 0 && (
+                                          <button
+                                            type="button"
+                                            onClick={() => toggleGoalNode(act.id)}
+                                            className={`px-2.5 py-1.5 rounded-lg border text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                                              isNodeExpanded
+                                                ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                                                : 'bg-white/[0.04] text-slate-300 border-white/[0.08] hover:bg-white/[0.08]'
+                                            }`}
+                                            title="Ver sub-tareas y actividades hijas vinculadas"
+                                          >
+                                            <GitBranch className="w-3.5 h-3.5 text-purple-400" />
+                                            <span>{childActivities.length}</span>
+                                            {isNodeExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                          </button>
+                                        )}
+
+                                        <button
+                                          type="button"
+                                          onClick={() => setDrawerActivity(act)}
+                                          className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.08] transition-colors cursor-pointer"
+                                          title="Abrir ficha lateral detallada"
+                                        >
+                                          <FileText className="w-3.5 h-3.5" />
+                                        </button>
+
+                                        <button
+                                          type="button"
+                                          onClick={() => openEditActivity(act)}
+                                          className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.08] transition-colors cursor-pointer"
+                                          title="Editar actividad"
+                                        >
+                                          <Edit2 className="w-3.5 h-3.5" />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Sub-árbol desplegable de actividades hijas vinculadas */}
+                                  <AnimatePresence>
+                                    {childActivities.length > 0 && isNodeExpanded && (
+                                      <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="border-l-2 border-[#00e03c]/40 pl-3 sm:pl-4 ml-2 sm:ml-4 space-y-2 pt-2"
+                                      >
+                                        <div className="flex items-center justify-between text-[11px] text-slate-400 pb-1">
+                                          <span className="font-bold flex items-center gap-1.5 text-emerald-300">
+                                            <GitBranch className="w-3.5 h-3.5 text-[#00e03c]" /> Sub-tareas y Entregables Vinculados ({childActivities.length})
+                                          </span>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleLinkTaskToGoal(act)}
+                                            className="text-[10px] text-[#00e03c] hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                                          >
+                                            <Plus className="w-3 h-3" /> Añadir otra tarea
+                                          </button>
+                                        </div>
+
+                                        {childActivities.map((child) => {
+                                          const childStatus = STATUS_COLUMNS.find(s => s.id === child.status) || STATUS_COLUMNS[0];
+                                          const childPct = getProgressPercent(child);
+                                          const childLevelInfo = OKR_LEVEL_CONFIG.find(c => c.id === child.okrLevel) || {
+                                            title: child.okrLevel || 'Operativo',
+                                            badge: 'bg-slate-500/20 text-slate-300 border-slate-500/30'
+                                          };
+
+                                          return (
+                                            <div
+                                              key={child.id}
+                                              className="p-2.5 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:border-[#00e03c]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs transition-all"
+                                            >
+                                              <div className="flex items-center gap-2.5 min-w-0">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-[#00e03c] shrink-0" />
+                                                <div className="min-w-0">
+                                                  <div className="flex items-center gap-2 flex-wrap">
+                                                    <span className={`text-[9px] font-mono uppercase px-1.5 py-0.5 rounded border ${childLevelInfo.badge}`}>
+                                                      {childLevelInfo.title}
+                                                    </span>
+                                                    <span className={`text-[9px] px-1.5 py-0.5 rounded border ${childStatus.color}`}>
+                                                      {child.status}
+                                                    </span>
+                                                    <h5
+                                                      onClick={() => setDrawerActivity(child)}
+                                                      className="font-bold text-white hover:text-[#00e03c] cursor-pointer truncate max-w-sm"
+                                                    >
+                                                      {child.title}
+                                                    </h5>
+                                                  </div>
+                                                  <p className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-2">
+                                                    <span>Responsable: <strong>{child.assignedPartner}</strong></span>
+                                                    {child.dueDate && <span>· Límite: {child.dueDate}</span>}
+                                                  </p>
+                                                </div>
+                                              </div>
+
+                                              <div className="flex items-center gap-3 shrink-0 self-end sm:self-auto">
+                                                <div className="w-20 space-y-0.5">
+                                                  <div className="flex justify-between text-[9px] font-mono">
+                                                    <span className="text-slate-400">Avance</span>
+                                                    <span className="text-[#00e03c] font-black">{childPct}%</span>
+                                                  </div>
+                                                  <div className="w-full bg-white/[0.08] h-1 rounded-full overflow-hidden">
+                                                    <div
+                                                      className="bg-[#00e03c] h-full"
+                                                      style={{ width: `${childPct}%` }}
+                                                    />
+                                                  </div>
+                                                </div>
+
+                                                <button
+                                                  type="button"
+                                                  onClick={() => setDrawerActivity(child)}
+                                                  className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors cursor-pointer"
+                                                  title="Ver ficha técnica"
+                                                >
+                                                  <FileText className="w-3.5 h-3.5" />
+                                                </button>
+                                              </div>
+                                            </div>
+                                          );
+                                        })}
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* ── VISTA 6: CALENDARIO ODOO & CAPACIDAD DE TELETRABAJO (4.5h / 8.0h) ── */}
       {activeTab === 'calendar' && (
         <OdooCalendarModule currentSocio={currentSocio} compactMode />
@@ -3171,6 +3898,31 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                         <option value="provisional_pool">Bolsa Provisional de Horas</option>
                       </select>
                     </div>
+
+                    {/* Selector de Meta Estratégica Superior (TASK-115) */}
+                    <div className="sm:col-span-2 space-y-1 pt-2 border-t border-[#1a3a1a]/60">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-[#00e03c] flex items-center gap-1.5">
+                        <GitBranch className="w-3.5 h-3.5 text-[#00e03c]" /> Meta Estratégica Superior (Objetivo Padre Opcional)
+                      </label>
+                      <select
+                        value={actParentGoalId || ''}
+                        onChange={(e) => setActParentGoalId(e.target.value)}
+                        className="w-full px-3 py-2 bg-[#06180a]/90 border border-[#1a3a1a] rounded-xl text-white text-xs font-semibold focus:outline-none focus:border-[#00e03c] focus:ring-1 focus:ring-[#00e03c]/40 [&>option]:bg-[#08150a] [&>option]:text-white cursor-pointer"
+                      >
+                        <option value="">-- Sin meta superior (Objetivo Raíz / Autónomo) --</option>
+                        {activities
+                          .filter(a => !editingActivity || a.id !== editingActivity.id)
+                          .map(parent => (
+                            <option key={parent.id} value={parent.id}>
+                              [{parent.okrLevel ? parent.okrLevel.toUpperCase() : 'OKR'}] {parent.title} ({parent.assignedPartner || 'Directorio'})
+                            </option>
+                          ))}
+                      </select>
+                      <p className="text-[10px] text-slate-400 italic">
+                        Vincula esta tarea a una meta troncal superior para alinear automáticamente la jerarquía ejecutiva y sumar avance en la Cascada OKR.
+                      </p>
+                    </div>
+
                     <div className="sm:col-span-2 text-[10px] text-slate-300 italic bg-[#06180a]/60 p-2 rounded-xl border border-[#1a3a1a]/60">
                       {actValidationCriteria === 'cross_audit' && 'Auditoría Cruzada: Al llegar a 100%, requiere aprobación pericial de otro socio directivo.'}
                       {actValidationCriteria === 'auto_proof' && 'Auto-completar: Concluye al 100% de inmediato exigiendo link o archivo de respaldo adjunto.'}
@@ -4396,6 +5148,31 @@ export default function ActivitiesAndClientsModule({ currentSocio }) {
                         <option value="mensual">OKR Mensual</option>
                         <option value="semanal">OKR Semanal (Sprint Operativo)</option>
                         <option value="diario">Tarea Diaria / Rutina</option>
+                      </select>
+                    </div>
+
+                    {/* Meta Estratégica Superior (TASK-115) */}
+                    <div className="space-y-1 sm:col-span-2">
+                      <label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1.5">
+                        <GitBranch className="w-3.5 h-3.5 text-[#00e03c]" /> Meta Estratégica Superior (Objetivo Padre)
+                      </label>
+                      <select
+                        value={drawerData.parentGoalId || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const parsedVal = val ? (isNaN(val) ? val : Number(val)) : null;
+                          setDrawerData(prev => ({ ...prev, parentGoalId: parsedVal }));
+                        }}
+                        className="w-full px-3 py-2 bg-white/[0.06] border border-white/[0.12] rounded-xl text-white font-semibold text-xs focus:outline-none focus:border-[#00e03c] [&>option]:bg-[#0d1622] [&>option]:text-white cursor-pointer"
+                      >
+                        <option value="">-- Sin meta superior (Objetivo Raíz / Autónomo) --</option>
+                        {activities
+                          .filter(a => a.id !== drawerData.id)
+                          .map(parent => (
+                            <option key={parent.id} value={parent.id}>
+                              [{parent.okrLevel ? parent.okrLevel.toUpperCase() : 'OKR'}] {parent.title} ({parent.assignedPartner || 'Directorio'})
+                            </option>
+                          ))}
                       </select>
                     </div>
                   </div>
