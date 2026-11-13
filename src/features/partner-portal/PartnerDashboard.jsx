@@ -4654,32 +4654,34 @@ export default function PartnerDashboard() {
         <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-7xl mx-auto space-y-6 sm:space-y-8">
 
           {/* ── OTRA SEGMENTACIÓN DEBAJO: CABECERA DEL MÓDULO & ESTADO EN TIEMPO REAL ── */}
-          <div className="bg-[#0b1322]/90 border border-white/[0.1] rounded-2xl p-4 sm:p-6 backdrop-blur-md shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-3.5 py-1 rounded-full">
-                  {SIDEBAR_MODULE_GROUPS.find(g => g.modules.some(m => m.id === activeModule))?.category || 'Módulo SERAM'}
+          {activeModule !== 'calendar' && (
+            <div className="bg-[#0b1322]/90 border border-white/[0.1] rounded-2xl p-4 sm:p-6 backdrop-blur-md shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-3.5 py-1 rounded-full">
+                    {SIDEBAR_MODULE_GROUPS.find(g => g.modules.some(m => m.id === activeModule))?.category || 'Módulo SERAM'}
+                  </span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight">
+                  {SIDEBAR_MODULES.find(m => m.id === activeModule)?.label}
+                </h1>
+                <p className="text-sm sm:text-base text-slate-300 font-medium mt-1">
+                  Panel Directivo SERAM · Bienvenido, <span className="text-[#00e03c] font-bold">{activeSocio?.name}</span>
+                </p>
+              </div>
+
+              {/* Badges y etiquetas de tiempo real */}
+              <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+                <span className="text-xs sm:text-sm font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-4 py-2 rounded-full uppercase tracking-wider flex items-center gap-2 shadow-sm shadow-[#00e03c]/5">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00e03c] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00e03c]"></span>
+                  </span>
+                  En Línea · Tiempo Real
                 </span>
               </div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight">
-                {SIDEBAR_MODULES.find(m => m.id === activeModule)?.label}
-              </h1>
-              <p className="text-sm sm:text-base text-slate-300 font-medium mt-1">
-                Panel Directivo SERAM · Bienvenido, <span className="text-[#00e03c] font-bold">{activeSocio?.name}</span>
-              </p>
             </div>
-
-            {/* Badges y etiquetas de tiempo real */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-              <span className="text-xs sm:text-sm font-black text-[#00e03c] bg-[#00e03c]/10 border border-[#00e03c]/20 px-4 py-2 rounded-full uppercase tracking-wider flex items-center gap-2 shadow-sm shadow-[#00e03c]/5">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00e03c] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00e03c]"></span>
-                </span>
-                En Línea · Tiempo Real
-              </span>
-            </div>
-          </div>
+          )}
 
           {/* Module Content — Permanente al 100% sin desvanecimiento */}
           <div key={activeModule} className="opacity-100 visible space-y-8">

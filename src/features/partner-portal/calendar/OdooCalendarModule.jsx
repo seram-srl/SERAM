@@ -1197,281 +1197,275 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
     .reduce((acc, ev) => acc + (Number(ev.actualHours || ev.estimatedHours) || 0), 0);
 
   return (
-    <div className="space-y-4 text-slate-100 select-none">
+    <div className="space-y-2.5 sm:space-y-3 text-slate-100 select-none relative z-10">
       {/* ══════════════════════════════════════════════════════════════════════════
-          1. BARRA SUPERIOR INTEGRADA (ESTILO ODOO ERP / NEUFORM)
+          BARRA DE HERRAMIENTAS PERSISTENTE (FLUJO NATURAL SIN OFFSET PARASITARIO)
          ══════════════════════════════════════════════════════════════════════════ */}
-      <div className="rounded-2xl bg-[#071109] border border-white/[0.1] px-3.5 py-2.5 sm:px-4 sm:py-3 flex flex-wrap items-center justify-between gap-2.5 shadow-xl">
-        {/* Izquierda: Identificador y Sub-secciones */}
-        <div className="flex items-center gap-1.5 overflow-x-auto">
-          {!compactMode ? (
-            <div className="flex items-center gap-2 pr-3 border-r border-white/10 shrink-0">
-              <div className="w-7 h-7 rounded-lg bg-[#00e03c]/15 border border-[#00e03c]/40 flex items-center justify-center text-[#00e03c]">
-                <CalendarIcon className="w-4 h-4" />
-              </div>
-              <span className="text-sm font-black tracking-tight text-white whitespace-nowrap">Calendario SERAM</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5 pr-2.5 border-r border-white/10 shrink-0">
-              <div className="w-6 h-6 rounded-lg bg-[#00e03c]/15 border border-[#00e03c]/40 flex items-center justify-center text-[#00e03c]">
+      <div className="backdrop-blur-md bg-[#070d17]/95 border-b border-white/10 pb-2">
+        {/* 1. BARRA SUPERIOR CONSOLIDADA ULTRA-COMPACTA DE ALTA DENSIDAD (52px) */}
+        <div className="rounded-xl bg-[#071109] border border-white/[0.1] px-2.5 py-1.5 sm:px-3 sm:py-2 min-h-[52px] flex items-center justify-between gap-2 shadow-xl overflow-x-auto scrollbar-thin scrollbar-thumb-white/10">
+          {/* LADO IZQUIERDO: Identificador, Controles Temporales y Medidor de Dedicación */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Badge / Icono Calendario SERAM */}
+            <div className="flex items-center gap-1.5 pr-2 border-r border-white/10 shrink-0">
+              <div className="w-6 h-6 rounded-lg bg-[#00e03c]/15 border border-[#00e03c]/40 flex items-center justify-center text-[#00e03c] shrink-0">
                 <CalendarIcon className="w-3.5 h-3.5" />
               </div>
+              {!compactMode && (
+                <span className="text-xs font-black tracking-tight text-white whitespace-nowrap hidden lg:inline">
+                  Calendario SERAM
+                </span>
+              )}
             </div>
-          )}
 
-          {[
-            { id: 'calendar', label: 'Calendario & Teletrabajo' },
-            { id: 'sales_plan', label: 'Plan de Ventas & Inbound' },
-            { id: 'tags', label: `Etiquetas Libres (${freeTags.length})` },
-            { id: 'automation', label: 'Sincronización Google Calendar' }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveSection(tab.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                activeSection === tab.id
-                  ? 'bg-[#00e03c] text-slate-950 font-black shadow-sm'
-                  : 'text-slate-300 hover:text-white hover:bg-white/[0.05]'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Derecha: Conmutador de Meta Diaria de Teletrabajo, Sincronizador Directo y Botón Nuevo */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Conmutador de Jornada de Teletrabajo (4.5h <-> 8.0h) */}
-          <div className="flex items-center gap-1 bg-black/60 p-1 rounded-xl border border-white/[0.1]">
-            <span className="text-[10px] font-mono text-slate-400 px-2 hidden sm:inline">Jornada Socio:</span>
+            {/* Botón Hoy */}
             <button
               type="button"
-              onClick={() => handleToggleDailyCap(4.5)}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
-                dailyCapHours === 4.5
-                  ? 'bg-[#00e03c] text-slate-950 shadow-sm'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-              title="Fase Temprana: 4.5 horas diarias dedicadas por socio"
+              onClick={() => {
+                setCursorDate(new Date());
+                if (activeSection !== 'calendar') setActiveSection('calendar');
+              }}
+              className="px-2 py-1 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-[11px] font-bold text-white cursor-pointer transition-colors shrink-0"
             >
-              4.5 hrs/día (Temprana)
+              Hoy
             </button>
-            <button
-              type="button"
-              onClick={() => handleToggleDailyCap(8.0)}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
-                dailyCapHours === 8.0
-                  ? 'bg-amber-400 text-slate-950 shadow-sm'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-              title="Fase Intensiva: 8.0 horas diarias para ventas y content marketing"
-            >
-              8.0 hrs/día (Intensiva)
-            </button>
-          </div>
 
-          {/* Botón Sincronización Google Calendar para Ambos Socios */}
-          <button
-            type="button"
-            onClick={() => setActiveSection('automation')}
-            className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-              activeSection === 'automation'
-                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50'
-                : 'bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 hover:text-white border-white/10'
-            }`}
-            title="Ver sincronización con Google Calendar para Socio A (Diego) y Socio B (Fernando)"
-          >
-            <ExternalLink className="w-3.5 h-3.5 text-[#00e03c]" />
-            <span className="hidden sm:inline">Sincronización Google Calendar</span>
-            <span className="sm:hidden">Google Cal</span>
-          </button>
-
-          {/* Botón + Programar Actividad */}
-          <button
-            type="button"
-            onClick={() => handleOpenScheduleForDate(toIsoDateStr(cursorDate))}
-            className="px-3.5 py-1.5 rounded-xl bg-[#00e03c] hover:bg-white text-slate-950 font-black text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-[#00e03c]/20"
-          >
-            <Plus className="w-4 h-4 stroke-[3]" />
-            <span>Programar Actividad</span>
-          </button>
-        </div>
-      </div>
-
-      {/* ══════════════════════════════════════════════════════════════════════════
-          2. PANEL DE CONTROL UNIFICADO: NAVEGACIÓN, FILTROS Y ESCALAS (ESTILO ODOO ERP)
-         ══════════════════════════════════════════════════════════════════════════ */}
-      {activeSection === 'calendar' && (
-        <>
-          <div className="bg-[#09130b] border border-white/[0.1] rounded-2xl p-2.5 sm:px-3.5 sm:py-2.5 shadow-xl space-y-2.5">
-          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-2.5">
-            {/* LADO IZQUIERDO: Navegación de Fechas, Título del Período y Medidor de Dedicación */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            {/* Flechas Anterior / Siguiente */}
+            <div className="flex items-center bg-black/50 rounded-lg border border-white/10 p-0.5 shrink-0">
               <button
                 type="button"
-                onClick={() => setCursorDate(new Date())}
-                className="px-2.5 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-xs font-bold text-white cursor-pointer transition-colors"
+                onClick={() => {
+                  const dt = new Date(cursorDate);
+                  if (scaleMode === 'year') dt.setFullYear(dt.getFullYear() - 1);
+                  else if (scaleMode === 'quarter') {
+                    setSelectedQuarter(q => (q === 1 ? 4 : q - 1));
+                  } else if (scaleMode === 'month') dt.setMonth(dt.getMonth() - 1);
+                  else if (scaleMode === 'week') dt.setDate(dt.getDate() - 7);
+                  else dt.setDate(dt.getDate() - 1);
+                  setCursorDate(dt);
+                  if (activeSection !== 'calendar') setActiveSection('calendar');
+                }}
+                className="p-1 rounded text-slate-300 hover:text-white cursor-pointer transition-colors"
+                title="Anterior"
               >
-                Hoy
+                <ChevronLeft className="w-3.5 h-3.5" />
               </button>
-
-              <div className="flex items-center bg-black/50 rounded-xl border border-white/10 p-0.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const dt = new Date(cursorDate);
-                    if (scaleMode === 'year') dt.setFullYear(dt.getFullYear() - 1);
-                    else if (scaleMode === 'quarter') {
-                      setSelectedQuarter(q => (q === 1 ? 4 : q - 1));
-                    } else if (scaleMode === 'month') dt.setMonth(dt.getMonth() - 1);
-                    else if (scaleMode === 'week') dt.setDate(dt.getDate() - 7);
-                    else dt.setDate(dt.getDate() - 1);
-                    setCursorDate(dt);
-                  }}
-                  className="p-1 rounded-lg text-slate-300 hover:text-white cursor-pointer transition-colors"
-                  title="Anterior"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const dt = new Date(cursorDate);
-                    if (scaleMode === 'year') dt.setFullYear(dt.getFullYear() + 1);
-                    else if (scaleMode === 'quarter') {
-                      setSelectedQuarter(q => (q === 4 ? 1 : q + 1));
-                    } else if (scaleMode === 'month') dt.setMonth(dt.getMonth() + 1);
-                    else if (scaleMode === 'week') dt.setDate(dt.getDate() + 7);
-                    else dt.setDate(dt.getDate() + 1);
-                    setCursorDate(dt);
-                  }}
-                  className="p-1 rounded-lg text-slate-300 hover:text-white cursor-pointer transition-colors"
-                  title="Siguiente"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-
-              <h3 className="text-sm sm:text-base font-black text-white whitespace-nowrap min-w-[140px]">
-                {scaleMode === 'year'
-                  ? `Año ${cursorDate.getFullYear()}`
-                  : scaleMode === 'quarter'
-                  ? `Q${selectedQuarter} (${MONTH_NAMES_SHORT[(selectedQuarter - 1) * 3]} - ${MONTH_NAMES_SHORT[(selectedQuarter - 1) * 3 + 2]}) · ${cursorDate.getFullYear()}`
-                  : `${MONTH_NAMES[cursorDate.getMonth()]} ${cursorDate.getFullYear()}`}
-              </h3>
-
-              {/* Medidor Compacto de Dedicación Diaria de Hoy */}
-              <div
-                className="flex items-center gap-2 bg-black/50 px-2.5 py-1 rounded-xl border border-white/[0.08]"
-                title={`Carga de Hoy (${todayStr}): ${todayScheduledHours.toFixed(1)}h programadas de ${dailyCapHours}h meta (${todayCompletedHours.toFixed(1)}h ejecutadas)`}
+              <button
+                type="button"
+                onClick={() => {
+                  const dt = new Date(cursorDate);
+                  if (scaleMode === 'year') dt.setFullYear(dt.getFullYear() + 1);
+                  else if (scaleMode === 'quarter') {
+                    setSelectedQuarter(q => (q === 4 ? 1 : q + 1));
+                  } else if (scaleMode === 'month') dt.setMonth(dt.getMonth() + 1);
+                  else if (scaleMode === 'week') dt.setDate(dt.getDate() + 7);
+                  else dt.setDate(dt.getDate() + 1);
+                  setCursorDate(dt);
+                  if (activeSection !== 'calendar') setActiveSection('calendar');
+                }}
+                className="p-1 rounded text-slate-300 hover:text-white cursor-pointer transition-colors"
+                title="Siguiente"
               >
-                <span className="text-[11px] font-bold text-slate-300 whitespace-nowrap">
-                  Hoy: <strong className="text-white font-mono">{todayScheduledHours.toFixed(1)}h</strong>/{dailyCapHours}h
-                </span>
-                <div className="w-12 h-2 rounded-full bg-white/[0.1] overflow-hidden flex shrink-0">
-                  <div
-                    className="bg-[#00e03c] h-full transition-all"
-                    style={{ width: `${Math.min(100, (todayCompletedHours / dailyCapHours) * 100)}%` }}
-                  />
-                  <div
-                    className={`${
-                      todayScheduledHours > dailyCapHours ? 'bg-rose-500' : 'bg-amber-400'
-                    } h-full transition-all`}
-                    style={{
-                      width: `${Math.min(
-                        100,
-                        Math.max(0, ((todayScheduledHours - todayCompletedHours) / dailyCapHours) * 100)
-                      )}%`
-                    }}
-                  />
-                </div>
-              </div>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
             </div>
 
-            {/* CENTRO: Filtros de Socios, Etiquetas Libres y Búsqueda */}
-            <div className="flex flex-wrap items-center gap-2 flex-1 justify-center xl:justify-center">
-              {/* Filtro de Socios */}
-              <div className="flex items-center bg-black/50 p-0.5 rounded-xl border border-white/10 shrink-0">
-                {[
-                  { id: 'all', label: 'Ambos Socios' },
-                  { id: 'Ing. Diego Barrientos', label: 'Diego Barrientos' },
-                  { id: 'Ing. Fernando Araujo', label: 'Fernando Araujo' }
-                ].map(p => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => setPartnerFilter(p.id)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                      partnerFilter === p.id
-                        ? 'bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/40 font-black'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    {p.label}
-                  </button>
-                ))}
-              </div>
+            {/* Título de Período / Mes */}
+            <h3 className="text-xs sm:text-sm font-black text-white whitespace-nowrap min-w-[110px] shrink-0">
+              {scaleMode === 'year'
+                ? `Año ${cursorDate.getFullYear()}`
+                : scaleMode === 'quarter'
+                ? `Q${selectedQuarter} (${MONTH_NAMES_SHORT[(selectedQuarter - 1) * 3]} - ${MONTH_NAMES_SHORT[(selectedQuarter - 1) * 3 + 2]}) · ${cursorDate.getFullYear()}`
+                : `${MONTH_NAMES[cursorDate.getMonth()]} ${cursorDate.getFullYear()}`}
+            </h3>
 
-              {/* Selector de Etiquetas Libres */}
-              <select
-                value={tagFilter}
-                onChange={e => setTagFilter(e.target.value)}
-                className="bg-black/70 border border-white/15 rounded-xl px-2.5 py-1 text-xs text-slate-200 outline-none focus:border-[#00e03c] max-w-[150px]"
-              >
-                <option value="all">Todas las Etiquetas</option>
-                {freeTags.map(t => (
-                  <option key={t.id} value={t.name}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-
-              {/* Barra de Búsqueda Rápida */}
-              <div className="flex items-center gap-1.5 bg-black/60 border border-white/15 rounded-xl px-2.5 py-1">
-                <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Buscar actividad o cliente..."
-                  className="bg-transparent text-xs text-white placeholder-slate-500 outline-none w-28 sm:w-36 focus:w-44 transition-all"
+            {/* Medidor Compacto de Carga de Hoy */}
+            <div
+              className="flex items-center gap-1.5 bg-black/50 px-2 py-0.5 rounded-lg border border-white/[0.08] shrink-0"
+              title={`Carga de Hoy (${todayStr}): ${todayScheduledHours.toFixed(1)}h programadas de ${dailyCapHours}h meta (${todayCompletedHours.toFixed(1)}h ejecutadas)`}
+            >
+              <span className="text-[10px] font-bold text-slate-300 whitespace-nowrap">
+                Hoy: <strong className="text-white font-mono">{todayScheduledHours.toFixed(1)}h</strong>/{dailyCapHours}h
+              </span>
+              <div className="w-10 h-1.5 rounded-full bg-white/[0.1] overflow-hidden flex shrink-0">
+                <div
+                  className="bg-[#00e03c] h-full transition-all"
+                  style={{ width: `${Math.min(100, (todayCompletedHours / dailyCapHours) * 100)}%` }}
+                />
+                <div
+                  className={`${
+                    todayScheduledHours > dailyCapHours ? 'bg-rose-500' : 'bg-amber-400'
+                  } h-full transition-all`}
+                  style={{
+                    width: `${Math.min(
+                      100,
+                      Math.max(0, ((todayScheduledHours - todayCompletedHours) / dailyCapHours) * 100)
+                    )}%`
+                  }}
                 />
               </div>
             </div>
+          </div>
 
-            {/* LADO DERECHO: Conmutador de Escalas Multi-Vista */}
-            <div className="flex items-center gap-0.5 bg-black/50 p-0.5 rounded-xl border border-white/10 overflow-x-auto shrink-0 justify-end">
+          {/* CENTRO: Filtro de Socios, Selector de Etiquetas Libres y Búsqueda */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Filtro de Socios */}
+            <div className="flex items-center bg-black/50 p-0.5 rounded-lg border border-white/10 shrink-0">
               {[
-                { id: 'month', label: 'Mes' },
-                { id: 'week', label: 'Semana' },
-                { id: 'day', label: 'Día' },
-                { id: 'quarter', label: 'Trimestral' },
-                { id: 'year', label: 'Anual' },
-                { id: 'agenda', label: 'Agenda' }
+                { id: 'all', label: 'Ambos' },
+                { id: 'Ing. Diego Barrientos', label: 'Diego' },
+                { id: 'Ing. Fernando Araujo', label: 'Fernando' }
+              ].map(p => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setPartnerFilter(p.id)}
+                  className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    partnerFilter === p.id
+                      ? 'bg-[#00e03c]/20 text-[#00e03c] border border-[#00e03c]/40 font-black'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                  title={p.id === 'all' ? 'Ambos Socios' : p.id}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Selector Desplegable de Etiquetas Libres */}
+            <select
+              value={tagFilter}
+              onChange={e => setTagFilter(e.target.value)}
+              className="bg-black/70 border border-white/15 rounded-lg px-2 py-0.5 text-[11px] text-slate-200 outline-none focus:border-[#00e03c] max-w-[125px] shrink-0 cursor-pointer"
+            >
+              <option value="all">Etiquetas</option>
+              {freeTags.map(t => (
+                <option key={t.id} value={t.name}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+
+            {/* Campo de Búsqueda Compacto */}
+            <div className="flex items-center gap-1 bg-black/60 border border-white/15 rounded-lg px-2 py-0.5 shrink-0">
+              <Search className="w-3 h-3 text-slate-400 shrink-0" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Buscar..."
+                className="bg-transparent text-[11px] text-white placeholder-slate-500 outline-none w-20 sm:w-24 focus:w-32 transition-all"
+              />
+            </div>
+          </div>
+
+          {/* DERECHA: Conmutador de Escala, Pestañas de Sección, Conmutador de Jornada y Botón Programar */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Conmutador de Escala */}
+            <div className="flex items-center gap-0.5 bg-black/50 p-0.5 rounded-lg border border-white/10 shrink-0">
+              {[
+                { id: 'month', label: 'Mes', short: 'Mes' },
+                { id: 'week', label: 'Semana', short: 'Sem' },
+                { id: 'day', label: 'Día', short: 'Día' },
+                { id: 'quarter', label: 'Trimestral', short: 'Trim' },
+                { id: 'year', label: 'Anual', short: 'Año' },
+                { id: 'agenda', label: 'Agenda', short: 'Ag' }
               ].map(sc => (
                 <button
                   key={sc.id}
                   type="button"
-                  onClick={() => setScaleMode(sc.id)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                    scaleMode === sc.id
+                  onClick={() => {
+                    setScaleMode(sc.id);
+                    if (activeSection !== 'calendar') setActiveSection('calendar');
+                  }}
+                  className={`px-1.5 sm:px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    activeSection === 'calendar' && scaleMode === sc.id
                       ? 'bg-[#00e03c] text-slate-950 font-black shadow-sm'
                       : 'text-slate-400 hover:text-white'
                   }`}
+                  title={`Vista ${sc.label}`}
                 >
-                  {sc.label}
+                  <span className="hidden xl:inline">{sc.label}</span>
+                  <span className="xl:hidden">{sc.short}</span>
                 </button>
               ))}
             </div>
+
+            {/* Pestañas de Sección Compactas */}
+            <div className="flex items-center bg-black/50 p-0.5 rounded-lg border border-white/10 shrink-0">
+              {[
+                { id: 'calendar', label: 'Calendario', short: 'Cal' },
+                { id: 'sales_plan', label: 'Plan Ventas', short: 'Ventas' },
+                { id: 'tags', label: `Etiquetas (${freeTags.length})`, short: 'Tags' },
+                { id: 'automation', label: 'Google Calendar', short: 'G-Cal' }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveSection(tab.id)}
+                  className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    activeSection === tab.id
+                      ? 'bg-[#00e03c] text-slate-950 font-black shadow-sm'
+                      : 'text-slate-300 hover:text-white hover:bg-white/[0.05]'
+                  }`}
+                >
+                  <span className="hidden 2xl:inline">{tab.label}</span>
+                  <span className="2xl:hidden">{tab.short}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Conmutador de Jornada: 4.5h / 8.0h */}
+            <div className="flex items-center gap-0.5 bg-black/60 p-0.5 rounded-lg border border-white/[0.1] shrink-0" title="Meta de dedicación diaria de teletrabajo por socio">
+              <button
+                type="button"
+                onClick={() => handleToggleDailyCap(4.5)}
+                className={`px-2 py-0.5 rounded text-[10.5px] font-black transition-all cursor-pointer whitespace-nowrap ${
+                  dailyCapHours === 4.5
+                    ? 'bg-[#00e03c] text-slate-950 shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Fase Temprana: 4.5 hrs/día por socio"
+              >
+                4.5h
+              </button>
+              <button
+                type="button"
+                onClick={() => handleToggleDailyCap(8.0)}
+                className={`px-2 py-0.5 rounded text-[10.5px] font-black transition-all cursor-pointer whitespace-nowrap ${
+                  dailyCapHours === 8.0
+                    ? 'bg-amber-400 text-slate-950 shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Fase Intensiva: 8.0 hrs/día por socio"
+              >
+                8.0h
+              </button>
+            </div>
+
+            {/* Botón + Programar */}
+            <button
+              type="button"
+              onClick={() => handleOpenScheduleForDate(toIsoDateStr(cursorDate))}
+              className="px-2.5 py-1 rounded-lg bg-[#00e03c] hover:bg-white text-slate-950 font-black text-xs flex items-center gap-1 transition-all cursor-pointer shadow-md shadow-[#00e03c]/20 shrink-0 whitespace-nowrap"
+            >
+              <Plus className="w-3.5 h-3.5 stroke-[3]" />
+              <span>Programar</span>
+            </button>
           </div>
         </div>
+      </div>
 
+      {/* ══════════════════════════════════════════════════════════════════════════
+          CONTENIDO DE VISTAS DE CALENDARIO
+         ══════════════════════════════════════════════════════════════════════════ */}
+      {activeSection === 'calendar' && (
+        <>
           {/* ════════════════════════════════════════════════════════════════════════
               VISTA 1: ANUAL (12 MESES CON MAPA DE CALOR Y NAVEGACIÓN INSTANTÁNEA)
              ════════════════════════════════════════════════════════════════════════ */}
           {scaleMode === 'year' && (
-            <div className="space-y-4">
+            <div className="space-y-4 relative z-10">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-[#08110a] border border-white/[0.1] p-4 rounded-2xl">
                 <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
                   <span className="text-[10px] uppercase font-mono text-slate-400 block">Total Actividades {cursorDate.getFullYear()}</span>
@@ -1577,7 +1571,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
               VISTA 2: TRIMESTRAL (Q1, Q2, Q3, Q4 CON METAS DE TELETRABAJO Y DESGLOSE)
              ════════════════════════════════════════════════════════════════════════ */}
           {scaleMode === 'quarter' && (
-            <div className="space-y-4">
+            <div className="space-y-4 relative z-10">
               {/* Selector de Trimestres Q1..Q4 */}
               <div className="flex flex-wrap items-center justify-between gap-3 bg-[#08110a] border border-white/[0.1] p-3.5 rounded-2xl">
                 <div className="flex items-center gap-1.5">
@@ -1687,131 +1681,140 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
           )}
 
           {/* ════════════════════════════════════════════════════════════════════════
-              VISTA 3: MENSUAL (CUADRÍCULA CON DRAG & DROP Y BARRAS DE CAPACIDAD)
+              VISTA 3: MENSUAL (CUADRÍCULA 1PX NEUFORM DE ALTO CONTRASTE)
              ════════════════════════════════════════════════════════════════════════ */}
           {scaleMode === 'month' && (
-            <div className="rounded-2xl bg-[#08110a] border border-white/[0.1] overflow-hidden shadow-2xl">
-              <div className="grid grid-cols-7 border-b border-white/[0.08] bg-white/[0.03]">
-                {DAY_NAMES_SHORT.map(dName => (
-                  <div key={dName} className="py-2 text-center text-[10.5px] font-black uppercase tracking-wider text-slate-400">
-                    {dName}
-                  </div>
-                ))}
-              </div>
+            <div className="grid grid-cols-7 gap-[1px] bg-white/[0.12] rounded-2xl border border-white/[0.15] overflow-hidden shadow-2xl relative z-10">
+              {/* Fila 0: Cabeceras de Días de la Semana Unificadas */}
+              {DAY_NAMES_SHORT.map(dName => (
+                <div
+                  key={dName}
+                  className="py-2 sm:py-2.5 bg-[#09150c] text-center text-[10.5px] sm:text-[11px] font-black uppercase tracking-wider text-slate-300 border-b border-white/10"
+                >
+                  {dName}
+                </div>
+              ))}
 
-              <div className="grid grid-cols-7 divide-x divide-y divide-white/[0.06]">
-                {monthDaysGrid.map(cell => {
-                  const dayEvents = getEventsForDay(cell.dateStr);
-                  const dayHours = getDayScheduledHours(cell.dateStr);
-                  const isToday = cell.dateStr === todayStr;
-                  const isOverCap = dayHours > dailyCapHours;
-                  const isDragTarget = dragOverDateStr === cell.dateStr;
+              {/* Filas 1 a 6: Celdas de los Días del Mes */}
+              {monthDaysGrid.map(cell => {
+                const dayEvents = getEventsForDay(cell.dateStr);
+                const dayHours = getDayScheduledHours(cell.dateStr);
+                const isToday = cell.dateStr === todayStr;
+                const isOverCap = dayHours > dailyCapHours;
+                const isDragTarget = dragOverDateStr === cell.dateStr;
 
-                  return (
-                    <div
-                      key={cell.dateStr}
-                      onDragOver={e => {
-                        e.preventDefault();
-                        if (dragOverDateStr !== cell.dateStr) setDragOverDateStr(cell.dateStr);
-                      }}
-                      onDrop={e => handleDropOnDay(e, cell.dateStr)}
-                      onClick={() => handleOpenScheduleForDate(cell.dateStr)}
-                      className={`min-h-[85px] sm:min-h-[105px] p-1.5 sm:p-2 flex flex-col justify-between transition-colors cursor-pointer ${
-                        !cell.isCurrentMonth ? 'bg-black/50 opacity-40' : 'bg-transparent hover:bg-white/[0.02]'
-                      } ${isDragTarget ? 'ring-2 ring-[#00e03c] bg-[#00e03c]/10' : ''}`}
-                    >
-                      <div>
-                        <div className="flex items-center justify-between gap-1 mb-1">
-                          <span
-                            className={`w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg text-[11px] sm:text-xs font-black flex items-center justify-center ${
-                              isToday
-                                ? 'bg-[#00e03c] text-slate-950 shadow-sm'
-                                : 'text-slate-300'
-                            }`}
-                          >
+                return (
+                  <div
+                    key={cell.dateStr}
+                    onDragOver={e => {
+                      e.preventDefault();
+                      if (dragOverDateStr !== cell.dateStr) setDragOverDateStr(cell.dateStr);
+                    }}
+                    onDrop={e => handleDropOnDay(e, cell.dateStr)}
+                    onClick={() => handleOpenScheduleForDate(cell.dateStr)}
+                    className={`${
+                      cell.isCurrentMonth
+                        ? 'bg-[#07130a] hover:bg-[#0c1e10]'
+                        : 'bg-[#040c06] hover:bg-[#07140a]'
+                    } p-1 sm:p-1.5 min-h-[58px] sm:min-h-[68px] lg:min-h-[74px] flex flex-col justify-between transition-colors cursor-pointer ${
+                      isDragTarget ? 'ring-2 ring-[#00e03c] bg-[#00e03c]/10' : ''
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-1 mb-1">
+                        {isToday ? (
+                          <span className="w-6 h-6 rounded-lg text-xs font-black flex items-center justify-center bg-[#00e03c] text-slate-950 shadow-md shadow-[#00e03c]/40 font-mono">
                             {cell.dateObj.getDate()}
                           </span>
+                        ) : cell.isCurrentMonth ? (
+                          <span className="w-6 h-6 rounded-lg text-xs font-black flex items-center justify-center bg-white/[0.08] border border-white/15 text-white font-mono hover:bg-white/15">
+                            {cell.dateObj.getDate()}
+                          </span>
+                        ) : (
+                          <span className="w-6 h-6 rounded-lg text-xs font-bold flex items-center justify-center text-slate-400 font-mono bg-white/[0.03] border border-white/[0.08]">
+                            {cell.dateObj.getDate()}
+                          </span>
+                        )}
 
-                          {dayHours > 0 && (
-                            <span
-                              className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
-                                isOverCap
-                                  ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                                  : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                              }`}
-                              title={`Horas asignadas en el día: ${dayHours.toFixed(1)}h de ${dailyCapHours}h`}
-                            >
-                              {dayHours.toFixed(1)}h/{dailyCapHours}h
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="space-y-1">
-                          {dayEvents.slice(0, 2).map(ev => {
-                            const isCompleted = ev.status === 'Concluido';
-                            const firstTag = ev.tags?.[0];
-                            const badgeCls = firstTag
-                              ? getTagBadgeClass(firstTag)
-                              : 'bg-[#00e03c]/15 text-[#00e03c] border-[#00e03c]/35';
-
-                            return (
-                              <div
-                                key={`${cell.dateStr}-${ev.uid}`}
-                                draggable
-                                onDragStart={e => {
-                                  e.stopPropagation();
-                                  handleDragStartEvent(e, ev.uid);
-                                }}
-                                onClick={e => {
-                                  e.stopPropagation();
-                                  handleSelectEvent(ev);
-                                }}
-                                className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md border text-[9.5px] sm:text-[10px] leading-tight transition-all hover:scale-[1.01] ${
-                                  isCompleted
-                                    ? 'bg-white/[0.03] border-white/10 text-slate-400 line-through'
-                                    : badgeCls
-                                }`}
-                              >
-                                <div className="flex items-center justify-between gap-1">
-                                  <span className="font-bold truncate">{ev.title}</span>
-                                  <span className="font-mono text-[8.5px] sm:text-[9px] shrink-0 opacity-85">{ev.estimatedHours}h</span>
-                                </div>
-                                {ev.clientName && (
-                                  <span className="block text-[8.5px] opacity-75 truncate">{ev.clientName}</span>
-                                )}
-                              </div>
-                            );
-                          })}
-
-                          {dayEvents.length > 2 && (
-                            <div
-                              onClick={e => {
-                                e.stopPropagation();
-                                setCursorDate(cell.dateObj);
-                                setScaleMode('day');
-                              }}
-                              className="text-[9px] font-bold text-[#00e03c] hover:underline pl-1 cursor-pointer"
-                            >
-                              +{dayEvents.length - 2} más...
-                            </div>
-                          )}
-                        </div>
+                        {dayHours > 0 && (
+                          <span
+                            className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
+                              isOverCap
+                                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                                : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                            }`}
+                            title={`Horas asignadas en el día: ${dayHours.toFixed(1)}h de ${dailyCapHours}h`}
+                          >
+                            {dayHours.toFixed(1)}h/{dailyCapHours}h
+                          </span>
+                        )}
                       </div>
 
-                      {dayHours > 0 && (
-                        <div className="w-full h-1 rounded-full bg-white/[0.07] overflow-hidden mt-1">
+                      <div className="space-y-1">
+                        {dayEvents.slice(0, 2).map(ev => {
+                          const isCompleted = ev.status === 'Concluido';
+                          const firstTag = ev.tags?.[0];
+                          const badgeCls = firstTag
+                            ? getTagBadgeClass(firstTag)
+                            : 'bg-[#00e03c]/15 text-[#00e03c] border-[#00e03c]/35';
+
+                          return (
+                            <div
+                              key={`${cell.dateStr}-${ev.uid}`}
+                              draggable
+                              onDragStart={e => {
+                                e.stopPropagation();
+                                handleDragStartEvent(e, ev.uid);
+                              }}
+                              onClick={e => {
+                                e.stopPropagation();
+                                handleSelectEvent(ev);
+                              }}
+                              className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md border text-[9.5px] sm:text-[10px] leading-tight transition-all hover:scale-[1.01] ${
+                                isCompleted
+                                  ? 'bg-white/[0.03] border-white/10 text-slate-400 line-through'
+                                  : badgeCls
+                              }`}
+                            >
+                              <div className="flex items-center justify-between gap-1">
+                                <span className="font-bold truncate">{ev.title}</span>
+                                <span className="font-mono text-[8.5px] sm:text-[9px] shrink-0 opacity-85">{ev.estimatedHours}h</span>
+                              </div>
+                              {ev.clientName && (
+                                <span className="block text-[8.5px] opacity-75 truncate">{ev.clientName}</span>
+                              )}
+                            </div>
+                          );
+                        })}
+
+                        {dayEvents.length > 2 && (
                           <div
-                            className={`h-full transition-all ${
-                              isOverCap ? 'bg-rose-500' : 'bg-[#00e03c]'
-                            }`}
-                            style={{ width: `${Math.min(100, (dayHours / dailyCapHours) * 100)}%` }}
-                          />
-                        </div>
-                      )}
+                            onClick={e => {
+                              e.stopPropagation();
+                              setCursorDate(cell.dateObj);
+                              setScaleMode('day');
+                            }}
+                            className="text-[9px] font-bold text-[#00e03c] hover:underline pl-1 cursor-pointer"
+                          >
+                            +{dayEvents.length - 2} más...
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
+
+                    {dayHours > 0 && (
+                      <div className="w-full h-1 rounded-full bg-white/[0.07] overflow-hidden mt-1">
+                        <div
+                          className={`h-full transition-all ${
+                            isOverCap ? 'bg-rose-500' : 'bg-[#00e03c]'
+                          }`}
+                          style={{ width: `${Math.min(100, (dayHours / dailyCapHours) * 100)}%` }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -1819,7 +1822,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
               VISTA 4: SEMANAL (7 COLUMNAS DETALLADAS DE DEDICACIÓN)
              ════════════════════════════════════════════════════════════════════════ */}
           {scaleMode === 'week' && (
-            <div className="grid grid-cols-1 md:grid-cols-7 gap-2.5">
+            <div className="grid grid-cols-1 md:grid-cols-7 gap-2.5 relative z-10">
               {weekDaysGrid.map(col => {
                 const dayEvents = getEventsForDay(col.dateStr);
                 const dayHours = getDayScheduledHours(col.dateStr);
@@ -1899,7 +1902,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
             const dayHours = getDayScheduledHours(currentDayStr);
 
             return (
-              <div className="rounded-2xl bg-[#09130b] border border-white/[0.1] p-5 space-y-4">
+              <div className="rounded-2xl bg-[#09130b] border border-white/[0.1] p-5 space-y-4 relative z-10">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
                   <div>
                     <h4 className="text-base font-black text-white">
@@ -1972,7 +1975,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
               VISTA 6: AGENDA LINEAL CRONOLÓGICA
              ════════════════════════════════════════════════════════════════════════ */}
           {scaleMode === 'agenda' && (
-            <div className="rounded-2xl bg-[#09130b] border border-white/[0.1] overflow-hidden">
+            <div className="rounded-2xl bg-[#09130b] border border-white/[0.1] overflow-hidden relative z-10">
               <table className="w-full text-left text-xs">
                 <thead className="bg-white/[0.04] border-b border-white/[0.08] text-slate-400 font-tech uppercase text-[10px]">
                   <tr>
@@ -2036,7 +2039,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
           3. SECCIÓN: PLAN DE VENTAS TELEFÓNICAS & INBOUND (FORMATOS VERTICALES)
          ══════════════════════════════════════════════════════════════════════════ */}
       {activeSection === 'sales_plan' && (
-        <div className="space-y-4">
+        <div className="space-y-4 relative z-10">
           <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-[#0a180e] to-black border border-[#00e03c]/30 space-y-2">
             <h3 className="text-base font-black text-white flex items-center gap-2">
               <Phone className="w-5 h-5 text-[#00e03c]" />
@@ -2124,7 +2127,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
           4. SECCIÓN: GESTOR DE ETIQUETAS LIBRES
          ══════════════════════════════════════════════════════════════════════════ */}
       {activeSection === 'tags' && (
-        <div className="space-y-4">
+        <div className="space-y-4 relative z-10">
           <form
             onSubmit={handleCreateFreeTag}
             className="p-4 rounded-2xl bg-[#09130b] border border-white/[0.1] grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs"
@@ -2184,7 +2187,7 @@ export default function OdooCalendarModule({ currentSocio, compactMode = false, 
           5. SECCIÓN: SINCRONIZACIÓN GOOGLE CALENDAR & AUTOMATIZACIÓN DIRECTIVA
          ══════════════════════════════════════════════════════════════════════════ */}
       {activeSection === 'automation' && (
-        <div className="space-y-4">
+        <div className="space-y-4 relative z-10">
           {/* Tarjeta de Encabezado Pedagógica */}
           <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-950/50 via-[#0a180e] to-black border border-[#00e03c]/30 space-y-2">
             <div className="flex items-center justify-between flex-wrap gap-2">

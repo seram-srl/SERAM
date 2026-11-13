@@ -6,6 +6,30 @@
   "in_progress": [],
   "completed": [
     {
+      "id": "TASK-121",
+      "title": "Corrección Definitiva de Grilla Unificada de Calendario SERAM: Integración de Cabeceras LUN-DOM dentro de la Misma Grilla 7xN, Supresión de Desplazamiento Sticky Parasitario y Calibración de Altura de Celdas para Ajuste Completo del Mes en Viewport",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-11-12",
+      "completed_at": "2026-11-12"
+    },
+    {
+      "id": "TASK-120",
+      "title": "Consolidación de Barra de Herramientas Ultra-Compacta (52px) en Calendario SERAM, Contraste Nítido en Días Adyacentes y Encaje Completo del Mes en Viewport sin Scroll",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-11-12",
+      "completed_at": "2026-11-12"
+    },
+    {
+      "id": "TASK-119",
+      "title": "Rediseño Ergonómico y Definitivo del Calendario SERAM: Eliminación de Banner Redundante en Dashboard, Toolbar y Días (LUN-DOM) Sticky Persistentes, Grilla 1px Neuform de Alto Contraste y Encaje en Pantalla sin Desorientación",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-11-12",
+      "completed_at": "2026-11-12"
+    },
+    {
       "id": "TASK-118",
       "title": "Apertura Inicial por Defecto en Actividades y Tareas, Corrección Visual Ergonómica del Calendario SERAM y Sincronización Notificada con Google Calendar para Ambos Socios (Diego Barrientos y Fernando Araujo)",
       "status": "completed",
