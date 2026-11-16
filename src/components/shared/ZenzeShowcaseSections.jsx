@@ -265,7 +265,7 @@ export function ZenzeTechOverviewSection({
   accentColorClass = 'text-[#00e03c]',
   buttonAccentClass = 'bg-[#00e03c] hover:bg-white text-slate-950 shadow-[0_0_25px_rgba(0,224,60,0.25)]',
   overviewTitle = 'SERAM Operations Overview',
-  statsCol = { label1: 'Proyectos Activos', val1: '12', label2: 'Estudios SIG', val2: '6' },
+  statsCol = { label1: 'Proyectos Activos', val1: '12', label2: 'Estudios Ambientales', val2: '6' },
   trendCard = { label: 'Eficiencia Regulatoria', value: '+34%', sub: 'vs trámite tradicional' },
   donutCard = { label: 'Cumplimiento Legal', percent: 98, statusText: 'Óptimo', leg1: 'Aprobado', leg2: 'En Revisión' },
   recentActivities = [],

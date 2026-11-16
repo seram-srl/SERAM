@@ -163,7 +163,7 @@ export function AppProvider({ children }) {
       duration: '80 páginas',
       pages: 80,
       version: 'Edición 2026',
-      desc: 'Compendio interpretado de legislación boliviana, carimbos institucionales, mapas sectoriales y tablas normativas de mitigación.',
+      desc: 'Compendio interpretado de legislación boliviana, carimbos institucionales, documentación técnica y tablas normativas de mitigación.',
       category: 'formatos',
       tags: ['formatos', 'tramites', 'normativa'],
       level: 'Básico / Fundamentos',
@@ -177,31 +177,8 @@ export function AppProvider({ children }) {
       modules: createDefaultCourseModules('Guía Práctica Ley 1333', 'ley1333')
     },
     {
-      id: 2,
-      title: 'Herramientas Técnicas de QGIS *Básico & Cartografía*',
-      instructor: 'Ing. Diego Barrientos',
-      students: 85,
-      status: 'Publicado',
-      isPremium: true,
-      type: 'low_ticket',
-      format: 'video',
-      hasVideo: true,
-      price: 45,
-      image: '/assets/covers/cover_qgis_basico.png',
-      duration: '12 horas',
-      version: 'Edición 2026',
-      desc: 'Dominio práctico de QGIS aplicado a delimitación de cuencas, superposición de áreas protegidas e informes técnicos bolivianos.',
-      category: 'gis_mapas',
-      tags: ['gis_mapas', 'geomatica'],
-      level: 'Básico / Fundamentos',
-      track: 'Geomática & SIG',
-      pdfUrl: '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf',
-      pdfName: 'Manual_Cartografia_QGIS_WGS84.pdf',
-      modules: createDefaultCourseModules('QGIS Básico & Cartografía', 'qgis')
-    },
-    {
       id: 3,
-      title: 'Taller Práctico: Metodología de *Fichas Ambientales* e Impacto',
+      title: 'Taller Práctico: Metodología de *Formularios Ambientales* e Impacto',
       instructor: 'Ing. Fernando Araujo',
       students: 42,
       status: 'Publicado',
@@ -210,7 +187,7 @@ export function AppProvider({ children }) {
       format: 'video',
       hasVideo: true,
       price: 120,
-      image: '/assets/covers/cover_taller_fichas.png',
+      image: '/assets/covers/cover_mentoria_consultoria.png',
       duration: '25 horas',
       version: 'Edición 2026',
       desc: 'Metodologías de categorización de obras civiles e industriales (FNCA), matrices PPM-PASA y adecuación bajo D.S. 3549.',
@@ -220,12 +197,12 @@ export function AppProvider({ children }) {
       track: 'Trámites & Licencias',
       pdfUrl: '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf',
       pdfName: 'Plantilla_FNCA_PPM_PASA_DS3549.pdf',
-      modules: createDefaultCourseModules('Fichas Ambientales e Impacto', 'fnca')
+      modules: createDefaultCourseModules('Formularios Ambientales e Impacto', 'fnca')
     },
     {
       id: 4,
-      title: 'Auditoría y Regularización de Emergencia ante la *AACD/AACN*',
-      instructor: 'Equipo Técnico Especializado SERAM',
+      title: 'Evaluación y Regularización Normativa ante la *AACD/AACN*',
+      instructor: 'Equipo Técnico SERAM',
       students: 18,
       status: 'Publicado',
       isPremium: true,
@@ -239,11 +216,11 @@ export function AppProvider({ children }) {
       desc: 'Protocolo técnico y legal paso a paso para levantar clausuras preventivas, responder conminatorias y subsanar pasivos ambientales.',
       category: 'regularizacion',
       tags: ['regularizacion', 'tramites', 'normativa'],
-      level: 'Avanzado / Especialista',
+      level: 'Avanzado / Profesional',
       track: 'Derecho & Normativa',
       pdfUrl: '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf',
       pdfName: 'Protocolo_Regularizacion_AACD_AACN.pdf',
-      modules: createDefaultCourseModules('Auditoría y Regularización AACD/AACN', 'aacd')
+      modules: createDefaultCourseModules('Evaluación y Regularización AACD/AACN', 'aacd')
     },
     {
       id: 5,
@@ -256,13 +233,13 @@ export function AppProvider({ children }) {
       format: 'pdf',
       hasVideo: false,
       price: 0,
-      image: '/assets/3d-backend/gis_satellite_mapping.webp',
-      duration: 'Dossier Descargable',
+      image: '/assets/covers/cover_ebook_ley1333.png',
+      duration: 'Documento Descargable',
       pages: 45,
       version: 'Edición 2026',
       desc: 'Plantillas en formato DWG/DXF y PDF listas para impresión A3/A4 con rotulación técnica exigida por el Viceministerio de Medio Ambiente.',
       category: 'formatos',
-      tags: ['formatos', 'gis_mapas'],
+      tags: ['formatos', 'normativa'],
       level: 'Intermedio / Aplicado',
       track: 'Formatos & Carimbos',
       pdfUrl: '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf',
@@ -280,7 +257,7 @@ export function AppProvider({ children }) {
       format: 'video',
       hasVideo: true,
       price: 80,
-      image: '/assets/covers/cover_taller_fichas.png',
+      image: '/assets/covers/cover_ebook_ley1333.png',
       duration: '18 horas',
       version: 'Edición 2026',
       desc: 'Guía exhaustiva para la categorización FNCA, DAA, EEIA y Certificados de Dispensación bajo los decretos reglamentarios vigentes.',
@@ -314,29 +291,6 @@ export function AppProvider({ children }) {
       pdfUrl: '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf',
       pdfName: 'Manual_Gestion_RESPEL_Ley_755.pdf',
       modules: createDefaultCourseModules('Residuos Sólidos y Peligrosos Ley 755', 'ley755')
-    },
-    {
-      id: 8,
-      title: 'Modelación Hidrológica de Cuencas y *Análisis Multitemporal SIG*',
-      instructor: 'Ing. Diego Barrientos',
-      students: 48,
-      status: 'Publicado',
-      isPremium: true,
-      type: 'high_ticket',
-      format: 'video',
-      hasVideo: true,
-      price: 240,
-      image: '/assets/3d-backend/gis_satellite_mapping_cropped.webp',
-      duration: '26 horas',
-      version: 'Edición 2026',
-      desc: 'Modelado avanzado de escorrentía, balance hídrico, índices NDVI e integración de cartografía oficial WGS-84 para estudios EEIA.',
-      category: 'gis_mapas',
-      tags: ['gis_mapas'],
-      level: 'Avanzado / Especialista',
-      track: 'Geomática & SIG',
-      pdfUrl: '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf',
-      pdfName: 'Dossier_Modelacion_Hidrologica_SIG.pdf',
-      modules: createDefaultCourseModules('Modelación Hidrológica y SIG', 'climate')
     }
   ];
 
@@ -518,7 +472,7 @@ export function AppProvider({ children }) {
         contactPhone: '+591 73000000',
         contactEmail: 'operaciones@coopkaka.bo',
         location: 'Río Kaka - La Paz',
-        notes: 'Tramitación de Ficha Ambiental y adecuación a RMCH'
+        notes: 'Tramitación de Formulario Ambiental y adecuación a RMCH'
       }
     ];
   });
@@ -736,7 +690,7 @@ export function AppProvider({ children }) {
         assignedPartnerEmail: 'barrientoso2401@gmail.com',
         projectTitle: 'Valle de las Agujas',
         strategicObjectives: ['RENTABILIDAD', 'LIDERAR EL SECTOR'],
-        category: 'SIG / Cartografía',
+        category: 'Análisis Territorial / Planos',
         status: 'Concluido',
         milestoneStep: 5,
         priority: 'Alta',
@@ -805,7 +759,7 @@ export function AppProvider({ children }) {
       {
         id: 15,
         title: 'Revisión de pendientes',
-        description: 'Auditoría interna societaria, revisión de compromisos y asignación semanal.',
+        description: 'Revisión interna societaria, seguimiento de compromisos y asignación semanal.',
         startDate: '2026-08-31',
         dueDate: '2026-08-31',
         assignedPartner: 'Ing. Diego Barrientos',
@@ -996,7 +950,7 @@ export function AppProvider({ children }) {
       axisLabel: 'Mercurio & Minería Aurífera',
       targetMunicipalities: ['Palos Blancos', 'Alto Beni', 'Guanay', 'Mapiri'],
       lead: 'Ing. Diego Barrientos',
-      leadRole: 'Especialista SIG & Monitoreo Ambiental - SERAM',
+      leadRole: 'Equipo Técnico & Monitoreo Ambiental - SERAM',
       problem: 'Dispersión crítica de mercurio metálico y metilmercurio derivado de la explotación de oro aluvial en los ríos Kaka, Mapiri y afluentes del Río Beni. Afectación directa a tomas de agua potable comunales, pueblos indígenas ribereños (Tsimane, Mosetén, Leco) y bioacumulación en especies ictiológicas de consumo diario.',
       legalFramework: [
         'Ley 1333 de Medio Ambiente (Reglamento en Materia de Contaminación Hídrica - RMCH)',
@@ -1004,10 +958,10 @@ export function AppProvider({ children }) {
         'Ley 535 de Minería y Metalurgia (Atribuciones de Fiscalización y Resguardo Ambiental Municipal)',
         'Decreto Supremo 4959 (Control y Registro Único de Importación y Uso de Mercurio en Bolivia)'
       ],
-      methodology: 'Establecimiento de red georreferenciada de estaciones de muestreo en puntos críticos (cabeceras, frentes de dragado y tomas comunales de agua). Medición multiparamétrica in-situ (pH, conductividad eléctrica, turbidez, oxígeno disuelto). Ensayos de laboratorio acreditado para cuantificación de mercurio total en agua superficial y sedimentos de lecho mediante Espectrometría de Absorción Atómica (AAS con Generador de Hidruros / Vapor Frío). Modelación geoespacial de plumas de dispersión y vulnerabilidad de tomas en ArcGIS Pro.',
+      methodology: 'Establecimiento de red georreferenciada de estaciones de muestreo en puntos críticos (cabeceras, frentes de dragado y tomas comunales de agua). Medición multiparamétrica in-situ (pH, conductividad eléctrica, turbidez, oxígeno disuelto). Ensayos de laboratorio acreditado para cuantificación de mercurio total en agua superficial y sedimentos de lecho mediante Espectrometría de Absorción Atómica (AAS con Generador de Hidruros / Vapor Frío). Análisis espacial de dispersión y vulnerabilidad de tomas.',
       deliverables: [
-        'Informe Técnico de Línea Base Hidrogeoquímica con validez pericial ante el Concejo Municipal',
-        'Geodatabase y Mapa de Isolíneas de Concentración de Hg y Zonas de Alto Riesgo a escala 1:25.000',
+        'Informe Técnico de Línea Base Hidrogeoquímica con validez técnica ante el Concejo Municipal',
+        'Base de datos y Mapa de Isolíneas de Concentración de Hg y Zonas de Alto Riesgo a escala 1:25.000',
         'Protocolo Municipal de Alerta Temprana y Guía de Fiscalización para Inspecciones In-Situ',
         'Anteproyecto de Ordenanza / Ley Municipal de Protección de Fuentes de Agua y Servidumbres Ecológicas'
       ],
@@ -1017,9 +971,9 @@ export function AppProvider({ children }) {
       status: 'Propuesta Activa Oficial',
       priority: 'Alta Prioridad',
       phases: [
-        { name: 'Fase 1: Diagnóstico Cartográfico y Red de Muestreo', duration: '20 días' },
+        { name: 'Fase 1: Diagnóstico Territorial y Red de Muestreo', duration: '20 días' },
         { name: 'Fase 2: Campaña de Campo y Toma de Muestras (AAS)', duration: '25 días' },
-        { name: 'Fase 3: Análisis de Laboratorio y Modelación SIG', duration: '25 días' },
+        { name: 'Fase 3: Análisis de Laboratorio y Procesamiento Espacial', duration: '25 días' },
         { name: 'Fase 4: Formulación Normativa y Presentación a Concejo', duration: '20 días' }
       ]
     }
@@ -1046,39 +1000,39 @@ export function AppProvider({ children }) {
     {
       id: 'srv-notion-3',
       title: 'Teledetección con Drones',
-      line: 'Servicios GIS Ambientales',
-      desc: 'Monitoreo de alta precisión y mapeo aéreo mediante vehículos aéreos no tripulados. Generamos modelos digitales de elevación y ortomosaicos georreferenciados para *análisis espacial*.',
-      tag: 'SIG / Drones',
+      line: 'Servicios Técnicos Ambientales',
+      desc: 'Monitoreo y relevamiento aéreo mediante vehículos aéreos no tripulados. Generamos modelos digitales de elevación y ortomosaicos georreferenciados para *análisis territorial*.',
+      tag: 'Drones / Monitoreo',
       icon: 'Compass'
     },
     {
       id: 'srv-notion-4',
       title: 'Ruta de Ecoturismo Sostenible (RES)',
-      line: 'Servicios GIS Ambientales',
-      desc: 'Diseño y desarrollo cartográfico de rutas ecoturisticas, integrando el *análisis espacial* y la conservación de la biodiversidad local con fines educativos y de sostenibilidad.',
+      line: 'Servicios Técnicos Ambientales',
+      desc: 'Diseño y planificación técnica de rutas ecoturísticas, integrando el *análisis territorial* y la conservación de la biodiversidad local con fines educativos y de sostenibilidad.',
       tag: 'Ecoturismo',
       icon: 'Globe'
     },
     {
       id: 'srv-notion-5',
-      title: 'Dibujo de Planos y Mapas Ambientales',
-      line: 'Servicios GIS Ambientales',
-      desc: 'Servicios profesionales de *cartografía* y dibujo de planos temáticos, perfiles topográficos y georreferenciación oficial para consultores y empresas senior.',
-      tag: 'Cartografía',
+      title: 'Elaboración de Planos y Relevamiento Técnico',
+      line: 'Servicios Técnicos Ambientales',
+      desc: 'Servicios profesionales de elaboración de planos temáticos, perfiles topográficos y georreferenciación oficial para proyectos y empresas.',
+      tag: 'Planos Técnicos',
       icon: 'Map'
     },
     {
       id: 'srv-notion-6',
-      title: 'Asesoramiento Técnico-Legal Especializado',
+      title: 'Asesoramiento Técnico-Legal Ambiental',
       line: 'Trámites Ambientales Express',
-      desc: 'Consultoría de alto nivel y defensa técnica-legal en procesos de fiscalización, inspecciones y cumplimiento normativo de la *Ley 1333* ante autoridades competentes.',
+      desc: 'Consultoría técnica y defensa legal en procesos de fiscalización, inspecciones y cumplimiento normativo de la *Ley 1333* ante autoridades competentes.',
       tag: 'Legal',
       icon: 'Shield'
     },
     {
       id: 'srv-notion-7',
       title: 'Programa de Educación Ambiental',
-      line: 'Servicios GIS Ambientales',
+      line: 'Capacitación y Sostenibilidad',
       desc: 'Apoyo técnico para industrias, empresas y comunidades. Capacitación al personal, talleres presenciales de *Economía Circular* y asesoría en emprendimientos verdes.',
       tag: 'Capacitación',
       icon: 'BookOpen'
@@ -1094,15 +1048,15 @@ export function AppProvider({ children }) {
     {
       id: 'srv-notion-9',
       title: 'Cursos Online de Capacitación',
-      line: 'Servicios GIS Ambientales',
-      desc: 'Cursos técnicos prácticos en modalidad virtual sobre *legislación ambiental boliviana*, manejo de herramientas GIS y consultoría ambiental aplicada.',
+      line: 'Capacitación y Sostenibilidad',
+      desc: 'Cursos técnicos prácticos en modalidad virtual sobre *legislación ambiental boliviana*, gestión de residuos y normativa ambiental aplicada.',
       tag: 'Educación',
       icon: 'BookOpen'
     },
     {
       id: 'srv-notion-10',
       title: 'Bonos de Carbono y Compensación',
-      line: 'Servicios GIS Ambientales',
+      line: 'Capacitación y Sostenibilidad',
       desc: 'Asesoramiento técnico en proyectos de captura de carbono, cuantificación y certificación de créditos para el mercado de compensación voluntaria.',
       tag: 'Carbono',
       icon: 'Leaf'
@@ -1135,7 +1089,7 @@ export function AppProvider({ children }) {
       id: 'srv-notion-14',
       title: 'Formulario de Prospección Minera (PM)',
       line: 'Trámites Ambientales Express',
-      desc: 'Diseñamos soluciones cartográficas exactas y elaboramos carpetas rápidas para la aprobación ágil de trámites de *prospección minera* en tus concesiones mineras.',
+      desc: 'Elaboramos documentación técnica y carpetas rápidas para la aprobación ágil de trámites de *prospección minera* en tus concesiones mineras.',
       tag: 'PM / Minería',
       icon: 'Compass'
     },
@@ -1151,7 +1105,7 @@ export function AppProvider({ children }) {
       id: 'srv-notion-16',
       title: 'Diseño de Planes de Gestión Ambiental',
       line: 'Ingeniería y Seguridad Industrial',
-      desc: 'Diseño técnico e implementación de planes de gestión de residuos, control de emisiones y auditorías de cumplimiento normativo industrial.',
+      desc: 'Diseño técnico e implementación de planes de gestión de residuos, control de emisiones y verificación de cumplimiento normativo industrial.',
       tag: 'Gestión',
       icon: 'Leaf'
     }
@@ -1179,15 +1133,15 @@ export function AppProvider({ children }) {
 
   const handleAddSpecialist = (spec) => {
     setSpecialists(prev => [...prev, { id: Date.now(), ...spec }]);
-    triggerToast('Especialista agregado a la red', 'success');
+    triggerToast('Profesional agregado a la red', 'success');
   };
   const handleEditSpecialist = (id, fields) => {
     setSpecialists(prev => prev.map(s => s.id === id ? { ...s, ...fields } : s));
-    triggerToast('Especialista actualizado', 'success');
+    triggerToast('Profesional actualizado', 'success');
   };
   const handleDeleteSpecialist = (id) => {
     setSpecialists(prev => prev.filter(s => s.id !== id));
-    triggerToast('Especialista eliminado de la red', 'info');
+    triggerToast('Profesional eliminado de la red', 'info');
   };
 
   // --- EXPERIENCES ---
@@ -1227,7 +1181,7 @@ export function AppProvider({ children }) {
         project_id: 'srm-internal-web',
         project_title: 'Plataforma Digital & Ecosistema SERAM',
         hours: 33.0,
-        description: 'Redacción de fichas técnicas de servicios, compendio normativo ambiental boliviano y contenido de propuestas.',
+        description: 'Redacción de resúmenes técnicos de servicios, compendio normativo ambiental boliviano y contenido de propuestas.',
         logged_at: '2026-10-09T18:00:00.000Z'
       },
       {
@@ -1237,7 +1191,7 @@ export function AppProvider({ children }) {
         project_id: 'srm-internal-web',
         project_title: 'Plataforma Digital & Ecosistema SERAM',
         hours: 27.0,
-        description: 'Revisión de estatutos fundacionales, gobernanza societaria y parámetros de auditoría ambiental.',
+        description: 'Revisión de estatutos fundacionales, gobernanza societaria y parámetros de evaluación ambiental.',
         logged_at: '2026-10-08T17:00:00.000Z'
       },
       {
@@ -1335,7 +1289,7 @@ export function AppProvider({ children }) {
     return {
       'barrientoso2401@gmail.com': {
         name: 'Ing. Diego Barrientos',
-        role: 'Socio Fundador · Especialista SIG & Hidráulica',
+        role: 'Socio Fundador · Dirección Técnica & Hidráulica',
         isOnline: true,
         lastLogin: new Date().toISOString(),
         sessionStart: Date.now() - 34 * 60 * 1000,
@@ -1353,7 +1307,7 @@ export function AppProvider({ children }) {
       },
       'fernandoaraujo1912@gmail.com': {
         name: 'Ing. Fernando Araujo',
-        role: 'Socio Fundador · Especialista Ambiental & Legal',
+        role: 'Socio Fundador · Dirección Ambiental & Legal',
         isOnline: false,
         lastLogin: new Date(Date.now() - 48 * 60 * 1000).toISOString(),
         sessionStart: null,
@@ -2025,7 +1979,6 @@ export function AppProvider({ children }) {
     { id: 11, name: 'Compostera Doméstica *Lombri-Kit*', price: 85, category: 'Bio-Insumos', image: 'https://images.unsplash.com/photo-1592417817098-8f3d6eb19675?auto=format&fit=crop&q=80&w=400', desc: 'Kit de compostaje con núcleo de *lombrices rojas californianas* y manual de *bio-huerto*.', stock: 35, isPremium: false },
     { id: 12, name: 'Kit Analítico de *Calidad de Agua*', price: 120, category: 'Monitoreo', image: 'https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?auto=format&fit=crop&q=80&w=400', desc: 'Medidores digitales portátiles de pH, TDS y reactivos químicos para *análisis rápido de agua*.', stock: 15, isPremium: true },
     { id: 13, name: 'Ebook: Guía Práctica de la Ley 1333', price: 15, category: 'E-Books', image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=400', desc: 'Versión digital en PDF del compendio interpretado de legislación boliviana. Desbloquea lectura en Academy.', stock: 9999, isPremium: false, courseId: 5 },
-    { id: 14, name: 'QGIS Geo-Database Bolivia (Zonificación)', price: 95, category: 'SIG & Mapas', image: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=400', desc: 'Capas vectoriales listas (SHP/GPKG) de *áreas protegidas*, hidrografía y suelos de Bolivia.', stock: 50, isPremium: true },
     { id: 15, name: 'Bolsa Ecológica Reutilizable SERAM', price: 8, category: 'Merchandise', image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&q=400', desc: '*Yute natural* de alta densidad para compras conscientes.', stock: 200, isPremium: false },
     { id: 16, name: 'Ebook: Técnicas de *Restauración Ecológica*', price: 18, category: 'E-Books', image: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=400', desc: 'Guía práctica ilustrada de *restauración ecológica* y remediación forestal aplicada. Desbloquea contenido.', stock: 9999, isPremium: false },
   ]);
@@ -2139,10 +2092,10 @@ export function AppProvider({ children }) {
               status: c.status === 'Activo' ? 'Publicado' : (c.status || 'Publicado'),
               isPremium: c.is_premium ?? false,
               type: c.type || 'mid_ticket',
-              format: c.format || (c.duration && /pdf|dossier|pág|pag/i.test(c.duration) ? 'pdf' : (c.has_video === false ? 'pdf' : undefined)),
-              hasVideo: c.has_video !== undefined ? c.has_video : (c.duration && /pdf|dossier|pág|pag/i.test(c.duration) ? false : undefined),
+              format: c.format || (c.duration && /pdf|documento|pág|pag/i.test(c.duration) ? 'pdf' : (c.has_video === false ? 'pdf' : undefined)),
+              hasVideo: c.has_video !== undefined ? c.has_video : (c.duration && /pdf|documento|pág|pag/i.test(c.duration) ? false : undefined),
               price: parseFloat(c.price) || 0,
-              image: c.image || '/assets/3d-backend/gis_satellite_mapping.webp',
+              image: c.image || '/assets/covers/cover_ebook_ley1333.png',
               duration: c.duration || '10 horas',
               desc: c.desc || c.description || '',
               pdfUrl: c.pdf_url || c.pdfUrl || null,
@@ -3066,8 +3019,8 @@ export function AppProvider({ children }) {
       format: isPdfFormat ? 'pdf' : 'video',
       hasVideo: !isPdfFormat,
       price: parseFloat(courseData.price) || 0,
-      image: courseData.image || (isPdfFormat ? '/assets/covers/cover_ebook_ley1333.png' : '/assets/3d-backend/gis_satellite_mapping.webp'),
-      duration: courseData.duration || (isPdfFormat ? 'Dossier Descargable (PDF)' : '10 horas prácticas'),
+      image: courseData.image || (isPdfFormat ? '/assets/covers/cover_ebook_ley1333.png' : '/assets/covers/cover_mentoria_consultoria.png'),
+      duration: courseData.duration || (isPdfFormat ? 'Documento Descargable (PDF)' : '10 horas prácticas'),
       desc: courseData.desc || '',
       category: courseData.category || 'tramites',
       tags: Array.isArray(courseData.tags) && courseData.tags.length > 0 ? courseData.tags : [courseData.category || 'tramites'],
@@ -3099,7 +3052,7 @@ export function AppProvider({ children }) {
         ? '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf' 
         : newCourse.pdfUrl;
       const dbImageUrl = (typeof newCourse.image === 'string' && newCourse.image.startsWith('data:'))
-        ? '/assets/covers/cover_taller_fichas.png'
+        ? '/assets/covers/cover_ebook_ley1333.png'
         : newCourse.image;
 
       const { data, error } = await supabase.from('courses').insert([{
@@ -3150,7 +3103,7 @@ export function AppProvider({ children }) {
       if (fields.price !== undefined) dbFields.price = fields.price;
       if (fields.image !== undefined) {
         dbFields.image = (typeof fields.image === 'string' && fields.image.startsWith('data:'))
-          ? '/assets/covers/cover_taller_fichas.png'
+          ? '/assets/covers/cover_ebook_ley1333.png'
           : fields.image;
       }
       if (fields.duration !== undefined) dbFields.duration = fields.duration;
@@ -4528,7 +4481,7 @@ export function AppProvider({ children }) {
     const proposal = {
       id: newId,
       lead: newProposal.lead || 'Ing. Diego Barrientos',
-      leadRole: newProposal.leadRole || 'Especialista SIG & Consultoría Ambiental - SERAM',
+      leadRole: newProposal.leadRole || 'Equipo Técnico & Consultoría Ambiental - SERAM',
       currency: 'Bs.',
       status: newProposal.status || 'Propuesta en Formulación',
       priority: newProposal.priority || 'Alta Prioridad',

@@ -57,3 +57,26 @@ Las tarjetas del sitio (como `.neuform-card` o las tarjetas de la página de ini
   - Entornos Oscuros (Dark Mode): Letras en blanco puro (`/assets/brand/logo-seram-white.webp`).
   - Entornos Claros (Light Mode): Letras en negro (`/assets/brand/logo-seram-dark.webp`).
 * **Tagline**: **"UNA EXPERIENCIA AMBIENTAL"** en mayúsculas negrita ubicado simétricamente bajo la palabra SERAM.
+
+---
+
+## 🛡️ Política Estratégica de Marketing, Academia y Terminología SERAM
+
+Todo contenido público, copywriting, meta SEO y catálogo formativo de SERAM debe cumplir estrictamente las siguientes directrices estratégicas:
+
+### 1. Prohibición de enseñar el know-how técnico a la competencia
+* **SERAM Academy NO debe ofrecer ni promocionar** cursos, guías, tutoriales, ebooks ni contenido educativo sobre **SIG / GIS, QGIS, ni cartografía de precisión**.
+* Estas capacidades técnicas constituyen **uso interno** de la consultora o **servicio exclusivo bajo demanda** para clientes, nunca capacitación abierta a terceros o competencia.
+
+### 2. Congruencia con la realidad inicial de la empresa
+* El copy de toda la web pública debe ser **sobrio, realista y general**, acorde a una consultora ambiental en etapa inicial.
+* Evitar promesas grandilocuentes ("de élite", "líderes indiscutibles", etc.) y terminología reservada o sobredimensionada.
+
+### 3. Glosario de Términos Eliminados y Reemplazos Obligatorios en la Web Pública
+| Término Prohibido | Reemplazo Obligatorio |
+| :--- | :--- |
+| `fichas` / `ficha` (ambiental/técnica) | *formularios ambientales*, *documentación técnica*, *resumen técnico*, *perfil de proyecto* o *registro técnico* |
+| `auditorías ambientales` / `auditoría ambiental` | *evaluación ambiental*, *revisión normativa*, *diagnóstico ambiental* o *verificación de cumplimiento* |
+| `Especialista` / `especialistas` | *equipo técnico*, *asesor técnico*, *consultor* o *profesional del área* |
+| `peritaje` / `peritajes` | *evaluación técnica*, *análisis técnico* o *estudio de campo* |
+| `Dossier` | *Carpeta Técnica*, *Guía Informativa*, *Documento Técnico* o *Portafolio* |

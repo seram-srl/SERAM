@@ -18,18 +18,14 @@ import {
 } from '../../../services/courseMediaStorage';
 
 const ODOO_COVER_GALLERY = [
-  { label: 'Taller Fichas Ambientales', url: '/assets/covers/cover_taller_fichas.png' },
-  { label: 'QGIS & Cartografía', url: '/assets/covers/cover_qgis_basico.png' },
   { label: 'Guía Ley 1333', url: '/assets/covers/cover_ebook_ley1333.png' },
-  { label: 'Auditoría AACD / Mentoría', url: '/assets/covers/cover_mentoria_consultoria.png' },
-  { label: 'Mapa Satelital SIG', url: '/assets/3d-backend/gis_satellite_mapping.webp' },
+  { label: 'Regularización AACD / Mentoría', url: '/assets/covers/cover_mentoria_consultoria.png' },
   { label: 'Industria & Seguridad', url: '/assets/3d-backend/panel2-service-background.webp' },
   { label: 'Huella de Carbono ISO', url: '/assets/3d-backend/huella_carbono_iso.webp' },
   { label: 'Registro Ambiental RAI', url: '/assets/3d-backend/registro_rai_inspiration.png' }
 ];
 
 const TRACK_OPTIONS = [
-  'Geomática & SIG',
   'Trámites & Licencias',
   'Derecho & Normativa',
   'Formatos & Carimbos',
@@ -37,9 +33,8 @@ const TRACK_OPTIONS = [
 ];
 
 const CATEGORY_OPTIONS = [
-  { id: 'gis_mapas', label: 'SIG & Cartografía' },
   { id: 'tramites', label: 'Trámites & Licencias' },
-  { id: 'regularizacion', label: 'Auditoría & Regularización' },
+  { id: 'regularizacion', label: 'Evaluación & Regularización' },
   { id: 'formatos', label: 'Formatos, E-Books & Carimbos' },
   { id: 'residuos', label: 'Residuos Sólidos (Ley 755)' }
 ];
@@ -47,7 +42,7 @@ const CATEGORY_OPTIONS = [
 const LEVEL_OPTIONS = [
   'Básico / Fundamentos',
   'Intermedio / Aplicado',
-  'Avanzado / Especialista'
+  'Avanzado / Profesional'
 ];
 
 const TICKET_OPTIONS = [
@@ -86,7 +81,7 @@ function buildEmptyCourse(registeredEngineers = []) {
     format: 'video',
     hasVideo: true,
     price: 120,
-    image: '/assets/covers/cover_taller_fichas.png',
+    image: '/assets/covers/cover_ebook_ley1333.png',
     duration: '12 horas prácticas',
     pages: 60,
     version: 'Edición 2026',
@@ -96,7 +91,7 @@ function buildEmptyCourse(registeredEngineers = []) {
     level: 'Intermedio / Aplicado',
     track: 'Trámites & Licencias',
     pdfUrl: '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf',
-    pdfName: 'Dossier_Tecnico_SERAM.pdf',
+    pdfName: 'Documento_Tecnico_SERAM.pdf',
     resources: [],
     modules: [
       {
@@ -261,7 +256,7 @@ export default function OdooAcademyModule({
       draft.hasVideo = false;
       draft.type = 'gratis';
       draft.price = 0;
-      draft.duration = 'Dossier Descargable (PDF)';
+      draft.duration = 'Documento Descargable (PDF)';
       draft.image = '/assets/covers/cover_ebook_ley1333.png';
       draft.track = 'Formatos & Carimbos';
       draft.category = 'formatos';
@@ -715,7 +710,7 @@ export default function OdooAcademyModule({
                     {/* Carátula personalizada */}
                     <div className="relative h-44 bg-slate-950 overflow-hidden">
                       <img
-                        src={course.image || '/assets/covers/cover_taller_fichas.png'}
+                        src={course.image || '/assets/covers/cover_ebook_ley1333.png'}
                         alt={normalizeTitlePlain(course.title)}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
@@ -726,7 +721,7 @@ export default function OdooAcademyModule({
                           {course.status}
                         </span>
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-black/70 text-slate-200 border border-white/15 backdrop-blur-md">
-                          {course.format === 'pdf' ? 'PDF Dossier' : `${lessonsCount} Clases`}
+                          {course.format === 'pdf' ? 'PDF Técnico' : `${lessonsCount} Clases`}
                         </span>
                       </div>
 
@@ -809,7 +804,7 @@ export default function OdooAcademyModule({
                             type="button"
                             onClick={() => openEditModal(course, 'general')}
                             className="p-1.5 rounded-lg bg-white/[0.05] hover:bg-white/10 text-slate-300 border border-white/10 transition-colors cursor-pointer"
-                            title="Editar ficha y carátula"
+                            title="Editar detalles y carátula"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
@@ -855,7 +850,7 @@ export default function OdooAcademyModule({
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
                           <img
-                            src={course.image || '/assets/covers/cover_taller_fichas.png'}
+                            src={course.image || '/assets/covers/cover_ebook_ley1333.png'}
                             alt={normalizeTitlePlain(course.title)}
                             className="w-14 h-10 rounded-lg object-cover border border-white/10 flex-shrink-0"
                           />
@@ -1011,7 +1006,7 @@ export default function OdooAcademyModule({
                       </label>
                       <div className="relative rounded-2xl overflow-hidden border border-white/15 bg-slate-950 aspect-video">
                         <img
-                          src={editingCourse.image || '/assets/covers/cover_taller_fichas.png'}
+                          src={editingCourse.image || '/assets/covers/cover_ebook_ley1333.png'}
                           alt="Carátula"
                           className="w-full h-full object-cover"
                         />
@@ -1344,7 +1339,7 @@ export default function OdooAcademyModule({
                     <div className="bg-[#0f172a] border border-white/10 rounded-2xl p-5 space-y-4">
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
-                          <h4 className="text-sm font-black text-white">Documento / Dossier Principal del Curso (PDF)</h4>
+                          <h4 className="text-sm font-black text-white">Documento Técnico Principal del Curso (PDF)</h4>
                           <p className="text-[11px] text-slate-400">
                             Visible en el visor PDF integrado de Crehana y disponible para descarga de estudiantes.
                           </p>

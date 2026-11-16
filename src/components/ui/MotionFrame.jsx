@@ -18,7 +18,7 @@ function CornerAccents({ variant = 'experience' }) {
 
         {/* Top-Right Reticle */}
         <div className="absolute top-2 right-2 flex items-center gap-1 font-mono text-[9px] text-[#00e03c]/70 tracking-widest">
-          <span className="opacity-60">[SIG·01]</span>
+          <span className="opacity-60">[SRM·01]</span>
           <span className="w-2.5 h-2.5 border-t-2 border-r-2 border-[#00e03c]" />
         </div>
 

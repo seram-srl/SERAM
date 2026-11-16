@@ -40,7 +40,7 @@ const TICKET_TABS = [
     id: 'low_ticket',
     label: 'Low Ticket',
     badge: 'Bs. 20 - 60',
-    desc: 'Manuales, talleres prácticos SIG y cursos introductorios rápidos',
+    desc: 'Manuales, guías prácticas y cursos introductorios rápidos',
     icon: BookOpen,
     activeClass: 'border-sky-500 bg-sky-500/15 text-white shadow-[0_0_20px_rgba(14,165,233,0.25)]',
     badgeClass: 'bg-sky-500/20 text-sky-300 border-sky-500/40'
@@ -49,16 +49,16 @@ const TICKET_TABS = [
     id: 'mid_ticket',
     label: 'Mid Ticket',
     badge: 'Bs. 80 - 200',
-    desc: 'Programas técnicos especializados y metodologías aplicables',
+    desc: 'Programas técnicos aplicados y metodologías de gestión',
     icon: GraduationCap,
     activeClass: 'border-amber-500 bg-amber-500/15 text-white shadow-[0_0_20px_rgba(245,158,11,0.25)]',
     badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/40'
   },
   {
     id: 'high_ticket',
-    label: 'High Ticket (Élite)',
+    label: 'High Ticket',
     badge: 'Bs. 220+',
-    desc: 'Programas integrales de alta especialidad, auditoría y mentoría',
+    desc: 'Programas integrales de evaluación ambiental, regularización y mentoría',
     icon: Award,
     activeClass: 'border-violet-500 bg-violet-500/15 text-white shadow-[0_0_20px_rgba(139,92,246,0.25)]',
     badgeClass: 'bg-violet-500/20 text-violet-300 border-violet-500/40'
@@ -67,7 +67,6 @@ const TICKET_TABS = [
 
 const TRACKS = [
   'Todas',
-  'Geomática & SIG',
   'Trámites & Licencias',
   'Derecho & Normativa',
   'Formatos & Carimbos',
@@ -78,7 +77,7 @@ const LEVELS = [
   'Todos',
   'Básico / Fundamentos',
   'Intermedio / Aplicado',
-  'Avanzado / Especialista'
+  'Avanzado / Profesional'
 ];
 
 const FORMATS = [
@@ -109,9 +108,9 @@ export default function AcademyPage() {
   const [selectedFormat, setSelectedFormat] = useState('all');
 
   useSeramSeo({
-    title: 'Cursos de QGIS, Ley 1333 y Licencias FNCA',
-    description: 'Cursos técnicos con certificación QR en Bolivia. Domina Geomática QGIS, Licencias Ambientales FNCA, Ley 1333 y gestión de residuos con ingenieros SERAM.',
-    keywords: 'cursos SIG QGIS Bolivia, curso licencia ambiental FNCA, capacitacion Ley 1333, carimbos WGS84, SERAM Academy Crehana',
+    title: 'Cursos de Ley 1333, Gestión de Residuos y Licencias FNCA',
+    description: 'Cursos técnicos con certificación QR en Bolivia. Aprende normativa ambiental, Licencias Ambientales FNCA, Ley 1333 y gestión de residuos con el equipo de SERAM.',
+    keywords: 'cursos Ley 1333 Bolivia, curso licencia ambiental FNCA, capacitacion ambiental, gestion residuos Ley 755, SERAM Academy',
     canonicalUrl: 'https://seram.bo/academy',
     ogImage: '/assets/3d-backend/bg_academy.webp',
     jsonLd: {
@@ -119,7 +118,7 @@ export default function AcademyPage() {
       '@type': 'EducationalOrganization',
       name: 'SERAM Academy',
       url: 'https://seram.bo/academy',
-      description: 'Campus Virtual Técnico Especializado en Ingeniería Ambiental, QGIS y Licencias en Bolivia',
+      description: 'Campus Virtual Técnico en Normativa Ambiental, Gestión de Residuos y Licencias en Bolivia',
       provider: {
         '@type': 'Organization',
         name: 'SERAM SRL',
@@ -141,13 +140,13 @@ export default function AcademyPage() {
 
   const academyPillars = [
     {
-      id: 'sig',
+      id: 'residuos',
       icon: Compass,
       iconBgClass: 'bg-[#029907]/25 text-[#00e03c] border border-[#00e03c]/35',
-      title: 'Geomática & SIG Aplicado',
-      desc: 'QGIS, delimitación de cuencas hidrográficas, ortofotos y cartografía oficial en datum WGS-84 sin observaciones.',
-      actionLabel: 'Ver Ruta SIG',
-      onAction: () => scrollToCatalog('Geomática & SIG')
+      title: 'Gestión de Residuos & Ley 755',
+      desc: 'Clasificación, manifiestos de transporte, acopio y manejo integral de residuos sólidos y peligrosos bajo normativa vigente.',
+      actionLabel: 'Ver Ruta Residuos',
+      onAction: () => scrollToCatalog('Gestión de Residuos')
     },
     {
       id: 'fnca',
@@ -162,7 +161,7 @@ export default function AcademyPage() {
       id: 'legal',
       icon: ShieldCheck,
       iconBgClass: 'bg-amber-500/20 text-amber-400 border border-amber-400/35',
-      title: 'Derecho & Auditoría Legal',
+      title: 'Derecho & Cumplimiento Legal',
       desc: 'Compendios interpretados Ley 1333, atención a conminatorias, clausuras preventivas y defensa técnica.',
       actionLabel: 'Ver Ruta Legal',
       onAction: () => scrollToCatalog('Derecho & Normativa')
@@ -229,13 +228,13 @@ export default function AcademyPage() {
     >
       {/* ── SECCIÓN 1: HERO ARQUITECTÓNICO DESACOPLADO SERAM ACADEMY ── */}
       <ZenzeHeroSection
-        titleWhite="Capacitación Ambiental y SIG."
-        titleAccent="Elevando Tu Nivel Profesional."
+        titleWhite="Capacitación Ambiental Práctica."
+        titleAccent="Fortalece Tu Gestión."
         accentColorClass="text-emerald-400"
         buttonAccentClass="bg-[#00e03c] hover:bg-white text-slate-950 shadow-[0_0_25px_rgba(0,224,60,0.3)]"
         backgroundImage="/assets/3d-backend/bg_academy.webp"
         backgroundAlt="Campus Virtual SERAM Academy"
-        description="Domina Sistemas de Información Geográfica (QGIS), Ley 1333, Fichas FNCA y matrices PPM-PASA con clases prácticas en video HD, apuntes interactivos y certificados verificables por QR."
+        description="Aprende normativa Ley 1333, Formularios FNCA, matrices PPM-PASA y gestión de residuos Ley 755 con clases prácticas en video HD, apuntes interactivos y certificados verificables por QR."
         primaryCtaLabel="Asesoría de Capacitación"
         onPrimaryCta={() => openChatbot('q2_training')}
         secondaryCtaLabel="Explorar Catálogo Completo"
@@ -245,22 +244,22 @@ export default function AcademyPage() {
         onLivePanelCta={() => openChatbot('q2_training')}
         liveMetrics={[
           { label: 'Aplicabilidad Práctica en Proyectos', value: '94%', percent: 94, barClass: 'bg-emerald-400' },
-          { label: 'Dominio SIG & Cartografía WGS-84', value: '89%', percent: 89, barClass: 'bg-sky-400' },
+          { label: 'Dominio Normativo Ley 1333 & FNCA', value: '91%', percent: 91, barClass: 'bg-sky-400' },
           { label: 'Validez de Certificación QR Verificada', value: '100%', percent: 100, barClass: 'bg-amber-400' }
         ]}
         kpis={[
-          { icon: User, value: '500+', label: 'Profesionales Capacitados' },
-          { icon: Film, value: '120+', label: 'Horas HD y Entregables' },
-          { icon: Award, value: '98%', label: 'Satisfacción Técnica' },
-          { icon: ShieldCheck, value: '100%', label: 'Normativa 2026 Vigente' }
+          { icon: User, value: '100%', label: 'Enfoque Práctico' },
+          { icon: Film, value: 'HD', label: 'Clases y Entregables' },
+          { icon: Award, value: 'QR', label: 'Certificación Verificada' },
+          { icon: ShieldCheck, value: '2026', label: 'Normativa Vigente' }
         ]}
       />
 
-      {/* ── SECCIÓN 2: NUESTRAS RUTAS DE ESPECIALIZACIÓN (4 TARJETAS ARQUITECTÓNICAS) ── */}
+      {/* ── SECCIÓN 2: NUESTRAS RUTAS DE FORMACIÓN (4 TARJETAS ARQUITECTÓNICAS) ── */}
       <ZenzePillarsSection
         eyebrow="NUESTRAS RUTAS DE APRENDIZAJE"
-        title="Formación Inteligente para Cada Especialista"
-        subtitle="Elige entre e-books gratuitos descargables, talleres intensivos en QGIS y programas ejecutivos de auditoría o capacitación in-company para equipos completos."
+        title="Formación Práctica para Cada Profesional"
+        subtitle="Elige entre e-books gratuitos descargables, talleres normativos y programas de regularización o capacitación in-company para equipos de trabajo."
         accentColorClass="text-emerald-400"
         cards={academyPillars}
       />
@@ -268,12 +267,12 @@ export default function AcademyPage() {
       {/* ── SECCIÓN 3: NUESTRA METODOLOGÍA (LEARNING OVERVIEW CREHANA + ODOO) ── */}
       <ZenzeTechOverviewSection
         eyebrow="NUESTRA METODOLOGÍA"
-        title="Práctica. Normativa. SIG. Mejor Juntos."
-        description="Nuestro ecosistema educativo combina el reproductor interactivo estilo Crehana con plantillas reales de ingeniería boliviana para que apliques cada lección desde el día uno."
+        title="Práctica. Normativa. Gestión. Mejor Juntos."
+        description="Nuestro ecosistema educativo combina el reproductor interactivo con plantillas de gestión ambiental boliviana para que apliques cada lección en tu trabajo diario."
         checks={[
           'Aula Virtual con notas por marca de tiempo y foro técnico',
-          'Videos HD subidos directamente por ingenieros especialistas',
-          'Descarga inmediata de carimbos DWG/DXF, shapefiles y matrices Excel',
+          'Videos HD preparados directamente por nuestro equipo técnico',
+          'Descarga inmediata de plantillas, formatos oficiales y matrices Excel',
           'Certificado digital descargable con validación QR y folio único'
         ]}
         ctaLabel="Solicitar Capacitación Corporativa"
@@ -281,24 +280,24 @@ export default function AcademyPage() {
         accentColorClass="text-emerald-400"
         overviewTitle="SERAM Academy Campus Overview"
         statsCol={{ label1: 'Programas Activos', val1: String(publishedCourses.length), label2: 'Entregables PDF', val2: String(publishedCourses.filter(c => c.format === 'pdf').length || 2) }}
-        trendCard={{ label: 'Tasa Finalización', value: '91%', sub: 'metodología Crehana' }}
+        trendCard={{ label: 'Tasa Finalización', value: '91%', sub: 'aprendizaje práctico' }}
         donutCard={{ label: 'Calificación Alumnos', percent: 96, statusText: '4.9 ★', leg1: 'Aprobados', leg2: 'En Curso' }}
         recentActivities={[
-          { title: 'Curso QGIS Publicado', time: 'Sincronizado Odoo' },
+          { title: 'Curso Ley 755 Publicado', time: 'Sincronizado Odoo' },
           { title: 'Guía Ley 1333 Actualizada', time: 'Edición 2026' },
           { title: 'Certificado QR Generado', time: 'Hace 1 hora' }
         ]}
-        mapImage="/assets/covers/cover_qgis_basico.png"
+        mapImage="/assets/covers/cover_ebook_ley1333.png"
         mapPins={[
-          { top: '38%', left: '28%', label: 'Módulo 1 · Cartografía Base WGS-84', stat: 'Video HD' },
-          { top: '52%', left: '55%', label: 'Módulo 2 · Cuencas & FNCA Práctico', stat: 'Plantillas' },
+          { top: '38%', left: '28%', label: 'Módulo 1 · Marco Legal Ley 1333', stat: 'Video HD' },
+          { top: '52%', left: '55%', label: 'Módulo 2 · Formularios FNCA Práctico', stat: 'Plantillas' },
           { top: '44%', left: '76%', label: 'Evaluación Final & Certificado QR', stat: 'Verificado' }
         ]}
         weatherWidget={{
           temp: '24/7',
           condition: 'Acceso Campus Virtual',
           metric1: 'Video HD',
-          metric2: 'PDF Dossier',
+          metric2: 'PDF Técnico',
           metric3: 'Cert. QR'
         }}
       />
@@ -312,7 +311,7 @@ export default function AcademyPage() {
                 CATÁLOGO OFICIAL EN VIVO
               </span>
               <h2 className="text-2xl sm:text-3xl font-black text-white mt-1 font-display">
-                Cursos, Talleres y Dossiers Descargables
+                Cursos, Talleres y Documentos Descargables
               </h2>
             </div>
 
@@ -367,7 +366,7 @@ export default function AcademyPage() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Buscar curso, norma (Ley 1333, FNCA), QGIS..."
+                  placeholder="Buscar curso, norma (Ley 1333, FNCA), residuos..."
                   className="w-full bg-slate-950/70 border border-white/10 rounded-xl pl-10 pr-8 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-[#00e03c]"
                 />
                 {searchQuery && (
@@ -470,7 +469,7 @@ export default function AcademyPage() {
                       {/* Carátula con lazy loading */}
                       <div className="relative h-48 overflow-hidden bg-slate-950">
                         <img
-                          src={course.image || '/assets/covers/cover_taller_fichas.png'}
+                          src={course.image || '/assets/covers/cover_ebook_ley1333.png'}
                           alt={String(course.title || '').replace(/\*/g, '')}
                           loading="lazy"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -484,7 +483,7 @@ export default function AcademyPage() {
                         <div className="absolute top-3 right-3">
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-black/75 text-slate-300 font-mono flex items-center gap-1">
                             {isPdf ? <FileText className="w-3 h-3 text-emerald-400" /> : <Film className="w-3 h-3 text-[#00e03c]" />}
-                            {isPdf ? 'Dossier PDF' : `${lessonsCount || 5} Clases`}
+                            {isPdf ? 'Documento PDF' : `${lessonsCount || 5} Clases`}
                           </span>
                         </div>
 
@@ -540,7 +539,7 @@ export default function AcademyPage() {
                 ¿Necesitas entrenar a todo tu equipo de ingeniería o gestión ambiental?
               </h3>
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Preparamos programas corporativos presenciales o en línea en QGIS, Ley 1333, Seguridad Industrial y Residuos Ley 755 con certificación oficial SERAM.
+                Preparamos programas corporativos presenciales o en línea en Ley 1333, Seguridad Industrial y Gestión de Residuos Ley 755 con certificación oficial SERAM.
               </p>
             </div>
             <button
@@ -558,9 +557,9 @@ export default function AcademyPage() {
       <ZenzeBottomCtaBanner
         image="/assets/covers/cover_mentoria_consultoria.png"
         imageAlt="Mentoría y Certificación SERAM Academy"
-        title="Domina la normativa y la cartografía SIG hoy."
+        title="Domina la normativa ambiental hoy."
         subtitle="Accede a mentorías técnicas, descargas de plantillas oficiales y orientación directa sobre la ruta ideal para tu perfil profesional."
-        trustLabel="Más de 500 ingenieros y consultores formados en SERAM Academy"
+        trustLabel="Formación técnica aplicada a la normativa boliviana vigente"
         ctaLabel="Consultar en Asistente"
         onCtaClick={() => openChatbot('q2_training')}
       />

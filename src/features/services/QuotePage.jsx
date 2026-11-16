@@ -32,8 +32,8 @@ const QUESTIONS = [
     desc: 'Selecciona la opción principal de tu interés para adecuar las normativas y alcance técnico.',
     options: [
       { id: 'monitoreo', label: 'Monitoreo Ambiental', icon: <Activity className="w-5 h-5" />, desc: 'Calidad de aire, agua, suelos y ruido ocupacional.' },
-      { id: 'estudios', label: 'Estudios de Impacto (EsIA)', icon: <FileText className="w-5 h-5" />, desc: 'Fichas ambientales, licencias y auditorías gubernamentales.' },
-      { id: 'sig', label: 'Sistemas de Información Geográfica', icon: <Map className="w-5 h-5" />, desc: 'Cartografía, teledetección y ordenamiento espacial.' },
+      { id: 'estudios', label: 'Estudios de Impacto (EsIA)', icon: <FileText className="w-5 h-5" />, desc: 'Formularios ambientales, licencias y evaluaciones normativas.' },
+      { id: 'territorio', label: 'Gestión Territorial & Ordenamiento', icon: <Map className="w-5 h-5" />, desc: 'Planos técnicos, teledetección y ordenamiento espacial bajo demanda.' },
       { id: 'residuos', label: 'Manejo de Residuos', icon: <Trash2 className="w-5 h-5" />, desc: 'Gestión integral, compostaje y lombricultura industrial.' },
       { id: 'turismo', label: 'Ecoturismo y Rutas', icon: <Compass className="w-5 h-5" />, desc: 'Diseño técnico de circuitos y capacidad de carga.' }
     ]
@@ -45,7 +45,7 @@ const QUESTIONS = [
     options: [
       { id: 'energia', label: 'Minería, Hidrocarburos o Energía', icon: <Shield className="w-5 h-5" />, desc: 'Regulación de alto impacto y pasivos ambientales.' },
       { id: 'construccion', label: 'Construcción e Infraestructura', icon: <FileText className="w-5 h-5" />, desc: 'Licencias urbanas, carreteras y obras civiles.' },
-      { id: 'industrial', label: 'Industria Manufacturera o Química', icon: <Activity className="w-5 h-5" />, desc: 'Registro industrial, vertidos y auditorías periódicas.' },
+      { id: 'industrial', label: 'Industria Manufacturera o Química', icon: <Activity className="w-5 h-5" />, desc: 'Registro industrial, vertidos y verificaciones de cumplimiento.' },
       { id: 'agro', label: 'Sector Agropecuario / Forestal', icon: <Leaf className="w-5 h-5" />, desc: 'Planes de desmonte, reforestación y bioeconomía.' },
       { id: 'gobierno', label: 'Gobierno, ONGs o Educación', icon: <Compass className="w-5 h-5" />, desc: 'Proyectos públicos, capacitación y agendas ODS.' }
     ]
@@ -63,7 +63,7 @@ const QUESTIONS = [
   {
     id: 'timeframe',
     title: '¿Cuál es el plazo estimado para iniciar la consultoría?',
-    desc: 'Mapeamos tu urgencia con la disponibilidad de nuestros ingenieros especialistas y laboratorios.',
+    desc: 'Coordinamos tu urgencia con la disponibilidad de nuestro equipo técnico y laboratorios.',
     options: [
       { id: 'inmediato', label: 'De inmediato (Menos de 30 días)', icon: <CheckCircle className="w-5 h-5" />, desc: 'Firma y movilización inmediata de cuadrillas.' },
       { id: 'corto', label: 'Corto plazo (1 a 3 meses)', icon: <Calendar className="w-5 h-5" />, desc: 'Planificación de campañas de muestreo estacionales.' },
@@ -146,9 +146,9 @@ export default function QuotePage() {
         baseLow = 3500;
         baseHigh = 6500;
         legalTexts.push("Ley 1333 de Medio Ambiente y Reglamento de Prevención y Control Ambiental (RPCA).");
-        legalTexts.push("Obtención de Licencia Ambiental (Declaratoria de Impacto Ambiental - DIA / Declaratoria de Adecuación Ambiental - DAA) mediante Ficha Ambiental o EEIA.");
+        legalTexts.push("Obtención de Licencia Ambiental (Declaratoria de Impacto Ambiental - DIA / Declaratoria de Adecuación Ambiental - DAA) mediante Formulario Ambiental o EEIA.");
         break;
-      case 'sig':
+      case 'territorio':
         baseLow = 1000;
         baseHigh = 2500;
         legalTexts.push("Directrices nacionales de Ordenamiento Territorial y Planes de Uso de Suelo (PLUS).");
@@ -178,7 +178,7 @@ export default function QuotePage() {
         break;
       case 'construccion':
         multiplier = 1.15;
-        legalTexts.push("Ficha Ambiental y Medidas de Mitigación específicas para Obras Civiles e Infraestructura vial/urbana.");
+        legalTexts.push("Formulario Ambiental y Medidas de Mitigación específicas para Obras Civiles e Infraestructura vial/urbana.");
         break;
       case 'industrial':
         multiplier = 1.10;
@@ -460,7 +460,7 @@ export default function QuotePage() {
                       <li>Fotocopia simple del Documento de Identidad del representante legal.</li>
                       <li>Plano de ubicación del predio / Coordenadas UTM.</li>
                       <li>Testimonio de propiedad o Contrato de Alquiler del predio.</li>
-                      <li>Copia de Licencia Ambiental anterior (en caso de actualización o auditoría).</li>
+                      <li>Copia de Licencia Ambiental anterior (en caso de actualización o revisión normativa).</li>
                       <li>Formulario de datos operacionales básicos (consumo de agua/energía).</li>
                     </ul>
                   </div>

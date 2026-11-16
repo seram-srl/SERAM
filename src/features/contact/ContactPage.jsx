@@ -82,7 +82,7 @@ export default function ContactPage() {
             CONÉCTATE CON <span className="text-[#00e03c]">SERAM</span>
           </h1>
           <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-            ¿Tienes alguna consulta técnica, requerimiento de auditoría o deseas conocer más sobre nuestros servicios de ingeniería ambiental? Escríbenos directamente.
+            ¿Tienes alguna consulta técnica, requerimiento de evaluación ambiental o deseas conocer más sobre nuestros servicios? Escríbenos directamente.
           </p>
         </div>
 
@@ -100,7 +100,7 @@ export default function ContactPage() {
                 ¡Mensaje Recibido!
               </h2>
               <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto">
-                Tu mensaje ha sido enviado exitosamente al departamento técnico de SERAM. Un especialista se pondrá en contacto contigo a la brevedad.
+                Tu mensaje ha sido enviado exitosamente al departamento técnico de SERAM. Un asesor técnico se pondrá en contacto contigo a la brevedad.
               </p>
               <div className="pt-4">
                 <button
@@ -158,7 +158,7 @@ export default function ContactPage() {
                   name="subject"
                   value={formData.subject}
                   onChange={handleInputChange}
-                  placeholder="Ej. Cotización Auditoría Ley 1333"
+                  placeholder="Ej. Cotización Evaluación Ambiental Ley 1333"
                   className="w-full bg-slate-950/40 border border-white/10 focus:border-[#00e03c] focus:ring-2 focus:ring-[#00e03c]/30 rounded-xl px-4 py-3 text-xs text-white outline-none transition-all"
                 />
               </div>

@@ -28,9 +28,9 @@ const STEPS = {
       { label: 'Obra civil o proyecto comercial', next: 'q2_civil' },
       { label: 'Industria manufacturera o planta', next: 'q2_industrial' },
       { label: 'Operación minera o concesión', next: 'q2_mining' },
-      { label: 'Proyecto ambiental, SIG o cuencas', next: 'q2_sig' },
+      { label: 'Proyecto ambiental, relevamiento o cuencas', next: 'q2_sig' },
       { label: 'Sostenibilidad, Reforestación y Huella de Carbono (Experience)', next: 'q2_experience' },
-      { label: 'Capacitación técnica de equipo institucional', next: 'q2_training' },
+      { label: 'Capacitación en normativa y gestión ambiental', next: 'q2_training' },
       { label: 'Consulta técnica puntual o exploratoria', next: 'q3', service: 'CONSULT' },
     ],
   },
@@ -65,20 +65,20 @@ const STEPS = {
     options: [
       { label: 'Formulario de Prospección Minera (PM)', next: 'q3', service: 'PROSP' },
       { label: 'Plan EMAP para habilitación minera', next: 'q3', service: 'EMAP' },
-      { label: 'Cartografía SIG y planos vectoriales AJAM', next: 'q3', service: 'SIG_MINING' },
+      { label: 'Planos georreferenciados y documentación AJAM', next: 'q3', service: 'SIG_MINING' },
     ],
   },
   q2_sig: {
     id: 'q2_sig',
-    bot: 'Área de alta especialidad en SERAM. ¿Qué alcance SIG o geoespacial buscas?',
+    bot: 'Servicio técnico bajo demanda en SERAM. ¿Qué alcance territorial o ambiental necesitas?',
     allowComment: true,
     commentLabel: 'Área geográfica o contexto del estudio (opcional)',
     options: [
-      { label: 'Mapas ambientales certificados para licencias', next: 'q3', service: 'SIG_MAPS' },
-      { label: 'Plan de Aplicación SIG integral', next: 'q3', service: 'SIG_FULL' },
+      { label: 'Planos y mapas técnicos para licencias', next: 'q3', service: 'SIG_MAPS' },
+      { label: 'Estudio espacial integral bajo demanda', next: 'q3', service: 'SIG_FULL' },
       { label: 'Análisis multitemporal de cobertura y deforestación', next: 'q3', service: 'SIG_DEF' },
-      { label: 'Modelamiento de riesgo hidrológico e inundación', next: 'q3', service: 'SIG_HYD' },
-      { label: 'Soporte cartográfico B2B para consultores', next: 'q3', service: 'SIG_B2B' },
+      { label: 'Evaluación de riesgo hidrológico e inundación', next: 'q3', service: 'SIG_HYD' },
+      { label: 'Soporte técnico en planos para consultores', next: 'q3', service: 'SIG_B2B' },
     ],
   },
   q2_experience: {
@@ -95,13 +95,12 @@ const STEPS = {
   },
   q2_training: {
     id: 'q2_training',
-    bot: 'Formación de alto impacto técnico. ¿Qué modalidad buscas para tu equipo?',
+    bot: 'Formación práctica en normativa y gestión ambiental. ¿Qué modalidad buscas para tu equipo?',
     allowComment: false,
     options: [
-      { label: 'Curso SIG Aplicado con QGIS (desde cero)', next: 'q3', service: 'COURSE_SIG' },
       { label: 'Membresía Anual Academia SERAM Premium', next: 'q3', service: 'PREMIUM' },
       { label: 'Taller corporativo a medida in-company', next: 'q3', service: 'CORP' },
-      { label: 'Explorar catálogo de cursos técnicos', next: 'q3', service: 'BROWSE_COURSES' },
+      { label: 'Explorar catálogo de cursos normativos', next: 'q3', service: 'BROWSE_COURSES' },
     ],
   },
   q3: {
@@ -136,23 +135,22 @@ const SERVICES = {
   RAI_OBS:       { tag: 'Renovación Urgente',       title: 'Renovación y Actualización de RAI',                 desc: 'Actualización urgente para prevenir precintos o multas municipales y de gobernación.',                      price: 'Evaluación Técnica', route: '/quote', cta: 'Renovar Mi RAI' },
   MA_MON:        { tag: 'Seguridad Industrial',     title: 'Manifiestos y Monitoreos de Laboratorio',           desc: 'Medición de ruido, efluentes y emisiones con laboratorios certificados y visado legal.',                      price: 'Desde USD 120', route: '/quote',  cta: 'Cotizar Monitoreo' },
   PSST:          { tag: 'Seguridad Industrial',     title: 'Programa de Seguridad (PSST y LASP)',               desc: 'Programa de Seguridad visado por profesional SySO y presentado ante el Ministerio de Trabajo.',              price: 'Desde USD 180', route: '/quote',  cta: 'Cotizar PSST' },
-  PROSP:         { tag: 'Minería',                  title: 'Prospección Minera (Formulario PM)',                desc: 'Carpeta técnica y cartografía UTM para aprobación formal ante AJAM.',                                       price: 'Desde USD 300', route: '/quote',  cta: 'Cotizar Prospección' },
+  PROSP:         { tag: 'Minería',                  title: 'Prospección Minera (Formulario PM)',                desc: 'Carpeta técnica y planos UTM para aprobación formal ante AJAM.',                                       price: 'Desde USD 300', route: '/quote',  cta: 'Cotizar Prospección' },
   EMAP:          { tag: 'Minería',                  title: 'Plan EMAP de Habilitación Minera',                  desc: 'Estudio ambiental integral y mapas temáticos para explotación y beneficio minero.',                          price: 'Desde USD 400', route: '/quote',  cta: 'Cotizar Plan EMAP' },
-  SIG_MINING:    { tag: 'SIG y Minería',            title: 'Cartografía SIG para Trámites Mineros',             desc: 'Capas vectoriales, límites de cuadrículas y planos certificados listos para trámite.',                        price: 'Desde USD 200', route: '/quote',  cta: 'Cotizar Cartografía' },
-  SIG_MAPS:      { tag: 'SIG Ambiental',            title: 'Mapas Ambientales Oficiales',                       desc: 'Informes cartográficos que superan revisiones ministeriales y departamentales.',                             price: 'Desde USD 150', route: '/quote',  cta: 'Cotizar Mis Mapas' },
-  SIG_FULL:      { tag: 'SIG Ambiental',            title: 'Plan de Aplicación SIG Integral',                   desc: 'Modelamiento espacial, teledetección y entrega de geodatabases para proyectos de envergadura.',             price: 'Desde USD 350', route: '/quote',  cta: 'Cotizar Plan SIG' },
-  SIG_DEF:       { tag: 'SIG Ambiental',            title: 'Análisis de Deforestación y Cobertura',             desc: 'Detección satelital multitemporal para informes ABT y proyectos forestales.',                                price: 'Desde USD 280', route: '/quote',  cta: 'Solicitar Análisis' },
-  SIG_HYD:       { tag: 'SIG Ambiental',            title: 'Riesgo Hidrológico y Modelamiento',                 desc: 'Modelos de manchas de inundación y cuencas para infraestructura y urbanizaciones.',                          price: 'Desde USD 320', route: '/quote',  cta: 'Solicitar Modelamiento' },
-  SIG_B2B:       { tag: 'SIG B2B',                  title: 'Tercerización Cartográfica B2B',                    desc: 'Capacidad técnica de soporte SIG para consultores y empresas de ingeniería.',                               price: 'A convenir',    route: '/quote',  cta: 'Hablar sobre B2B' },
-  COURSE_SIG:    { tag: 'SERAM Academy',            title: 'Curso SIG Aplicado con QGIS',                       desc: '20 horas de formación práctica orientada a proyectos ambientales con el Ing. Diego Barrientos.',            price: 'USD 150',       route: '/academy', cta: 'Ver Curso SIG' },
-  PREMIUM:       { tag: 'SERAM Academy',            title: 'Membresía Anual Academia Premium',                  desc: 'Acceso total a todos los cursos técnicos, recursos descargables y actualizaciones normativas.',             price: 'USD 35 / año',  route: '/academy', cta: 'Activar Membresía' },
+  SIG_MINING:    { tag: 'Minería & Planos',         title: 'Planos Georreferenciados para Trámites Mineros',    desc: 'Capas vectoriales, límites de cuadrículas y planos técnicos listos para trámite.',                          price: 'Desde USD 200', route: '/quote',  cta: 'Cotizar Planos' },
+  SIG_MAPS:      { tag: 'Gestión Territorial',      title: 'Mapas Ambientales para Licencias',                  desc: 'Informes y planos técnicos elaborados conforme a revisiones ministeriales y departamentales.',               price: 'Desde USD 150', route: '/quote',  cta: 'Cotizar Mis Mapas' },
+  SIG_FULL:      { tag: 'Servicio Bajo Demanda',    title: 'Estudio Espacial Integral',                         desc: 'Análisis territorial, teledetección y entregables técnicos para proyectos que lo requieran.',               price: 'Desde USD 350', route: '/quote',  cta: 'Cotizar Estudio' },
+  SIG_DEF:       { tag: 'Gestión Ambiental',        title: 'Análisis de Deforestación y Cobertura',             desc: 'Detección satelital multitemporal para informes ABT y proyectos forestales.',                                price: 'Desde USD 280', route: '/quote',  cta: 'Solicitar Análisis' },
+  SIG_HYD:       { tag: 'Hidrología',               title: 'Riesgo Hidrológico y Cuencas',                      desc: 'Evaluación de manchas de inundación y cuencas para infraestructura y urbanizaciones.',                       price: 'Desde USD 320', route: '/quote',  cta: 'Solicitar Evaluación' },
+  SIG_B2B:       { tag: 'Soporte B2B',              title: 'Soporte Técnico en Planos B2B',                     desc: 'Servicio técnico bajo demanda de planos y relevamiento para consultores y empresas de ingeniería.',         price: 'A convenir',    route: '/quote',  cta: 'Hablar sobre B2B' },
+  PREMIUM:       { tag: 'SERAM Academy',            title: 'Membresía Anual Academia Premium',                  desc: 'Acceso total a todos los cursos normativos, recursos descargables y actualizaciones legales.',                price: 'USD 35 / año',  route: '/academy', cta: 'Activar Membresía' },
   CORP:          { tag: 'Corporativo',              title: 'Taller Corporativo de Formación',                   desc: 'Capacitación presencial o virtual adaptada al sector productivo de tu empresa.',                            price: 'A medida',      route: '/quote',  cta: 'Solicitar Propuesta' },
-  BROWSE_COURSES:{ tag: 'SERAM Academy',            title: 'Catálogo de Formación Especializada',               desc: 'Cursos técnicos, masterclasses y manuales de legislación ambiental boliviana.',                              price: 'Ver opciones',  route: '/academy', cta: 'Explorar Academia' },
+  BROWSE_COURSES:{ tag: 'SERAM Academy',            title: 'Catálogo de Formación Normativa',                   desc: 'Cursos prácticos, guías y manuales de legislación ambiental boliviana.',                                    price: 'Ver opciones',  route: '/academy', cta: 'Explorar Academia' },
   EXP_REFOREST:  { tag: 'SERAM Experience',         title: 'Reforestación Corporativa y Adopción Nativa',       desc: 'Siembra trazable con georreferenciación GPS, monitoreo de supervivencia e informe ESG anual.',              price: 'Desde USD 250', route: '/experience', cta: 'Ver Reforestación' },
   EXP_CARBON:    { tag: 'Huella de Carbono ESG',    title: 'Cálculo y Compensación ISO 14064',                  desc: 'Inventario de emisiones GEI Alcance 1, 2 y 3 con planes de compensación forestal certificada.',             price: 'Evaluación Técnica', route: '/experience', cta: 'Ver Huella Carbono' },
   EXP_BIOCAMP:   { tag: 'Cultura Ambiental ESG',    title: 'Bio-Campamentos, Voluntariado y Huertos Escolares', desc: 'Jornadas vivenciales de educación ambiental, agricultura regenerativa y cultura ecológica.',                 price: 'Desde USD 180', route: '/experience', cta: 'Explorar Programas' },
   EXP_GARDEN:    { tag: 'Infraestructura Verde',    title: 'Jardines Verticales y Paisajismo Nativo',           desc: 'Diseño e instalación de cubiertas verdes y fachadas vegetales urbanas de bajo mantenimiento.',              price: 'A medida',      route: '/experience', cta: 'Cotizar Diseño Verde' },
-  CONSULT:       { tag: 'Consulta Técnica',         title: 'Consulta con Especialista SERAM',                   desc: 'Diagnóstico preliminar para canalizar tu requerimiento con el director técnico del área.',                   price: 'Sin costo',     route: '/contact', cta: 'Hablar con Especialista' },
+  CONSULT:       { tag: 'Consulta Técnica',         title: 'Consulta con Equipo Técnico SERAM',                 desc: 'Diagnóstico preliminar para canalizar tu requerimiento con el asesor técnico del área.',                    price: 'Sin costo',     route: '/contact', cta: 'Hablar con Consultor' },
 };
 
 function BotAvatar() {
@@ -287,7 +285,7 @@ export default function ChatbotFAB() {
           {
             id: Date.now() + Math.random(),
             type: 'bot',
-            text: 'Excelente. Completa tus datos para preparar tu diagnóstico técnico y asignarte al especialista adecuado:'
+            text: 'Excelente. Completa tus datos para preparar tu diagnóstico técnico y asignarte al asesor técnico adecuado:'
           }
         ]);
         setTimeout(() => setView('form'), 600);
@@ -406,7 +404,7 @@ export default function ChatbotFAB() {
       bg: 'bg-white/[0.04]',
       border: 'border-white/10 hover:border-white/20 hover:bg-white/[0.07]',
       iconBg: 'bg-white/10',
-      title: 'Hablar con Especialista',
+      title: 'Hablar con Equipo Técnico',
       sub: 'WhatsApp verificado, correo o mensaje directo',
       arrow: <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-slate-300 transition-colors flex-shrink-0" />,
       action: () => setView('contact')
@@ -612,7 +610,7 @@ export default function ChatbotFAB() {
                 {/* VISTA 3: FORMULARIO DE PRECALIFICACIÓN INBOUND */}
                 {view === 'form' && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35 }} className="space-y-3">
-                    <BotBubble text="Para generar el informe de precalificación y asignarte al especialista técnico adecuado, completa tus datos corporativos:" />
+                    <BotBubble text="Para generar el informe de precalificación y asignarte al asesor técnico adecuado, completa tus datos corporativos:" />
 
                     <form onSubmit={handleLeadSubmit} className="border border-[#00e03c]/30 rounded-2xl p-4 space-y-3 bg-[#00e03c]/[0.04]">
                       <div className="flex items-center justify-between pb-1 border-b border-white/[0.08]">
@@ -728,7 +726,7 @@ export default function ChatbotFAB() {
                               <span>Atención Prioritaria Asignada</span>
                             </div>
                             <p className="text-[11px] text-slate-200 leading-relaxed">
-                              Tu requerimiento cuenta con alta prioridad. Asignamos tu caso al especialista <strong className="text-white">{createdLeadResult.socio_asignado}</strong> para coordinar de inmediato la propuesta técnica formal.
+                              Tu requerimiento cuenta con alta prioridad. Asignamos tu caso al asesor técnico <strong className="text-white">{createdLeadResult.socio_asignado}</strong> para coordinar de inmediato la propuesta técnica formal.
                             </p>
                             <a
                               href={armService.createWhatsAppUrl(
@@ -739,7 +737,7 @@ export default function ChatbotFAB() {
                               rel="noopener noreferrer"
                               className="mt-2 w-full py-2.5 bg-[#00e03c] text-slate-950 font-black text-[11px] uppercase tracking-wider hover:bg-white transition-all duration-200 rounded-lg flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-[#00e03c]/20"
                             >
-                              <Phone className="w-3.5 h-3.5" /> Contactar al Especialista Ahora
+                              <Phone className="w-3.5 h-3.5" /> Contactar al Asesor Técnico Ahora
                             </a>
                           </div>
                         ) : createdLeadResult.temperatura === 'tibio' ? (
@@ -886,7 +884,7 @@ export default function ChatbotFAB() {
                       >
                         <CheckCircle2 className="w-8 h-8 text-[#00e03c] mx-auto" />
                         <p className="text-[12px] font-black text-white">Requerimiento Recibido</p>
-                        <p className="text-[10px] text-slate-300">Asignando especialista técnico...</p>
+                        <p className="text-[10px] text-slate-300">Asignando asesor técnico...</p>
                       </motion.div>
                     )}
                   </motion.div>

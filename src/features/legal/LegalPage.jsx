@@ -233,14 +233,14 @@ export default function LegalPage() {
                   <span className="text-[#00e03c] font-black">1.</span> Objeto y Aceptación
                 </h3>
                 <p>
-                  El acceso y utilización de este sitio web atribuye la condición de usuario e implica la aceptación plena de las presentes disposiciones. SERAM S.R.L. ofrece servicios de ingeniería ambiental, teledetección satelital, modelación SIG y formación e-learning especializada.
+                  El acceso y utilización de este sitio web atribuye la condición de usuario e implica la aceptación plena de las presentes disposiciones. SERAM S.R.L. ofrece servicios de consultoría ambiental, gestión normativa, análisis territorial bajo demanda y formación e-learning.
                 </p>
               </div>
 
               <div className="p-6 sm:p-8 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3">
                 <h4 className="text-base sm:text-lg font-bold text-amber-300">Descargo de Responsabilidad de Herramientas Digitales y Pre-diagnósticos</h4>
                 <p className="text-sm sm:text-base text-slate-200 leading-relaxed">
-                  Las calculadoras, formularios de categorización interactiva y el asistente virtual (Chatbot) presentes en este sitio web proporcionan <strong>orientaciones preliminares de carácter estimativo</strong>. No constituyen una resolución administrativa ni un dictamen técnico definitivo. La categorización y licenciamiento ambiental oficial en Bolivia depende de la Autoridad Ambiental Competente (AAC) y de estudios de campo suscritos por ingenieros especialistas acreditados en el Registro Nacional de Consultoría Ambiental (RENCA).
+                  Las calculadoras, formularios de categorización interactiva y el asistente virtual (Chatbot) presentes en este sitio web proporcionan <strong>orientaciones preliminares de carácter estimativo</strong>. No constituyen una resolución administrativa ni un dictamen técnico definitivo. La categorización y licenciamiento ambiental oficial en Bolivia depende de la Autoridad Ambiental Competente (AAC) y de estudios de campo suscritos por profesionales acreditados en el Registro Nacional de Consultoría Ambiental (RENCA).
                 </p>
               </div>
 
@@ -361,7 +361,7 @@ export default function LegalPage() {
                   <span className="text-[#00e03c] font-black">2.</span> Productos Digitales Descargables (PDFs y Entregables)
                 </h3>
                 <p className="text-base sm:text-lg text-slate-200 leading-relaxed">
-                  En virtud de su naturaleza inmaterial e inmediata, los productos descargables (E-books, guías metodológicas en PDF, proyectos de QGIS descargables y plantillas de carimbos normativos) <strong>no son susceptibles de reembolso</strong> una vez que el enlace de descarga ha sido ejecutado o transferido.
+                  En virtud de su naturaleza inmaterial e inmediata, los productos descargables (E-books, guías metodológicas en PDF y plantillas de carimbos normativos) <strong>no son susceptibles de reembolso</strong> una vez que el enlace de descarga ha sido ejecutado o transferido.
                 </p>
               </div>
 
@@ -370,7 +370,7 @@ export default function LegalPage() {
                   <span className="text-[#00e03c] font-black">3.</span> Servicios de Ingeniería Ambiental
                 </h3>
                 <p className="text-base sm:text-lg text-slate-200 leading-relaxed">
-                  Los contratos de consultoría técnica especializada (muestreo de campo, vuelos de dron, monitoreo de mercurio, elaboración de Fichas FNCA y RAI) se rigen por su respectivo contrato bilateral de prestación de servicios. Los anticipos destinados a viáticos, equipos de campo y ensayos de laboratorio ya ejecutados no son reembolsables.
+                  Los contratos de consultoría técnica (muestreo de campo, vuelos de dron, monitoreo ambiental, elaboración de Formularios FNCA y RAI) se rigen por su respectivo contrato bilateral de prestación de servicios. Los anticipos destinados a viáticos, equipos de campo y ensayos de laboratorio ya ejecutados no son reembolsables.
                 </p>
               </div>
 

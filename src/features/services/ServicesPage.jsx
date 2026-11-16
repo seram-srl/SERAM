@@ -29,7 +29,7 @@ function mapCategoryToChatbotStep(category = '', title = '') {
   if (txt.includes('min') || txt.includes('emap') || txt.includes('prosp')) {
     return 'q2_mining';
   }
-  if (txt.includes('sig') || txt.includes('gis') || txt.includes('cartog') || txt.includes('cuenca') || txt.includes('monitoreo')) {
+  if (txt.includes('territor') || txt.includes('plano') || txt.includes('dron') || txt.includes('cuenca') || txt.includes('monitoreo')) {
     return 'q2_sig';
   }
   return 'q2_civil';
@@ -41,17 +41,17 @@ export default function ServicesPage() {
   const [selectedCategory, setSelectedCategory] = useState('Todos');
 
   useSeramSeo({
-    title: 'Servicios Ambientales en Bolivia (FNCA, RAI, SIG)',
-    description: 'Evita multas y paralizaciones en Bolivia. Gestionamos Licencias Ambientales FNCA, RAI Industrial, EMAP y Plan SIG con ingeniería especializada SERAM.',
-    keywords: 'consultora ambiental Bolivia, licencia ambiental FNCA, registro ambiental industrial RAI, EMAP minería, mapas ambientales SIG, auditoría ambiental AACD AACN',
+    title: 'Servicios Ambientales en Bolivia (FNCA, RAI, EMAP)',
+    description: 'Consultoría ambiental en Bolivia. Gestionamos Licencias Ambientales FNCA, RAI Industrial, EMAP y estudios territoriales con el equipo técnico de SERAM.',
+    keywords: 'consultora ambiental Bolivia, licencia ambiental FNCA, registro ambiental industrial RAI, EMAP minería, evaluacion ambiental AACD AACN',
     canonicalUrl: 'https://seram.bo/services',
     ogImage: '/assets/3d-backend/panel2-service-background.webp',
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'Service',
-      name: 'Servicios de Consultoría e Ingeniería Ambiental SERAM',
-      serviceType: 'Consultoría Ambiental, Licenciamiento Normativo y Geomática SIG',
-      description: 'Gestión de Licencias Ambientales FNCA, Registro Ambiental Industrial RAI, EMAP y Plan de Aplicación SIG en Bolivia.',
+      name: 'Servicios de Consultoría Ambiental SERAM',
+      serviceType: 'Consultoría Ambiental, Licenciamiento Normativo y Gestión Territorial',
+      description: 'Gestión de Licencias Ambientales FNCA, Registro Ambiental Industrial RAI, EMAP y estudios técnicos ambientales en Bolivia.',
       url: 'https://seram.bo/services',
       provider: {
         '@type': 'Organization',
@@ -94,12 +94,12 @@ export default function ServicesPage() {
       onAction: () => openChatbot('q2_mining')
     },
     {
-      id: 'sig',
+      id: 'territorio',
       icon: Compass,
       iconBgClass: 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/35',
-      title: 'Inteligencia SIG & Dron',
-      desc: 'Ortofotos centimétricas, delimitación hidrográfica, análisis multitemporal ABT y soporte B2B en WGS-84.',
-      actionLabel: 'Cotizar Plan SIG',
+      title: 'Análisis Territorial & Dron',
+      desc: 'Relevamiento aéreo, delimitación hidrográfica, análisis multitemporal ABT y planos técnicos bajo demanda en WGS-84.',
+      actionLabel: 'Cotizar Estudio',
       onAction: () => openChatbot('q2_sig')
     }
   ];
@@ -132,79 +132,79 @@ export default function ServicesPage() {
     >
       {/* ── SECCIÓN 1: HERO ARQUITECTÓNICO DESACOPLADO SERAM SERVICES ── */}
       <ZenzeHeroSection
-        titleWhite="Ingeniería y Licencias Ambientales."
-        titleAccent="Protegiendo Tu Operación en Bolivia."
+        titleWhite="Consultoría y Licencias Ambientales."
+        titleAccent="Acompañando Tu Operación en Bolivia."
         accentColorClass="text-[#00e03c]"
         buttonAccentClass="bg-[#00e03c] hover:bg-white text-slate-950 shadow-[0_0_25px_rgba(0,224,60,0.3)]"
         backgroundImage="/assets/3d-backend/panel2-service-background.webp"
-        backgroundAlt="Ingeniería y Consultoría Ambiental SERAM Services"
-        description="Combinamos ingeniería regulatoria, teledetección satelital SIG y gestión ágil ante AACD/AACN para eliminar multas, clausuras y demoras en tus proyectos civiles, industriales y mineros."
+        backgroundAlt="Consultoría Ambiental SERAM Services"
+        description="Combinamos gestión regulatoria, relevamiento territorial bajo demanda y trámite ordenado ante AACD/AACN para respaldar tus proyectos civiles, industriales y mineros."
         primaryCtaLabel="Iniciar Diagnóstico Técnico"
         onPrimaryCta={() => openChatbot('q1')}
         secondaryCtaLabel="Explorar Portafolio de Servicios"
         onSecondaryCta={scrollToCatalog}
-        livePanelTitle="Monitoreo Operativo en Vivo"
+        livePanelTitle="Seguimiento Operativo en Vivo"
         livePanelCtaLabel="Evaluar Caso →"
         onLivePanelCta={() => openChatbot('q1')}
         liveMetrics={[
           { label: 'Cumplimiento Normativo Ley 1333', value: '98%', percent: 98, barClass: 'bg-[#00e03c]' },
-          { label: 'Precisión Cartográfica RTK / WGS-84', value: '2 cm', percent: 95, barClass: 'bg-sky-400' },
-          { label: 'Riesgo de Sanción con Blindaje SERAM', value: '0%', percent: 12, barClass: 'bg-emerald-400' }
+          { label: 'Precisión Geodésica WGS-84', value: 'RTK', percent: 95, barClass: 'bg-sky-400' },
+          { label: 'Trazabilidad Documental SERAM', value: '100%', percent: 100, barClass: 'bg-emerald-400' }
         ]}
         kpis={[
-          { icon: Briefcase, value: '150+', label: 'Empresas Regularizadas' },
-          { icon: Globe, value: '45K+', label: 'Hectáreas Mapeadas SIG' },
-          { icon: FileCheck2, value: '100%', label: 'Aprobación AACD / AACN' },
-          { icon: Zap, value: '60%', label: 'Reducción en Plazos' }
+          { icon: Briefcase, value: '100%', label: 'Enfoque Normativo' },
+          { icon: Globe, value: 'WGS-84', label: 'Georreferenciación' },
+          { icon: FileCheck2, value: 'AACD/N', label: 'Gestión Formal' },
+          { icon: Zap, value: '24/48h', label: 'Respuesta Inicial' }
         ]}
       />
 
       {/* ── SECCIÓN 2: QUÉ HACEMOS (4 PILARES OSCUROS ARQUITECTÓNICOS) ── */}
       <ZenzePillarsSection
         eyebrow="QUÉ HACEMOS"
-        title="Soluciones Inteligentes para Cada Operación"
-        subtitle="Desde la línea base en campo hasta la emisión formal de la Licencia Ambiental o RAI, blindamos legal y cartográficamente cada etapa de tu empresa."
+        title="Soluciones Técnicas para Cada Operación"
+        subtitle="Desde el relevamiento en campo hasta la gestión formal de la Licencia Ambiental o RAI, acompañamos técnica y legalmente cada etapa de tu empresa."
         cards={pillars}
       />
 
-      {/* ── SECCIÓN 3: NUESTRA TECNOLOGÍA (PANEL INTERACTIVO SERAM OPERATIONS & SIG) ── */}
+      {/* ── SECCIÓN 3: NUESTRA TECNOLOGÍA (PANEL INTERACTIVO SERAM OPERATIONS) ── */}
       <ZenzeTechOverviewSection
-        eyebrow="NUESTRA TECNOLOGÍA"
-        title="Datos. SIG. Normativa. Mejor Juntos."
-        description="Integramos análisis geoespacial, control documental en Odoo y seguimiento técnico en tiempo real para entregarte trámites observables cero y trazabilidad completa."
+        eyebrow="NUESTRA METODOLOGÍA"
+        title="Datos. Territorio. Normativa. Mejor Juntos."
+        description="Integramos análisis territorial, control documental y seguimiento técnico en tiempo real para entregarte trámites ordenados y trazabilidad completa."
         checks={[
           'Monitoreo georreferenciado en datum oficial WGS-84',
           'Precalificación regulatoria inmediata en el Asistente Digital',
-          'Cartografía satelital, ortofotos RTK y modelado de cuencas',
-          'Seguimiento transparente sincronizado con nuestro panel directivo'
+          'Relevamiento con drones, ortofotos y análisis de cuencas bajo demanda',
+          'Seguimiento transparente sincronizado con nuestro panel operativo'
         ]}
         ctaLabel="Cotizar Mi Proyecto Ahora"
         onCtaClick={() => openChatbot('q1')}
-        overviewTitle="SERAM Operations & SIG Overview"
-        statsCol={{ label1: 'Trámites Activos', val1: '18', label2: 'Estudios SIG', val2: '9' }}
-        trendCard={{ label: 'Velocidad Aprobación', value: '+38%', sub: 'vs gestión tradicional' }}
+        overviewTitle="SERAM Operations Overview"
+        statsCol={{ label1: 'Trámites Activos', val1: '18', label2: 'Estudios Ambientales', val2: '9' }}
+        trendCard={{ label: 'Eficiencia Operativa', value: '+38%', sub: 'en gestión documental' }}
         donutCard={{ label: 'Viabilidad Técnica', percent: 98, statusText: 'Óptimo', leg1: 'Conforme', leg2: 'Observ.' }}
         recentActivities={[
-          { title: 'FNCA Cat. 3 Aprobado', time: 'Hace 2 horas' },
-          { title: 'Mapa WGS-84 Validado', time: 'Hace 5 horas' },
+          { title: 'FNCA Cat. 3 Presentado', time: 'Hace 2 horas' },
+          { title: 'Plano WGS-84 Validado', time: 'Hace 5 horas' },
           { title: 'RAI Industrial Emitido', time: 'Ayer' }
         ]}
         mapImage="/assets/3d-backend/gis_satellite_mapping.webp"
         mapPins={[
           { top: '34%', left: '30%', label: 'Parque Industrial Norte · RAI Cat. 3', stat: 'Aprobado' },
           { top: '55%', left: '54%', label: 'Concesión Minera Chiquitanía · EMAP', stat: 'En Curso' },
-          { top: '42%', left: '72%', label: 'Cuenca Hidrográfica Piraí · SIG', stat: '2cm RTK' }
+          { top: '42%', left: '72%', label: 'Cuenca Hidrográfica Piraí · Relevamiento', stat: 'WGS-84' }
         ]}
         weatherWidget={{
           temp: '98.4%',
-          condition: 'Tasa de Aprobación IRAP',
+          condition: 'Tasa de Conformidad IRAP',
           metric1: 'WGS-84: OK',
           metric2: 'AACD/N: OK',
           metric3: 'D.S. 3549'
         }}
       />
 
-      {/* ── CATÁLOGO HÍBRIDO DINÁMICO DE SERVICIOS SERAM CON MOTION FRAME GIS ── */}
+      {/* ── CATÁLOGO HÍBRIDO DINÁMICO DE SERVICIOS SERAM ── */}
       <MotionFrame variant="services" className="p-6 sm:p-8 bg-[#040905]/70">
         <section id="services-catalog" className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 text-left">

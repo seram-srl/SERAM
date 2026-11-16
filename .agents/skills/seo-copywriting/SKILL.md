@@ -30,8 +30,8 @@ Vite SPAs (Single Page Applications) require explicit setup to be indexed proper
 ### C. Structured Data (Schema.org JSON-LD)
 Embed JSON-LD schemas to help search engines understand entities and generate rich snippets:
 *   **Organization**: General brand information, logo, contact points, and social profiles.
-*   **Service**: Specific schemas for RAI, FNCA, EMAP, and SIG services.
-*   **Course / EducationalOrganization**: For SERAM Academy courses.
+*   **Service**: Specific schemas for RAI, FNCA, EMAP, and environmental consulting services.
+*   **Course / EducationalOrganization**: For SERAM Academy courses (excluding restricted technical know-how such as SIG/GIS, QGIS, or precision cartography).
 
 ---
 
@@ -66,8 +66,8 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
 export default function SEO({ title, description, keywords, ogImage, ogUrl }) {
-  const defaultTitle = "SERAM | Servicios Ambientales, Consultoría y Capacitación de Élite";
-  const defaultDesc = "Evita multas y paralizaciones. Consultoría ambiental, licencias FNCA, RAI, EMAP y Sistemas de Información Geográfica (SIG) de alta precisión.";
+  const defaultTitle = "SERAM | Consultoría Ambiental y Capacitación";
+  const defaultDesc = "Consultoría ambiental y capacitación técnica en Bolivia. Acompañamiento en Registro Ambiental Industrial (RAI), Licencias Ambientales (FNCA) y gestión normativa.";
   
   return (
     <Helmet>
@@ -109,3 +109,21 @@ export default function SEO({ title, description, keywords, ogImage, ogUrl }) {
 }
 </script>
 ```
+
+---
+
+## 🛡️ 4. Política Estratégica de Marketing, Academia y Terminología SERAM
+
+Todo el copywriting, SEO y contenido formativo público de SERAM debe respetar las siguientes reglas:
+
+1. **Prohibición de enseñar el know-how técnico a la competencia:**
+   * **SERAM Academy NO** debe ofrecer ni promocionar cursos, guías, tutoriales, ebooks ni contenido educativo sobre **SIG / GIS, QGIS, ni cartografía de precisión**.
+   * Estas capacidades técnicas se reservan para uso interno o servicio exclusivo bajo demanda, nunca como capacitación abierta a terceros o competencia.
+2. **Congruencia con la realidad inicial de la empresa:**
+   * El copy de toda la web pública debe ser **sobrio, realista y general**, acorde a una consultora ambiental en etapa inicial (sin promesas grandilocuentes ni terminología reservada o sobredimensionada).
+3. **Glosario de Términos Eliminados y Reemplazos Obligatorios en la Web Pública:**
+   * `fichas` / `ficha` (ambiental/técnica) → *formularios ambientales*, *documentación técnica*, *resumen técnico*, *perfil de proyecto* o *registro técnico*.
+   * `auditorías ambientales` / `auditoría ambiental` → *evaluación ambiental*, *revisión normativa*, *diagnóstico ambiental* o *verificación de cumplimiento*.
+   * `Especialista` / `especialistas` → *equipo técnico*, *asesor técnico*, *consultor* o *profesional del área*.
+   * `peritaje` / `peritajes` → *evaluación técnica*, *análisis técnico* o *estudio de campo*.
+   * `Dossier` → *Carpeta Técnica*, *Guía Informativa*, *Documento Técnico* o *Portafolio*.

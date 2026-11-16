@@ -80,8 +80,8 @@ const PILLARS = [
     imageUrl: '/assets/3d-backend/bg_academy.webp',
     cursorText: 'APRENDER',
     icon: <BookOpen className="w-6 h-6" />,
-    headline: 'CAPACITACIÓN ECOLÓGICA Y TÉCNICA',
-    desc: 'Accede a nuestra ala formativa especializada. Cursos de SIG aplicado, auditoría y legislación bajo normativas ISO internacionales. Diseñamos planes gratis, de pago y membresías premium académicas.',
+    headline: 'CAPACITACIÓN ECOLÓGICA Y NORMATIVA',
+    desc: 'Accede a nuestra área formativa. Cursos prácticos de legislación ambiental, gestión de residuos y sostenibilidad bajo normativas vigentes. Contamos con recursos gratuitos, de pago y membresías académicas.',
     cta: 'Ingresar a Academy',
     route: '/academy',
     ctaCursor: 'ACADEMIA',
@@ -603,7 +603,7 @@ function ServicesHorizontalSection() {
           </div>
         </motion.div>
 
-        {/* Tarjeta 4 — SIG en la Gestión Ambiental */}
+        {/* Tarjeta 4 — Análisis Territorial y Planos Ambientales */}
         <motion.div 
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -612,16 +612,16 @@ function ServicesHorizontalSection() {
           className="relative w-full max-w-lg mx-auto rounded-3xl overflow-hidden shadow-2xl border border-white/10 will-change-transform" 
           style={{ height: '560px' }}
         >
-          <img src="/assets/3d-backend/gis_satellite_mapping.webp" alt="SIG en la Gestión Ambiental — Mapas Ambientales SERAM" className="absolute inset-0 w-full h-full object-cover" />
+          <img src="/assets/3d-backend/gis_satellite_mapping.webp" alt="Análisis Territorial y Planos Ambientales SERAM" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/55" />
           <div className="absolute inset-0 flex flex-col justify-end p-5 pb-20">
             <div className="bg-black/80 backdrop-blur-md border border-white/10 p-5 rounded-2xl">
-              <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#029907] font-tech mb-1.5 block">SIG en la Gestión Ambiental — SERAM</span>
-              <h3 className="text-lg font-black text-white mb-2 leading-tight"><span className="italic">Mapas Ambientales</span> que Aprueban: Diseñamos tu Plan de Aplicación SIG</h3>
+              <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#029907] font-tech mb-1.5 block">Gestión Territorial — SERAM</span>
+              <h3 className="text-lg font-black text-white mb-2 leading-tight"><span className="italic">Planos Ambientales</span> sin Observaciones: Servicio Técnico Bajo Demanda</h3>
               <p className="text-slate-300 mb-3 text-[11px] font-light leading-relaxed">
-                Tu <span className="italic text-white">proyecto ambiental</span> merece mapas que no sean observados. En la <span className="italic font-semibold text-white">consultora ambiental</span> SERAM ejecutamos tu <span className="text-[#00e03c] font-semibold"><span className="italic">Plan de Aplicación SIG</span></span> completo. ¿Prefieres capacitar a tu equipo? Adquiere nuestro <span className="text-slate-100 font-semibold">Curso de SIG Básico</span> y domina las herramientas desde cero.
+                Tu <span className="italic text-white">proyecto ambiental</span> requiere planos precisos para su aprobación. En la <span className="italic font-semibold text-white">consultora ambiental</span> SERAM ejecutamos tus <span className="text-[#00e03c] font-semibold"><span className="italic">estudios territoriales y planos oficiales</span></span> bajo demanda con total respaldo técnico.
               </p>
-              <button onClick={() => openChatbot('q2_sig')} className="neuform-btn-primary pointer-events-auto w-full justify-center py-2.5 text-[10px] mb-2">Cotizar Mi Plan de Aplicación SIG</button>
+              <button onClick={() => openChatbot('q2_sig')} className="neuform-btn-primary pointer-events-auto w-full justify-center py-2.5 text-[10px] mb-2">Cotizar Estudio Territorial</button>
 
               <motion.button
                 onClick={() => navigate('/services')}
@@ -770,18 +770,18 @@ function ServicesHorizontalSection() {
           </div>
         </div>
 
-        {/* Tarjeta 4: SIG en la Gestión Ambiental — Mapas Ambientales SERAM — z-50 */}
+        {/* Tarjeta 4: Gestión Territorial y Planos Ambientales SERAM — z-50 */}
         <div id="svc-card-4" style={getCardStyle(3)}>
-          <img src="/assets/3d-backend/gis_satellite_mapping.webp" alt="SIG en la Gestión Ambiental — Mapas Ambientales SERAM" className="absolute inset-0 w-full h-full object-cover" />
+          <img src="/assets/3d-backend/gis_satellite_mapping.webp" alt="Gestión Territorial y Planos Ambientales SERAM" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/45" />
           <div className="card-content opacity-0 absolute inset-0 flex flex-col justify-center px-8 md:px-24">
             <div className="bg-black/80 backdrop-blur-md border border-white/10 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
-              <span className="card-tag text-[10px] uppercase tracking-wider font-extrabold text-[#029907] font-tech mb-2 block">SIG en la Gestión Ambiental — SERAM S.R.L.</span>
-              <h3 className="card-title text-xl md:text-2xl font-black text-white mb-3 leading-tight"><span className="italic">Mapas Ambientales</span> que Aprueban: Diseñamos tu Plan de Aplicación SIG</h3>
+              <span className="card-tag text-[10px] uppercase tracking-wider font-extrabold text-[#029907] font-tech mb-2 block">Gestión Territorial — SERAM S.R.L.</span>
+              <h3 className="card-title text-xl md:text-2xl font-black text-white mb-3 leading-tight"><span className="italic">Planos Ambientales</span> sin Observaciones: Servicio Técnico Bajo Demanda</h3>
               <p className="card-desc text-slate-300 mb-5 text-sm font-light leading-relaxed">
-                Tu <span className="italic">proyecto ambiental</span> merece <span className="font-semibold text-slate-100"><span className="italic">mapas ambientales</span></span> que no sean observados. En la <span className="font-semibold text-slate-100"><span className="italic">consultora ambiental</span> SERAM</span> ejecutamos tu <span className="underline decoration-[#00e03c]/40 decoration-2 underline-offset-4 font-semibold text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">Plan de Aplicación SIG para <span className="italic">Proyectos Ambientales</span></span>. ¿Prefieres formar a tu equipo? Adquiere nuestro <span className="underline decoration-[#00e03c]/40 decoration-2 underline-offset-4 font-semibold text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">Curso de SIG Básico</span> y domina las herramientas desde cero.
+                Tu <span className="italic">proyecto ambiental</span> merece <span className="font-semibold text-slate-100"><span className="italic">planos y mapas técnicos</span></span> que cumplan la normativa vigente. En la <span className="font-semibold text-slate-100"><span className="italic">consultora ambiental</span> SERAM</span> ejecutamos tus <span className="underline decoration-[#00e03c]/40 decoration-2 underline-offset-4 font-semibold text-slate-100 hover:text-[#00e03c] transition-colors duration-300 cursor-pointer pointer-events-auto">estudios territoriales para <span className="italic">Proyectos Ambientales</span></span> bajo demanda y con respaldo profesional.
               </p>
-              <button onClick={() => openChatbot('q2_sig')} className="neuform-btn-primary pointer-events-auto px-8 py-3.5 mb-4">Cotizar Mi Plan de Aplicación SIG</button>
+              <button onClick={() => openChatbot('q2_sig')} className="neuform-btn-primary pointer-events-auto px-8 py-3.5 mb-4">Cotizar Estudio Territorial</button>
 
               <div className="card-extra flex flex-col gap-3">
                 <motion.button
@@ -916,24 +916,24 @@ function AcademyVerticalSection() {
                 {/* Tarjeta Módulo 01 */}
                 <div className="academy-module-card neuform-card p-6 flex flex-col text-left space-y-4 hover:border-[#00e03c]/25 transition-all duration-300">
                   <span className="text-[10px] text-[#00e03c] font-tech font-extrabold uppercase tracking-widest">Módulo 01</span>
-                  <h4 className="text-lg sm:text-xl font-black text-white font-display">Sistemas de Información (SIG)</h4>
+                  <h4 className="text-lg sm:text-xl font-black text-white font-display">Gestión de Residuos (Ley 755)</h4>
                   <p className="text-xs sm:text-sm text-slate-300 font-light leading-relaxed">
-                    Domina el análisis espacial, mapas de riesgo y geoprocesamiento de datos satelitales aplicados al territorio boliviano.
+                    Aprende clasificación, manifiestos de transporte y planes de manejo de residuos sólidos y peligrosos aplicados al entorno empresarial.
                   </p>
                   <div className="text-[10px] text-[#00e03c]/85 font-bold font-tech pt-3 mt-auto border-t border-white/5">
-                    SOFTWARE: QGIS & ArcGIS Pro
+                    ENFOQUE: Economía Circular & RESPEL
                   </div>
                 </div>
 
                 {/* Tarjeta Módulo 02 */}
                 <div className="academy-module-card neuform-card p-6 flex flex-col text-left space-y-4 hover:border-[#00e03c]/25 transition-all duration-300">
                   <span className="text-[10px] text-[#00e03c] font-tech font-extrabold uppercase tracking-widest">Módulo 02</span>
-                  <h4 className="text-lg sm:text-xl font-black text-white font-display">Legislación & Auditoría</h4>
+                  <h4 className="text-lg sm:text-xl font-black text-white font-display">Legislación & Cumplimiento</h4>
                   <p className="text-xs sm:text-sm text-slate-300 font-light leading-relaxed">
-                    Interpreta la Ley 1333, reglamentos sectoriales y diseña planes de mitigación ambiental blindados legalmente en Bolivia.
+                    Interpreta la Ley 1333, reglamentos sectoriales y diseña planes de mitigación ambiental conformes a la normativa en Bolivia.
                   </p>
                   <div className="text-[10px] text-[#00e03c]/85 font-bold font-tech pt-3 mt-auto border-t border-white/5">
-                    ALCANCE: Consultoría de Élite
+                    ALCANCE: Normativa Boliviana
                   </div>
                 </div>
 
@@ -1190,7 +1190,7 @@ function StoreHorizontalSection() {
             <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 md:p-10 rounded-3xl max-w-xl shadow-2xl">
               <span className="text-xs text-[#00e03c] font-tech tracking-widest uppercase">Categoría 02</span>
               <h3 className="mt-2 text-4xl md:text-5xl font-black text-white mb-4 leading-tight">Biblioteca Técnica</h3>
-              <p className="text-slate-200 mb-8 font-light leading-relaxed">Guías SIG, manuales de auditoría ambiental, ebooks de legislación y recursos didácticos exclusivos de SERAM ACADEMY.</p>
+              <p className="text-slate-200 mb-8 font-light leading-relaxed">Manuales de normativa ambiental, guías de gestión de residuos, ebooks de legislación y recursos didácticos de SERAM ACADEMY.</p>
               {featured[1] && (
                 <button onClick={() => handleBuyProduct(featured[1])} className="px-8 py-3.5 bg-[#00e03c] text-black font-black rounded-full text-xs tracking-widest uppercase hover:bg-white transition-colors duration-300 pointer-events-auto">
                   Añadir al carrito — Bs. {featured[1].price}

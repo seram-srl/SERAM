@@ -26,16 +26,16 @@ const DEFAULT_CREHANA_MODULES = [
   },
   {
     id: 2,
-    title: '2. Herramientas Técnicas & QGIS Práctico',
+    title: '2. Normativa Sectorial & Gestión Práctica',
     classes: [
-      { id: '2.1', title: 'Introducción a Herramientas SIG y QGIS', duration: '6m 04s', durationSec: 364, isPremium: true, videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-undergrowth-of-a-green-forest-40283-large.mp4' },
-      { id: '2.2', title: 'Delimitación de Cuencas Hidrográficas', duration: '4m 54s', durationSec: 294, isPremium: true, videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-forest-stream-in-the-sunlight-529-large.mp4' },
-      { id: '2.3', title: 'Generación de Mapas de Pendientes y Cobertura', duration: '8m 15s', durationSec: 495, isPremium: true, videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-waterfall-in-forest-2213-large.mp4' }
+      { id: '2.1', title: 'Reglamentos de Prevención y Control Ambiental', duration: '6m 04s', durationSec: 364, isPremium: true, videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-undergrowth-of-a-green-forest-40283-large.mp4' },
+      { id: '2.2', title: 'Gestión de Residuos Sólidos y Peligrosos (Ley 755)', duration: '4m 54s', durationSec: 294, isPremium: true, videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-forest-stream-in-the-sunlight-529-large.mp4' },
+      { id: '2.3', title: 'Matrices de Mitigación y Seguimiento Ambiental', duration: '8m 15s', durationSec: 495, isPremium: true, videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-waterfall-in-forest-2213-large.mp4' }
     ]
   },
   {
     id: 3,
-    title: '3. Fichas Ambientales y Categorización FNCA',
+    title: '3. Formularios Ambientales y Categorización FNCA',
     classes: [
       { id: '3.1', title: 'Ley 1333 y Estructura Regulatoria Sectorial', duration: '14m 30s', durationSec: 870, isPremium: true, videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-undergrowth-of-a-green-forest-40283-large.mp4' },
       { id: '3.2', title: 'Llenado del Formulario de Nivel de Categorización', duration: '18m 10s', durationSec: 1090, isPremium: true, videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-forest-stream-in-the-sunlight-529-large.mp4' }
@@ -82,10 +82,10 @@ function DeliverablePdfView({ course, navigate, triggerToast, currentSocio }) {
     {
       id: 2,
       author: 'Lic. Mariana Siles',
-      role: 'Auditora Ambiental Especialista',
+      role: 'Consultora Ambiental',
       date: 'Ayer',
-      text: '¿Los carimbos y matrices de mitigación vienen en vectores editables compatibles con AutoCAD y QGIS para adjuntar directamente a los informes técnicos?',
-      answer: 'Efectivamente. Todas las plantillas y carimbos incluidos en los anexos cumplen con la normalización de capas y formatos estándar A3/A4 requeridos por la Autoridad Ambiental Competente.',
+      text: '¿Los carimbos y matrices de mitigación vienen en formatos editables estándar para adjuntar directamente a los informes técnicos?',
+      answer: 'Efectivamente. Todas las plantillas y carimbos incluidos en los anexos cumplen con la normalización y formatos estándar A3/A4 requeridos por la Autoridad Ambiental Competente.',
       answeredBy: course.instructor || 'Ing. Fernando Araujo'
     }
   ]);
@@ -123,7 +123,7 @@ function DeliverablePdfView({ course, navigate, triggerToast, currentSocio }) {
     {
       title: 'Capítulo I: Marco Regulatorio General y Jerarquía Normativa (Ley 1333)',
       desc: 'Principios rectores del derecho ambiental boliviano, competencias de la AACN y AACD, y directrices para la categorización y evaluación de impacto.',
-      items: ['Art. 25: Obligatoriedad de la Ficha Ambiental e IRAP', 'Reglamento General de Gestión Ambiental (RGGA)', 'Reglamento de Prevención y Control Ambiental (RPCA)']
+      items: ['Art. 25: Obligatoriedad del Formulario Ambiental e IRAP', 'Reglamento General de Gestión Ambiental (RGGA)', 'Reglamento de Prevención y Control Ambiental (RPCA)']
     },
     {
       title: 'Capítulo II: D.S. 3549 y Procedimientos Administrativos de Licenciamiento',
@@ -202,7 +202,7 @@ function DeliverablePdfView({ course, navigate, triggerToast, currentSocio }) {
             <div className="flex flex-wrap items-center gap-2.5">
               <span className="px-3 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
                 <FileText className="w-3.5 h-3.5 text-emerald-400" />
-                Modalidad: Documento Entregable & Dossier PDF
+                Modalidad: Documento Técnico Descargable (PDF)
               </span>
               <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-slate-300 text-[11px] font-mono font-bold uppercase">
                 {course.type ? course.type.replace('_', ' ') : 'Recurso Oficial'}
@@ -217,7 +217,7 @@ function DeliverablePdfView({ course, navigate, triggerToast, currentSocio }) {
               {renderFormattedText(course.title)}
             </h1>
 
-            {/* Ficha de Autoría / Consultor Responsable */}
+            {/* Resumen de Autoría / Consultor Responsable */}
             <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 max-w-xl">
               <div className="w-11 h-11 rounded-xl bg-[#00e03c]/15 border border-[#00e03c]/40 flex items-center justify-center text-[#00e03c] font-black text-base shrink-0 shadow-[0_0_15px_rgba(0,224,60,0.2)]">
                 <UserCheck className="w-5 h-5 text-[#00e03c]" />
@@ -227,7 +227,7 @@ function DeliverablePdfView({ course, navigate, triggerToast, currentSocio }) {
                   <h3 className="text-sm font-extrabold text-white truncate">{course.instructor || 'Ing. Fernando Araujo'}</h3>
                   <span className="px-1.5 py-0.5 rounded bg-white/10 text-[9px] font-mono text-emerald-400 font-bold">RENCA OK</span>
                 </div>
-                <p className="text-xs text-slate-400 truncate">Socio Consultor Especialista • SERAM Servicios Ambientales SRL</p>
+                <p className="text-xs text-slate-400 truncate">Consultor Ambiental • SERAM Servicios Ambientales SRL</p>
               </div>
             </div>
 
@@ -366,7 +366,7 @@ function DeliverablePdfView({ course, navigate, triggerToast, currentSocio }) {
                   <span className="flex items-center gap-1 text-emerald-400 font-semibold">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Compatibilidad
                   </span>
-                  <span>Adobe Acrobat, Foxit, QGIS, Móvil</span>
+                  <span>Adobe Acrobat, Foxit, Navegador, Móvil</span>
                 </div>
               </div>
 
@@ -399,7 +399,7 @@ function DeliverablePdfView({ course, navigate, triggerToast, currentSocio }) {
                 { id: 'visor', label: 'Visor de Documento Interactivo', icon: Eye },
                 { id: 'indice', label: 'Índice & Estructura Capitular', icon: BookOpen },
                 { id: 'consultas', label: 'Consultas Técnicas con el Autor', icon: MessageSquare },
-                { id: 'licencia', label: 'Ficha Técnica & Respaldo Legal', icon: ShieldCheck }
+                { id: 'licencia', label: 'Documentación Técnica & Respaldo Legal', icon: ShieldCheck }
               ].map(tab => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -558,7 +558,7 @@ function DeliverablePdfView({ course, navigate, triggerToast, currentSocio }) {
             <div className="space-y-8">
               <div className="space-y-1">
                 <h3 className="text-lg font-black text-white">Foro de Aplicación Práctica & Dudas Normativas</h3>
-                <p className="text-xs text-slate-400">Espacio de consulta directa con {course.instructor || 'los especialistas de SERAM SRL'} para resolver inquietudes sobre el uso de este documento en trámites reales.</p>
+                <p className="text-xs text-slate-400">Espacio de consulta directa con {course.instructor || 'el equipo técnico de SERAM SRL'} para resolver inquietudes sobre el uso de este documento en trámites reales.</p>
               </div>
 
               {/* Formulario para Enviar Consulta */}
@@ -620,7 +620,7 @@ function DeliverablePdfView({ course, navigate, triggerToast, currentSocio }) {
           )}
 
           {/* ================================================================= */}
-          {/* CONTENIDO PESTAÑA 4: FICHA TÉCNICA Y RESPALDO LEGAL               */}
+          {/* CONTENIDO PESTAÑA 4: DOCUMENTACIÓN TÉCNICA Y RESPALDO LEGAL       */}
           {/* ================================================================= */}
           {activeTab === 'licencia' && (
             <div className="space-y-6">
@@ -658,7 +658,7 @@ function DeliverablePdfView({ course, navigate, triggerToast, currentSocio }) {
                     <h4 className="text-sm font-black text-white uppercase tracking-wider">Licencia y Derechos de Uso</h4>
                   </div>
                   <p className="text-xs text-slate-300 leading-relaxed">
-                    El usuario adquiere el derecho de utilizar las plantillas, matrices y contenidos para la formulación de estudios de impacto ambiental (EEIA), fichas FNCA, auditorías ambientales especializadas y trámites ante la AAC.
+                    El usuario adquiere el derecho de utilizar las plantillas, matrices y contenidos para la formulación de estudios de impacto ambiental (EEIA), formularios FNCA, evaluaciones ambientales y trámites ante la AAC.
                   </p>
                   <div className="space-y-2 text-xs text-slate-400 pt-2 border-t border-white/5">
                     <div className="flex justify-between">
@@ -712,8 +712,8 @@ export default function CoursePlayerPage() {
     id: 1,
     title: 'Programa Técnico SERAM Academy',
     instructor: 'Equipo Técnico SERAM',
-    desc: 'Formación técnica especializada en gestión ambiental y SIG.',
-    image: '/assets/covers/cover_taller_fichas.png',
+    desc: 'Formación técnica práctica en gestión ambiental y normativa vigente.',
+    image: '/assets/covers/cover_ebook_ley1333.png',
     format: 'video',
     hasVideo: true
   };
@@ -805,8 +805,8 @@ export default function CoursePlayerPage() {
 
   // Apuntes interactivos con timestamp
   const [notes, setNotes] = useState([
-    { id: 1, time: 24, text: 'Revisar Art. 25 de la Ley 1333 sobre Fichas Ambientales e IRAPs.' },
-    { id: 2, time: 145, text: 'Descargar el DEM SRTM de 30m desde USGS EarthExplorer para cuencas.' }
+    { id: 1, time: 24, text: 'Revisar Art. 25 de la Ley 1333 sobre Formularios Ambientales e IRAPs.' },
+    { id: 2, time: 145, text: 'Verificar los plazos de categorización y matrices PPM-PASA en el D.S. 3549.' }
   ]);
   const [newNoteText, setNewNoteText] = useState('');
 
@@ -1199,7 +1199,7 @@ export default function CoursePlayerPage() {
                 type="text"
                 value={uploadLessonTitle}
                 onChange={e => setUploadLessonTitle(e.target.value)}
-                placeholder="Ej. Taller Práctico de Modelamiento en QGIS"
+                placeholder="Ej. Taller Práctico de Normativa Ley 1333"
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#00e03c]"
               />
             </div>
@@ -1349,7 +1349,7 @@ export default function CoursePlayerPage() {
                 className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black group cursor-pointer"
               >
                 <img 
-                  src={course.image || '/assets/covers/cover_qgis_basico.png'} 
+                  src={course.image || '/assets/covers/cover_ebook_ley1333.png'} 
                   alt={course.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
                 />
@@ -1430,7 +1430,7 @@ export default function CoursePlayerPage() {
                     Sobre este curso
                   </span>
                   <p className="text-xs text-slate-300 leading-relaxed">
-                    Diseñado específicamente para consultores ambientales, ingenieros de proyectos y técnicos que requieren dominar el marco regulatorio boliviano e instrumentos SIG con rigor profesional.
+                    Diseñado específicamente para consultores ambientales, ingenieros de proyectos y técnicos que requieren dominar el marco regulatorio boliviano y la gestión ambiental con rigor profesional.
                   </p>
                   <div className="space-y-2 pt-2 border-t border-white/5 text-xs text-slate-400">
                     <div className="flex justify-between">
@@ -1459,11 +1459,11 @@ export default function CoursePlayerPage() {
                     </div>
                     <div>
                       <h3 className="text-sm font-black text-white">{course.instructor || 'Ing. Diego Barrientos'}</h3>
-                      <p className="text-[11px] text-[#00e03c]">Especialista Senior en Medio Ambiente</p>
+                      <p className="text-[11px] text-[#00e03c]">Consultor Técnico en Medio Ambiente</p>
                     </div>
                   </div>
                   <p className="text-xs text-slate-300 leading-relaxed">
-                    Más de 10 años de experiencia liderando auditorías ambientales, licencias industriales y proyectos de teledetección en los sectores minero, energético y municipal.
+                    Experiencia práctica en evaluación ambiental, licencias industriales y gestión normativa en los sectores industrial, energético y municipal.
                   </p>
                 </div>
 
