@@ -1,12 +1,549 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import {
-  ArrowRight, Play, CheckCircle2, MapPin, ShieldCheck, Activity
+  ArrowRight, Play, CheckCircle2, MapPin, ShieldCheck, Activity, Mail, Send
 } from 'lucide-react';
 import RotatingVegetation from '../ui/RotatingVegetation';
 
 // Re-export useSeramSeo from the standalone hook for full backwards compatibility
 export { useSeramSeo } from '../../hooks/useSeramSeo';
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ARQUITECTURA EDITORIAL SERAM (CLARA, LUMINOSA Y EN BLOQUES)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * 1. EditorialHeroSection
+ * Hero editorial luminoso (#f9f9f9) con imagen de fondo, degradado direccional,
+ * kicker plano tracked, H1 en #1a1c1c, 2 CTAs rectangulares y detalle botánico sutil.
+ */
+export function EditorialHeroSection({
+  kicker,
+  title,
+  titleAccent,
+  description,
+  backgroundImage,
+  backgroundAlt,
+  primaryCtaLabel,
+  onPrimaryCta,
+  secondaryCtaLabel,
+  onSecondaryCta,
+  secondaryTo
+}) {
+  return (
+    <header className="relative min-h-[78vh] flex items-center bg-[#f9f9f9] overflow-hidden border-b border-[#bdcbb4]/60">
+      {/* Imagen temática de fondo + degradado direccional limpio */}
+      <div className="absolute inset-0 pointer-events-none">
+        <img
+          src={backgroundImage}
+          alt={backgroundAlt}
+          className="w-full h-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#f9f9f9] via-[#f9f9f9]/90 to-[#f9f9f9]/20" />
+      </div>
+
+      {/* Detalle sutil botánico en esquina derecha/inferior */}
+      <div className="absolute -bottom-16 -right-16 pointer-events-none hidden lg:block opacity-25">
+        <RotatingVegetation size={300} duration={32} opacity={0.35} />
+      </div>
+
+      {/* Contenido Principal */}
+      <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-16 md:py-24 w-full">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-2xl space-y-6 text-left"
+        >
+          {kicker && (
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#126c0f]">
+              {kicker}
+            </p>
+          )}
+
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.08] text-[#1a1c1c] font-display">
+            {title}
+            {titleAccent && (
+              <span className="text-[#126c0f] block mt-1">{titleAccent}</span>
+            )}
+          </h1>
+
+          <p className="text-base sm:text-lg text-[#3e4a39] leading-relaxed max-w-xl">
+            {description}
+          </p>
+
+          <div className="flex flex-wrap items-center gap-4 pt-2">
+            {primaryCtaLabel && (
+              <button
+                type="button"
+                onClick={onPrimaryCta}
+                className="px-7 py-3.5 bg-[#126c0f] hover:bg-[#029907] text-white font-bold text-sm transition-colors inline-flex items-center gap-2 cursor-pointer"
+              >
+                <span>{primaryCtaLabel}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
+
+            {secondaryCtaLabel && (
+              secondaryTo ? (
+                <Link
+                  to={secondaryTo}
+                  className="px-7 py-3.5 border-2 border-[#126c0f] text-[#126c0f] hover:bg-[#126c0f]/5 font-bold text-sm transition-colors inline-flex items-center gap-2"
+                >
+                  <span>{secondaryCtaLabel}</span>
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onSecondaryCta}
+                  className="px-7 py-3.5 border-2 border-[#126c0f] text-[#126c0f] hover:bg-[#126c0f]/5 font-bold text-sm transition-colors inline-flex items-center gap-2 cursor-pointer"
+                >
+                  <span>{secondaryCtaLabel}</span>
+                </button>
+              )
+            )}
+          </div>
+        </motion.div>
+      </div>
+    </header>
+  );
+}
+
+/**
+ * 2. EditorialPillarsSection
+ * Encabezado centrado con barra divisoria #126c0f y grilla de 3 tarjetas limpias.
+ */
+export function EditorialPillarsSection({
+  title,
+  subtitle,
+  cards = [],
+  bgClass = 'bg-[#ffffff]'
+}) {
+  return (
+    <section className={`py-16 md:py-24 ${bgClass} border-b border-[#bdcbb4]/50`}>
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+        <div className="max-w-3xl mx-auto text-center space-y-4 mb-14">
+          <h2 className="text-3xl sm:text-4xl font-black text-[#1a1c1c] font-display">
+            {title}
+          </h2>
+          <div className="w-24 h-1 bg-[#126c0f] mx-auto" />
+          <p className="text-sm sm:text-base text-[#3e4a39] leading-relaxed">
+            {subtitle}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {cards.slice(0, 3).map((card, idx) => {
+            const CardIcon = card.icon;
+            return (
+              <motion.article
+                key={card.id || idx}
+                initial={{ opacity: 0, y: 14 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-40px' }}
+                transition={{ duration: 0.45, delay: idx * 0.06 }}
+                className="bg-white p-8 md:p-10 border border-[#bdcbb4] hover:border-[#126c0f] transition-all flex flex-col justify-between space-y-6 text-left"
+              >
+                <div className="space-y-4">
+                  <div className="w-12 h-12 bg-[#126c0f] text-white flex items-center justify-center">
+                    {CardIcon && <CardIcon className="w-6 h-6" />}
+                  </div>
+                  <h3 className="text-xl font-bold text-[#1a1c1c] font-display leading-snug">
+                    {card.title}
+                  </h3>
+                  <p className="text-sm text-[#3e4a39] leading-relaxed">
+                    {card.desc}
+                  </p>
+                </div>
+
+                {card.actionLabel && (
+                  card.actionTo ? (
+                    <Link
+                      to={card.actionTo}
+                      className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#126c0f] hover:text-[#029907] transition-colors pt-2"
+                    >
+                      <span>{card.actionLabel}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={card.onAction}
+                      className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#126c0f] hover:text-[#029907] transition-colors pt-2 cursor-pointer"
+                    >
+                      <span>{card.actionLabel}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  )
+                )}
+              </motion.article>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * 3. EditorialBentoSection
+ * Grilla asimétrica 7/5 sobre #f9f9f9 con bloque verde #126c0f, 2 indicadores #eeeeee
+ * e imagen temática full-height con detalle sutil de RotatingVegetation.
+ */
+export function EditorialBentoSection({
+  kicker,
+  title,
+  description,
+  ctaLabel,
+  onCtaClick,
+  stats = [],
+  image,
+  imageAlt,
+  imageCaptionTitle,
+  imageCaptionText,
+  showVegetation = true
+}) {
+  return (
+    <section className="py-16 md:py-24 bg-[#f9f9f9] border-b border-[#bdcbb4]/50">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+          {/* Columna Izquierda: Bloque Sólido Verde + 2 Indicadores */}
+          <div className="md:col-span-7 space-y-6 flex flex-col justify-between">
+            <div className="bg-[#126c0f] text-white p-10 md:p-12 space-y-4 text-left flex-1 flex flex-col justify-center">
+              {kicker && (
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/80">
+                  {kicker}
+                </p>
+              )}
+              <h2 className="text-2xl sm:text-3xl font-black font-display leading-tight">
+                {title}
+              </h2>
+              <p className="text-sm sm:text-base text-white/90 leading-relaxed">
+                {description}
+              </p>
+              {ctaLabel && (
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={onCtaClick}
+                    className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white border-b border-white/60 hover:border-white pb-1 transition-colors cursor-pointer"
+                  >
+                    <span>{ctaLabel}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {stats.slice(0, 2).map((stat, idx) => (
+                <div
+                  key={idx}
+                  className="bg-[#eeeeee] p-8 text-center border border-[#bdcbb4]/50"
+                >
+                  <p className="text-3xl sm:text-4xl font-black text-[#126c0f] font-display">
+                    {stat.value}
+                  </p>
+                  <p className="text-xs sm:text-sm font-medium text-[#3e4a39] mt-2">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Columna Derecha: Imagen temática full-height + cuadro decorativo sutil */}
+          <div className="md:col-span-5 relative min-h-[380px] overflow-hidden border border-[#bdcbb4]/60 bg-[#eeeeee]">
+            <img
+              src={image}
+              alt={imageAlt}
+              className="w-full h-full object-cover"
+            />
+            {showVegetation && (
+              <div className="absolute -top-10 -right-10 pointer-events-none opacity-30">
+                <RotatingVegetation size={180} duration={28} opacity={0.35} />
+              </div>
+            )}
+            {(imageCaptionTitle || imageCaptionText) && (
+              <div className="absolute bottom-5 left-5 right-5 bg-white/90 backdrop-blur-xl border border-[#126c0f]/20 p-5 text-left">
+                {imageCaptionTitle && (
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#126c0f]">
+                    {imageCaptionTitle}
+                  </p>
+                )}
+                {imageCaptionText && (
+                  <p className="text-sm text-[#1a1c1c] font-medium mt-1 leading-snug">
+                    {imageCaptionText}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * 4. EditorialShowcaseSection
+ * Fondo #f4f3f3, encabezado con enlace subrayado, imagen 16:10 con overlay oscuro
+ * y 3 bloques verticales limpios con borde izquierdo.
+ */
+export function EditorialShowcaseSection({
+  title,
+  subtitle,
+  actionLabel,
+  onAction,
+  actionTo,
+  featuredImage,
+  featuredAlt,
+  featuredKicker,
+  featuredTitle,
+  items = []
+}) {
+  return (
+    <section className="py-16 md:py-24 bg-[#f4f3f3] border-b border-[#bdcbb4]/50">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 space-y-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 text-left">
+          <div className="space-y-2 max-w-2xl">
+            <h2 className="text-3xl sm:text-4xl font-black text-[#1a1c1c] font-display">
+              {title}
+            </h2>
+            <p className="text-sm sm:text-base text-[#3e4a39] leading-relaxed">
+              {subtitle}
+            </p>
+          </div>
+
+          {actionLabel && (
+            actionTo ? (
+              <Link
+                to={actionTo}
+                className="border-b-2 border-[#126c0f] text-[#126c0f] hover:text-[#029907] hover:border-[#029907] font-bold text-sm pb-1 inline-flex items-center gap-1.5 transition-colors self-start md:self-auto"
+              >
+                <span>{actionLabel}</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={onAction}
+                className="border-b-2 border-[#126c0f] text-[#126c0f] hover:text-[#029907] hover:border-[#029907] font-bold text-sm pb-1 inline-flex items-center gap-1.5 transition-colors self-start md:self-auto cursor-pointer"
+              >
+                <span>{actionLabel}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            )
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+          {/* Izquierda: Recurso destacado 16:10 */}
+          <div className="relative aspect-[16/10] overflow-hidden bg-[#1a1c1c] border border-[#bdcbb4]/60">
+            <img
+              src={featuredImage}
+              alt={featuredAlt}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 sm:p-8 text-left">
+              {featuredKicker && (
+                <span className="text-xs font-bold uppercase tracking-wider text-[#00e03c]">
+                  {featuredKicker}
+                </span>
+              )}
+              <h4 className="text-xl sm:text-2xl font-black text-white mt-1 font-display">
+                {featuredTitle}
+              </h4>
+            </div>
+          </div>
+
+          {/* Derecha: 3 bloques verticales limpios */}
+          <div className="space-y-7 text-left">
+            {items.slice(0, 3).map((item, idx) => (
+              <div
+                key={idx}
+                className={`border-l-4 pl-5 py-1 ${
+                  idx === 0 ? 'border-[#126c0f]' : 'border-[#bdcbb4]'
+                }`}
+              >
+                <h4 className="text-lg font-bold text-[#1a1c1c] font-display">
+                  {item.title}
+                </h4>
+                <p className="text-sm text-[#3e4a39] mt-1 leading-relaxed">
+                  {item.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * 5. EditorialConnectSection
+ * Panel dividido (1/3 #126c0f + 2/3 formulario limpio blanco) sin recarga de página.
+ */
+export function EditorialConnectSection({
+  title = 'Conectemos',
+  subtitle = 'Cuéntanos sobre tu proyecto u organización en Bolivia. Te orientamos con claridad técnica y normativa.',
+  email = 'contacto@seram-srl.com',
+  location = 'Santa Cruz de la Sierra · Bolivia',
+  interestOptions = [],
+  defaultInterest = '',
+  submitLabel = 'Enviar Consulta',
+  onConnectSubmit
+}) {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    interest: defaultInterest || interestOptions[0] || 'Consultoría Ambiental',
+    message: ''
+  });
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setSubmitted(true);
+    if (onConnectSubmit) {
+      onConnectSubmit(formData);
+    }
+  };
+
+  return (
+    <section className="py-16 md:py-24 bg-[#f9f9f9]">
+      <div className="max-w-5xl mx-auto px-6 sm:px-8">
+        <div className="bg-white shadow-xl border border-[#bdcbb4]/60 flex flex-col md:flex-row overflow-hidden text-left">
+          {/* Izquierda: Bloque sólido Verde Oscuro SERAM */}
+          <div className="md:w-1/3 bg-[#126c0f] text-white p-8 md:p-10 flex flex-col justify-between space-y-8">
+            <div className="space-y-4">
+              <h2 className="text-2xl sm:text-3xl font-black font-display">
+                {title}
+              </h2>
+              <p className="text-sm text-white/90 leading-relaxed">
+                {subtitle}
+              </p>
+            </div>
+
+            <div className="space-y-4 pt-6 border-t border-white/20 text-sm">
+              <div className="flex items-center gap-3">
+                <Mail className="w-4 h-4 text-white/85 flex-shrink-0" />
+                <a href={`mailto:${email}`} className="hover:underline break-all">
+                  {email}
+                </a>
+              </div>
+              <div className="flex items-center gap-3">
+                <MapPin className="w-4 h-4 text-white/85 flex-shrink-0" />
+                <span>{location}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Derecha: Formulario rápido limpio */}
+          <div className="md:w-2/3 bg-white p-8 md:p-10">
+            {submitted ? (
+              <div className="h-full flex flex-col justify-center items-start space-y-4 py-6">
+                <div className="w-12 h-12 bg-[#126c0f]/10 text-[#126c0f] flex items-center justify-center">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-bold text-[#1a1c1c] font-display">
+                  Consulta recibida correctamente
+                </h3>
+                <p className="text-sm text-[#3e4a39] leading-relaxed">
+                  Gracias, <span className="font-semibold text-[#1a1c1c]">{formData.name || 'estimado/a'}</span>. Hemos abierto nuestro asistente técnico para atender tu solicitud sobre <span className="font-semibold text-[#126c0f]">{formData.interest}</span> de forma inmediata.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSubmitted(false)}
+                  className="text-xs font-bold uppercase tracking-wider text-[#126c0f] hover:text-[#029907] border-b border-[#126c0f] pb-0.5 cursor-pointer"
+                >
+                  Enviar otra consulta
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-[#3e4a39] mb-1.5">
+                      Nombre completo
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Tu nombre o empresa"
+                      className="w-full px-4 py-2.5 bg-[#f9f9f9] border border-[#bdcbb4] text-sm text-[#1a1c1c] placeholder-[#3e4a39]/50 focus:outline-none focus:border-[#126c0f]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-[#3e4a39] mb-1.5">
+                      Correo electrónico
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="nombre@empresa.com"
+                      className="w-full px-4 py-2.5 bg-[#f9f9f9] border border-[#bdcbb4] text-sm text-[#1a1c1c] placeholder-[#3e4a39]/50 focus:outline-none focus:border-[#126c0f]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#3e4a39] mb-1.5">
+                    Servicio o programa de interés
+                  </label>
+                  <select
+                    value={formData.interest}
+                    onChange={(e) => setFormData({ ...formData, interest: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-[#f9f9f9] border border-[#bdcbb4] text-sm text-[#1a1c1c] focus:outline-none focus:border-[#126c0f]"
+                  >
+                    {(interestOptions.length > 0
+                      ? interestOptions
+                      : ['Licencias Ambientales FNCA', 'Registro Ambiental Industrial (RAI)', 'Plan EMAP Minería', 'SERAM Academy', 'SERAM Experience ESG']
+                    ).map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#3e4a39] mb-1.5">
+                    Mensaje
+                  </label>
+                  <textarea
+                    rows={3}
+                    required
+                    value={formData.message}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    placeholder="Cuéntanos brevemente tu requerimiento, ubicación o plazo..."
+                    className="w-full px-4 py-2.5 bg-[#f9f9f9] border border-[#bdcbb4] text-sm text-[#1a1c1c] placeholder-[#3e4a39]/50 focus:outline-none focus:border-[#126c0f]"
+                  />
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    className="px-7 py-3.5 bg-[#126c0f] hover:bg-[#029907] text-white font-bold text-sm transition-colors inline-flex items-center gap-2 cursor-pointer"
+                  >
+                    <span>{submitLabel}</span>
+                    <Send className="w-4 h-4" />
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 /**
  * SECCIÓN 1 (Arquitectura ZENZE Reformada):

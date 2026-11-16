@@ -2,23 +2,22 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
-  Leaf, Globe, TreePine, Sprout, Cloud, Play, X,
-  Sparkles, Users, HeartHandshake, MapPin, ArrowRight
+  TreePine, Sprout, Cloud, Play, X, MapPin, ArrowRight
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import {
   useSeramSeo,
-  ZenzeHeroSection,
-  ZenzePillarsSection,
-  ZenzeTechOverviewSection,
-  ZenzeBottomCtaBanner
+  EditorialHeroSection,
+  EditorialPillarsSection,
+  EditorialBentoSection,
+  EditorialShowcaseSection,
+  EditorialConnectSection
 } from '../../components/shared/ZenzeShowcaseSections';
 import RotatingVegetation from '../../components/ui/RotatingVegetation';
-import MotionFrame from '../../components/ui/MotionFrame';
 
 const pageVariants = {
-  initial: { opacity: 0, y: 16 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] } },
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] } },
   exit: { opacity: 0, transition: { duration: 0.25 } }
 };
 
@@ -29,7 +28,7 @@ const CORE_EXPERIENCE_PROGRAMS = [
     title: 'Programa de *Reforestación y Adopción* de Árboles Nativos',
     subtitle: 'Restauración ecológica trazable con GPS e informe de impacto anual.',
     desc: 'Plantación de especies forestales endémicas georreferenciadas para empresas e instituciones con monitoreo de supervivencia a 12 y 24 meses.',
-    impactStat: '25,000+ Árboles',
+    impactStat: 'Especies Nativas',
     badge: 'Trazabilidad GPS',
     videoUrl: '/assets/videos/cambio_climatico_bolivia.mp4',
     poster: '/assets/3d-backend/bg_experience.webp',
@@ -40,9 +39,9 @@ const CORE_EXPERIENCE_PROGRAMS = [
     category: 'Descarbonización ISO 14064',
     title: 'Cálculo y Compensación de *Huella de Carbono*',
     subtitle: 'Inventario corporativo de emisiones GEI Alcance 1, 2 y 3.',
-    desc: 'Medición auditada de emisiones de gases de efecto invernadero e implementación de planes de compensación con bonos y sumideros forestales en Bolivia.',
+    desc: 'Medición técnica de emisiones de gases de efecto invernadero e implementación de planes de compensación con sumideros forestales en Bolivia.',
     impactStat: 'ISO 14064-1',
-    badge: 'Reporte Auditado',
+    badge: 'Reporte Verificado',
     videoUrl: '/assets/videos/seram_academy_funcionamiento.mp4',
     poster: '/assets/3d-backend/huella_carbono_iso.webp',
     cta: 'Evaluar Huella de Carbono'
@@ -53,7 +52,7 @@ const CORE_EXPERIENCE_PROGRAMS = [
     title: '*Bio-Campamentos*, Huertos y Diseño Verde Urbano',
     subtitle: 'Jardines verticales, lombricultura y jornadas de impacto ESG.',
     desc: 'Experiencias prácticas de voluntariado empresarial, educación climática para equipos y paisajismo nativo funcional de bajo consumo hídrico.',
-    impactStat: '94% Supervivencia',
+    impactStat: 'Campañas 2026',
     badge: 'Voluntariado ESG',
     videoUrl: '/assets/videos/cambio_climatico_bolivia.mp4',
     poster: '/assets/3d-backend/bg_experience_.webp',
@@ -66,7 +65,7 @@ const renderFormattedText = (text) => {
   const parts = String(text).split(/(\*.*?\*)/g);
   return parts.map((part, index) => {
     if (part.startsWith('*') && part.endsWith('*')) {
-      return <span key={index} className="text-[#4ade80] italic">{part.slice(1, -1)}</span>;
+      return <span key={index} className="text-[#126c0f] font-bold">{part.slice(1, -1)}</span>;
     }
     return part;
   });
@@ -105,37 +104,25 @@ export default function ExperiencePage() {
     {
       id: 'reforest',
       icon: TreePine,
-      iconBgClass: 'bg-[#029907]/25 text-[#4ade80] border border-[#4ade80]/35',
       title: 'Reforestación & Adopción',
-      desc: 'Polígonos forestales con especies nativas certificadas, etiquetas QR por árbol e informes de retención hídrica.',
+      desc: 'Polígonos forestales con especies nativas, etiquetas QR por árbol e informes periódicos de seguimiento y retención hídrica.',
       actionLabel: 'Adoptar Polígono',
       onAction: () => openChatbot('q2_experience')
     },
     {
       id: 'carbon',
       icon: Cloud,
-      iconBgClass: 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/35',
       title: 'Huella de Carbono ISO 14064',
-      desc: 'Cuantificación rigurosa de CO2 equivalente, métricas Scope 1-3 y estrategia de neutralización verificable.',
+      desc: 'Cuantificación rigurosa de CO2 equivalente, métricas Scope 1-3 y estrategia de compensación verificable para organizaciones.',
       actionLabel: 'Medir Emisiones',
       onAction: () => openChatbot('q2_experience')
     },
     {
       id: 'soil',
       icon: Sprout,
-      iconBgClass: 'bg-amber-500/20 text-amber-300 border border-amber-400/35',
-      title: 'Suelos & Paisajismo Verde',
-      desc: 'Bio-insumos regenerativos, compostaje industrial, huertos urbanos y muros vegetales de alto impacto climático.',
-      actionLabel: 'Diseñar Infraestructura',
-      onAction: () => openChatbot('q2_experience')
-    },
-    {
-      id: 'community',
-      icon: Users,
-      iconBgClass: 'bg-violet-500/20 text-violet-300 border border-violet-400/35',
-      title: 'Voluntariado & Bio-Camps',
-      desc: 'Jornadas vivenciales corporativas y escolares que fortalecen el propósito de tu organización y comunidades locales.',
-      actionLabel: 'Agendar Voluntariado',
+      title: 'Suelos, Huertos & Voluntariado',
+      desc: 'Bio-insumos regenerativos, compostaje, huertos urbanos y jornadas vivenciales corporativas que fortalecen la cultura ESG.',
+      actionLabel: 'Organizar Jornada',
       onAction: () => openChatbot('q2_experience')
     }
   ];
@@ -148,7 +135,7 @@ export default function ExperiencePage() {
           category: exp.location || 'Programa SERAM Experience',
           title: exp.title || 'Iniciativa Ambiental SERAM',
           subtitle: exp.date ? `Próxima edición: ${exp.date}` : 'Edición Abierta / Corporativa',
-          desc: exp.description || exp.impact || 'Programa de impacto ambiental positivo certificado por SERAM.',
+          desc: exp.description || exp.impact || 'Programa de impacto ambiental positivo acompañado por SERAM.',
           impactStat: `${exp.spots || exp.participants || 30} cupos`,
           badge: exp.status || 'Activo',
           videoUrl: '/assets/videos/cambio_climatico_bolivia.mp4',
@@ -159,126 +146,121 @@ export default function ExperiencePage() {
     return [...CORE_EXPERIENCE_PROGRAMS, ...customList];
   }, [ctxExperiences]);
 
+  const scrollToCatalog = () => {
+    const el = document.getElementById('experience-catalog');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <motion.div
       variants={pageVariants}
       initial="initial"
       animate="animate"
       exit="exit"
-      className="inner-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 pb-20"
+      className="inner-page bg-[#f9f9f9] text-[#1a1c1c] min-h-screen"
     >
-      {/* ── SECCIÓN 1: HERO ARQUITECTÓNICO DESACOPLADO SERAM EXPERIENCE ── */}
-      <ZenzeHeroSection
-        titleWhite="Reforestación y Carbono Neutro."
-        titleAccent="Impulsando Tu Impacto ESG Real."
-        accentColorClass="text-[#4ade80]"
-        buttonAccentClass="bg-[#4ade80] hover:bg-white text-slate-950 shadow-[0_0_25px_rgba(74,222,128,0.3)]"
-        barColorClass="bg-[#4ade80]"
+      {/* Franja superior sólida detrás del Navbar fijo para mantener contraste */}
+      <div className="h-20 -mt-20 bg-[#071109]" aria-hidden="true" />
+
+      {/* 1. HERO EDITORIAL */}
+      <EditorialHeroSection
+        kicker="SOSTENIBILIDAD CORPORATIVA · SERAM EXPERIENCE"
+        title="Reforestación y Carbono Neutro"
+        titleAccent="con impacto ESG verificable."
+        description="Unimos ciencia ambiental, restauración de suelos y trazabilidad georreferenciada para que empresas e instituciones transformen su compromiso climático en acciones medibles en Bolivia."
         backgroundImage="/assets/3d-backend/bg_experience.webp"
         backgroundAlt="SERAM Experience Restauración Forestal e Impacto Ambiental"
-        description="Unimos ciencia ambiental, biotecnología de suelos y trazabilidad satelital para que empresas e instituciones transformen su compromiso climático en bosques vivos y carbono neutralidad real."
-        primaryCtaLabel="Participar o Cotizar ESG"
+        primaryCtaLabel="Cotizar Programa ESG"
         onPrimaryCta={() => openChatbot('q2_experience')}
-        secondaryCtaLabel="Ver Video y Programas"
-        onSecondaryCta={() => setActiveVideoModal(CORE_EXPERIENCE_PROGRAMS[0])}
-        livePanelTitle="Impacto Biológico en Vivo"
-        livePanelCtaLabel="Unirse →"
-        onLivePanelCta={() => openChatbot('q2_experience')}
-        showVegetation={true}
-        liveMetrics={[
-          { label: 'Supervivencia Forestal en Polígonos', value: '94%', percent: 94, barClass: 'bg-[#4ade80]' },
-          { label: 'Humedad Óptima de Suelo Regenerado', value: '68%', percent: 68, barClass: 'bg-emerald-400' },
-          { label: 'Temperatura de Biocorredor Activo', value: '24°C', percent: 76, barClass: 'bg-amber-400' }
-        ]}
-        kpis={[
-          { icon: TreePine, value: '25K+', label: 'Árboles Nativos Plantados' },
-          { icon: Globe, value: '1.2K+', label: 'Hectáreas Monitoreadas' },
-          { icon: Sparkles, value: '40%', label: 'Captura CO₂ Incremental' },
-          { icon: HeartHandshake, value: '30%', label: 'Ahorro Hídrico Nativo' }
-        ]}
+        secondaryCtaLabel="Ver Programas y Videos"
+        onSecondaryCta={scrollToCatalog}
       />
 
-      {/* ── SECCIÓN 2: QUÉ HACEMOS (4 PILARES ARQUITECTÓNICOS BIO-SOSTENIBILIDAD) ── */}
-      <ZenzePillarsSection
-        eyebrow="QUÉ HACEMOS"
+      {/* 2. PILARES EDITORIALES */}
+      <EditorialPillarsSection
         title="Soluciones Regenerativas para Cada Ecosistema"
-        subtitle="Desde la medición científica de gases de efecto invernadero hasta la restauración participativa de cuencas y jardines urbanos, convertimos metas ESG en legado medible."
-        accentColorClass="text-[#4ade80]"
+        subtitle="Desde la medición de gases de efecto invernadero hasta la restauración participativa de espacios verdes, convertimos metas ESG en resultados tangibles."
         cards={experiencePillars}
       />
 
-      {/* ── SECCIÓN 3: NUESTRA TECNOLOGÍA BIO-FOREST & CARBON OVERVIEW ── */}
-      <ZenzeTechOverviewSection
-        eyebrow="CIENCIA Y TRAZABILIDAD"
-        title="Ciencia. Biodiversidad. Trazabilidad. Mejor Juntos."
-        description="Cada árbol adoptado y cada tonelada de CO2 compensada cuenta con coordenadas georreferenciadas, seguimiento hídrico de campo y reporte ejecutivo listo para memoria anual de sostenibilidad."
-        checks={[
-          'Monitoreo satelital NDVI de cobertura vegetal en tiempo real',
-          'Cálculo estandarizado de Huella de Carbono ISO 14064-1',
-          'Sensores climáticos y seguimiento agronómico de supervivencia',
-          'Experiencias vivenciales curadas para equipos corporativos y familias'
-        ]}
-        ctaLabel="Diseñar Mi Programa ESG"
+      {/* 3. BENTO CIENCIA Y TRAZABILIDAD */}
+      <EditorialBentoSection
+        kicker="CIENCIA Y TRAZABILIDAD"
+        title="Ciencia, biodiversidad y seguimiento en cada hectárea."
+        description="Cada árbol adoptado y cada inventario de CO2 cuenta con coordenadas georreferenciadas, seguimiento agronómico de campo y reporte ejecutivo listo para memoria de sostenibilidad."
+        ctaLabel="Diseñar mi programa ESG"
         onCtaClick={() => openChatbot('q2_experience')}
-        accentColorClass="text-[#4ade80]"
-        buttonAccentClass="bg-[#4ade80] hover:bg-white text-slate-950 shadow-[0_0_25px_rgba(74,222,128,0.25)]"
-        overviewTitle="Bio-Forest & Carbon Overview"
-        statsCol={{ label1: 'Polígonos Activos', val1: '14', label2: 'Especies Nativas', val2: '22' }}
-        trendCard={{ label: 'Captura Estimada', value: '3.6 tCO₂/ha', sub: '+18% vs ciclo previo' }}
-        donutCard={{ label: 'Salud del Bosque', percent: 94, statusText: 'Óptimo', leg1: 'Vigoroso', leg2: 'Riego' }}
-        recentActivities={[
-          { title: 'Riego Goteo Activado', time: 'Polígono Sur · hace 2h' },
-          { title: 'Biofertilización Nativa', time: 'Lote 4 · hace 5h' },
-          { title: 'Control Fitosanitario', time: 'Parcela 2 · ayer' }
+        stats={[
+          { value: 'ISO 14064-1', label: 'Estándar de cálculo de huella GEI' },
+          { value: 'GPS + QR', label: 'Trazabilidad individual por polígono' }
         ]}
-        mapImage="/assets/3d-backend/huella_carbono_iso.webp"
-        mapPins={[
-          { top: '36%', left: '34%', label: 'Polígono Bosque Nativo · Tajibo & Mara', stat: '96% Vida' },
-          { top: '58%', left: '52%', label: 'Corredor Biológico Amboró · Captura CO₂', stat: '3.8 t/ha' },
-          { top: '42%', left: '72%', label: 'Bio-Huerto & Vivero SERAM Experience', stat: '24°C OK' }
-        ]}
-        weatherWidget={{
-          temp: '24°C',
-          condition: 'Vivero y Polígono N° 3',
-          metric1: 'Viento: 12 km/h',
-          metric2: 'Humedad: 68%',
-          metric3: 'Lluvia: 0 mm'
-        }}
+        image="/assets/3d-backend/huella_carbono_iso.webp"
+        imageAlt="Trazabilidad de Huella de Carbono y Reforestación SERAM Experience"
+        imageCaptionTitle="Restauración Ecológica en Bolivia"
+        imageCaptionText="Seguimiento agronómico de supervivencia y reportes anuales ESG."
       />
 
-      {/* ── CATÁLOGO DE EXPERIENCIAS CON MOTION FRAME & VEGETACIÓN ROTATIVA ── */}
-      <MotionFrame variant="experience" className="p-6 sm:p-8 bg-[#040905]/70 relative">
-        <RotatingVegetation size={220} duration={28} opacity={0.12} className="absolute -bottom-8 -right-8 pointer-events-none" />
+      {/* 4. SHOWCASE INICIATIVAS */}
+      <EditorialShowcaseSection
+        title="Del Diagnóstico Climático a la Acción en Terreno"
+        subtitle="Acompañamos a organizaciones en la medición de emisiones, diseño de campañas de reforestación y jornadas de voluntariado."
+        actionLabel="Ver servicios ambientales"
+        actionTo="/services"
+        featuredImage="/assets/3d-backend/bg_experience_.webp"
+        featuredAlt="Jornadas de reforestación y sostenibilidad SERAM Experience"
+        featuredKicker="IMPACTO AMBIENTAL POSITIVO"
+        featuredTitle="Reforestación Nativa, Bio-Campamentos y Carbono Neutro"
+        items={[
+          {
+            title: 'Inventario de Emisiones Alcance 1, 2 y 3',
+            desc: 'Cuantificación técnica bajo ISO 14064-1 para identificar focos de reducción y compensación.'
+          },
+          {
+            title: 'Adopción de Polígonos Forestales',
+            desc: 'Selección de especies nativas adaptadas al ecosistema local con monitoreo de supervivencia.'
+          },
+          {
+            title: 'Voluntariado Corporativo y Educativo',
+            desc: 'Jornadas guiadas en campo y talleres prácticos que conectan a tu equipo con la naturaleza.'
+          }
+        ]}
+      />
 
-        <section id="experience-catalog" className="space-y-6 text-left relative z-10">
+      {/* CATÁLOGO DE EXPERIENCIAS EN TERRENO & VIDEO DOCUMENTAL */}
+      <section id="experience-catalog" className="py-16 md:py-24 bg-white border-b border-[#bdcbb4]/50 relative overflow-hidden">
+        <RotatingVegetation size={220} duration={28} opacity={0.08} className="absolute -bottom-8 -right-8 pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 space-y-10 text-left relative z-10">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
-              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#4ade80] font-tech block">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#126c0f]">
                 EXPERIENCIAS EN TERRENO &amp; VIDEO DOCUMENTAL
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-white mt-1 font-display">
-                Programas Activos para Empresas, Equipos y Familias
+              </p>
+              <h2 className="text-3xl sm:text-4xl font-black text-[#1a1c1c] mt-2 font-display">
+                Programas Activos para Empresas y Equipos
               </h2>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex flex-wrap items-center gap-4">
               <Link
                 to="/services"
-                className="text-xs font-semibold text-[#4ade80] hover:underline flex items-center gap-1"
+                className="text-xs font-bold uppercase tracking-wider text-[#126c0f] hover:text-[#029907] border-b border-[#126c0f] pb-0.5 flex items-center gap-1"
               >
-                Servicios Ambientales <ArrowRight className="w-3.5 h-3.5" />
+                <span>Servicios Ambientales</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
               <button
                 type="button"
                 onClick={() => openChatbot('q2_experience')}
-                className="px-4 py-2.5 rounded-xl bg-white/[0.05] hover:bg-[#4ade80] text-slate-200 hover:text-slate-950 border border-white/10 text-xs font-bold flex items-center gap-2 transition-all cursor-pointer"
+                className="px-5 py-2.5 bg-[#126c0f] hover:bg-[#029907] text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-colors cursor-pointer"
               >
-                <MapPin className="w-3.5 h-3.5 text-[#4ade80]" /> Solicitar Cotización a Medida
+                <MapPin className="w-3.5 h-3.5" />
+                <span>Solicitar Cotización</span>
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {combinedShowcase.map((exp, idx) => (
               <motion.article
                 key={exp.id || idx}
@@ -286,12 +268,12 @@ export default function ExperiencePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-30px' }}
                 transition={{ duration: 0.45, delay: idx * 0.05 }}
-                className="group neuform-card rounded-2xl overflow-hidden border border-white/10 hover:border-[#4ade80]/50 flex flex-col justify-between transition-all shadow-xl"
+                className="group bg-white border border-[#bdcbb4] hover:border-[#126c0f] flex flex-col justify-between transition-all"
               >
                 <div>
                   <div
                     onClick={() => setActiveVideoModal(exp)}
-                    className="relative h-52 bg-slate-950 overflow-hidden cursor-pointer"
+                    className="relative h-52 bg-[#1a1c1c] overflow-hidden cursor-pointer"
                   >
                     <video
                       src={exp.videoUrl}
@@ -301,47 +283,47 @@ export default function ExperiencePage() {
                       muted
                       playsInline
                       aria-label={`Video demostrativo de ${String(exp.title || '').replace(/\*/g, '')}`}
-                      className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700"
+                      className="w-full h-full object-cover opacity-85 group-hover:scale-105 transition-transform duration-700"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#071108] via-black/25 to-black/30" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-black/25" />
 
-                    <div className="absolute top-3 left-3 right-3 flex items-center justify-between text-[10px] font-mono">
-                      <span className="text-[#4ade80] font-bold bg-black/60 px-2 py-0.5 rounded backdrop-blur-sm">
+                    <div className="absolute top-3 left-3 right-3 flex items-center justify-between text-[10px] font-bold">
+                      <span className="text-white bg-[#126c0f] px-2.5 py-1 uppercase tracking-wider">
                         {exp.badge}
                       </span>
-                      <span className="text-white font-semibold bg-black/60 px-2 py-0.5 rounded backdrop-blur-sm">
+                      <span className="text-[#1a1c1c] bg-white/95 px-2.5 py-1">
                         {exp.impactStat}
                       </span>
                     </div>
 
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-md border border-white/25 flex items-center justify-center text-white group-hover:text-[#4ade80] group-hover:scale-110 transition-all">
+                      <div className="w-12 h-12 rounded-full bg-white/90 border border-[#126c0f]/30 flex items-center justify-center text-[#126c0f] group-hover:bg-[#126c0f] group-hover:text-white group-hover:scale-110 transition-all">
                         <Play className="w-5 h-5 fill-current ml-0.5" />
                       </div>
                     </div>
                   </div>
 
-                  <div className="p-5 space-y-2">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[#4ade80] font-tech block">
+                  <div className="p-6 space-y-2.5">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#126c0f] block">
                       {exp.category}
                     </span>
-                    <h3 className="text-lg font-black text-white leading-snug">
+                    <h3 className="text-lg font-bold text-[#1a1c1c] leading-snug font-display">
                       {renderFormattedText(exp.title)}
                     </h3>
-                    <p className="text-[11px] font-semibold text-slate-300">
+                    <p className="text-xs font-semibold text-[#3e4a39]">
                       {exp.subtitle}
                     </p>
-                    <p className="text-xs text-slate-400 leading-relaxed pt-1">
+                    <p className="text-sm text-[#3e4a39] leading-relaxed pt-1">
                       {exp.desc}
                     </p>
                   </div>
                 </div>
 
-                <div className="p-5 pt-3 border-t border-white/[0.06] flex items-center justify-between gap-2">
+                <div className="p-6 pt-4 border-t border-[#bdcbb4]/50 flex items-center justify-between gap-2">
                   <button
                     type="button"
                     onClick={() => openChatbot('q2_experience')}
-                    className="flex-1 py-2.5 px-4 rounded-xl bg-[#4ade80] hover:bg-white text-slate-950 font-black text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    className="flex-1 py-3 px-4 bg-[#126c0f] hover:bg-[#029907] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <span>{exp.cta}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -349,8 +331,9 @@ export default function ExperiencePage() {
                   <button
                     type="button"
                     onClick={() => setActiveVideoModal(exp)}
-                    className="p-2.5 rounded-xl bg-white/[0.05] hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                    className="p-3 border border-[#bdcbb4] hover:border-[#126c0f] text-[#126c0f] hover:bg-[#126c0f]/5 transition-colors cursor-pointer"
                     title="Ampliar video"
+                    aria-label="Ampliar video demostrativo"
                   >
                     <Play className="w-4 h-4" />
                   </button>
@@ -358,19 +341,20 @@ export default function ExperiencePage() {
               </motion.article>
             ))}
           </div>
-        </section>
-      </MotionFrame>
+        </div>
+      </section>
 
-      {/* ── SECCIÓN 4: BANNER HORIZONTAL INFERIOR ZENZE (MANO CON PLANTA) ── */}
-      <ZenzeBottomCtaBanner
-        image="/assets/3d-backend/bg_experience_.webp"
-        imageAlt="Sembrando un futuro sostenible con SERAM Experience"
-        title="Construyamos juntos un futuro verde y medible."
-        subtitle="Únete a nuestros programas corporativos de adopción forestal, neutralidad de carbono y voluntariado regenerativo con trazabilidad real."
-        trustLabel="Impacto verificado en bosques y empresas de Bolivia"
-        ctaLabel="Unirse a Experience"
-        onCtaClick={() => openChatbot('q2_experience')}
-        buttonAccentClass="bg-[#4ade80] hover:bg-white text-slate-950 shadow-[0_0_25px_rgba(74,222,128,0.3)]"
+      {/* 5. CONECTEMOS */}
+      <EditorialConnectSection
+        title="Conectemos"
+        subtitle="¿Tu organización busca medir su huella de carbono o impulsar una campaña de reforestación en Bolivia? Conversemos."
+        interestOptions={[
+          'Reforestación Corporativa & Adopción',
+          'Huella de Carbono ISO 14064-1',
+          'Voluntariado Ambiental & Bio-Campamentos',
+          'Sostenibilidad Corporativa ESG'
+        ]}
+        onConnectSubmit={() => openChatbot('q2_experience')}
       />
 
       {/* Modal Reproductor de Video HD */}
@@ -380,29 +364,30 @@ export default function ExperiencePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/90 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md"
             onClick={() => setActiveVideoModal(null)}
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.96, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
+              exit={{ scale: 0.96, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-4xl bg-slate-950 border border-white/15 rounded-2xl overflow-hidden shadow-2xl space-y-3"
+              className="relative w-full max-w-4xl bg-white border border-[#bdcbb4] overflow-hidden shadow-2xl"
             >
-              <div className="flex items-center justify-between p-4 border-b border-white/10 text-left">
+              <div className="flex items-center justify-between p-4 border-b border-[#bdcbb4] text-left bg-[#f9f9f9]">
                 <div>
-                  <span className="text-[10px] font-black uppercase text-[#4ade80] tracking-wider font-tech">
+                  <span className="text-xs font-bold uppercase text-[#126c0f] tracking-wider">
                     {activeVideoModal.category}
                   </span>
-                  <h4 className="text-sm sm:text-base font-black text-white">
+                  <h4 className="text-base font-bold text-[#1a1c1c] font-display">
                     {renderFormattedText(activeVideoModal.title)}
                   </h4>
                 </div>
                 <button
                   type="button"
                   onClick={() => setActiveVideoModal(null)}
-                  className="w-8 h-8 rounded-full bg-white/10 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer"
+                  className="w-8 h-8 border border-[#bdcbb4] text-[#1a1c1c] hover:bg-[#126c0f] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                  aria-label="Cerrar reproductor de video"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -418,8 +403,8 @@ export default function ExperiencePage() {
                 />
               </div>
 
-              <div className="p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
-                <p className="text-xs text-slate-400">
+              <div className="p-4 bg-[#f9f9f9] flex flex-col sm:flex-row items-center justify-between gap-3 text-left border-t border-[#bdcbb4]">
+                <p className="text-xs text-[#3e4a39]">
                   {activeVideoModal.subtitle}
                 </p>
                 <button
@@ -428,7 +413,7 @@ export default function ExperiencePage() {
                     setActiveVideoModal(null);
                     openChatbot('q2_experience');
                   }}
-                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#4ade80] hover:bg-white text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full sm:w-auto px-5 py-2.5 bg-[#126c0f] hover:bg-[#029907] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <span>{activeVideoModal.cta}</span>
                   <ArrowRight className="w-3.5 h-3.5" />

@@ -6,6 +6,14 @@
   "in_progress": [],
   "completed": [
     {
+      "id": "TASK-124",
+      "title": "Reforma Editorial de Diseño en Bloques (Hero con degradado lateral, 3 Pilares, Bento Asimétrico, Vitrina de Impacto y Panel Dividido Conectemos) para Services, Academy y Experience respetando Navbar/Footer y Design System SERAM",
+      "status": "completed",
+      "assigned_to": "Implementador",
+      "started_at": "2026-11-16",
+      "completed_at": "2026-11-16"
+    },
+    {
       "id": "TASK-123",
       "title": "Eliminación de Cursos y Contenido Educativo de SIG/QGIS/Cartografía de Precisión, Actualización de Skills de Estrategia de Marketing/SEO y Parafraseo General en Web Pública (eliminación de fichas, auditorías ambientales, especialista, peritaje y traducción de dossier)",
       "status": "completed",
