@@ -813,6 +813,7 @@ function ServicesHorizontalSection() {
 function AcademyVerticalSection() {
   const academyPillar = PILLARS[1];
   const navigate = useNavigate();
+  const { openChatbot } = useApp();
   const triggerRef = useRef(null);
   const pinRef = useRef(null);
   const videoRef = useRef(null);
@@ -968,9 +969,16 @@ function AcademyVerticalSection() {
               <div className="pt-3 flex flex-col sm:flex-row gap-4 items-center justify-center w-full">
                 <button 
                   onClick={() => navigate(academyPillar.route)}
-                  className="px-8 py-4 bg-[#00e03c] hover:bg-[#00ff4c] text-[#020704] font-black uppercase text-xs tracking-wider rounded-xl shadow-[0_0_20px_rgba(0,224,60,0.35)] hover:shadow-[0_0_30px_rgba(0,224,60,0.6)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-300"
+                  className="px-8 py-4 bg-[#00e03c] hover:bg-[#00ff4c] text-[#020704] font-black uppercase text-xs tracking-wider rounded-xl shadow-[0_0_20px_rgba(0,224,60,0.35)] hover:shadow-[0_0_30px_rgba(0,224,60,0.6)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 cursor-pointer"
                 >
                   {academyPillar.cta} <ChevronRight className="w-4 h-4 inline-block ml-1" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openChatbot('q2_training')}
+                  className="px-7 py-4 bg-white/[0.06] hover:bg-white/15 border border-white/15 text-white font-black uppercase text-xs tracking-wider rounded-xl transition-all duration-300 cursor-pointer"
+                >
+                  Asesoría de Capacitación
                 </button>
               </div>
             </div>
@@ -986,6 +994,7 @@ function AcademyVerticalSection() {
 function ExperienceVerticalSection() {
   const experiencePillar = PILLARS[2];
   const navigate = useNavigate();
+  const { openChatbot } = useApp();
   const [isPlaying, setIsPlaying] = React.useState(true);
 
   return (
@@ -1031,6 +1040,13 @@ function ExperienceVerticalSection() {
                   data-cursor-text={experiencePillar.ctaCursor}
                 >
                   {experiencePillar.cta} <ChevronRight className="w-4 h-4 ml-1" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openChatbot('q2_experience')}
+                  className="px-5 py-3 rounded-xl bg-[#00e03c] hover:bg-white text-slate-950 font-black uppercase text-xs tracking-wider transition-colors cursor-pointer"
+                >
+                  Cotizar ESG
                 </button>
               </div>
             </div>

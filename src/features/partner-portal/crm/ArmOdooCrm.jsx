@@ -174,6 +174,9 @@ export default function ArmOdooCrm({ currentSocio }) {
 
   useEffect(() => {
     loadCrmData();
+    const handleLiveLeadsUpdate = () => loadCrmData();
+    window.addEventListener('seram:arm-leads-updated', handleLiveLeadsUpdate);
+    return () => window.removeEventListener('seram:arm-leads-updated', handleLiveLeadsUpdate);
   }, [loadCrmData]);
 
   useEffect(() => {

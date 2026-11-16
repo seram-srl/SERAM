@@ -7,18 +7,20 @@ import {
   HelpCircle, FileSpreadsheet, Map, Upload, Check, Award, 
   FileText, ChevronDown, ChevronRight, Edit3, Settings, 
   GraduationCap, Paperclip, ExternalLink, ShieldCheck, UserCheck,
-  Eye, Sparkles, Send, Copy, Shield, Layers, CheckCircle2, Bookmark
+  Eye, Sparkles, Send, Copy, Shield, Layers, CheckCircle2, Bookmark,
+  Video, UploadCloud, X, Plus, RefreshCw
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { saveCourseMediaBlob, resolveCourseMediaUrl, formatFileSize } from '../../services/courseMediaStorage';
 import '../../styles/academy-cinematic.css';
 
-// Estructura modular del curso idéntica a Crehana
-const COURSE_MODULES = [
+// Estructura modular base de respaldo estilo Crehana
+const DEFAULT_CREHANA_MODULES = [
   {
     id: 1,
     title: '1. Fundamentos y Normativa Ambiental',
     classes: [
-      { id: '1.1', title: 'Bienvenidos al Programa & Metodología', duration: '5m 20s', durationSec: 320, isPremium: false, videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-forest-stream-in-the-sunlight-529-large.mp4' },
+      { id: '1.1', title: 'Bienvenidos al Programa & Metodología', duration: '5m 20s', durationSec: 320, isPremium: false, videoUrl: '/assets/videos/seram_academy_funcionamiento.mp4' },
       { id: '1.2', title: 'Marco Teórico del Impacto Ambiental en Bolivia', duration: '12m 45s', durationSec: 765, isPremium: false, videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-waterfall-in-forest-2213-large.mp4' }
     ]
   },
@@ -43,13 +45,10 @@ const COURSE_MODULES = [
     id: 4,
     title: '4. Proyecto Final & Certificación Oficial',
     classes: [
-      { id: '4.1', title: 'Defensa de Caso Real & Requisitos de Egreso', duration: '7m 40s', durationSec: 460, isPremium: true, videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-waterfall-in-forest-2213-large.mp4' }
+      { id: '4.1', title: 'Defensa de Caso Real & Requisitos de Egreso', duration: '7m 40s', durationSec: 460, isPremium: true, videoUrl: '/assets/videos/cambio_climatico_bolivia.mp4' }
     ]
   }
 ];
-
-// Aplanar lista para facilitar navegación
-const ALL_LESSONS = COURSE_MODULES.flatMap(m => m.classes);
 
 const renderFormattedText = (text) => {
   if (!text) return '';
@@ -705,10 +704,44 @@ export default function CoursePlayerPage() {
     toggleLessonCompleted,
     approveCourseExam,
     submitAssignment,
+    handleUpdateCourseModules,
     currentSocio
   } = useApp();
 
-  const course = courses.find(c => c.id === parseInt(id)) || courses[0];
+  const course = courses.find(c => String(c.id) === String(id)) || courses[0] || {
+    id: 1,
+    title: 'Programa Técnico SERAM Academy',
+    instructor: 'Equipo Técnico SERAM',
+    desc: 'Formación técnica especializada en gestión ambiental y SIG.',
+    image: '/assets/covers/cover_taller_fichas.png',
+    format: 'video',
+    hasVideo: true
+  };
+
+  // Módulos dinámicos sincronizados con Odoo Academy (normalizados a estructura Crehana `.classes`)
+  const courseModules = useMemo(() => {
+    const rawMods = Array.isArray(course?.modules) && course.modules.length > 0
+      ? course.modules
+      : DEFAULT_CREHANA_MODULES;
+    return rawMods.map((mod, idx) => ({
+      id: mod.id ?? idx + 1,
+      displayNum: idx + 1,
+      title: mod.title || `Módulo ${idx + 1}`,
+      classes: (mod.classes || mod.lessons || []).map((les, lIdx) => ({
+        ...les,
+        id: les.id || `${idx + 1}.${lIdx + 1}`,
+        title: les.title || `Clase ${idx + 1}.${lIdx + 1}`,
+        duration: les.duration || '12:00 min',
+        videoUrl: les.videoUrl || '/assets/videos/seram_academy_funcionamiento.mp4',
+        isPremium: les.isPremium ?? false
+      }))
+    }));
+  }, [course?.modules]);
+
+  const allLessons = useMemo(() => {
+    const flat = courseModules.flatMap(m => m.classes);
+    return flat.length > 0 ? flat : DEFAULT_CREHANA_MODULES.flatMap(m => m.classes);
+  }, [courseModules]);
 
   // Modo de visualización Crehana: 'overview' (Captura 1) o 'player' (Captura 2)
   const [viewMode, setViewMode] = useState(() => {
@@ -722,8 +755,37 @@ export default function CoursePlayerPage() {
   // Pestaña en barra lateral del Player: 'modulos' | 'apuntes' | 'comentarios'
   const [playerTab, setPlayerTab] = useState('modulos');
 
-  // Lección actual
-  const [currentLesson, setCurrentLesson] = useState(ALL_LESSONS[0]);
+  // Lección actual y URL resuelta (soporta videos IndexedDB `idb://seram-media/...`)
+  const [currentLesson, setCurrentLesson] = useState(() => allLessons[0]);
+  const [resolvedVideoUrl, setResolvedVideoUrl] = useState('');
+
+  // Modal de subida rápida de videos en Crehana
+  const [showUploadVideoModal, setShowUploadVideoModal] = useState(false);
+  const [uploadTargetMode, setUploadTargetMode] = useState('new'); // 'new' | 'replace'
+  const [uploadModuleIdx, setUploadModuleIdx] = useState(0);
+  const [uploadLessonTitle, setUploadLessonTitle] = useState('');
+  const [uploadVideoUrlInput, setUploadVideoUrlInput] = useState('');
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+
+  // Mantener sincronizada la lección activa cuando cambie el curso o su temario
+  useEffect(() => {
+    setCurrentLesson(prev => allLessons.find(l => l.id === prev?.id) || allLessons[0]);
+  }, [course.id, allLessons]);
+
+  useEffect(() => {
+    let active = true;
+    async function loadMedia() {
+      const targetUrl = currentLesson?.videoUrl;
+      if (!targetUrl) {
+        if (active) setResolvedVideoUrl('');
+        return;
+      }
+      const resolved = await resolveCourseMediaUrl(targetUrl);
+      if (active) setResolvedVideoUrl(resolved);
+    }
+    loadMedia();
+    return () => { active = false; };
+  }, [currentLesson?.videoUrl]);
 
   // Módulos desplegados en el acordeón de Crehana
   const [openModules, setOpenModules] = useState({ 1: true, 2: true, 3: false, 4: false });
@@ -761,17 +823,104 @@ export default function CoursePlayerPage() {
   const progressRef = useRef(null);
 
   // Calcular progreso total del curso
-  const courseCompletedList = completedLessons[course.id] || [];
-  const progressPercent = Math.round((courseCompletedList.length / ALL_LESSONS.length) * 100);
+  const courseCompletedList = useMemo(
+    () => completedLessons[course.id] || [],
+    [completedLessons, course.id]
+  );
+  const progressPercent = allLessons.length > 0
+    ? Math.round((courseCompletedList.length / allLessons.length) * 100)
+    : 0;
 
-  // Cambiar video al seleccionar lección
+  // Cambiar video al seleccionar lección o resolver Blob
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.load();
       setIsPlaying(false);
       setCurrentTime(0);
     }
-  }, [currentLesson]);
+  }, [currentLesson?.id, resolvedVideoUrl]);
+
+  const applyUploadedLessonToCourse = (videoUrl, durationLabel, fileName = null) => {
+    const baseModules = courseModules.map(m => ({
+      id: m.id,
+      title: m.title,
+      lessons: m.classes.map(c => ({ ...c }))
+    }));
+
+    let createdOrUpdatedLesson = null;
+
+    if (uploadTargetMode === 'replace' && currentLesson) {
+      const updated = baseModules.map(m => ({
+        ...m,
+        lessons: m.lessons.map(l => {
+          if (l.id === currentLesson.id) {
+            createdOrUpdatedLesson = {
+              ...l,
+              title: uploadLessonTitle.trim() || l.title,
+              videoUrl,
+              duration: durationLabel || l.duration,
+              ...(fileName ? { videoFileName: fileName } : {})
+            };
+            return createdOrUpdatedLesson;
+          }
+          return l;
+        })
+      }));
+      handleUpdateCourseModules(course.id, updated);
+    } else {
+      const safeModIdx = Math.min(Math.max(0, uploadModuleIdx), Math.max(0, baseModules.length - 1));
+      const targetMod = baseModules[safeModIdx] || { id: `mod-${Date.now()}`, title: 'Módulo 1', lessons: [] };
+      const nextNum = (targetMod.lessons?.length || 0) + 1;
+      createdOrUpdatedLesson = {
+        id: `les-${Date.now()}`,
+        title: uploadLessonTitle.trim() || `${safeModIdx + 1}.${nextNum} Video Subido (${fileName || 'Clase HD'})`,
+        duration: durationLabel || '12:00 min',
+        videoUrl,
+        isPremium: false,
+        ...(fileName ? { videoFileName: fileName } : {})
+      };
+      targetMod.lessons = [...(targetMod.lessons || []), createdOrUpdatedLesson];
+      baseModules[safeModIdx] = targetMod;
+      handleUpdateCourseModules(course.id, baseModules);
+    }
+
+    if (createdOrUpdatedLesson) {
+      setCurrentLesson(createdOrUpdatedLesson);
+      setViewMode('player');
+    }
+    setShowUploadVideoModal(false);
+    setUploadLessonTitle('');
+    setUploadVideoUrlInput('');
+  };
+
+  const handleUploadVideoFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('video/')) {
+      triggerToast('Selecciona un archivo de video válido (.mp4, .webm, .mov)', 'error');
+      return;
+    }
+    setUploadingVideo(true);
+    try {
+      const saved = await saveCourseMediaBlob(file, `crehana_${course.id}`);
+      applyUploadedLessonToCourse(saved.url, saved.durationLabel, saved.name);
+      triggerToast(`Video "${saved.name}" cargado al aula (${formatFileSize(saved.size)})`, 'success');
+    } catch (err) {
+      triggerToast(err.message || 'No se pudo cargar el video', 'error');
+    } finally {
+      setUploadingVideo(false);
+    }
+  };
+
+  const handleSaveExternalVideoUrl = (e) => {
+    e.preventDefault();
+    if (!uploadVideoUrlInput.trim()) {
+      triggerToast('Ingresa una URL de video válida', 'error');
+      return;
+    }
+    applyUploadedLessonToCourse(uploadVideoUrlInput.trim(), '15:00 min', null);
+    triggerToast('Video vinculado al temario Crehana', 'success');
+  };
 
   // Manejo de reproducción
   const togglePlay = useCallback(() => {
@@ -970,8 +1119,134 @@ export default function CoursePlayerPage() {
 
   // Próxima lección pendiente para el CTA
   const nextPendingLesson = useMemo(() => {
-    return ALL_LESSONS.find(l => !courseCompletedList.includes(l.id)) || ALL_LESSONS[0];
-  }, [courseCompletedList]);
+    return allLessons.find(l => !courseCompletedList.includes(l.id)) || allLessons[0];
+  }, [allLessons, courseCompletedList]);
+
+  const uploadVideoModalJsx = (
+    <AnimatePresence>
+      {showUploadVideoModal && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            className="w-full max-w-lg bg-[#09120b] border border-[#00e03c]/30 rounded-3xl p-6 shadow-2xl space-y-5 text-left"
+          >
+            <div className="flex items-center justify-between border-b border-white/10 pb-3.5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#00e03c]/15 border border-[#00e03c]/30 flex items-center justify-center">
+                  <Video className="w-4 h-4 text-[#00e03c]" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-white uppercase tracking-wide">Subir Video al Aula Crehana</h3>
+                  <p className="text-[11px] text-slate-400">Sincronizado con Odoo Academy</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowUploadVideoModal(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setUploadTargetMode('new')}
+                className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                  uploadTargetMode === 'new'
+                    ? 'bg-[#00e03c]/15 border-[#00e03c] text-[#00e03c]'
+                    : 'bg-white/[0.03] border-white/10 text-slate-400 hover:text-white'
+                }`}
+              >
+                + Nueva Clase en Módulo
+              </button>
+              <button
+                type="button"
+                onClick={() => setUploadTargetMode('replace')}
+                className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                  uploadTargetMode === 'replace'
+                    ? 'bg-[#00e03c]/15 border-[#00e03c] text-[#00e03c]'
+                    : 'bg-white/[0.03] border-white/10 text-slate-400 hover:text-white'
+                }`}
+              >
+                Reemplazar Clase Actual
+              </button>
+            </div>
+
+            {uploadTargetMode === 'new' && (
+              <div>
+                <label className="text-[11px] font-bold text-slate-300 block mb-1">Módulo de Destino</label>
+                <select
+                  value={uploadModuleIdx}
+                  onChange={e => setUploadModuleIdx(Number(e.target.value))}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#00e03c]"
+                >
+                  {courseModules.map((mod, idx) => (
+                    <option key={mod.id || idx} value={idx}>{mod.title}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div>
+              <label className="text-[11px] font-bold text-slate-300 block mb-1">
+                {uploadTargetMode === 'replace' ? `Nuevo Título (Actual: ${currentLesson?.title})` : 'Título de la Nueva Clase'}
+              </label>
+              <input
+                type="text"
+                value={uploadLessonTitle}
+                onChange={e => setUploadLessonTitle(e.target.value)}
+                placeholder="Ej. Taller Práctico de Modelamiento en QGIS"
+                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#00e03c]"
+              />
+            </div>
+
+            <div className="p-4 rounded-2xl border border-dashed border-[#00e03c]/40 bg-[#00e03c]/[0.04] text-center space-y-2.5">
+              <UploadCloud className="w-7 h-7 text-[#00e03c] mx-auto" />
+              <div>
+                <p className="text-xs font-bold text-white">Subir archivo de video desde tu computadora</p>
+                <p className="text-[10px] text-slate-400">MP4, WebM o MOV · Guardado local instantáneo</p>
+              </div>
+              <label className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#00e03c] hover:bg-white text-slate-950 text-xs font-black uppercase tracking-wider cursor-pointer transition-colors">
+                {uploadingVideo ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                {uploadingVideo ? 'Procesando Video...' : 'Seleccionar Video de PC'}
+                <input
+                  type="file"
+                  accept="video/mp4,video/webm,video/quicktime,video/*"
+                  onChange={handleUploadVideoFile}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            <form onSubmit={handleSaveExternalVideoUrl} className="pt-2 border-t border-white/10 space-y-2">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                O vincular URL de video directa (MP4 / CDN)
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={uploadVideoUrlInput}
+                  onChange={e => setUploadVideoUrlInput(e.target.value)}
+                  placeholder="https://.../clase-hd.mp4"
+                  className="flex-1 bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#00e03c]"
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-[#00e03c] text-white hover:text-slate-950 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Vincular
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
 
   // Si el recurso es en modalidad PDF / Entregable (sin video), renderizar la vista especializada
   const isPdfCourse = course.format === 'pdf' || course.hasVideo === false;
@@ -1039,20 +1314,30 @@ export default function CoursePlayerPage() {
                   <Play className="w-3 h-3 fill-current ml-0.5" />
                 </div>
                 <span className="font-medium text-slate-200">
-                  {nextPendingLesson ? `Módulo ${nextPendingLesson.id.split('.')[0]}: Clase ${nextPendingLesson.id}: ${nextPendingLesson.title}` : 'Curso completado'}
+                  {nextPendingLesson ? `Siguiente clase: ${nextPendingLesson.title}` : 'Curso completado'}
                 </span>
               </div>
 
               {/* Botón CTA Primario Crehana en Verde Esmeralda SERAM */}
-              <div>
+              <div className="flex flex-wrap items-center gap-3">
                 <button
                   onClick={() => {
-                    selectLesson(nextPendingLesson || ALL_LESSONS[0]);
+                    selectLesson(nextPendingLesson || allLessons[0]);
                   }}
                   className="px-8 py-4 bg-[#00e03c] hover:bg-[#00c534] text-black font-black text-xs uppercase tracking-wider rounded-xl shadow-[0_0_25px_rgba(0,224,60,0.3)] hover:shadow-[0_0_35px_rgba(0,224,60,0.5)] transition-all transform hover:scale-[1.02] active:scale-95 cursor-pointer flex items-center gap-2"
                 >
                   <Play className="w-4 h-4 fill-current" />
                   {progressPercent > 0 ? 'Continuar curso' : 'Empezar curso'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUploadTargetMode('new');
+                    setShowUploadVideoModal(true);
+                  }}
+                  className="px-5 py-4 bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 hover:border-[#00e03c]/40 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2"
+                >
+                  <UploadCloud className="w-4 h-4 text-[#00e03c]" /> Subir Video
                 </button>
               </div>
             </div>
@@ -1060,7 +1345,7 @@ export default function CoursePlayerPage() {
             {/* Columna Derecha: Tarjeta de Vista Previa y Progreso */}
             <div className="lg:col-span-5">
               <div 
-                onClick={() => selectLesson(nextPendingLesson || ALL_LESSONS[0])}
+                onClick={() => selectLesson(nextPendingLesson || allLessons[0])}
                 className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black group cursor-pointer"
               >
                 <img 
@@ -1080,7 +1365,7 @@ export default function CoursePlayerPage() {
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/80 to-transparent p-4 flex flex-col gap-2">
                   <div className="flex justify-between items-center text-xs font-bold">
                     <span className="text-white">{progressPercent}% Completado</span>
-                    <span className="text-[10px] text-slate-400">{courseCompletedList.length} de {ALL_LESSONS.length} clases</span>
+                    <span className="text-[10px] text-slate-400">{courseCompletedList.length} de {allLessons.length} clases</span>
                   </div>
                   <div className="w-full bg-white/20 h-1.5 rounded-full overflow-hidden">
                     <div 
@@ -1221,21 +1506,33 @@ export default function CoursePlayerPage() {
           ) : (
             /* Tab: Clases y adjuntos */
             <div className="space-y-8">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap justify-between items-center gap-3">
                 <h2 className="text-2xl font-black text-white tracking-tight">
                   Estructura curricular y recursos
                 </h2>
-                <button
-                  onClick={() => setShowFilesModal(true)}
-                  className="px-4 py-2 rounded-xl bg-white/5 hover:bg-[#00e03c]/10 border border-white/10 hover:border-[#00e03c]/40 text-xs font-bold text-slate-200 hover:text-[#00e03c] transition-all flex items-center gap-2"
-                >
-                  <Download className="w-3.5 h-3.5" /> Descargar adjuntos del curso
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUploadTargetMode('new');
+                      setShowUploadVideoModal(true);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-[#00e03c] hover:bg-white text-black text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer"
+                  >
+                    <UploadCloud className="w-3.5 h-3.5" /> Subir Video
+                  </button>
+                  <button
+                    onClick={() => setShowFilesModal(true)}
+                    className="px-4 py-2 rounded-xl bg-white/5 hover:bg-[#00e03c]/10 border border-white/10 hover:border-[#00e03c]/40 text-xs font-bold text-slate-200 hover:text-[#00e03c] transition-all flex items-center gap-2 cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Descargar adjuntos del curso
+                  </button>
+                </div>
               </div>
 
               {/* Lista completa de módulos */}
               <div className="space-y-4">
-                {COURSE_MODULES.map(mod => (
+                {courseModules.map(mod => (
                   <div key={mod.id} className="bg-[#081208]/60 border border-white/10 rounded-2xl overflow-hidden">
                     <div className="p-4 bg-white/[0.02] border-b border-white/5 flex justify-between items-center">
                       <span className="text-sm font-black text-white">{mod.title}</span>
@@ -1277,6 +1574,7 @@ export default function CoursePlayerPage() {
           )}
 
         </div>
+        {uploadVideoModalJsx}
       </motion.div>
     );
   }
@@ -1309,12 +1607,23 @@ export default function CoursePlayerPage() {
               {course.title.replace(/\*/g, '')}
             </h1>
             <p className="text-[11px] text-[#00e03c] font-medium truncate">
-              {currentLesson.title}
+              {currentLesson?.title}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              setUploadTargetMode('new');
+              setShowUploadVideoModal(true);
+            }}
+            className="px-3 py-1.5 rounded-lg bg-[#00e03c] hover:bg-white text-black text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-sm shadow-[#00e03c]/20"
+            title="Subir video desde PC o URL al aula Crehana"
+          >
+            <UploadCloud className="w-3.5 h-3.5" /> Subir Video
+          </button>
           <span className="hidden sm:inline-block text-[10px] font-mono text-slate-400 uppercase tracking-widest bg-white/5 px-2.5 py-1 rounded-md border border-white/5">
             SERAM ACADEMY
           </span>
@@ -1336,7 +1645,7 @@ export default function CoursePlayerPage() {
           <div className="relative w-full h-full flex items-center justify-center bg-black overflow-hidden">
             <video
               ref={videoRef}
-              src={currentLesson.videoUrl}
+              src={resolvedVideoUrl || currentLesson?.videoUrl}
               onTimeUpdate={handleTimeUpdate}
               onLoadedMetadata={handleLoadedMetadata}
               onClick={togglePlay}
@@ -1575,9 +1884,9 @@ export default function CoursePlayerPage() {
             {/* ---------------- TAB: MÓDULOS ---------------- */}
             {playerTab === 'modulos' && (
               <div className="space-y-3">
-                {COURSE_MODULES.map(mod => {
+                {courseModules.map(mod => {
                   const isOpen = openModules[mod.id] ?? true;
-                  const hasCurrentLesson = mod.classes.some(c => c.id === currentLesson.id);
+                  const hasCurrentLesson = mod.classes.some(c => c.id === currentLesson?.id);
 
                   return (
                     <div key={mod.id} className="rounded-xl border border-white/5 bg-black/25 overflow-hidden">
@@ -1590,7 +1899,7 @@ export default function CoursePlayerPage() {
                       >
                         <div>
                           <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
-                            <span className="text-[#00e03c]">{mod.id}.</span> {mod.title.replace(/^\d+\.\s*/, '')}
+                            <span className="text-[#00e03c]">{mod.displayNum}.</span> {mod.title.replace(/^\d+\.\s*/, '')}
                           </h4>
                           <span className="text-[10px] text-slate-500 font-medium">
                             {mod.classes.length} clases
@@ -1610,7 +1919,7 @@ export default function CoursePlayerPage() {
                           <div className="crehana-timeline-track" />
 
                           {mod.classes.map(cl => {
-                            const isCurrent = currentLesson.id === cl.id;
+                            const isCurrent = currentLesson?.id === cl.id;
                             const isDone = courseCompletedList.includes(cl.id);
                             const isLocked = cl.isPremium && !hasPremiumAccess;
 
@@ -1815,7 +2124,7 @@ export default function CoursePlayerPage() {
                   </div>
                   <div className="flex-1">
                     <strong className="text-white block">1. Completar 100% de las lecciones</strong>
-                    <span className="text-[11px] text-slate-400">Progreso actual: {progressPercent}% ({courseCompletedList.length}/{ALL_LESSONS.length})</span>
+                    <span className="text-[11px] text-slate-400">Progreso actual: {progressPercent}% ({courseCompletedList.length}/{allLessons.length})</span>
                   </div>
                 </div>
 
@@ -2024,6 +2333,7 @@ export default function CoursePlayerPage() {
         )}
       </AnimatePresence>
 
+      {uploadVideoModalJsx}
     </motion.div>
   );
 }

@@ -29,6 +29,7 @@ const STEPS = {
       { label: 'Industria manufacturera o planta', next: 'q2_industrial' },
       { label: 'Operación minera o concesión', next: 'q2_mining' },
       { label: 'Proyecto ambiental, SIG o cuencas', next: 'q2_sig' },
+      { label: 'Sostenibilidad, Reforestación y Huella de Carbono (Experience)', next: 'q2_experience' },
       { label: 'Capacitación técnica de equipo institucional', next: 'q2_training' },
       { label: 'Consulta técnica puntual o exploratoria', next: 'q3', service: 'CONSULT' },
     ],
@@ -78,6 +79,18 @@ const STEPS = {
       { label: 'Análisis multitemporal de cobertura y deforestación', next: 'q3', service: 'SIG_DEF' },
       { label: 'Modelamiento de riesgo hidrológico e inundación', next: 'q3', service: 'SIG_HYD' },
       { label: 'Soporte cartográfico B2B para consultores', next: 'q3', service: 'SIG_B2B' },
+    ],
+  },
+  q2_experience: {
+    id: 'q2_experience',
+    bot: 'Excelente iniciativa ambiental. ¿En qué línea de SERAM Experience deseas participar o implementar?',
+    allowComment: true,
+    commentLabel: 'Cuéntanos ciudad, cantidad de colaboradores o hectáreas estimadas (opcional)',
+    options: [
+      { label: 'Programa Corporativo de Reforestación Nativa y Adopción', next: 'q3', service: 'EXP_REFOREST' },
+      { label: 'Cálculo y Compensación de Huella de Carbono (ISO 14064)', next: 'q3', service: 'EXP_CARBON' },
+      { label: 'Bio-Campamentos, Voluntariado ESG y Huertos Escolares', next: 'q3', service: 'EXP_BIOCAMP' },
+      { label: 'Jardines Verticales y Paisajismo Nativo Urbano', next: 'q3', service: 'EXP_GARDEN' },
     ],
   },
   q2_training: {
@@ -135,6 +148,10 @@ const SERVICES = {
   PREMIUM:       { tag: 'SERAM Academy',            title: 'Membresía Anual Academia Premium',                  desc: 'Acceso total a todos los cursos técnicos, recursos descargables y actualizaciones normativas.',             price: 'USD 35 / año',  route: '/academy', cta: 'Activar Membresía' },
   CORP:          { tag: 'Corporativo',              title: 'Taller Corporativo de Formación',                   desc: 'Capacitación presencial o virtual adaptada al sector productivo de tu empresa.',                            price: 'A medida',      route: '/quote',  cta: 'Solicitar Propuesta' },
   BROWSE_COURSES:{ tag: 'SERAM Academy',            title: 'Catálogo de Formación Especializada',               desc: 'Cursos técnicos, masterclasses y manuales de legislación ambiental boliviana.',                              price: 'Ver opciones',  route: '/academy', cta: 'Explorar Academia' },
+  EXP_REFOREST:  { tag: 'SERAM Experience',         title: 'Reforestación Corporativa y Adopción Nativa',       desc: 'Siembra trazable con georreferenciación GPS, monitoreo de supervivencia e informe ESG anual.',              price: 'Desde USD 250', route: '/experience', cta: 'Ver Reforestación' },
+  EXP_CARBON:    { tag: 'Huella de Carbono ESG',    title: 'Cálculo y Compensación ISO 14064',                  desc: 'Inventario de emisiones GEI Alcance 1, 2 y 3 con planes de compensación forestal certificada.',             price: 'Evaluación Técnica', route: '/experience', cta: 'Ver Huella Carbono' },
+  EXP_BIOCAMP:   { tag: 'Cultura Ambiental ESG',    title: 'Bio-Campamentos, Voluntariado y Huertos Escolares', desc: 'Jornadas vivenciales de educación ambiental, agricultura regenerativa y cultura ecológica.',                 price: 'Desde USD 180', route: '/experience', cta: 'Explorar Programas' },
+  EXP_GARDEN:    { tag: 'Infraestructura Verde',    title: 'Jardines Verticales y Paisajismo Nativo',           desc: 'Diseño e instalación de cubiertas verdes y fachadas vegetales urbanas de bajo mantenimiento.',              price: 'A medida',      route: '/experience', cta: 'Cotizar Diseño Verde' },
   CONSULT:       { tag: 'Consulta Técnica',         title: 'Consulta con Especialista SERAM',                   desc: 'Diagnóstico preliminar para canalizar tu requerimiento con el director técnico del área.',                   price: 'Sin costo',     route: '/contact', cta: 'Hablar con Especialista' },
 };
 
@@ -270,7 +287,7 @@ export default function ChatbotFAB() {
           {
             id: Date.now() + Math.random(),
             type: 'bot',
-            text: 'Excelente. Para asociar tu proyecto en nuestro sistema ARM y calcular la calificación técnica, ingresa tus datos de contacto:'
+            text: 'Excelente. Completa tus datos para preparar tu diagnóstico técnico y asignarte al especialista adecuado:'
           }
         ]);
         setTimeout(() => setView('form'), 600);
@@ -304,7 +321,7 @@ export default function ChatbotFAB() {
       cuando_necesita: urgencyText || 'En evaluación',
       cuanto_invertir: budgetText || 'Por definir',
       presupuesto_estimado_usd: budgetText.includes('1,500') ? 1600 : budgetText.includes('500') ? 850 : 250,
-      socio_asignado: 'Ing. Diego Barrientos',
+      socio_asignado: (serviceId && serviceId.startsWith('EXP_')) || serviceId === 'CORP' || serviceId === 'FNCA_OBS' ? 'Ing. Fernando Araujo' : 'Ing. Diego Barrientos',
       origen: 'Asistente Web SERAM',
       metadata_inbound: {
         serviceId,
@@ -316,11 +333,14 @@ export default function ChatbotFAB() {
 
     try {
       const created = await armService.createLead(leadPayload);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('seram:arm-leads-updated'));
+      }
       setCreatedLeadResult(created);
       setView('result');
-      triggerToast?.('Precalificación técnica registrada con éxito', 'success');
+      triggerToast?.('Solicitud técnica registrada con éxito', 'success');
     } catch {
-      triggerToast?.('No se pudo registrar la precalificación', 'error');
+      triggerToast?.('No se pudo registrar la solicitud técnica', 'error');
     } finally {
       setIsSubmittingLead(false);
     }
@@ -342,7 +362,6 @@ export default function ChatbotFAB() {
     if (!contactName.trim() && !contactPhone.trim()) return;
 
     setContactSent(true);
-    // Registrar también en ARM
     try {
       await armService.createLead({
         nombre: contactName.trim() || 'Contacto Web Rápido',
@@ -353,9 +372,12 @@ export default function ChatbotFAB() {
         cuando_necesita: 'Inmediato (< 15 días)',
         cuanto_invertir: 'Por definir',
         socio_asignado: 'Ing. Diego Barrientos',
-        origen: 'Formulario Rápido Chatbot',
+        origen: 'Formulario Rápido Asistente SERAM',
         notas_internas: contactMsg
       });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('seram:arm-leads-updated'));
+      }
     } catch {
       // Silencioso
     }
@@ -374,7 +396,7 @@ export default function ChatbotFAB() {
       bg: 'bg-gradient-to-r from-[#00e03c]/12 to-[#00e03c]/5',
       border: 'border-[#00e03c]/25 hover:border-[#00e03c]/55',
       iconBg: 'bg-[#00e03c]/20 shadow-[0_0_12px_rgba(0,224,60,0.2)]',
-      title: 'Diagnóstico & Precalificación ARM',
+      title: 'Diagnóstico y Precalificación',
       sub: 'Encuentra la solución exacta y evalúa tu proyecto en 60 segundos',
       arrow: <ChevronRight className="w-4 h-4 text-[#00e03c]/60 group-hover:text-[#00e03c] transition-colors flex-shrink-0" />,
       action: startDiagnosis
@@ -453,17 +475,12 @@ export default function ChatbotFAB() {
             >
               {/* Encabezado */}
               <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[#1a3a1a]/60 bg-[#05100a]/70 flex-shrink-0">
-                <div className="relative w-9 h-9 rounded-xl bg-[#061e0c] border border-[#00e03c]/40 flex items-center justify-center flex-shrink-0 shadow-[0_0_12px_rgba(0,224,60,0.25)] p-1.5">
-                  <img
-                    src="/assets/brand/logo-seram-icon.png"
-                    alt="Isotipo SERAM"
-                    className="w-full h-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]"
-                  />
+                <div className="relative w-9 h-9 rounded-xl bg-[#061e0c] border border-[#00e03c]/40 flex items-center justify-center flex-shrink-0 shadow-[0_0_12px_rgba(0,224,60,0.25)]">
+                  <MessageCircle className="w-4.5 h-4.5 text-[#00e03c]" />
                   <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[#00e03c] rounded-full border-2 border-[#080f08]" />
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 flex items-center">
                   <p className="text-[11px] font-black text-white uppercase tracking-wider font-tech leading-none">Asistente Digital SERAM</p>
-                  <p className="text-[9.5px] text-[#00e03c] font-medium tracking-wide mt-0.5">Sistema ARM · Calificación Inbound</p>
                 </div>
                 <div className="flex items-center gap-1">
                   {view !== 'welcome' && (
@@ -599,7 +616,7 @@ export default function ChatbotFAB() {
 
                     <form onSubmit={handleLeadSubmit} className="border border-[#00e03c]/30 rounded-2xl p-4 space-y-3 bg-[#00e03c]/[0.04]">
                       <div className="flex items-center justify-between pb-1 border-b border-white/[0.08]">
-                        <span className="text-[10px] font-black text-[#00e03c] uppercase tracking-wider font-tech">Ficha de Precalificación BANT</span>
+                        <span className="text-[10px] font-black text-[#00e03c] uppercase tracking-wider font-tech">Solicitud de Diagnóstico Técnico</span>
                         <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#00e03c]/15 text-[#00e03c] font-bold">100% Confidencial</span>
                       </div>
 
@@ -687,7 +704,7 @@ export default function ChatbotFAB() {
                     {createdLeadResult && (
                       <div className="rounded-2xl border border-white/[0.12] bg-white/[0.03] p-3.5 space-y-2.5">
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-tech">Precalificación ARM</span>
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-tech">Evaluación Técnica</span>
                           <span className={`text-[9px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
                             createdLeadResult.temperatura === 'caliente'
                               ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
@@ -695,24 +712,28 @@ export default function ChatbotFAB() {
                               ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                               : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
                           }`}>
-                            Temperatura: {createdLeadResult.temperatura} ({createdLeadResult.lead_score}/100)
+                            {createdLeadResult.temperatura === 'caliente'
+                              ? 'Prioridad Alta'
+                              : createdLeadResult.temperatura === 'tibio'
+                              ? 'Evaluación Programada'
+                              : 'Consulta Inicial'}
                           </span>
                         </div>
 
-                        {/* Derivación según temperatura */}
+                        {/* Derivación según prioridad */}
                         {createdLeadResult.temperatura === 'caliente' ? (
                           <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 space-y-1.5">
                             <div className="flex items-center gap-1.5 text-emerald-400 font-bold text-[11px]">
                               <UserCheck className="w-4 h-4" />
-                              <span>Calificación Prioritaria para Cierre Comercial</span>
+                              <span>Atención Prioritaria Asignada</span>
                             </div>
                             <p className="text-[11px] text-slate-200 leading-relaxed">
-                              Tu requerimiento cuenta con alta prioridad. Asignamos tu cuenta al especialista <strong className="text-white">{createdLeadResult.socio_asignado}</strong> para la estructuración y cierre inmediato de la propuesta formal.
+                              Tu requerimiento cuenta con alta prioridad. Asignamos tu caso al especialista <strong className="text-white">{createdLeadResult.socio_asignado}</strong> para coordinar de inmediato la propuesta técnica formal.
                             </p>
                             <a
                               href={armService.createWhatsAppUrl(
                                 '59179999999',
-                                `Hola ${createdLeadResult.socio_asignado}, completé la precalificación en la web de SERAM para el proyecto "${createdLeadResult.que_busca}". Deseo agendar el cierre de la propuesta técnica.`
+                                `Hola ${createdLeadResult.socio_asignado}, completé la evaluación en la web de SERAM para "${createdLeadResult.que_busca}". Deseo coordinar la propuesta técnica.`
                               )}
                               target="_blank"
                               rel="noopener noreferrer"
@@ -725,10 +746,10 @@ export default function ChatbotFAB() {
                           <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-1.5">
                             <div className="flex items-center gap-1.5 text-amber-400 font-bold text-[11px]">
                               <Clock className="w-4 h-4" />
-                              <span>Fase de Evaluación Técnica (MQL)</span>
+                              <span>Evaluación Técnica en Curso</span>
                             </div>
                             <p className="text-[11px] text-slate-200 leading-relaxed">
-                              Tu proyecto fue incorporado a nuestro protocolo de acompañamiento de 14 días. Recibirás hasta 7 contactos espaciados con casos de éxito y especificaciones normativas sin saturación.
+                              Nuestro equipo revisará los alcances técnicos de tu solicitud y te enviará especificaciones normativas y casos aplicados directamente a tu contacto.
                             </p>
                           </div>
                         ) : (
@@ -877,9 +898,9 @@ export default function ChatbotFAB() {
               <div className="border-t border-[#1a3a1a]/50 px-4 py-2 flex items-center justify-between flex-shrink-0 bg-[#050e07]/80">
                 <div className="flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 bg-[#00e03c] rounded-full animate-pulse shadow-[0_0_6px_rgba(0,224,60,0.8)]" />
-                  <span className="text-[8px] text-[#00e03c] font-tech uppercase tracking-widest font-bold">ARM Activo · 24/7</span>
+                  <span className="text-[8px] text-[#00e03c] font-tech uppercase tracking-widest font-bold">Activo · 24/7</span>
                 </div>
-                <span className="text-[8.5px] text-slate-400 font-mono">SERAM SRL · Inbound B2B</span>
+                <span className="text-[8.5px] text-slate-400 font-mono">SERAM SRL</span>
               </div>
             </motion.div>
           </>

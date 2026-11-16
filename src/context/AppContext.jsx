@@ -115,18 +115,251 @@ export function AppProvider({ children }) {
 
 
   // --- DEFAULT MULTI-CATEGORY COURSES & DELIVERABLES CATALOG (SERAM ACADEMY) ---
-  // Datos fantasma eliminados: El catálogo arranca limpio para registros reales
-  const DEFAULT_COURSES_CATALOG = [];
+  const createDefaultCourseModules = (courseTitle, topicSlug = 'normativa') => {
+    const introVideo = '/assets/videos/seram_academy_funcionamiento.mp4';
+    const altVideo = topicSlug === 'climate'
+      ? '/assets/videos/cambio_climatico_bolivia.mp4'
+      : 'https://assets.mixkit.co/videos/preview/mixkit-aerial-view-of-green-forest-3351-large.mp4';
+    return [
+      {
+        id: `mod-${topicSlug}-1`,
+        title: 'Módulo 1: Marco Regulatorio Boliviano y Fundamentos',
+        lessons: [
+          { id: `${topicSlug}-l1`, title: `1.1 Alcance Técnico: ${courseTitle.replace(/\*/g, '')}`, duration: '12:40 min', videoUrl: introVideo, isPremium: false },
+          { id: `${topicSlug}-l2`, title: '1.2 Matriz Normativa Ley 1333, D.S. 3549 y Autoridad Competente', duration: '16:15 min', videoUrl: altVideo, isPremium: false }
+        ]
+      },
+      {
+        id: `mod-${topicSlug}-2`,
+        title: 'Módulo 2: Metodología Aplicada y Formulación Técnica',
+        lessons: [
+          { id: `${topicSlug}-l3`, title: '2.1 Levantamiento de Línea Base y Coordenadas WGS-84', duration: '21:10 min', videoUrl: introVideo, isPremium: true },
+          { id: `${topicSlug}-l4`, title: '2.2 Elaboración de Formularios FNCA / PPM-PASA sin Observaciones', duration: '24:00 min', videoUrl: altVideo, isPremium: true }
+        ]
+      },
+      {
+        id: `mod-${topicSlug}-3`,
+        title: 'Módulo 3: Cierre de Proyecto y Aprobación Ante AACD/AACN',
+        lessons: [
+          { id: `${topicSlug}-l5`, title: '3.1 Armado de Carpeta Técnica, Carimbos y Respuesta a Conminatorias', duration: '18:30 min', videoUrl: introVideo, isPremium: true }
+        ]
+      }
+    ];
+  };
+
+  const DEFAULT_COURSES_CATALOG = [
+    {
+      id: 1,
+      title: 'Ebook: Guía Práctica de la Ley 1333 de *Medio Ambiente*',
+      instructor: 'SERAM Legal & Normativa',
+      students: 210,
+      status: 'Publicado',
+      isPremium: false,
+      type: 'gratis',
+      format: 'pdf',
+      hasVideo: false,
+      price: 0,
+      image: '/assets/covers/cover_ebook_ley1333.png',
+      duration: '80 páginas',
+      pages: 80,
+      version: 'Edición 2026',
+      desc: 'Compendio interpretado de legislación boliviana, carimbos institucionales, mapas sectoriales y tablas normativas de mitigación.',
+      category: 'formatos',
+      tags: ['formatos', 'tramites', 'normativa'],
+      level: 'Básico / Fundamentos',
+      track: 'Derecho & Normativa',
+      pdfUrl: '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf',
+      pdfName: 'Guia_Practica_Ley_1333_SERAM.pdf',
+      resources: [
+        { name: 'Compendio Normativo Ley 1333 Actualizado.pdf', size: '2.8 MB', url: '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf' },
+        { name: 'Modelo de Propuesta Técnica y Carimbos.pdf', size: '1.4 MB', url: '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf' }
+      ],
+      modules: createDefaultCourseModules('Guía Práctica Ley 1333', 'ley1333')
+    },
+    {
+      id: 2,
+      title: 'Herramientas Técnicas de QGIS *Básico & Cartografía*',
+      instructor: 'Ing. Diego Barrientos',
+      students: 85,
+      status: 'Publicado',
+      isPremium: true,
+      type: 'low_ticket',
+      format: 'video',
+      hasVideo: true,
+      price: 45,
+      image: '/assets/covers/cover_qgis_basico.png',
+      duration: '12 horas',
+      version: 'Edición 2026',
+      desc: 'Dominio práctico de QGIS aplicado a delimitación de cuencas, superposición de áreas protegidas e informes técnicos bolivianos.',
+      category: 'gis_mapas',
+      tags: ['gis_mapas', 'geomatica'],
+      level: 'Básico / Fundamentos',
+      track: 'Geomática & SIG',
+      pdfUrl: '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf',
+      pdfName: 'Manual_Cartografia_QGIS_WGS84.pdf',
+      modules: createDefaultCourseModules('QGIS Básico & Cartografía', 'qgis')
+    },
+    {
+      id: 3,
+      title: 'Taller Práctico: Metodología de *Fichas Ambientales* e Impacto',
+      instructor: 'Ing. Fernando Araujo',
+      students: 42,
+      status: 'Publicado',
+      isPremium: true,
+      type: 'mid_ticket',
+      format: 'video',
+      hasVideo: true,
+      price: 120,
+      image: '/assets/covers/cover_taller_fichas.png',
+      duration: '25 horas',
+      version: 'Edición 2026',
+      desc: 'Metodologías de categorización de obras civiles e industriales (FNCA), matrices PPM-PASA y adecuación bajo D.S. 3549.',
+      category: 'tramites',
+      tags: ['tramites', 'regularizacion'],
+      level: 'Intermedio / Aplicado',
+      track: 'Trámites & Licencias',
+      pdfUrl: '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf',
+      pdfName: 'Plantilla_FNCA_PPM_PASA_DS3549.pdf',
+      modules: createDefaultCourseModules('Fichas Ambientales e Impacto', 'fnca')
+    },
+    {
+      id: 4,
+      title: 'Auditoría y Regularización de Emergencia ante la *AACD/AACN*',
+      instructor: 'Equipo Técnico Especializado SERAM',
+      students: 18,
+      status: 'Publicado',
+      isPremium: true,
+      type: 'high_ticket',
+      format: 'video',
+      hasVideo: true,
+      price: 350,
+      image: '/assets/covers/cover_mentoria_consultoria.png',
+      duration: '15 horas + Asesoría',
+      version: 'Edición 2026',
+      desc: 'Protocolo técnico y legal paso a paso para levantar clausuras preventivas, responder conminatorias y subsanar pasivos ambientales.',
+      category: 'regularizacion',
+      tags: ['regularizacion', 'tramites', 'normativa'],
+      level: 'Avanzado / Especialista',
+      track: 'Derecho & Normativa',
+      pdfUrl: '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf',
+      pdfName: 'Protocolo_Regularizacion_AACD_AACN.pdf',
+      modules: createDefaultCourseModules('Auditoría y Regularización AACD/AACN', 'aacd')
+    },
+    {
+      id: 5,
+      title: 'Pack de Carimbos Técnicos Oficiales WGS-84 y Matrices *PPM-PASA*',
+      instructor: 'SERAM Ingeniería',
+      students: 340,
+      status: 'Publicado',
+      isPremium: false,
+      type: 'gratis',
+      format: 'pdf',
+      hasVideo: false,
+      price: 0,
+      image: '/assets/3d-backend/gis_satellite_mapping.webp',
+      duration: 'Dossier Descargable',
+      pages: 45,
+      version: 'Edición 2026',
+      desc: 'Plantillas en formato DWG/DXF y PDF listas para impresión A3/A4 con rotulación técnica exigida por el Viceministerio de Medio Ambiente.',
+      category: 'formatos',
+      tags: ['formatos', 'gis_mapas'],
+      level: 'Intermedio / Aplicado',
+      track: 'Formatos & Carimbos',
+      pdfUrl: '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf',
+      pdfName: 'Pack_Carimbos_WGS84_SERAM.pdf',
+      modules: createDefaultCourseModules('Carimbos Oficiales WGS-84', 'carimbos')
+    },
+    {
+      id: 6,
+      title: 'Gestión Integral de Trámites: Licencias Ambientales *Cat. 1 a 4*',
+      instructor: 'Ing. Fernando Araujo',
+      students: 65,
+      status: 'Publicado',
+      isPremium: true,
+      type: 'mid_ticket',
+      format: 'video',
+      hasVideo: true,
+      price: 80,
+      image: '/assets/covers/cover_taller_fichas.png',
+      duration: '18 horas',
+      version: 'Edición 2026',
+      desc: 'Guía exhaustiva para la categorización FNCA, DAA, EEIA y Certificados de Dispensación bajo los decretos reglamentarios vigentes.',
+      category: 'tramites',
+      tags: ['tramites', 'regularizacion'],
+      level: 'Intermedio / Aplicado',
+      track: 'Trámites & Licencias',
+      pdfUrl: '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf',
+      pdfName: 'Guia_Licencias_Cat_1_a_4.pdf',
+      modules: createDefaultCourseModules('Licencias Ambientales Cat. 1 a 4', 'licencias')
+    },
+    {
+      id: 7,
+      title: 'Gestión Integral de *Residuos Sólidos y Peligrosos (Ley 755)*',
+      instructor: 'Ing. Fernando Araujo',
+      students: 92,
+      status: 'Publicado',
+      isPremium: true,
+      type: 'mid_ticket',
+      format: 'video',
+      hasVideo: true,
+      price: 95,
+      image: '/assets/3d-backend/panel2-service-background.webp',
+      duration: '14 horas',
+      version: 'Edición 2026',
+      desc: 'Procedimientos técnicos y normativos para clasificación, manifiestos de transporte, acopio y tratamiento de RESPEL bajo la Ley 755.',
+      category: 'tramites',
+      tags: ['tramites', 'residuos'],
+      level: 'Intermedio / Aplicado',
+      track: 'Gestión de Residuos',
+      pdfUrl: '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf',
+      pdfName: 'Manual_Gestion_RESPEL_Ley_755.pdf',
+      modules: createDefaultCourseModules('Residuos Sólidos y Peligrosos Ley 755', 'ley755')
+    },
+    {
+      id: 8,
+      title: 'Modelación Hidrológica de Cuencas y *Análisis Multitemporal SIG*',
+      instructor: 'Ing. Diego Barrientos',
+      students: 48,
+      status: 'Publicado',
+      isPremium: true,
+      type: 'high_ticket',
+      format: 'video',
+      hasVideo: true,
+      price: 240,
+      image: '/assets/3d-backend/gis_satellite_mapping_cropped.webp',
+      duration: '26 horas',
+      version: 'Edición 2026',
+      desc: 'Modelado avanzado de escorrentía, balance hídrico, índices NDVI e integración de cartografía oficial WGS-84 para estudios EEIA.',
+      category: 'gis_mapas',
+      tags: ['gis_mapas'],
+      level: 'Avanzado / Especialista',
+      track: 'Geomática & SIG',
+      pdfUrl: '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf',
+      pdfName: 'Dossier_Modelacion_Hidrologica_SIG.pdf',
+      modules: createDefaultCourseModules('Modelación Hidrológica y SIG', 'climate')
+    }
+  ];
+
+  const getDeletedCourseIds = () => {
+    try {
+      const raw = localStorage.getItem('seram_deleted_course_ids');
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr.map(String) : [];
+    } catch {
+      return [];
+    }
+  };
 
   // Helper resiliente para guardar catálogo en localStorage sin fallos por exceso de cuota
   const saveCoursesToStorage = (list) => {
     try {
       if (typeof window === 'undefined' || !Array.isArray(list)) return;
       const sanitized = list.map(c => {
-        if (c.pdfUrl && typeof c.pdfUrl === 'string' && c.pdfUrl.startsWith('data:') && c.pdfUrl.length > 50000) {
-          return { ...c, pdfUrl: '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf' };
+        let safePdf = c.pdfUrl;
+        if (safePdf && typeof safePdf === 'string' && safePdf.startsWith('data:') && safePdf.length > 150000) {
+          safePdf = '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf';
         }
-        return c;
+        return { ...c, pdfUrl: safePdf };
       });
       localStorage.setItem('seram_courses', JSON.stringify(sanitized));
     } catch (err) {
@@ -138,19 +371,51 @@ export function AppProvider({ children }) {
   const [courses, setCourses] = useState(() => {
     if (typeof window !== 'undefined') {
       try {
+        const deletedIds = new Set(getDeletedCourseIds());
         const saved = localStorage.getItem('seram_courses');
-        if (saved) {
+        const isSeededV2 = localStorage.getItem('seram_courses_catalog_seeded_v2') === 'true';
+        const defaultMap = new Map(DEFAULT_COURSES_CATALOG.map(dc => [String(dc.id), dc]));
+
+        if (saved && isSeededV2) {
           const parsed = JSON.parse(saved);
-          // Purgar cursos demo/ficticios antiguos si existen (ids 101 a 105 o id 1 antiguo)
-          const filtered = Array.isArray(parsed) ? parsed.filter(c => c.id !== 101 && c.id !== 102 && c.id !== 103 && c.id !== 104 && c.id !== 105 && c.id !== 1) : [];
-          if (filtered.length !== (parsed?.length || 0)) {
-            localStorage.setItem('seram_courses', JSON.stringify(filtered));
+          if (Array.isArray(parsed)) {
+            return parsed
+              .filter(c => c && !deletedIds.has(String(c.id)) && ![101, 102, 103, 104, 105].includes(c.id))
+              .map(c => {
+                const def = defaultMap.get(String(c.id)) || {};
+                const normalizedStatus = c.status === 'Activo' ? 'Publicado' : (c.status || def.status || 'Publicado');
+                return { ...def, ...c, status: normalizedStatus };
+              });
           }
-          return filtered;
         }
-      } catch (e) {}
+
+        // Primera migración al catálogo unificado Odoo/Crehana
+        const existingParsed = saved ? JSON.parse(saved) : [];
+        const mergedMap = new Map();
+        DEFAULT_COURSES_CATALOG.forEach(dc => {
+          if (!deletedIds.has(String(dc.id))) mergedMap.set(String(dc.id), dc);
+        });
+        if (Array.isArray(existingParsed)) {
+          existingParsed.forEach(c => {
+            if (c && !deletedIds.has(String(c.id)) && ![101, 102, 103, 104, 105].includes(c.id)) {
+              const prevDef = mergedMap.get(String(c.id)) || {};
+              mergedMap.set(String(c.id), {
+                ...prevDef,
+                ...c,
+                status: c.status === 'Activo' ? 'Publicado' : (c.status || prevDef.status || 'Publicado')
+              });
+            }
+          });
+        }
+        const initialList = Array.from(mergedMap.values());
+        localStorage.setItem('seram_courses_catalog_seeded_v2', 'true');
+        saveCoursesToStorage(initialList);
+        return initialList;
+      } catch (e) {
+        console.warn('[Courses Init Notice]:', e);
+      }
     }
-    return [];
+    return DEFAULT_COURSES_CATALOG;
   });
 
   // --- PROJECTS (Proyectos B2B y Consultorías Ambientales Oficiales de SERAM SRL) ---
@@ -1863,35 +2128,43 @@ export function AppProvider({ children }) {
 
         // 1. Courses (Fusión inteligente: nunca sobreescribir ni borrar cursos locales o subidos)
         if (coursesRes.status === 'fulfilled' && !coursesRes.value.error && coursesRes.value.data?.length > 0) {
-          const mappedCourses = coursesRes.value.data.map(c => ({
-            id: c.id,
-            title: c.title,
-            instructor: c.instructor,
-            students: c.students || 0,
-            status: c.status || 'Activo',
-            isPremium: c.is_premium ?? false,
-            type: c.type || 'mid_ticket',
-            format: c.format || (c.duration && /pdf|dossier|pág|pag/i.test(c.duration) ? 'pdf' : (c.has_video === false ? 'pdf' : undefined)),
-            hasVideo: c.has_video !== undefined ? c.has_video : (c.duration && /pdf|dossier|pág|pag/i.test(c.duration) ? false : undefined),
-            price: parseFloat(c.price) || 0,
-            image: c.image || '/assets/3d-backend/gis_satellite_mapping.webp',
-            duration: c.duration || '10 horas',
-            desc: c.desc || c.description || '',
-            pdfUrl: c.pdf_url || c.pdfUrl || null,
-            pdfName: c.pdf_name || c.pdfName || null,
-            pages: c.pages || null,
-            version: c.version || null
-          }));
+          const deletedIds = new Set(getDeletedCourseIds());
+          const mappedCourses = coursesRes.value.data
+            .filter(c => !deletedIds.has(String(c.id)))
+            .map(c => ({
+              id: c.id,
+              title: c.title,
+              instructor: c.instructor,
+              students: c.students || 0,
+              status: c.status === 'Activo' ? 'Publicado' : (c.status || 'Publicado'),
+              isPremium: c.is_premium ?? false,
+              type: c.type || 'mid_ticket',
+              format: c.format || (c.duration && /pdf|dossier|pág|pag/i.test(c.duration) ? 'pdf' : (c.has_video === false ? 'pdf' : undefined)),
+              hasVideo: c.has_video !== undefined ? c.has_video : (c.duration && /pdf|dossier|pág|pag/i.test(c.duration) ? false : undefined),
+              price: parseFloat(c.price) || 0,
+              image: c.image || '/assets/3d-backend/gis_satellite_mapping.webp',
+              duration: c.duration || '10 horas',
+              desc: c.desc || c.description || '',
+              pdfUrl: c.pdf_url || c.pdfUrl || null,
+              pdfName: c.pdf_name || c.pdfName || null,
+              pages: c.pages || null,
+              version: c.version || null
+            }));
           setCourses(prev => {
             const map = new Map();
-            DEFAULT_COURSES_CATALOG.forEach(dc => map.set(dc.id, dc));
-            prev.forEach(p => map.set(p.id, { ...(map.get(p.id) || {}), ...p }));
+            DEFAULT_COURSES_CATALOG.forEach(dc => {
+              if (!deletedIds.has(String(dc.id))) map.set(String(dc.id), dc);
+            });
+            prev.forEach(p => {
+              if (p && !deletedIds.has(String(p.id))) {
+                map.set(String(p.id), { ...(map.get(String(p.id)) || {}), ...p });
+              }
+            });
 
             mappedCourses.forEach(rc => {
-              // Buscar coincidencia por ID o por Título normalizado
-              let targetKey = rc.id;
+              let targetKey = String(rc.id);
               for (const [key, val] of map.entries()) {
-                if (val.id === rc.id || (val.title && rc.title && val.title.trim().toLowerCase() === rc.title.trim().toLowerCase())) {
+                if (String(val.id) === String(rc.id) || (val.title && rc.title && val.title.trim().toLowerCase() === rc.title.trim().toLowerCase())) {
                   targetKey = key;
                   break;
                 }
@@ -1903,20 +2176,27 @@ export function AppProvider({ children }) {
               const mergedCourse = {
                 ...existing,
                 ...rc,
-                id: targetKey,
-                // Preservar metadatos ricos locales si columnas de BD vienen vacías
+                id: existing.id || rc.id,
+                status: existing.status || rc.status || 'Publicado',
                 format: resolvedFormat,
                 hasVideo: resolvedHasVideo,
+                image: existing.image || rc.image,
+                category: existing.category || rc.category || 'tramites',
+                tags: existing.tags || rc.tags || ['tramites'],
+                level: existing.level || rc.level || 'Intermedio / Aplicado',
+                track: existing.track || rc.track || 'Trámites & Licencias',
                 pages: rc.pages || existing.pages || (resolvedFormat === 'pdf' ? 120 : null),
                 version: rc.version || existing.version || 'Edición 2026',
+                modules: existing.modules || rc.modules || createDefaultCourseModules(rc.title || existing.title || 'Programa Técnico'),
+                resources: existing.resources || rc.resources || [],
                 sections: existing.sections || rc.sections || [
                   { title: 'Capítulo I: Marco Regulatorio General y Principios' },
                   { title: 'Capítulo II: Instrumentos de Regulación de Alcance Particular' },
                   { title: 'Capítulo III: Formularios Técnicos y Guías de Campo' },
                   { title: 'Capítulo IV: Modelos de Declaración Jurada y Anexos' }
                 ],
-                pdfUrl: rc.pdfUrl || existing.pdfUrl || '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf',
-                pdfName: rc.pdfName || existing.pdfName || 'Documento_Oficial_SERAM.pdf'
+                pdfUrl: existing.pdfUrl || rc.pdfUrl || '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf',
+                pdfName: existing.pdfName || rc.pdfName || 'Documento_Oficial_SERAM.pdf'
               };
               map.set(targetKey, mergedCourse);
             });
@@ -2264,13 +2544,7 @@ export function AppProvider({ children }) {
 
   // --- AUTOMATIC PERSISTENCE TO LOCALSTORAGE ---
   useEffect(() => {
-    try {
-      if (courses && courses.length > 0) {
-        localStorage.setItem('seram_courses', JSON.stringify(courses));
-      }
-    } catch (e) {
-      console.warn('Could not save courses to localStorage', e);
-    }
+    saveCoursesToStorage(courses || []);
   }, [courses]);
 
   useEffect(() => {
@@ -2779,13 +3053,14 @@ export function AppProvider({ children }) {
 
   const handleAddCourse = async (courseData) => {
     if (!courseData.title || !courseData.instructor) return;
-    const isPdfFormat = courseData.format === 'pdf' || courseData.hasVideo === false || (courseData.type === 'gratis' && !courseData.videoUrl);
+    const isPdfFormat = courseData.format === 'pdf' || courseData.hasVideo === false || (courseData.type === 'gratis' && !courseData.videoUrl && !(courseData.modules?.length > 0));
+    const defaultModules = createDefaultCourseModules(courseData.title, 'custom');
     const newCourse = { 
       id: courseData.id || Date.now(), 
       title: courseData.title, 
       instructor: courseData.instructor, 
       students: courseData.students || 0, 
-      status: 'Activo', 
+      status: courseData.status || 'Publicado', 
       isPremium: courseData.isPremium !== undefined ? courseData.isPremium : (courseData.type !== 'gratis'),
       type: courseData.type || 'mid_ticket',
       format: isPdfFormat ? 'pdf' : 'video',
@@ -2794,10 +3069,16 @@ export function AppProvider({ children }) {
       image: courseData.image || (isPdfFormat ? '/assets/covers/cover_ebook_ley1333.png' : '/assets/3d-backend/gis_satellite_mapping.webp'),
       duration: courseData.duration || (isPdfFormat ? 'Dossier Descargable (PDF)' : '10 horas prácticas'),
       desc: courseData.desc || '',
+      category: courseData.category || 'tramites',
+      tags: Array.isArray(courseData.tags) && courseData.tags.length > 0 ? courseData.tags : [courseData.category || 'tramites'],
+      level: courseData.level || 'Intermedio / Aplicado',
+      track: courseData.track || 'Trámites & Licencias',
       pdfUrl: courseData.pdfUrl || '/assets/documents/ejemplo_propuesta_tecnica_seram.pdf',
       pdfName: courseData.pdfName || 'Documento_Oficial_SERAM_2026.pdf',
       pages: courseData.pages || (isPdfFormat ? 120 : null),
       version: courseData.version || 'Norma 2026 Vigente',
+      resources: Array.isArray(courseData.resources) ? courseData.resources : [],
+      modules: Array.isArray(courseData.modules) && courseData.modules.length > 0 ? courseData.modules : defaultModules,
       sections: courseData.sections || [
         { title: 'Módulo 1: Marco Conceptual y Normativa Vigente' },
         { title: 'Módulo 2: Procedimiento Técnico y Metodología Aplicada' },
@@ -2807,26 +3088,29 @@ export function AppProvider({ children }) {
     };
 
     setCourses(prev => {
-      const updated = [newCourse, ...prev.filter(c => c.id !== newCourse.id)];
+      const updated = [newCourse, ...prev.filter(c => String(c.id) !== String(newCourse.id))];
       saveCoursesToStorage(updated);
       return updated;
     });
-    triggerToast(`Recurso registrado (${isPdfFormat ? 'Modalidad Entregable PDF' : 'Modalidad Video HD'})`, 'success');
+    triggerToast(`Recurso guardado (${newCourse.status} · ${isPdfFormat ? 'Entregable PDF' : 'Video HD'})`, 'success');
 
     try {
       const dbPdfUrl = (typeof newCourse.pdfUrl === 'string' && newCourse.pdfUrl.startsWith('data:')) 
         ? '/assets/documents/compendio_normativo_gestion_ambiental_seram.pdf' 
         : newCourse.pdfUrl;
+      const dbImageUrl = (typeof newCourse.image === 'string' && newCourse.image.startsWith('data:'))
+        ? '/assets/covers/cover_taller_fichas.png'
+        : newCourse.image;
 
       const { data, error } = await supabase.from('courses').insert([{
         title: newCourse.title,
         instructor: newCourse.instructor,
         students: 0,
-        status: 'Activo',
+        status: newCourse.status,
         is_premium: newCourse.isPremium,
         type: newCourse.type,
         price: newCourse.price,
-        image: newCourse.image,
+        image: dbImageUrl,
         duration: newCourse.duration,
         desc: newCourse.desc,
         pdf_url: dbPdfUrl,
@@ -2845,24 +3129,30 @@ export function AppProvider({ children }) {
     } catch (err) {
       console.warn('[Supabase Sync Warning - AddCourse]:', err.message);
     }
+    return newCourse;
   };
 
   const handleUpdateCourse = async (id, fields) => {
     setCourses(prev => {
-      const updated = prev.map(c => c.id === id ? { ...c, ...fields } : c);
+      const updated = prev.map(c => String(c.id) === String(id) ? { ...c, ...fields } : c);
       saveCoursesToStorage(updated);
       return updated;
     });
-    triggerToast('Recurso académico actualizado', 'success');
+    triggerToast('Recurso académico actualizado en Odoo & Crehana', 'success');
 
     try {
       const dbFields = {};
       if (fields.title !== undefined) dbFields.title = fields.title;
       if (fields.instructor !== undefined) dbFields.instructor = fields.instructor;
+      if (fields.status !== undefined) dbFields.status = fields.status;
       if (fields.isPremium !== undefined) dbFields.is_premium = fields.isPremium;
       if (fields.type !== undefined) dbFields.type = fields.type;
       if (fields.price !== undefined) dbFields.price = fields.price;
-      if (fields.image !== undefined) dbFields.image = fields.image;
+      if (fields.image !== undefined) {
+        dbFields.image = (typeof fields.image === 'string' && fields.image.startsWith('data:'))
+          ? '/assets/covers/cover_taller_fichas.png'
+          : fields.image;
+      }
       if (fields.duration !== undefined) dbFields.duration = fields.duration;
       if (fields.desc !== undefined) dbFields.desc = fields.desc;
       if (fields.pdfUrl !== undefined) {
@@ -2872,9 +3162,11 @@ export function AppProvider({ children }) {
       }
       if (fields.pdfName !== undefined) dbFields.pdf_name = fields.pdfName;
 
-      const { error } = await supabase.from('courses').update(dbFields).eq('id', id);
-      if (error && error.code !== 'PGRST205') {
-        console.warn('[Supabase Update Course Warning]:', error.message);
+      if (Object.keys(dbFields).length > 0) {
+        const { error } = await supabase.from('courses').update(dbFields).eq('id', id);
+        if (error && error.code !== 'PGRST205') {
+          console.warn('[Supabase Update Course Warning]:', error.message);
+        }
       }
     } catch (err) {
       console.warn('[Supabase Sync Warning - UpdateCourse]:', err.message);
@@ -2882,12 +3174,20 @@ export function AppProvider({ children }) {
   };
 
   const handleDeleteCourse = async (id) => {
+    try {
+      const prevDeleted = getDeletedCourseIds();
+      if (!prevDeleted.includes(String(id))) {
+        localStorage.setItem('seram_deleted_course_ids', JSON.stringify([...prevDeleted, String(id)]));
+      }
+    } catch (_) {
+      /* ignore */
+    }
     setCourses(prev => {
-      const updated = prev.filter(c => c.id !== id);
+      const updated = prev.filter(c => String(c.id) !== String(id));
       saveCoursesToStorage(updated);
       return updated;
     });
-    triggerToast('Curso eliminado correctamente', 'info');
+    triggerToast('Registro eliminado del catálogo Odoo', 'info');
 
     try {
       const { error } = await supabase.from('courses').delete().eq('id', id);
@@ -2899,11 +3199,74 @@ export function AppProvider({ children }) {
     }
   };
 
+  const handleToggleCoursePublished = async (id, nextStatus = null) => {
+    let resolvedStatus = 'Publicado';
+    setCourses(prev => {
+      const updated = prev.map(c => {
+        if (String(c.id) === String(id)) {
+          const isCurrentlyPublished = c.status === 'Publicado' || c.status === 'Activo';
+          resolvedStatus = nextStatus || (isCurrentlyPublished ? 'Borrador' : 'Publicado');
+          return { ...c, status: resolvedStatus };
+        }
+        return c;
+      });
+      saveCoursesToStorage(updated);
+      return updated;
+    });
+    triggerToast(
+      resolvedStatus === 'Publicado' ? 'Curso publicado en SERAM Academy' : `Estado cambiado a ${resolvedStatus}`,
+      resolvedStatus === 'Publicado' ? 'success' : 'info'
+    );
+
+    try {
+      const { error } = await supabase.from('courses').update({ status: resolvedStatus }).eq('id', id);
+      if (error && error.code !== 'PGRST205') {
+        console.warn('[Supabase Toggle Publish Warning]:', error.message);
+      }
+    } catch (err) {
+      console.warn('[Supabase Sync Warning - TogglePublish]:', err.message);
+    }
+  };
+
+  const handleUpdateCourseModules = (courseId, nextModules) => {
+    if (!Array.isArray(nextModules)) return;
+    const totalLessons = nextModules.reduce((acc, m) => acc + (m.lessons?.length || 0), 0);
+    setCourses(prev => {
+      const updated = prev.map(c => {
+        if (String(c.id) === String(courseId)) {
+          return {
+            ...c,
+            modules: nextModules,
+            hasVideo: totalLessons > 0 ? true : c.hasVideo,
+            format: totalLessons > 0 && c.format !== 'pdf' ? 'video' : c.format
+          };
+        }
+        return c;
+      });
+      saveCoursesToStorage(updated);
+      return updated;
+    });
+    triggerToast('Temario y videos sincronizados con Crehana', 'success');
+  };
+
+  const handleDuplicateCourse = async (id) => {
+    const source = courses.find(c => String(c.id) === String(id));
+    if (!source) return null;
+    const clonedTitle = `${source.title} (Copia)`;
+    return await handleAddCourse({
+      ...source,
+      id: Date.now(),
+      title: clonedTitle,
+      students: 0,
+      status: 'Borrador'
+    });
+  };
+
   const handleToggleCoursePremium = async (id) => {
     let updatedCourse = null;
     setCourses(prev => {
       const updated = prev.map(c => {
-        if (c.id === id) {
+        if (String(c.id) === String(id)) {
           updatedCourse = { ...c, isPremium: !c.isPremium };
           return updatedCourse;
         }
@@ -4268,6 +4631,7 @@ export function AppProvider({ children }) {
       toggleLessonCompleted, approveCourseExam, submitAssignment,
       handleAccessItem, handleAddToCart, handleRemoveFromCart, handleCheckout,
       handleAddCourse, handleUpdateCourse, handleDeleteCourse, handleToggleCoursePremium,
+      handleToggleCoursePublished, handleUpdateCourseModules, handleDuplicateCourse,
       handleAddProject, handleUpdateProjectProgress, handleDeleteProject,
       handleEditProject, handleConcludeProject,
       handleAddActivity, handleUpdateActivityStatus, handleEditActivity, handleDeleteActivity,

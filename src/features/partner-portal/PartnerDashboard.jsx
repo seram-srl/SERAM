@@ -31,6 +31,7 @@ import PartnerProfileRPGModule from './PartnerProfileRPGModule';
 import OdooAppLauncher from './odoo/OdooAppLauncher';
 import OdooOperationsModule from './operations/OdooOperationsModule';
 import OdooCalendarModule from './calendar/OdooCalendarModule';
+import OdooAcademyModule from './academy/OdooAcademyModule';
 import { calculatePartnerTotalXP } from './gamification/xpEngine';
 
 // ── ANIMATION VARIANTS ─────────────────────────────────────────────────────
@@ -4246,6 +4247,7 @@ export default function PartnerDashboard() {
     timeLogs, handleAddTimeLog, handleDeleteTimeLog,
     partnerPresences,
     handleAddCourse, handleUpdateCourse, handleDeleteCourse, handleToggleCoursePremium,
+    handleToggleCoursePublished, handleUpdateCourseModules, handleDuplicateCourse,
     handleAddProject, handleUpdateProjectProgress, handleDeleteProject,
     handleEditProject, handleConcludeProject,
     handleToggleUserPremium, handleRevokeUserAccess,
@@ -4334,6 +4336,7 @@ export default function PartnerDashboard() {
 
   const handlers = {
     handleAddCourse, handleUpdateCourse, handleDeleteCourse, handleToggleCoursePremium,
+    handleToggleCoursePublished, handleUpdateCourseModules, handleDuplicateCourse,
     handleAddProject, handleUpdateProjectProgress, handleDeleteProject,
     handleEditProject, handleConcludeProject,
     handleAddMunicipalProposal, handleEditMunicipalProposal, handleDeleteMunicipalProposal,
@@ -4693,7 +4696,7 @@ export default function PartnerDashboard() {
             {activeModule === 'profiles'    && <PartnerProfileRPGModule currentSocio={activeSocio} timeLogs={timeLogs || []} />}
             {activeModule === 'services'    && <OdooOperationsModule activeServices={activeServices || []} registeredEngineers={safeEngineers} handlers={handlers} publicServices={publicServices || []} specialists={specialists || []} municipalProposals={municipalProposals || []} onNavigate={setActiveModule} />}
             {activeModule === 'timetracker' && <TimeTrackerModule timeLogs={timeLogs || []} activeServices={activeServices || []} currentSocio={activeSocio} handlers={handlers} onNavigate={setActiveModule} />}
-            {activeModule === 'academy'     && <AcademyModule courses={courses || []} registeredEngineers={safeEngineers} currentSocio={activeSocio} handlers={handlers} />}
+            {activeModule === 'academy'     && <OdooAcademyModule courses={courses || []} registeredEngineers={safeEngineers} currentSocio={activeSocio} handlers={handlers} />}
             {activeModule === 'experience'  && <ExperienceModule experiences={experiences || []} handlers={handlers} />}
             {activeModule === 'store'       && <StoreModule productList={productList || []} handlers={handlers} />}
             {activeModule === 'users'       && <UsersModule registeredUsers={registeredUsers || []} handlers={handlers} partnerPresences={partnerPresences} />}
