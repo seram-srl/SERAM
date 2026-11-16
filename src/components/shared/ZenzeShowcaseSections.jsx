@@ -69,7 +69,7 @@ export function EditorialHeroSection({
             )}
           </h1>
 
-          <p className="text-base sm:text-lg text-[#3e4a39] leading-relaxed max-w-xl">
+          <p className="text-base sm:text-lg text-[#3e4a39] font-sans leading-relaxed max-w-xl">
             {description}
           </p>
 
@@ -78,10 +78,10 @@ export function EditorialHeroSection({
               <button
                 type="button"
                 onClick={onPrimaryCta}
-                className="px-7 py-3.5 bg-[#126c0f] hover:bg-[#029907] text-white font-bold text-sm transition-colors inline-flex items-center gap-2 cursor-pointer"
+                className="group px-7 py-3.5 rounded-xl bg-[#126c0f] hover:bg-[#029907] text-white font-bold text-sm shadow-lg shadow-[#126c0f]/20 hover:shadow-[#029907]/30 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 inline-flex items-center gap-2 cursor-pointer"
               >
                 <span>{primaryCtaLabel}</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
             )}
 
@@ -89,17 +89,19 @@ export function EditorialHeroSection({
               secondaryTo ? (
                 <Link
                   to={secondaryTo}
-                  className="px-7 py-3.5 border-2 border-[#126c0f] text-[#126c0f] hover:bg-[#126c0f]/5 font-bold text-sm transition-colors inline-flex items-center gap-2"
+                  className="group px-7 py-3.5 rounded-xl border border-[#126c0f]/40 hover:border-[#126c0f] bg-white/80 backdrop-blur-sm text-[#126c0f] hover:bg-[#126c0f]/5 font-bold text-sm hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 inline-flex items-center gap-2"
                 >
                   <span>{secondaryCtaLabel}</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
               ) : (
                 <button
                   type="button"
                   onClick={onSecondaryCta}
-                  className="px-7 py-3.5 border-2 border-[#126c0f] text-[#126c0f] hover:bg-[#126c0f]/5 font-bold text-sm transition-colors inline-flex items-center gap-2 cursor-pointer"
+                  className="group px-7 py-3.5 rounded-xl border border-[#126c0f]/40 hover:border-[#126c0f] bg-white/80 backdrop-blur-sm text-[#126c0f] hover:bg-[#126c0f]/5 font-bold text-sm hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 inline-flex items-center gap-2 cursor-pointer"
                 >
                   <span>{secondaryCtaLabel}</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
               )
             )}
@@ -124,11 +126,11 @@ export function EditorialPillarsSection({
     <section className={`py-16 md:py-24 ${bgClass} border-b border-[#bdcbb4]/50`}>
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="max-w-3xl mx-auto text-center space-y-4 mb-14">
-          <h2 className="text-3xl sm:text-4xl font-black text-[#1a1c1c] font-display">
+          <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-[#1a1c1c] font-display">
             {title}
           </h2>
           <div className="w-24 h-1 bg-[#126c0f] mx-auto" />
-          <p className="text-sm sm:text-base text-[#3e4a39] leading-relaxed">
+          <p className="text-sm sm:text-base text-[#3e4a39] font-sans leading-relaxed">
             {subtitle}
           </p>
         </div>
@@ -143,16 +145,16 @@ export function EditorialPillarsSection({
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-40px' }}
                 transition={{ duration: 0.45, delay: idx * 0.06 }}
-                className="bg-white p-8 md:p-10 border border-[#bdcbb4] hover:border-[#126c0f] transition-all flex flex-col justify-between space-y-6 text-left"
+                className="bg-white p-8 md:p-10 rounded-xl border border-[#bdcbb4] hover:border-[#126c0f] hover:shadow-lg hover:shadow-[#126c0f]/5 transition-all duration-300 flex flex-col justify-between space-y-6 text-left"
               >
                 <div className="space-y-4">
-                  <div className="w-12 h-12 bg-[#126c0f] text-white flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-lg bg-[#126c0f] text-white flex items-center justify-center shadow-md shadow-[#126c0f]/20">
                     {CardIcon && <CardIcon className="w-6 h-6" />}
                   </div>
-                  <h3 className="text-xl font-bold text-[#1a1c1c] font-display leading-snug">
+                  <h3 className="text-xl font-bold tracking-tight text-[#1a1c1c] font-display leading-snug">
                     {card.title}
                   </h3>
-                  <p className="text-sm text-[#3e4a39] leading-relaxed">
+                  <p className="text-sm text-[#3e4a39] font-sans leading-relaxed">
                     {card.desc}
                   </p>
                 </div>
@@ -161,19 +163,19 @@ export function EditorialPillarsSection({
                   card.actionTo ? (
                     <Link
                       to={card.actionTo}
-                      className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#126c0f] hover:text-[#029907] transition-colors pt-2"
+                      className="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#126c0f] hover:text-[#029907] transition-all duration-300 pt-2"
                     >
                       <span>{card.actionLabel}</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </Link>
                   ) : (
                     <button
                       type="button"
                       onClick={card.onAction}
-                      className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#126c0f] hover:text-[#029907] transition-colors pt-2 cursor-pointer"
+                      className="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#126c0f] hover:text-[#029907] transition-all duration-300 pt-2 cursor-pointer active:scale-[0.98]"
                     >
                       <span>{card.actionLabel}</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </button>
                   )
                 )}
@@ -210,16 +212,16 @@ export function EditorialBentoSection({
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
           {/* Columna Izquierda: Bloque Sólido Verde + 2 Indicadores */}
           <div className="md:col-span-7 space-y-6 flex flex-col justify-between">
-            <div className="bg-[#126c0f] text-white p-10 md:p-12 space-y-4 text-left flex-1 flex flex-col justify-center">
+            <div className="bg-[#126c0f] text-white p-10 md:p-12 rounded-xl space-y-4 text-left flex-1 flex flex-col justify-center">
               {kicker && (
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/80">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/80 font-sans">
                   {kicker}
                 </p>
               )}
-              <h2 className="text-2xl sm:text-3xl font-black font-display leading-tight">
+              <h2 className="text-2xl sm:text-3xl font-black font-display tracking-tight leading-tight">
                 {title}
               </h2>
-              <p className="text-sm sm:text-base text-white/90 leading-relaxed">
+              <p className="text-sm sm:text-base text-white/90 font-sans leading-relaxed">
                 {description}
               </p>
               {ctaLabel && (
@@ -227,10 +229,10 @@ export function EditorialBentoSection({
                   <button
                     type="button"
                     onClick={onCtaClick}
-                    className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white border-b border-white/60 hover:border-white pb-1 transition-colors cursor-pointer"
+                    className="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white border-b border-white/60 hover:border-white pb-1 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 cursor-pointer"
                   >
                     <span>{ctaLabel}</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </button>
                 </div>
               )}
@@ -240,12 +242,12 @@ export function EditorialBentoSection({
               {stats.slice(0, 2).map((stat, idx) => (
                 <div
                   key={idx}
-                  className="bg-[#eeeeee] p-8 text-center border border-[#bdcbb4]/50"
+                  className="bg-[#eeeeee] p-8 rounded-xl text-center border border-[#bdcbb4]/50"
                 >
-                  <p className="text-3xl sm:text-4xl font-black text-[#126c0f] font-display">
+                  <p className="text-3xl sm:text-4xl font-black tracking-tight text-[#126c0f] font-display">
                     {stat.value}
                   </p>
-                  <p className="text-xs sm:text-sm font-medium text-[#3e4a39] mt-2">
+                  <p className="text-xs sm:text-sm font-medium text-[#3e4a39] font-sans leading-relaxed mt-2">
                     {stat.label}
                   </p>
                 </div>
@@ -308,10 +310,10 @@ export function EditorialShowcaseSection({
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 space-y-12">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 text-left">
           <div className="space-y-2 max-w-2xl">
-            <h2 className="text-3xl sm:text-4xl font-black text-[#1a1c1c] font-display">
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-[#1a1c1c] font-display">
               {title}
             </h2>
-            <p className="text-sm sm:text-base text-[#3e4a39] leading-relaxed">
+            <p className="text-sm sm:text-base text-[#3e4a39] font-sans leading-relaxed">
               {subtitle}
             </p>
           </div>
@@ -320,19 +322,19 @@ export function EditorialShowcaseSection({
             actionTo ? (
               <Link
                 to={actionTo}
-                className="border-b-2 border-[#126c0f] text-[#126c0f] hover:text-[#029907] hover:border-[#029907] font-bold text-sm pb-1 inline-flex items-center gap-1.5 transition-colors self-start md:self-auto"
+                className="group px-5 py-2.5 rounded-xl border border-[#126c0f]/40 hover:border-[#126c0f] bg-white/80 backdrop-blur-sm text-[#126c0f] hover:bg-[#126c0f]/5 font-bold text-sm inline-flex items-center gap-2 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 self-start md:self-auto"
               >
                 <span>{actionLabel}</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             ) : (
               <button
                 type="button"
                 onClick={onAction}
-                className="border-b-2 border-[#126c0f] text-[#126c0f] hover:text-[#029907] hover:border-[#029907] font-bold text-sm pb-1 inline-flex items-center gap-1.5 transition-colors self-start md:self-auto cursor-pointer"
+                className="group px-5 py-2.5 rounded-xl border border-[#126c0f]/40 hover:border-[#126c0f] bg-white/80 backdrop-blur-sm text-[#126c0f] hover:bg-[#126c0f]/5 font-bold text-sm inline-flex items-center gap-2 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 self-start md:self-auto cursor-pointer"
               >
                 <span>{actionLabel}</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
             )
           )}
@@ -340,7 +342,7 @@ export function EditorialShowcaseSection({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
           {/* Izquierda: Recurso destacado 16:10 */}
-          <div className="relative aspect-[16/10] overflow-hidden bg-[#1a1c1c] border border-[#bdcbb4]/60">
+          <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-[#1a1c1c] border border-[#bdcbb4]/60">
             <img
               src={featuredImage}
               alt={featuredAlt}
@@ -352,7 +354,7 @@ export function EditorialShowcaseSection({
                   {featuredKicker}
                 </span>
               )}
-              <h4 className="text-xl sm:text-2xl font-black text-white mt-1 font-display">
+              <h4 className="text-xl sm:text-2xl font-black tracking-tight text-white mt-1 font-display">
                 {featuredTitle}
               </h4>
             </div>
@@ -367,10 +369,10 @@ export function EditorialShowcaseSection({
                   idx === 0 ? 'border-[#126c0f]' : 'border-[#bdcbb4]'
                 }`}
               >
-                <h4 className="text-lg font-bold text-[#1a1c1c] font-display">
+                <h4 className="text-lg font-bold tracking-tight text-[#1a1c1c] font-display">
                   {item.title}
                 </h4>
-                <p className="text-sm text-[#3e4a39] mt-1 leading-relaxed">
+                <p className="text-sm text-[#3e4a39] font-sans mt-1 leading-relaxed">
                   {item.desc}
                 </p>
               </div>
@@ -415,14 +417,14 @@ export function EditorialConnectSection({
   return (
     <section className="py-16 md:py-24 bg-[#f9f9f9]">
       <div className="max-w-5xl mx-auto px-6 sm:px-8">
-        <div className="bg-white shadow-xl border border-[#bdcbb4]/60 flex flex-col md:flex-row overflow-hidden text-left">
+        <div className="bg-white rounded-xl shadow-xl border border-[#bdcbb4]/60 flex flex-col md:flex-row overflow-hidden text-left">
           {/* Izquierda: Bloque sólido Verde Oscuro SERAM */}
           <div className="md:w-1/3 bg-[#126c0f] text-white p-8 md:p-10 flex flex-col justify-between space-y-8">
             <div className="space-y-4">
-              <h2 className="text-2xl sm:text-3xl font-black font-display">
+              <h2 className="text-2xl sm:text-3xl font-black tracking-tight font-display">
                 {title}
               </h2>
-              <p className="text-sm text-white/90 leading-relaxed">
+              <p className="text-sm text-white/90 font-sans leading-relaxed">
                 {subtitle}
               </p>
             </div>
@@ -448,16 +450,16 @@ export function EditorialConnectSection({
                 <div className="w-12 h-12 bg-[#126c0f]/10 text-[#126c0f] flex items-center justify-center">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
-                <h3 className="text-xl font-bold text-[#1a1c1c] font-display">
+                <h3 className="text-xl font-bold tracking-tight text-[#1a1c1c] font-display">
                   Consulta recibida correctamente
                 </h3>
-                <p className="text-sm text-[#3e4a39] leading-relaxed">
+                <p className="text-sm text-[#3e4a39] font-sans leading-relaxed">
                   Gracias, <span className="font-semibold text-[#1a1c1c]">{formData.name || 'estimado/a'}</span>. Hemos abierto nuestro asistente técnico para atender tu solicitud sobre <span className="font-semibold text-[#126c0f]">{formData.interest}</span> de forma inmediata.
                 </p>
                 <button
                   type="button"
                   onClick={() => setSubmitted(false)}
-                  className="text-xs font-bold uppercase tracking-wider text-[#126c0f] hover:text-[#029907] border-b border-[#126c0f] pb-0.5 cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl border border-[#126c0f]/40 hover:border-[#126c0f] bg-white/80 backdrop-blur-sm text-[#126c0f] hover:bg-[#126c0f]/5 text-xs font-bold uppercase tracking-wider hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 cursor-pointer"
                 >
                   Enviar otra consulta
                 </button>
@@ -530,10 +532,10 @@ export function EditorialConnectSection({
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="px-7 py-3.5 bg-[#126c0f] hover:bg-[#029907] text-white font-bold text-sm transition-colors inline-flex items-center gap-2 cursor-pointer"
+                    className="group px-7 py-3.5 rounded-xl bg-[#126c0f] hover:bg-[#029907] text-white font-bold text-sm shadow-lg shadow-[#126c0f]/20 hover:shadow-[#029907]/30 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 inline-flex items-center gap-2 cursor-pointer"
                   >
                     <span>{submitLabel}</span>
-                    <Send className="w-4 h-4" />
+                    <Send className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </button>
                 </div>
               </form>

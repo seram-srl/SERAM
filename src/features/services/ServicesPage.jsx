@@ -67,25 +67,25 @@ export default function ServicesPage() {
     {
       id: 'civil',
       icon: FileText,
-      title: 'Licencias y FNCA',
-      desc: 'Categorización Ambiental (Cat. 1 a 4), formularios ambientales, estudios EEIA, PPM-PASA y atención a observaciones administrativas.',
-      actionLabel: 'Precalificar Trámite',
+      title: 'Licencias para Construir y Operar',
+      desc: 'Definimos exactamente qué permiso necesita tu proyecto, armamos tu expediente completo y resolvemos observaciones para que tu obra no se detenga.',
+      actionLabel: 'Evaluar mi Proyecto',
       onAction: () => openChatbot('q2_civil')
     },
     {
       id: 'industrial',
       icon: Factory,
-      title: 'Industria & RAI',
-      desc: 'Registro Ambiental Industrial (RAI), Manifiestos, monitoreos con laboratorio acreditado y Programas de Seguridad PSST.',
-      actionLabel: 'Evaluar Planta',
+      title: 'Industria sin Multas ni Clausuras',
+      desc: 'Ponemos al día tu Registro Ambiental Industrial (RAI), reportes periódicos, análisis con laboratorio acreditado y planes de seguridad laboral.',
+      actionLabel: 'Revisar mi Planta',
       onAction: () => openChatbot('q2_industrial')
     },
     {
       id: 'mining',
       icon: Layers,
-      title: 'Minería & Plan EMAP',
-      desc: 'Documentación técnica para Formulario de Prospección Minera, habilitación EMAP y planimetría georreferenciada en WGS-84.',
-      actionLabel: 'Evaluar Concesión',
+      title: 'Minería con Respaldo Normativo',
+      desc: 'Preparamos la documentación ambiental y los planos georreferenciados que exige tu operación minera para trabajar con seguridad jurídica.',
+      actionLabel: 'Evaluar Operación',
       onAction: () => openChatbot('q2_mining')
     }
   ];
@@ -121,64 +121,64 @@ export default function ServicesPage() {
 
       {/* 1. HERO EDITORIAL */}
       <EditorialHeroSection
-        kicker="CONSULTORÍA AMBIENTAL EN BOLIVIA"
-        title="Consultoría y Licencias Ambientales"
-        titleAccent="para tu operación en Bolivia."
-        description="Combinamos gestión regulatoria, relevamiento territorial bajo demanda y trámite ordenado ante AACD y AACN para respaldar proyectos civiles, industriales y mineros."
+        kicker="GESTIÓN AMBIENTAL PARA EMPRESAS EN BOLIVIA"
+        title="Tus Licencias Ambientales al día,"
+        titleAccent="sin frenar tu operación."
+        description="Te ayudamos a resolver permisos, ordenar el cumplimiento ambiental de tu negocio y evitar multas o paralizaciones con un acompañamiento claro de principio a fin."
         backgroundImage="/assets/3d-backend/panel2-service-background.webp"
         backgroundAlt="Consultoría Ambiental SERAM SRL en Bolivia"
-        primaryCtaLabel="Iniciar Diagnóstico"
+        primaryCtaLabel="Evaluar mi Caso Ahora"
         onPrimaryCta={() => openChatbot('q1')}
-        secondaryCtaLabel="Explorar Portafolio"
+        secondaryCtaLabel="Ver Servicios"
         onSecondaryCta={scrollToCatalog}
       />
 
       {/* 2. PILARES EDITORIALES */}
       <EditorialPillarsSection
-        title="Soluciones Técnicas para Cada Operación"
-        subtitle="Desde el relevamiento en campo hasta la gestión formal de tu Licencia Ambiental o RAI, acompañamos cada etapa normativa de tu empresa."
+        title="Soluciones Claras para el Crecimiento de tu Empresa"
+        subtitle="Nos encargamos de todo el proceso —desde la visita a terreno hasta la entrega de tu licencia o registro— para que tú te enfoques en hacer producir tu negocio."
         cards={pillars}
       />
 
       {/* 3. BENTO METODOLOGÍA */}
       <EditorialBentoSection
-        kicker="METODOLOGÍA SERAM"
-        title="Datos, territorio y normativa en un mismo flujo técnico."
-        description="Integramos análisis territorial, control documental y seguimiento técnico ordenado para entregarte trámites claros y trazables ante la autoridad competente."
-        ctaLabel="Evaluar mi proyecto"
+        kicker="CÓMO TRABAJAMOS"
+        title="Orden, rapidez y tranquilidad frente a cada inspección."
+        description="Centralizamos la información de tu empresa, verificamos tu terreno y hacemos seguimiento directo ante la autoridad ambiental para entregarte trámites claros y sin sorpresas."
+        ctaLabel="Solicitar diagnóstico"
         onCtaClick={() => openChatbot('q1')}
         stats={[
-          { value: 'Ley 1333', label: 'Alineación normativa y D.S. 3549' },
-          { value: '24/48h', label: 'Respuesta inicial de diagnóstico' }
+          { value: '100% Legal', label: 'Cumplimiento garantizado ante Ley 1333' },
+          { value: '24/48h', label: 'Diagnóstico inicial para tu empresa' }
         ]}
         image="/assets/3d-backend/gis_satellite_mapping.webp"
-        imageAlt="Relevamiento territorial y georreferenciación WGS-84 SERAM"
-        imageCaptionTitle="Datum Oficial WGS-84"
-        imageCaptionText="Relevamiento técnico y documentación lista para AACD y AACN."
+        imageAlt="Relevamiento territorial y georreferenciación SERAM"
+        imageCaptionTitle="Precisión en Campo"
+        imageCaptionText="Levantamiento técnico y expedientes listos para aprobación oficial."
       />
 
       {/* 4. SHOWCASE OPERATIVO */}
       <EditorialShowcaseSection
-        title="Gestión Documental sin Contratiempos"
-        subtitle="Estructuramos cada expediente técnico para prevenir observaciones y resguardar la continuidad operativa de tu proyecto."
-        actionLabel="Abrir formulario de cotización"
+        title="Trámites Ambientales sin Contratiempos ni Demoras"
+        subtitle="Preparamos cada expediente a la medida de tu actividad para prevenir observaciones y resguardar la continuidad de tu empresa."
+        actionLabel="Solicitar cotización formal"
         actionTo="/quote"
         featuredImage="/assets/3d-backend/licencias_fnca.webp"
-        featuredAlt="Gestión de Licencias Ambientales FNCA en Bolivia"
-        featuredKicker="TRÁMITES REGULATORIOS"
-        featuredTitle="Expedientes Ambientales FNCA, RAI y EMAP"
+        featuredAlt="Gestión de Licencias Ambientales en Bolivia"
+        featuredKicker="CONTINUIDAD OPERATIVA"
+        featuredTitle="Licencias Ambientales, Registros Industriales y Planes de Manejo"
         items={[
           {
-            title: 'Precalificación Regulatoria',
-            desc: 'Identificamos la categoría ambiental y requisitos exactos de tu actividad antes de iniciar cualquier gestión.'
+            title: '1. Diagnóstico sin Rodeos',
+            desc: 'Te decimos desde el primer día qué permiso corresponde a tu negocio, cuánto tiempo toma y qué requisitos necesitas.'
           },
           {
-            title: 'Levantamiento en Campo',
-            desc: 'Relevamiento técnico, georreferenciación WGS-84 y análisis territorial bajo demanda según el alcance del proyecto.'
+            title: '2. Visita y Levantamiento en Terreno',
+            desc: 'Nuestro equipo recopila los datos y planos de tu planta, obra o proyecto sin interrumpir tus actividades diarias.'
           },
           {
-            title: 'Seguimiento ante AACD y AACN',
-            desc: 'Atención oportuna a observaciones técnicas y acompañamiento ordenado hasta la emisión de tu licencia.'
+            title: '3. Seguimiento hasta la Aprobación',
+            desc: 'Atendemos cada consulta u observación de la autoridad ambiental hasta entregarte tu resolución vigente.'
           }
         ]}
       />
@@ -188,11 +188,11 @@ export default function ServicesPage() {
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 space-y-10 text-left">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#126c0f]">
-                PORTAFOLIO TÉCNICO
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#126c0f] font-sans">
+                PORTAFOLIO DE SERVICIOS
               </p>
-              <h2 className="text-3xl sm:text-4xl font-black text-[#1a1c1c] mt-2 font-display">
-                Servicios Ambientales Listos para Cotizar
+              <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-[#1a1c1c] mt-2 font-display">
+                Elige la Solución que tu Empresa Necesita
               </h2>
             </div>
 
@@ -202,9 +202,9 @@ export default function ServicesPage() {
                   key={cat}
                   type="button"
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 py-2 text-xs font-bold border transition-colors cursor-pointer ${
+                  className={`px-4 py-2 rounded-lg text-xs font-bold border hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 cursor-pointer ${
                     selectedCategory === cat
-                      ? 'bg-[#126c0f] text-white border-[#126c0f]'
+                      ? 'bg-[#126c0f] text-white border-[#126c0f] shadow-md shadow-[#126c0f]/20'
                       : 'bg-[#f9f9f9] text-[#3e4a39] border-[#bdcbb4] hover:border-[#126c0f]'
                   }`}
                 >
@@ -224,30 +224,30 @@ export default function ServicesPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: '-30px' }}
                   transition={{ duration: 0.4, delay: idx * 0.04 }}
-                  className="bg-white border border-[#bdcbb4] hover:border-[#126c0f] p-7 flex flex-col justify-between space-y-6 transition-all text-left group"
+                  className="bg-white rounded-xl border border-[#bdcbb4] hover:border-[#126c0f] hover:shadow-lg hover:shadow-[#126c0f]/5 p-7 flex flex-col justify-between space-y-6 transition-all duration-300 text-left group"
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-bold uppercase tracking-wider text-[#126c0f]">
+                      <span className="text-xs font-bold uppercase tracking-wider text-[#126c0f] font-sans">
                         {srv.category || 'Consultoría'}
                       </span>
-                      <span className="text-xs font-bold text-[#1a1c1c] bg-[#eeeeee] px-2.5 py-1">
+                      <span className="text-xs font-bold text-[#1a1c1c] bg-[#eeeeee] rounded-md px-2.5 py-1 font-sans">
                         {srv.price ? `Desde ${srv.price}` : 'A medida'}
                       </span>
                     </div>
 
-                    <h3 className="text-xl font-bold text-[#1a1c1c] group-hover:text-[#126c0f] transition-colors leading-snug font-display">
+                    <h3 className="text-xl font-bold tracking-tight text-[#1a1c1c] group-hover:text-[#126c0f] transition-colors leading-snug font-display">
                       {srv.title}
                     </h3>
 
-                    <p className="text-sm text-[#3e4a39] leading-relaxed">
+                    <p className="text-sm text-[#3e4a39] font-sans leading-relaxed">
                       {srv.desc}
                     </p>
 
                     {Array.isArray(srv.features) && srv.features.length > 0 && (
                       <ul className="space-y-2 pt-3 border-t border-[#bdcbb4]/50">
                         {srv.features.slice(0, 4).map((f, i) => (
-                          <li key={i} className="text-xs text-[#3e4a39] flex items-center gap-2">
+                          <li key={i} className="text-xs text-[#3e4a39] font-sans flex items-center gap-2">
                             <CheckCircle2 className="w-4 h-4 text-[#126c0f] flex-shrink-0" />
                             <span>{f}</span>
                           </li>
@@ -260,18 +260,18 @@ export default function ServicesPage() {
                     <button
                       type="button"
                       onClick={() => openChatbot(chatbotStep)}
-                      className="flex-1 py-3 px-4 bg-[#126c0f] hover:bg-[#029907] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                      className="flex-1 py-3 px-4 rounded-xl bg-[#126c0f] hover:bg-[#029907] text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-[#126c0f]/20 hover:shadow-[#029907]/30 hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer"
                     >
                       <Sparkles className="w-3.5 h-3.5" />
                       <span>Cotizar con Asistente</span>
                     </button>
                     <Link
                       to="/quote"
-                      className="p-3 border border-[#bdcbb4] hover:border-[#126c0f] text-[#126c0f] hover:bg-[#126c0f]/5 transition-colors inline-flex items-center justify-center"
+                      className="group/link p-3 rounded-xl border border-[#126c0f]/40 hover:border-[#126c0f] bg-white/80 backdrop-blur-sm text-[#126c0f] hover:bg-[#126c0f]/5 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 inline-flex items-center justify-center"
                       title="Abrir formulario completo"
                       aria-label="Abrir formulario completo de cotización"
                     >
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
                     </Link>
                   </div>
                 </motion.article>
@@ -283,13 +283,13 @@ export default function ServicesPage() {
 
       {/* 5. CONECTEMOS */}
       <EditorialConnectSection
-        title="Conectemos"
-        subtitle="Cuéntanos sobre tu proyecto, planta industrial o concesión en Bolivia. Te respondemos con una ruta técnica clara."
+        title="Hablemos de tu Empresa"
+        subtitle="Cuéntanos sobre tu proyecto, planta industrial u operación en Bolivia. Te respondemos con una ruta clara para poner todo en regla."
         interestOptions={[
-          'Licencias Ambientales FNCA',
+          'Licencias Ambientales y Permisos',
           'Registro Ambiental Industrial (RAI)',
-          'Minería & Plan EMAP',
-          'Análisis Territorial & Dron'
+          'Minería y Planes Ambientales',
+          'Evaluación en Terreno'
         ]}
         onConnectSubmit={() => openChatbot('q1')}
       />

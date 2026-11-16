@@ -104,24 +104,24 @@ export default function ExperiencePage() {
     {
       id: 'reforest',
       icon: TreePine,
-      title: 'Reforestación & Adopción',
-      desc: 'Polígonos forestales con especies nativas, etiquetas QR por árbol e informes periódicos de seguimiento y retención hídrica.',
+      title: 'Reforestación con Evidencia Real',
+      desc: 'Plantamos árboles nativos en zonas definidas, con ubicación GPS, código QR e informes periódicos para respaldar tus metas de sostenibilidad.',
       actionLabel: 'Adoptar Polígono',
       onAction: () => openChatbot('q2_experience')
     },
     {
       id: 'carbon',
       icon: Cloud,
-      title: 'Huella de Carbono ISO 14064',
-      desc: 'Cuantificación rigurosa de CO2 equivalente, métricas Scope 1-3 y estrategia de compensación verificable para organizaciones.',
+      title: 'Medición de Huella de Carbono',
+      desc: 'Calculamos las emisiones de tu empresa bajo estándar internacional y diseñamos un plan práctico para reducirlas y compensarlas.',
       actionLabel: 'Medir Emisiones',
       onAction: () => openChatbot('q2_experience')
     },
     {
       id: 'soil',
       icon: Sprout,
-      title: 'Suelos, Huertos & Voluntariado',
-      desc: 'Bio-insumos regenerativos, compostaje, huertos urbanos y jornadas vivenciales corporativas que fortalecen la cultura ESG.',
+      title: 'Voluntariado y Cultura Verde',
+      desc: 'Organizamos jornadas en terreno, huertos empresariales y actividades prácticas que involucran a tu equipo con el cuidado ambiental.',
       actionLabel: 'Organizar Jornada',
       onAction: () => openChatbot('q2_experience')
     }
@@ -164,13 +164,13 @@ export default function ExperiencePage() {
 
       {/* 1. HERO EDITORIAL */}
       <EditorialHeroSection
-        kicker="SOSTENIBILIDAD CORPORATIVA · SERAM EXPERIENCE"
+        kicker="SOSTENIBILIDAD PARA EMPRESAS · SERAM EXPERIENCE"
         title="Reforestación y Carbono Neutro"
-        titleAccent="con impacto ESG verificable."
-        description="Unimos ciencia ambiental, restauración de suelos y trazabilidad georreferenciada para que empresas e instituciones transformen su compromiso climático en acciones medibles en Bolivia."
+        titleAccent="con resultados medibles para tu marca."
+        description="Ayudamos a tu empresa a cumplir sus metas de sostenibilidad en Bolivia mediante medición de huella de carbono, reforestación verificada y jornadas para tu equipo."
         backgroundImage="/assets/3d-backend/bg_experience.webp"
         backgroundAlt="SERAM Experience Restauración Forestal e Impacto Ambiental"
-        primaryCtaLabel="Cotizar Programa ESG"
+        primaryCtaLabel="Cotizar Programa Empresarial"
         onPrimaryCta={() => openChatbot('q2_experience')}
         secondaryCtaLabel="Ver Programas y Videos"
         onSecondaryCta={scrollToCatalog}
@@ -178,50 +178,50 @@ export default function ExperiencePage() {
 
       {/* 2. PILARES EDITORIALES */}
       <EditorialPillarsSection
-        title="Soluciones Regenerativas para Cada Ecosistema"
-        subtitle="Desde la medición de gases de efecto invernadero hasta la restauración participativa de espacios verdes, convertimos metas ESG en resultados tangibles."
+        title="Acciones Ambientales que Generan Valor Real"
+        subtitle="Desde calcular las emisiones de tu negocio hasta plantar árboles nativos con tu equipo, convertimos tus objetivos de sostenibilidad en resultados comprobables."
         cards={experiencePillars}
       />
 
       {/* 3. BENTO CIENCIA Y TRAZABILIDAD */}
       <EditorialBentoSection
-        kicker="CIENCIA Y TRAZABILIDAD"
-        title="Ciencia, biodiversidad y seguimiento en cada hectárea."
-        description="Cada árbol adoptado y cada inventario de CO2 cuenta con coordenadas georreferenciadas, seguimiento agronómico de campo y reporte ejecutivo listo para memoria de sostenibilidad."
-        ctaLabel="Diseñar mi programa ESG"
+        kicker="RESPALDO VERIFICABLE"
+        title="Evidencia real en cada árbol plantado y en cada reporte."
+        description="Cada iniciativa incluye coordenadas GPS, seguimiento periódico en campo y un reporte ejecutivo listo para presentar a tus clientes, socios o memoria anual."
+        ctaLabel="Diseñar programa para mi empresa"
         onCtaClick={() => openChatbot('q2_experience')}
         stats={[
-          { value: 'ISO 14064-1', label: 'Estándar de cálculo de huella GEI' },
-          { value: 'GPS + QR', label: 'Trazabilidad individual por polígono' }
+          { value: 'ISO 14064-1', label: 'Estándar internacional de huella de carbono' },
+          { value: 'GPS + QR', label: 'Seguimiento real de cada árbol plantado' }
         ]}
         image="/assets/3d-backend/huella_carbono_iso.webp"
         imageAlt="Trazabilidad de Huella de Carbono y Reforestación SERAM Experience"
-        imageCaptionTitle="Restauración Ecológica en Bolivia"
-        imageCaptionText="Seguimiento agronómico de supervivencia y reportes anuales ESG."
+        imageCaptionTitle="Impacto Comprobable en Bolivia"
+        imageCaptionText="Seguimiento en campo y reportes claros para tu memoria de sostenibilidad."
       />
 
       {/* 4. SHOWCASE INICIATIVAS */}
       <EditorialShowcaseSection
         title="Del Diagnóstico Climático a la Acción en Terreno"
-        subtitle="Acompañamos a organizaciones en la medición de emisiones, diseño de campañas de reforestación y jornadas de voluntariado."
+        subtitle="Te acompañamos en cada paso para medir emisiones, impulsar campañas de reforestación y realizar jornadas de voluntariado con tu equipo."
         actionLabel="Ver servicios ambientales"
         actionTo="/services"
         featuredImage="/assets/3d-backend/bg_experience_.webp"
         featuredAlt="Jornadas de reforestación y sostenibilidad SERAM Experience"
         featuredKicker="IMPACTO AMBIENTAL POSITIVO"
-        featuredTitle="Reforestación Nativa, Bio-Campamentos y Carbono Neutro"
+        featuredTitle="Reforestación Nativa, Jornadas en Campo y Carbono Neutro"
         items={[
           {
-            title: 'Inventario de Emisiones Alcance 1, 2 y 3',
-            desc: 'Cuantificación técnica bajo ISO 14064-1 para identificar focos de reducción y compensación.'
+            title: 'Medición Clara de Emisiones',
+            desc: 'Identificamos dónde genera más emisiones tu operación para ayudarte a reducirlas de forma práctica.'
           },
           {
-            title: 'Adopción de Polígonos Forestales',
-            desc: 'Selección de especies nativas adaptadas al ecosistema local con monitoreo de supervivencia.'
+            title: 'Adopción de Árboles Nativos',
+            desc: 'Elegimos especies adaptadas a cada región y hacemos seguimiento para asegurar su crecimiento y supervivencia.'
           },
           {
-            title: 'Voluntariado Corporativo y Educativo',
-            desc: 'Jornadas guiadas en campo y talleres prácticos que conectan a tu equipo con la naturaleza.'
+            title: 'Voluntariado para tu Equipo',
+            desc: 'Jornadas guiadas al aire libre que fortalecen el compromiso de tus colaboradores y la reputación de tu marca.'
           }
         ]}
       />
@@ -233,10 +233,10 @@ export default function ExperiencePage() {
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 space-y-10 text-left relative z-10">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#126c0f]">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#126c0f] font-sans">
                 EXPERIENCIAS EN TERRENO &amp; VIDEO DOCUMENTAL
               </p>
-              <h2 className="text-3xl sm:text-4xl font-black text-[#1a1c1c] mt-2 font-display">
+              <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-[#1a1c1c] mt-2 font-display">
                 Programas Activos para Empresas y Equipos
               </h2>
             </div>
@@ -244,15 +244,15 @@ export default function ExperiencePage() {
             <div className="flex flex-wrap items-center gap-4">
               <Link
                 to="/services"
-                className="text-xs font-bold uppercase tracking-wider text-[#126c0f] hover:text-[#029907] border-b border-[#126c0f] pb-0.5 flex items-center gap-1"
+                className="group text-xs font-bold uppercase tracking-wider text-[#126c0f] hover:text-[#029907] border-b border-[#126c0f] pb-0.5 flex items-center gap-1 transition-all duration-300"
               >
                 <span>Servicios Ambientales</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <button
                 type="button"
                 onClick={() => openChatbot('q2_experience')}
-                className="px-5 py-2.5 bg-[#126c0f] hover:bg-[#029907] text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-colors cursor-pointer"
+                className="px-5 py-2.5 rounded-xl bg-[#126c0f] hover:bg-[#029907] text-white text-xs font-bold uppercase tracking-wider shadow-lg shadow-[#126c0f]/20 hover:shadow-[#029907]/30 hover:-translate-y-0.5 active:scale-[0.98] flex items-center gap-2 transition-all duration-300 cursor-pointer"
               >
                 <MapPin className="w-3.5 h-3.5" />
                 <span>Solicitar Cotización</span>
@@ -268,7 +268,7 @@ export default function ExperiencePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-30px' }}
                 transition={{ duration: 0.45, delay: idx * 0.05 }}
-                className="group bg-white border border-[#bdcbb4] hover:border-[#126c0f] flex flex-col justify-between transition-all"
+                className="group bg-white rounded-xl overflow-hidden border border-[#bdcbb4] hover:border-[#126c0f] hover:shadow-lg hover:shadow-[#126c0f]/5 flex flex-col justify-between transition-all duration-300"
               >
                 <div>
                   <div
@@ -304,16 +304,16 @@ export default function ExperiencePage() {
                   </div>
 
                   <div className="p-6 space-y-2.5">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#126c0f] block">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#126c0f] font-sans block">
                       {exp.category}
                     </span>
-                    <h3 className="text-lg font-bold text-[#1a1c1c] leading-snug font-display">
+                    <h3 className="text-lg font-bold tracking-tight text-[#1a1c1c] leading-snug font-display">
                       {renderFormattedText(exp.title)}
                     </h3>
-                    <p className="text-xs font-semibold text-[#3e4a39]">
+                    <p className="text-xs font-semibold text-[#3e4a39] font-sans">
                       {exp.subtitle}
                     </p>
-                    <p className="text-sm text-[#3e4a39] leading-relaxed pt-1">
+                    <p className="text-sm text-[#3e4a39] font-sans leading-relaxed pt-1">
                       {exp.desc}
                     </p>
                   </div>
@@ -323,15 +323,15 @@ export default function ExperiencePage() {
                   <button
                     type="button"
                     onClick={() => openChatbot('q2_experience')}
-                    className="flex-1 py-3 px-4 bg-[#126c0f] hover:bg-[#029907] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    className="group/btn flex-1 py-3 px-4 rounded-xl bg-[#126c0f] hover:bg-[#029907] text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-[#126c0f]/20 hover:shadow-[#029907]/30 hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-1.5 transition-all duration-300 cursor-pointer"
                   >
                     <span>{exp.cta}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveVideoModal(exp)}
-                    className="p-3 border border-[#bdcbb4] hover:border-[#126c0f] text-[#126c0f] hover:bg-[#126c0f]/5 transition-colors cursor-pointer"
+                    className="p-3 rounded-xl border border-[#126c0f]/40 hover:border-[#126c0f] bg-white/80 backdrop-blur-sm text-[#126c0f] hover:bg-[#126c0f]/5 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 cursor-pointer"
                     title="Ampliar video"
                     aria-label="Ampliar video demostrativo"
                   >
@@ -346,13 +346,13 @@ export default function ExperiencePage() {
 
       {/* 5. CONECTEMOS */}
       <EditorialConnectSection
-        title="Conectemos"
-        subtitle="¿Tu organización busca medir su huella de carbono o impulsar una campaña de reforestación en Bolivia? Conversemos."
+        title="Impulsemos tu Meta Sostenible"
+        subtitle="¿Tu empresa busca medir su huella de carbono o lanzar una campaña de reforestación con impacto real en Bolivia? Conversemos."
         interestOptions={[
-          'Reforestación Corporativa & Adopción',
-          'Huella de Carbono ISO 14064-1',
-          'Voluntariado Ambiental & Bio-Campamentos',
-          'Sostenibilidad Corporativa ESG'
+          'Reforestación Corporativa y Adopción',
+          'Medición de Huella de Carbono',
+          'Voluntariado Ambiental para Equipos',
+          'Programas de Sostenibilidad Empresarial'
         ]}
         onConnectSubmit={() => openChatbot('q2_experience')}
       />
@@ -404,7 +404,7 @@ export default function ExperiencePage() {
               </div>
 
               <div className="p-4 bg-[#f9f9f9] flex flex-col sm:flex-row items-center justify-between gap-3 text-left border-t border-[#bdcbb4]">
-                <p className="text-xs text-[#3e4a39]">
+                <p className="text-xs text-[#3e4a39] font-sans leading-relaxed">
                   {activeVideoModal.subtitle}
                 </p>
                 <button
@@ -413,10 +413,10 @@ export default function ExperiencePage() {
                     setActiveVideoModal(null);
                     openChatbot('q2_experience');
                   }}
-                  className="w-full sm:w-auto px-5 py-2.5 bg-[#126c0f] hover:bg-[#029907] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  className="group w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#126c0f] hover:bg-[#029907] text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-[#126c0f]/20 hover:shadow-[#029907]/30 hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-1.5 transition-all duration-300 cursor-pointer"
                 >
                   <span>{activeVideoModal.cta}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
             </motion.div>

@@ -131,24 +131,24 @@ export default function AcademyPage() {
     {
       id: 'residuos',
       icon: Compass,
-      title: 'Gestión de Residuos & Ley 755',
-      desc: 'Clasificación, manifiestos de transporte, acopio, economía circular y manejo integral de residuos sólidos bajo normativa vigente.',
+      title: 'Manejo Ordenado de Residuos',
+      desc: 'Aprende a clasificar residuos, organizar el acopio interno, cumplir con los manifiestos de transporte y reducir costos con economía circular.',
       actionLabel: 'Ver Ruta Residuos',
       onAction: () => scrollToCatalog('Gestión de Residuos')
     },
     {
       id: 'fnca',
       icon: Layers,
-      title: 'Trámites & Licencias FNCA',
-      desc: 'Categorización ambiental Cat. 1 a 4, matrices PPM-PASA y expedientes técnicos ante AACD y AACN bajo D.S. 3549.',
+      title: 'Trámites y Permisos sin Errores',
+      desc: 'Domina paso a paso qué documentos exige la ley para tu actividad, cómo armar expedientes ordenados y cómo responder sin demoras.',
       actionLabel: 'Ver Ruta Trámites',
       onAction: () => scrollToCatalog('Trámites & Licencias')
     },
     {
       id: 'legal',
       icon: ShieldCheck,
-      title: 'Derecho, Bioseguridad & Normativa',
-      desc: 'Compendios interpretados Ley 1333, gestión sostenible, bioseguridad operativa y respuesta técnica a conminatorias.',
+      title: 'Normativa, Bioseguridad y Prevención',
+      desc: 'Guías claras sobre la Ley 1333, protocolos de bioseguridad en planta y cómo prevenir sanciones o conminatorias en tu empresa.',
       actionLabel: 'Ver Ruta Legal',
       onAction: () => scrollToCatalog('Derecho & Normativa')
     }
@@ -209,63 +209,63 @@ export default function AcademyPage() {
       {/* 1. HERO EDITORIAL */}
       <EditorialHeroSection
         kicker="CAMPUS VIRTUAL · SERAM ACADEMY"
-        title="Capacitación Ambiental Práctica"
-        titleAccent="para fortalecer tu gestión."
-        description="Aprende normativa Ley 1333, Formularios FNCA, gestión sostenible, economía circular y bioseguridad con clases prácticas en video HD, apuntes y certificados verificables por QR."
+        title="Capacita a tu Equipo en"
+        titleAccent="Gestión Ambiental Práctica."
+        description="Cursos claros y aplicables desde el primer día para ordenar los permisos, residuos y bioseguridad de tu empresa, con clases en video HD y certificados verificables por QR."
         backgroundImage="/assets/3d-backend/bg_academy.webp"
         backgroundAlt="Campus Virtual SERAM Academy en Bolivia"
-        primaryCtaLabel="Asesoría de Capacitación"
+        primaryCtaLabel="Solicitar Capacitación"
         onPrimaryCta={() => openChatbot('q2_training')}
-        secondaryCtaLabel="Explorar Catálogo"
+        secondaryCtaLabel="Ver Cursos y Guías"
         onSecondaryCta={() => scrollToCatalog()}
       />
 
       {/* 2. PILARES EDITORIALES */}
       <EditorialPillarsSection
-        title="Formación Práctica para Cada Profesional"
-        subtitle="Elige entre guías gratuitas descargables, talleres normativos en economía circular y bioseguridad, o programas de capacitación in-company."
+        title="Formación Directa para Equipos y Profesionales"
+        subtitle="Elige entre guías gratuitas descargables, talleres prácticos en bioseguridad y manejo de residuos, o programas cerrados para tu empresa."
         cards={academyPillars}
       />
 
       {/* 3. BENTO METODOLOGÍA */}
       <EditorialBentoSection
-        kicker="METODOLOGÍA DEL CAMPUS"
-        title="Práctica, normativa y gestión aplicadas a tu trabajo diario."
-        description="Nuestro campus virtual combina reproductor interactivo, plantillas de gestión ambiental boliviana y evaluación continua con certificado digital verificable por QR."
-        ctaLabel="Solicitar capacitación corporativa"
+        kicker="APRENDIZAJE APLICADO"
+        title="Menos teoría pesada, más herramientas listas para usar en tu empresa."
+        description="Nuestro campus virtual reúne clases concretas, plantillas descargables para el día a día y evaluación con certificado digital verificable por QR."
+        ctaLabel="Cotizar capacitación para mi equipo"
         onCtaClick={() => openChatbot('q2_training')}
         stats={[
-          { value: String(publishedCourses.length || 4), label: 'Programas activos en catálogo' },
+          { value: String(publishedCourses.length || 4), label: 'Programas prácticos disponibles' },
           { value: 'QR', label: 'Certificación digital verificable' }
         ]}
         image="/assets/covers/cover_ebook_ley1333.png"
-        imageAlt="Material Técnico SERAM Academy Ley 1333 y Ley 755"
-        imageCaptionTitle="Normativa Vigente 2026"
-        imageCaptionText="Contenidos preparados por el equipo técnico de SERAM SRL en Bolivia."
+        imageAlt="Material Práctico SERAM Academy Ley 1333 y Ley 755"
+        imageCaptionTitle="Normativa Boliviana al Día"
+        imageCaptionText="Contenidos diseñados por el equipo consultor de SERAM SRL en Bolivia."
       />
 
       {/* 4. SHOWCASE AULA VIRTUAL */}
       <EditorialShowcaseSection
-        title="Aula Virtual y Entregables Descargables"
-        subtitle="Estudia a tu ritmo con lecciones en video HD, notas por marca de tiempo y documentos PDF listos para aplicar."
-        actionLabel="Consultar rutas de aprendizaje"
+        title="Aula Virtual y Recursos Listos para Aplicar"
+        subtitle="Estudia a tu ritmo con lecciones en video HD, apuntes guardados por minuto y documentos PDF descargables."
+        actionLabel="Consultar rutas de formación"
         onAction={() => openChatbot('q2_training')}
         featuredImage="/assets/covers/cover_mentoria_consultoria.png"
         featuredAlt="Aula Virtual Interactiva SERAM Academy"
         featuredKicker="EXPERIENCIA DE APRENDIZAJE"
-        featuredTitle="Clases en Video HD, Matrices y Certificación QR"
+        featuredTitle="Clases en Video HD, Plantillas Prácticas y Certificación QR"
         items={[
           {
-            title: 'Notas por Marca de Tiempo',
-            desc: 'Guarda apuntes directamente vinculados al minuto exacto de cada clase dentro del reproductor.'
+            title: 'Apuntes en el Minuto Exacto',
+            desc: 'Guarda tus notas directamente vinculadas al momento clave de cada clase para repasar cuando lo necesites.'
           },
           {
-            title: 'Plantillas y Formatos Oficiales',
-            desc: 'Descarga guías PDF, matrices de seguimiento ambiental y carimbos técnicos de referencia.'
+            title: 'Guías y Formatos Descargables',
+            desc: 'Descarga manuales en PDF, matrices de control interno y formatos de referencia listos para tu operación.'
           },
           {
-            title: 'Programas In-Company B2B',
-            desc: 'Capacitación cerrada para equipos de ingeniería, plantas industriales y gobiernos locales.'
+            title: 'Talleres Cerrados para Empresas',
+            desc: 'Entrenamiento a medida para personal operativo, jefes de planta y responsables de seguridad y medio ambiente.'
           }
         ]}
       />
@@ -275,18 +275,18 @@ export default function AcademyPage() {
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 space-y-10 text-left">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#126c0f]">
-                CATÁLOGO OFICIAL EN VIVO
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#126c0f] font-sans">
+                CATÁLOGO EN VIVO
               </p>
-              <h2 className="text-3xl sm:text-4xl font-black text-[#1a1c1c] mt-2 font-display">
-                Cursos, Talleres y Documentos Descargables
+              <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-[#1a1c1c] mt-2 font-display">
+                Cursos, Talleres y Guías Descargables
               </h2>
             </div>
 
             <button
               type="button"
               onClick={() => openChatbot('q2_training')}
-              className="px-5 py-2.5 border-2 border-[#126c0f] text-[#126c0f] hover:bg-[#126c0f] hover:text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-colors self-start sm:self-auto cursor-pointer"
+              className="px-5 py-2.5 rounded-xl border border-[#126c0f]/40 hover:border-[#126c0f] bg-white/80 backdrop-blur-sm text-[#126c0f] hover:bg-[#126c0f]/5 text-xs font-bold uppercase tracking-wider flex items-center gap-2 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 self-start sm:self-auto cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>¿No sabes cuál elegir? Te orientamos</span>
@@ -303,9 +303,9 @@ export default function AcademyPage() {
                   key={tab.id}
                   type="button"
                   onClick={() => setSelectedTicket(tab.id)}
-                  className={`p-4 border text-left transition-all cursor-pointer flex flex-col justify-between gap-2 ${
+                  className={`p-4 rounded-xl border text-left hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 cursor-pointer flex flex-col justify-between gap-2 ${
                     isSelected
-                      ? 'border-[#126c0f] bg-[#126c0f] text-white'
+                      ? 'border-[#126c0f] bg-[#126c0f] text-white shadow-lg shadow-[#126c0f]/20'
                       : 'bg-[#f9f9f9] border-[#bdcbb4] hover:border-[#126c0f] text-[#1a1c1c]'
                   }`}
                 >
@@ -404,9 +404,9 @@ export default function AcademyPage() {
 
           {/* Grid de Cursos */}
           {filteredCourses.length === 0 ? (
-            <div className="bg-[#f9f9f9] p-12 text-center space-y-4 border border-[#bdcbb4]">
+            <div className="bg-[#f9f9f9] p-12 rounded-xl text-center space-y-4 border border-[#bdcbb4]">
               <BookOpen className="w-10 h-10 text-[#126c0f] mx-auto" />
-              <h3 className="text-lg font-bold text-[#1a1c1c]">
+              <h3 className="text-lg font-bold tracking-tight text-[#1a1c1c] font-display">
                 No encontramos cursos con esa combinación de filtros
               </h3>
               <button
@@ -418,7 +418,7 @@ export default function AcademyPage() {
                   setSelectedFormat('all');
                   setSearchQuery('');
                 }}
-                className="px-6 py-3 bg-[#126c0f] hover:bg-[#029907] text-white font-bold text-xs uppercase tracking-wider cursor-pointer"
+                className="px-6 py-3 rounded-xl bg-[#126c0f] hover:bg-[#029907] text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-[#126c0f]/20 hover:shadow-[#029907]/30 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 cursor-pointer"
               >
                 Ver Todo el Catálogo
               </button>
@@ -436,7 +436,7 @@ export default function AcademyPage() {
                     viewport={{ once: true, margin: '-30px' }}
                     transition={{ duration: 0.4, delay: idx * 0.04 }}
                     onClick={() => navigate(`/academy/course/${course.id}`)}
-                    className="group bg-white border border-[#bdcbb4] hover:border-[#126c0f] flex flex-col justify-between transition-all cursor-pointer"
+                    className="group bg-white rounded-xl overflow-hidden border border-[#bdcbb4] hover:border-[#126c0f] hover:shadow-lg hover:shadow-[#126c0f]/5 flex flex-col justify-between transition-all duration-300 cursor-pointer"
                   >
                     <div>
                       <div className="relative h-48 overflow-hidden bg-[#1a1c1c]">
@@ -468,19 +468,19 @@ export default function AcademyPage() {
                       </div>
 
                       <div className="p-6 space-y-2.5">
-                        <h3 className="text-lg font-bold text-[#1a1c1c] group-hover:text-[#126c0f] transition-colors leading-snug font-display">
+                        <h3 className="text-lg font-bold tracking-tight text-[#1a1c1c] group-hover:text-[#126c0f] transition-colors leading-snug font-display">
                           <Link to={`/academy/course/${course.id}`} className="hover:underline">
                             {renderFormattedText(course.title)}
                           </Link>
                         </h3>
-                        <p className="text-sm text-[#3e4a39] line-clamp-2 leading-relaxed">
+                        <p className="text-sm text-[#3e4a39] font-sans line-clamp-2 leading-relaxed">
                           {course.desc}
                         </p>
                       </div>
                     </div>
 
                     <div className="px-6 pb-6 pt-4 border-t border-[#bdcbb4]/50 flex items-center justify-between gap-3">
-                      <div className="text-xs text-[#3e4a39] truncate">
+                      <div className="text-xs text-[#3e4a39] font-sans truncate">
                         <span className="text-[#1a1c1c] font-bold block truncate">{course.instructor}</span>
                         <span>{course.students || 0} estudiantes</span>
                       </div>
@@ -488,11 +488,11 @@ export default function AcademyPage() {
                       <Link
                         to={`/academy/course/${course.id}`}
                         onClick={(e) => e.stopPropagation()}
-                        className="px-4 py-2.5 bg-[#126c0f] hover:bg-[#029907] text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-colors flex-shrink-0 cursor-pointer"
+                        className="group/btn px-4 py-2.5 rounded-xl bg-[#126c0f] hover:bg-[#029907] text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-[#126c0f]/20 hover:shadow-[#029907]/30 hover:-translate-y-0.5 active:scale-[0.98] flex items-center gap-1.5 transition-all duration-300 flex-shrink-0 cursor-pointer"
                         aria-label={`Acceder al curso ${String(course.title || '').replace(/\*/g, '')}`}
                       >
                         <span>{isPdf ? 'Abrir PDF' : 'Entrar al Aula'}</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
+                        <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
                       </Link>
                     </div>
                   </motion.article>
@@ -502,22 +502,22 @@ export default function AcademyPage() {
           )}
 
           {/* Bloque In-Company Corporativo conectado al Chatbot */}
-          <div className="bg-[#126c0f] text-white p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="bg-[#126c0f] text-white p-8 md:p-10 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="space-y-2 max-w-2xl">
-              <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/80 flex items-center gap-2">
-                <Building2 className="w-4 h-4" /> CAPACITACIÓN IN-COMPANY B2B
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/80 font-sans flex items-center gap-2">
+                <Building2 className="w-4 h-4" /> CAPACITACIÓN PARA EMPRESAS
               </span>
-              <h3 className="text-2xl sm:text-3xl font-black font-display">
-                ¿Necesitas entrenar a tu equipo de ingeniería o gestión ambiental?
+              <h3 className="text-2xl sm:text-3xl font-black tracking-tight font-display">
+                ¿Quieres capacitar a todo tu equipo en un solo programa?
               </h3>
-              <p className="text-sm text-white/90 leading-relaxed">
-                Preparamos programas corporativos presenciales o en línea en Ley 1333, Bioseguridad, Economía Circular y Gestión de Residuos Ley 755 con certificación oficial SERAM.
+              <p className="text-sm text-white/90 font-sans leading-relaxed">
+                Diseñamos talleres presenciales o virtuales a la medida de tu planta u oficina en normativa ambiental, bioseguridad, economía circular y manejo de residuos con certificación SERAM.
               </p>
             </div>
             <button
               type="button"
               onClick={() => openChatbot('q2_training')}
-              className="px-7 py-3.5 bg-white text-[#126c0f] hover:bg-[#eeeeee] font-bold text-xs uppercase tracking-wider flex items-center gap-2 flex-shrink-0 transition-colors cursor-pointer"
+              className="px-7 py-3.5 rounded-xl bg-white text-[#126c0f] hover:bg-[#eeeeee] font-bold text-xs uppercase tracking-wider shadow-lg shadow-black/15 hover:-translate-y-0.5 active:scale-[0.98] flex items-center gap-2 flex-shrink-0 transition-all duration-300 cursor-pointer"
             >
               <PhoneCall className="w-4 h-4" /> Cotizar Taller Corporativo
             </button>
@@ -527,13 +527,13 @@ export default function AcademyPage() {
 
       {/* 5. CONECTEMOS */}
       <EditorialConnectSection
-        title="Conectemos"
-        subtitle="¿Tienes dudas sobre un curso, taller in-company o certificación QR? Escríbenos y te orientamos."
+        title="Hablemos de Capacitación"
+        subtitle="¿Buscas un curso puntual o un taller cerrado para tu personal? Escríbenos y te ayudamos a elegir la mejor ruta."
         interestOptions={[
-          'Cursos de Normativa Ley 1333 & FNCA',
-          'Gestión de Residuos Ley 755',
-          'Economía Circular & Bioseguridad',
-          'Taller In-Company para Empresas'
+          'Cursos de Normativa y Permisos',
+          'Manejo de Residuos en Empresas',
+          'Economía Circular y Bioseguridad',
+          'Taller Cerrado para Empresas'
         ]}
         onConnectSubmit={() => openChatbot('q2_training')}
       />
